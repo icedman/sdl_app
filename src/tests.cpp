@@ -2,7 +2,19 @@
 
 layout_item_ptr layout2() {
     layout_item_ptr root = std::make_shared<layout_item>();
-    root->direction = LAYOUT_FLEX_DIRECTION_ROW;
+    root->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
+    // root->direction = LAYOUT_FLEX_DIRECTION_ROW;
+    
+    // root->justify = LAYOUT_JUSTIFY_FLEX_END;
+    root->justify = LAYOUT_JUSTIFY_CENTER;
+    // root->justify = LAYOUT_JUSTIFY_SPACE_BETWEEN;
+    // root->justify = LAYOUT_JUSTIFY_SPACE_AROUND;
+    
+    // root->align = LAYOUT_ALIGN_FLEX_START;
+    root->align = LAYOUT_ALIGN_FLEX_END;
+    // root->align = LAYOUT_ALIGN_CENTER;
+    // root->align = LAYOUT_ALIGN_STRETCH;
+
     root->x = 10;
     root->y = 10;
     root->wrap = true;
@@ -25,32 +37,12 @@ layout_item_ptr layout2() {
     root->children.push_back(item_g);
     root->children.push_back(item_h);
 
-    item_a->name = "a";
-    item_b->name = "b";
-    item_c->name = "c";
-    item_d->name = "d";
-    item_e->name = "e";
-    item_f->name = "f";
-    item_g->name = "g";
-    item_h->name = "h";
-
-    item_a->width = 200;
-    item_a->height = 40;
-    item_b->width = 200;
-    item_b->height = 40;
-    item_c->width = 200;
-    item_c->height = 40;
-    item_d->width = 200;
-    item_d->height = 40;
-    item_e->width = 200;
-    item_e->height = 40;
-    item_f->width = 200;
-    item_f->height = 40;
-    item_g->width = 200;
-    item_g->height = 40;
-    item_h->width = 200;
-    item_h->height = 40;
-
+    int i = 0;
+    for(auto child : root->children) {
+        child->name = 'a' + i++;
+        child->width = 200;
+        child->height = 200;
+    }
     return root;
 }
 

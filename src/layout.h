@@ -74,7 +74,7 @@ struct layout_item {
     int flex_shrink;            // not yet implemented
     int flex_basis;             // not yet implemented
     layout_align_items align;
-    layout_align_items align_self;
+    layout_align_items align_self;  // not yet implemented
     layout_justify_content justify;
     layout_flex_direction direction;
     layout_item_list children;
