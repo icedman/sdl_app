@@ -3,6 +3,7 @@
 
 #include "layout.h"
 
-layout_item_ptr sample_layout();
+layout_item_ptr layout1();
+layout_item_ptr layout2();
 
 #endif // TESTS_H

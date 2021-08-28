@@ -1,7 +1,65 @@
 #include "tests.h"
 
-layout_item_ptr sample_layout() {
+layout_item_ptr layout2() {
     layout_item_ptr root = std::make_shared<layout_item>();
+    root->direction = LAYOUT_FLEX_DIRECTION_ROW;
+    root->x = 10;
+    root->y = 10;
+    root->wrap = true;
+
+    layout_item_ptr item_a = std::make_shared<layout_item>();
+    layout_item_ptr item_b = std::make_shared<layout_item>();
+    layout_item_ptr item_c = std::make_shared<layout_item>();
+    layout_item_ptr item_d = std::make_shared<layout_item>();
+    layout_item_ptr item_e = std::make_shared<layout_item>();
+    layout_item_ptr item_f = std::make_shared<layout_item>();
+    layout_item_ptr item_g = std::make_shared<layout_item>();
+    layout_item_ptr item_h = std::make_shared<layout_item>();
+
+    root->children.push_back(item_a);
+    root->children.push_back(item_b);
+    root->children.push_back(item_c);
+    root->children.push_back(item_d);
+    root->children.push_back(item_e);
+    root->children.push_back(item_f);
+    root->children.push_back(item_g);
+    root->children.push_back(item_h);
+
+    item_a->name = "a";
+    item_b->name = "b";
+    item_c->name = "c";
+    item_d->name = "d";
+    item_e->name = "e";
+    item_f->name = "f";
+    item_g->name = "g";
+    item_h->name = "h";
+
+    item_a->width = 200;
+    item_a->height = 40;
+    item_b->width = 200;
+    item_b->height = 40;
+    item_c->width = 200;
+    item_c->height = 40;
+    item_d->width = 200;
+    item_d->height = 40;
+    item_e->width = 200;
+    item_e->height = 40;
+    item_f->width = 200;
+    item_f->height = 40;
+    item_g->width = 200;
+    item_g->height = 40;
+    item_h->width = 200;
+    item_h->height = 40;
+
+    return root;
+}
+
+layout_item_ptr layout1() {
+    layout_item_ptr root = std::make_shared<layout_item>();
+    root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
+    root->x = 10;
+    root->y = 10;
+
     layout_item_ptr item_a = std::make_shared<layout_item>();
     layout_item_ptr item_b = std::make_shared<layout_item>();
     layout_item_ptr item_c = std::make_shared<layout_item>();
@@ -19,12 +77,6 @@ layout_item_ptr sample_layout() {
     item_f->rgb = { 155, 0, 155 };
     item_g->rgb = { 155, 155, 0 };
     item_h->rgb = { 0, 155, 0 };
-
-    layout_item_list renderList;
-
-    root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
-    root->x = 10;
-    root->y = 10;
 
     item_a->name = "a";
     item_b->name = "b";

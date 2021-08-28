@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 {
     ren_init();
 
-    layout_item_ptr root = sample_layout();
+    layout_item_ptr root = layout2();
 
     layout_item_list render_list;
     event_list events;
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
                 i->render_rect.w,
                 i->render_rect.h
             },
-            { i->rgb.r, i->rgb.g, i->rgb.b });
+            { i->rgb.r, i->rgb.g, i->rgb.b }, false, 1.0f);
             // break;
 
             std::string text = i->name;

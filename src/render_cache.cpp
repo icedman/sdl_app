@@ -25,6 +25,8 @@ typedef struct {
     RenFont* font;
     int bold;
     int italic;
+    bool fill;
+    float stroke;
     char text[0];
 } Command;
 
@@ -127,7 +129,7 @@ void rencache_set_clip_rect(RenRect rect)
     }
 }
 
-void rencache_draw_rect(RenRect rect, RenColor color)
+void rencache_draw_rect(RenRect rect, RenColor color, bool fill, float l)
 {
     if (!rects_overlap(screen_rect, rect)) {
         return;
@@ -136,6 +138,8 @@ void rencache_draw_rect(RenRect rect, RenColor color)
     if (cmd) {
         cmd->rect = rect;
         cmd->color = color;
+        cmd->fill = fill;
+        cmd->stroke = l;
     }
 }
 
@@ -272,7 +276,7 @@ void rencache_end_frame(void)
                 ren_set_clip_rect(intersect_rects(cmd->rect, r));
                 break;
             case DRAW_RECT:
-                ren_draw_rect(cmd->rect, cmd->color);
+                ren_draw_rect(cmd->rect, cmd->color, cmd->fill, cmd->stroke);
                 break;
             case DRAW_TEXT:
                 ren_draw_text(cmd->font, cmd->text, cmd->rect.x, cmd->rect.y, cmd->color, cmd->bold, cmd->italic);

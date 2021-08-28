@@ -67,6 +67,7 @@ struct layout_item {
     layout_rect render_rect;      // final computed
 
     bool visible;
+    bool wrap;
     int x, y;
     int width, height;
     int flex;                   // flex-grow

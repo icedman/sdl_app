@@ -143,14 +143,53 @@ void layout_justify_items(layout_item_ptr item, int spaceRemaining, int visibleI
     }
 }
 
+void layout_wrap_items(layout_item_ptr item, layout_constraint constraint) {
+    if (!item->wrap || item->direction != LAYOUT_FLEX_DIRECTION_ROW) {
+        return; 
+    }
+
+    bool wrappable = false;
+    for(auto child : item->children) {
+        if (!child->visible) {
+            continue;
+        }
+        if (child->rect.x + child->rect.w > constraint.max_width) {
+            wrappable = true;
+            break;
+        }
+    }
+
+    if (!wrappable) {
+        return;
+    }
+    
+    int xx = 0;
+    int yy = 0;
+    int nextY = 0;
+    for(auto child : item->children) {
+        if (!child->visible) {
+            continue;
+        }
+        if (yy + child->rect.y + child->rect.h > nextY) {
+            nextY = yy + child->rect.y + child->rect.h;
+        }
+        if (xx + child->rect.w > constraint.max_width) {
+            xx = 0;
+            yy = nextY;
+        }
+        child->rect.x = xx;
+        child->rect.y = yy;
+        xx += child->rect.w;
+    }
+}
+
 void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
 {
     layout_rect rect = {
-x:
-        item->x, item->y,
-w:
-constraint.max_width, h:
-        constraint.max_height
+        x: item->x, 
+        y: item->y,
+        w: constraint.max_width,
+        h: constraint.max_height
     };
     item->rect = rect;
     item->render_rect = rect;
@@ -217,6 +256,10 @@ constraint.max_width, h:
     layout_justify_items(item, spaceRemaining, visibleItems);
     layout_align_items(item, constraint.max_height);
     layout_reverse_items(item, constraint.max_width);
+
+    if (spaceRemaining <= 0) {
+        layout_wrap_items(item, constraint);
+    }
 }
 
 void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
@@ -227,11 +270,10 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     }
 
     layout_rect rect = {
-x:
-        item->x, item->y,
-w:
-constraint.max_width, h:
-        constraint.max_height
+        x: item->x, 
+        y: item->y,
+        w: constraint.max_width,
+        h: constraint.max_height
     };
     item->rect = rect;
     item->render_rect = rect;
