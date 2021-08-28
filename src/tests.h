@@ -1,9 +1,11 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+#include "view.h"
 #include "layout.h"
 
-layout_item_ptr layout1();
-layout_item_ptr layout2();
+layout_item_ptr test1();
+layout_item_ptr test2();
+view_item_ptr test3();
 
 #endif // TESTS_H

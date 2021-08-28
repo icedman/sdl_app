@@ -8,7 +8,8 @@ int main(int argc, char **argv)
 {
     ren_init();
 
-    layout_item_ptr root = layout2();
+    view_item_ptr root_view = test3();
+    layout_item_ptr root = root_view->layout();
 
     layout_item_list render_list;
     event_list events;
@@ -33,14 +34,14 @@ int main(int argc, char **argv)
             pw = w;
             ph = h;
 
-            layout_run(root, { 0, 0, w - 20, h - 20 });
+            layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root);
         }
 
         rencache_draw_rect({x:0,y:0,width:w,height:h}, { 150, 150, 150});
-        rencache_draw_text(font, "Hello World", 20, 20, { 255, 255, 0 });
-        rencache_draw_text(font, "Hello World", 20, 40, { 255, 255, 0 });
+        // rencache_draw_text(font, "Hello World", 20, 20, { 255, 255, 0 });
+        // rencache_draw_text(font, "Hello World", 20, 40, { 255, 255, 0 });
 
         for(auto i : render_list) {
             // printf("%l %d %d %d %d\n", ct, i->render_rect.x, i->render_rect.y, i->render_rect.w, i->render_rect.h);
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
             { i->rgb.r, i->rgb.g, i->rgb.b }, false, 1.0f);
             // break;
 
-            std::string text = i->name;
+            std::string text = i->view ? ((view_item*)i->view)->name : i->name;
             rencache_draw_text(font, (char*)text.c_str(), i->render_rect.x + 4, i->render_rect.y + 2, { 255, 255, 0 });
         }
 

@@ -130,8 +130,8 @@ void layout_position_items(layout_item_ptr item) {
             offset += offsetInc;
         }
 
-        xx += ww;
-        yy += hh;
+        xx += ww + item->margin;
+        yy += hh + item->margin;
     }
 
     // align items
@@ -168,6 +168,9 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
     };
     item->rect = rect;
     item->render_rect = rect;
+
+    constraint.max_width -= item->margin * 2;
+    constraint.max_height -= item->margin * 2;
     item->constraint = constraint;
 
     if (!item->visible) {
@@ -237,6 +240,9 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     };
     item->rect = rect;
     item->render_rect = rect;
+
+    constraint.max_width -= item->margin * 2;
+    constraint.max_height -= item->margin * 2;
     item->constraint = constraint;
 
     if (!item->visible) {
@@ -299,6 +305,15 @@ void _layout_run(layout_item_ptr item, layout_constraint constraint)
     } else {
         layout_vertical_run(item, constraint);
     }
+
+    // apply margin
+    for(auto child : item->children) {
+        if (!child->visible) {
+            continue;
+        }
+        child->rect.x += item->margin;
+        child->rect.y += item->margin;
+    }
 }
 
 void layout_run(layout_item_ptr item, layout_constraint constraint)
@@ -315,15 +330,17 @@ layout_item::layout_item()
     , y(0)
     , width(0)
     , height(0)
+    , margin(0)
     , visible(true)
     , align_self(LAYOUT_ALIGN_UNKNOWN)
     , align(LAYOUT_ALIGN_FLEX_START)
     , justify(LAYOUT_JUSTIFY_FLEX_START)
     , direction(LAYOUT_FLEX_DIRECTION_COLUMN)
+    , view(0)
 {
     rgb = {
         r: 255,
         g: 0,
-        b: 0
+        b: 255
     };
 }

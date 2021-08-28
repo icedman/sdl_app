@@ -5,6 +5,8 @@
 #include <vector>
 #include <memory>
 
+struct layout_view {};
+
 enum layout_flex_direction {
     LAYOUT_FLEX_DIRECTION_UNKNOWN,
     LAYOUT_FLEX_DIRECTION_COLUMN,
@@ -68,6 +70,7 @@ struct layout_item {
 
     bool visible;
     bool wrap;
+    int margin;
     int x, y;
     int width, height;
     int flex;                   // flex-grow
@@ -78,6 +81,8 @@ struct layout_item {
     layout_justify_content justify;
     layout_flex_direction direction;
     layout_item_list children;
+
+    layout_view *view;
 };
 
 void layout_run(layout_item_ptr item, layout_constraint constraint);

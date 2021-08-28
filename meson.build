@@ -35,6 +35,7 @@ app_files = [
     'src/render_cache.cpp',
     'src/layout.cpp',
     'src/events.cpp',
+    'src/view.cpp',
     'src/tests.cpp',
     'src/main.cpp'
 ]
