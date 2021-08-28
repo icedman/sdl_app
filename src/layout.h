@@ -27,6 +27,8 @@ struct layout_view {
     virtual bool is_pressed() { return false; }
     virtual bool is_dragged() { return false; }
     virtual bool is_hovered() { return false; }
+    virtual bool is_clicked() { return false; }
+    virtual void precalculate() {}
 };
 
 enum layout_flex_direction {

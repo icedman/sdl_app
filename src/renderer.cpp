@@ -21,6 +21,8 @@ struct RenImage {
 };
 
 struct RenFont {
+    int font_width;
+    int font_height;
     PangoFontMap* font_map;
     PangoLayout* layout;
     PangoContext* context;
@@ -30,6 +32,8 @@ RenImage* window_buffer = 0;
 RenImage* target_buffer = 0;
 cairo_t* cairo_context = 0;
 bool shouldEnd;
+
+RenFont *default_font = 0;
 
 RenImage* ren_create_image(int w, int h)
 {
@@ -72,6 +76,16 @@ RenFont* ren_create_font(char *fdsc)
     // info out there getting detailed on Pango.
 
     pango_font_description_free(font_desc); 
+
+    const char text[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+    int len = strlen(text);
+    int w, h;
+    ren_get_font_extents(fnt, &w, &h, text, len);
+
+    fnt->font_width = (w/len);
+    fnt->font_height = h;
+
+    default_font = fnt;
     return fnt;
 }
 
@@ -101,11 +115,29 @@ cairo_t* _create_cairo_context(int width, int height)
     return window_buffer->cairo_context;
 }
 
-void ren_get_font_extents(RenFont *font, int *w, int *h, const char *text, int len)
+void ren_get_font_extents(RenFont *font, int *w, int *h, const char *text, int len, bool fixed)
 {
+    if (!font) {
+        font = default_font;
+    }
+
+    if (fixed) {
+        *w = font->font_width * len;
+        *h = font->font_height;
+        return;
+    }
     pango_layout_set_attributes(font->layout, nullptr);
     pango_layout_set_text(font->layout, text, len);
     pango_layout_get_pixel_size(font->layout, w, h);
+}
+
+void ren_set_default_font(RenFont *font) {
+    default_font = font;
+}
+
+RenFont* ren_get_default_font()
+{
+    return default_font;
 }
 
 void ren_get_size(int *w, int *h)
@@ -187,14 +219,32 @@ void ren_draw_rect(RenRect rect, RenColor clr, bool fill, float l)
     }
 }
 
-int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
+int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool fixed_width)
 {
+    if (!font) {
+        font = default_font;
+    }
     int length = strlen(text);
-    pango_layout_set_text(font->layout, text, length);
     cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
-    cairo_move_to(cairo_context, x, y);
-    pango_cairo_show_layout(cairo_context, font->layout);
-    return 0;
+
+    if (!fixed_width) {
+        pango_layout_set_text(font->layout, text, length);
+        cairo_move_to(cairo_context, x, y);
+        pango_cairo_show_layout(cairo_context, font->layout);
+        return 0;
+    }
+
+    char tmp[2];
+    tmp[2] = 0;
+    for(int i=0; i<length; i++) {
+        tmp[0] = text[i];
+        pango_layout_set_text(font->layout, tmp, 1);
+        cairo_move_to(cairo_context, x, y);
+        pango_cairo_show_layout(cairo_context, font->layout);
+        x += font->font_width;
+    }
+
+    return x;
 }
 
 void ren_update_rects(RenRect* rects, int count)

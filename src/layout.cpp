@@ -299,6 +299,11 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
 
 void _layout_run(layout_item_ptr item, layout_constraint constraint)
 {
+    for(auto child : item->children) {
+        if (child->view) {
+            child->view->precalculate();
+        }
+    }
     if (item->direction == LAYOUT_FLEX_DIRECTION_ROW ||
             item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
         layout_horizontal_run(item, constraint);

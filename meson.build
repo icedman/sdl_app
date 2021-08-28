@@ -36,13 +36,15 @@ app_files = [
     'src/layout.cpp',
     'src/events.cpp',
     'src/view.cpp',
+    'src/ui/text.cpp',
+    'src/ui/button.cpp',
     'src/tests.cpp',
     'src/main.cpp'
 ]
 
 executable('app',
     app_files,
-    include_directories: [ './src' ],
+    include_directories: [ './src', './src/ui' ],
     dependencies: [ sdl2_dep, cairo_dep, pango_dep ],
     install : true
 )

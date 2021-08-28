@@ -1,5 +1,8 @@
 #include "tests.h"
 
+#include "text.h"
+#include "button.h"
+
 view_item_ptr test3() {
     view_item_ptr root = std::make_shared<view_item>();
 
@@ -8,7 +11,6 @@ view_item_ptr test3() {
     view_item_ptr item_c = std::make_shared<view_item>();
     view_item_ptr item_d = std::make_shared<view_item>();
     view_item_ptr item_e = std::make_shared<view_item>();
-    // view_item_ptr item_f = std::make_shared<view_item>();
     // view_item_ptr item_g = std::make_shared<view_item>();
     // view_item_ptr item_h = std::make_shared<view_item>();
 
@@ -20,11 +22,19 @@ view_item_ptr test3() {
     item_c->add_child(item_e);
     item_e->layout()->flex = 4;
 
-    view_item_ptr button = std::make_shared<view_item>();
+    view_item_ptr button = std::make_shared<button_view>("hey button");
+    // view_item_ptr button = std::make_shared<view_item>();
+
+    button->layout()->width = 200;
+    button->layout()->height = 40;
     button->can_press = true;
     button->can_hover = true;
     item_b->add_child(button);
     item_b->layout()->margin = 20;
+
+
+    view_item_ptr item_f = std::make_shared<text_view>("hello world");
+    item_b->add_child(item_f);
 
     root->add_child(item_a);
     return root;

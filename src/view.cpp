@@ -3,9 +3,15 @@
 static view_item *view_hovered = 0;
 static view_item *view_pressed = 0;
 static view_item *view_released = 0;
+static view_item *view_clicked = 0;
+static view_item *view_dragged = 0;
 
 view_item::view_item()
     : type("view")
+{}
+
+view_item::view_item(std::string type)
+    : type(type)
 {}
 
 layout_item_ptr view_item::layout()
@@ -67,6 +73,10 @@ bool view_item::is_hovered()
     return this == view_hovered;
 }
 
+bool view_item::is_clicked()
+{
+    return this == view_clicked;
+}
 
 void view_input_list(view_item_list &list, view_item_ptr item)
 {
@@ -100,6 +110,8 @@ view_item_ptr view_find_xy(view_item_list &list, int x, int y)
 view_item_list *_view_list;
 void view_input_events(view_item_list &list, event_list &events)
 {
+    view_clicked = 0;
+
     _view_list = &list;
     for(auto e : events) {
         switch(e.type) {
@@ -125,10 +137,16 @@ void view_input_button(int button, int x, int y, int pressed)
     }
 
     view_hovered = v->can_hover ? v.get() : 0;
+    if (view_hovered) view_hovered->mouse_move(x, y, button);
     if (pressed) {
-        view_pressed = v->can_press ? v.get() : 0;
+        if (!view_pressed) {
+            view_pressed = v->can_press ? v.get() : 0;
+            if (view_pressed) view_pressed->mouse_down(x, y, button);
+        }
     } else {
-        view_pressed = 0;
         view_released = v->can_press ? v.get() : 0;
+        view_clicked = view_released == view_pressed ? view_released : 0;
+        view_pressed = 0;
+        if (view_released) view_released->mouse_up(x, y, button);
     }
 }

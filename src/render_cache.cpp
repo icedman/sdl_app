@@ -27,6 +27,7 @@ typedef struct {
     int italic;
     bool fill;
     float stroke;
+    float fixed;
     char text[0];
 } Command;
 
@@ -143,7 +144,7 @@ void rencache_draw_rect(RenRect rect, RenColor color, bool fill, float l)
     }
 }
 
-int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold, bool italic)
+int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold, bool italic, bool fixed)
 {
     int fw, fh;
     ren_get_font_extents(font, &fw, &fh, text, strlen(text));
@@ -163,6 +164,7 @@ int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor c
             cmd->rect = rect;
             cmd->bold = bold;
             cmd->italic = italic;
+            cmd->fixed = fixed;
         }
     }
 

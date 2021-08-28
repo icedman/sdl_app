@@ -10,6 +10,7 @@ struct view_item;
 typedef std::shared_ptr<view_item> view_item_ptr;
 typedef std::vector<view_item_ptr> view_item_list;
 struct view_item : layout_view {
+    view_item(std::string type);
     view_item();
 
     std::string name;
@@ -19,11 +20,17 @@ struct view_item : layout_view {
 
     void add_child(view_item_ptr view);
     void remove_child(view_item_ptr view);
+    // void delete_later();
 
     bool is_focused() override;
     bool is_pressed() override;
     bool is_dragged() override;
     bool is_hovered() override;
+    bool is_clicked() override;
+
+    virtual void mouse_down(int x, int y, int button) {}
+    virtual void mouse_up(int x, int y, int button) {}
+    virtual void mouse_move(int x, int y, int button) {}
 
     layout_item_ptr _layout;
     view_item_list _views;

@@ -4,6 +4,8 @@
 #include "events.h"
 #include "tests.h"
 
+#include "text.h"
+
 int main(int argc, char **argv)
 {
     ren_init();
@@ -50,13 +52,18 @@ int main(int argc, char **argv)
 
         for(auto i : render_list) {
             bool fill = false;
+            float stroke = 1.0f;
             RenColor clr = { i->rgb.r, i->rgb.g, i->rgb.b };
             if (i->view && i->view->is_hovered()) {
                 clr = { 150, 0, 150 };
             }
             if (i->view && i->view->is_pressed()) {
                 clr = { 255, 0, 0 };
-                fill = true;
+                // fill = true;
+                stroke = 1.5f;
+            }
+            if (i->view && i->view->is_clicked()) {
+                printf(">>click\n");
             }
             // printf("%l %d %d %d %d\n", ct, i->render_rect.x, i->render_rect.y, i->render_rect.w, i->render_rect.h);
             rencache_draw_rect({
@@ -65,11 +72,14 @@ int main(int argc, char **argv)
                 i->render_rect.w,
                 i->render_rect.h
             },
-            clr, fill, 1.0f);
-            // break;
+            clr, fill, stroke);
 
             std::string text = i->view ? ((view_item*)i->view)->name : i->name;
-            rencache_draw_text(font, (char*)text.c_str(), i->render_rect.x + 4, i->render_rect.y + 2, { 255, 255, 0});
+            if (i->view && ((view_item*)i->view)->type == "text") {
+                text = ((text_view*)i->view)->text;
+            }
+            rencache_draw_text(font, (char*)text.c_str(), i->render_rect.x + 4, i->render_rect.y + 2, { 255, 255, 0},
+                false, false, true);
         }
 
         rencache_end_frame();  
