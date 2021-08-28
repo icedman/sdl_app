@@ -20,6 +20,12 @@ view_item_ptr test3() {
     item_c->add_child(item_e);
     item_e->layout()->flex = 4;
 
+    view_item_ptr button = std::make_shared<view_item>();
+    button->can_press = true;
+    button->can_hover = true;
+    item_b->add_child(button);
+    item_b->layout()->margin = 20;
+
     root->add_child(item_a);
     return root;
 }

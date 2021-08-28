@@ -248,7 +248,8 @@ void ren_listen_events(event_list* events)
         events->push_back({
             type: EVT_MOUSE_MOTION,
             x: e.motion.x,
-            y: e.motion.y
+            y: e.motion.y,
+            button: e.button.button
         });
         return;
 

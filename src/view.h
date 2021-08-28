@@ -2,6 +2,7 @@
 #define VIEW_H
 
 #include "layout.h"
+#include "events.h"
 
 #include <map>
 
@@ -17,19 +18,19 @@ struct view_item : layout_view {
     layout_item_ptr layout();
 
     void add_child(view_item_ptr view);
-    void add_child(view_item *view);
-    void add_child(layout_item_ptr item);
     void remove_child(view_item_ptr view);
-    void remove_child(view_item *view);
-    void remove_child(layout_item_ptr item);
 
-    bool can_focus;
-    bool can_press;
-    bool can_drag;
-    bool can_input;
+    bool is_focused() override;
+    bool is_pressed() override;
+    bool is_dragged() override;
+    bool is_hovered() override;
 
     layout_item_ptr _layout;
     view_item_list _views;
 };
+
+void view_input_list(view_item_list &list, view_item_ptr item);
+void view_input_events(view_item_list &list, event_list &events);
+void view_input_button(int button, int x, int y, int pressed);
 
 #endif // VIEW_H

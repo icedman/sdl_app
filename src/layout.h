@@ -5,7 +5,29 @@
 #include <vector>
 #include <memory>
 
-struct layout_view {};
+struct layout_view {
+
+    layout_view() 
+    : disabled(false)
+    , can_focus(false)
+    , can_press(false)
+    , can_drag(false)
+    , can_hover(false)
+    , can_input(false)
+    {}
+
+    bool disabled;
+    bool can_focus;
+    bool can_press;
+    bool can_drag;
+    bool can_hover;
+    bool can_input;
+
+    virtual bool is_focused() { return false; }
+    virtual bool is_pressed() { return false; }
+    virtual bool is_dragged() { return false; }
+    virtual bool is_hovered() { return false; }
+};
 
 enum layout_flex_direction {
     LAYOUT_FLEX_DIRECTION_UNKNOWN,

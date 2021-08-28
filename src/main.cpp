@@ -11,6 +11,7 @@ int main(int argc, char **argv)
     view_item_ptr root_view = test3();
     layout_item_ptr root = root_view->layout();
 
+    view_item_list view_list;
     layout_item_list render_list;
     event_list events;
 
@@ -23,6 +24,10 @@ int main(int argc, char **argv)
 
     while(ren_is_running()) {
         ren_listen_events(&events);
+
+        view_list.clear();
+        view_input_list(view_list, root_view);
+        view_input_events(view_list, events);
 
         ren_begin_frame();
         rencache_begin_frame();
@@ -44,6 +49,15 @@ int main(int argc, char **argv)
         // rencache_draw_text(font, "Hello World", 20, 40, { 255, 255, 0 });
 
         for(auto i : render_list) {
+            bool fill = false;
+            RenColor clr = { i->rgb.r, i->rgb.g, i->rgb.b };
+            if (i->view && i->view->is_hovered()) {
+                clr = { 150, 0, 150 };
+            }
+            if (i->view && i->view->is_pressed()) {
+                clr = { 255, 0, 0 };
+                fill = true;
+            }
             // printf("%l %d %d %d %d\n", ct, i->render_rect.x, i->render_rect.y, i->render_rect.w, i->render_rect.h);
             rencache_draw_rect({
                 i->render_rect.x,
@@ -51,11 +65,11 @@ int main(int argc, char **argv)
                 i->render_rect.w,
                 i->render_rect.h
             },
-            { i->rgb.r, i->rgb.g, i->rgb.b }, false, 1.0f);
+            clr, fill, 1.0f);
             // break;
 
             std::string text = i->view ? ((view_item*)i->view)->name : i->name;
-            rencache_draw_text(font, (char*)text.c_str(), i->render_rect.x + 4, i->render_rect.y + 2, { 255, 255, 0 });
+            rencache_draw_text(font, (char*)text.c_str(), i->render_rect.x + 4, i->render_rect.y + 2, { 255, 255, 0});
         }
 
         rencache_end_frame();  
