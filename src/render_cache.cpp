@@ -33,6 +33,21 @@ typedef struct {
     char text[0];
 } Command;
 
+struct RenCache {
+    unsigned cells_buf1[CELLS_X * CELLS_Y];
+    unsigned cells_buf2[CELLS_X * CELLS_Y];
+    unsigned* cells_prev = cells_buf1;
+    unsigned* cells = cells_buf2;
+    RenRect rect_buf[CELLS_X * CELLS_Y / 2];
+    char command_buf[COMMAND_BUF_SIZE];
+    int command_buf_idx;
+    RenRect target_rect;
+    bool show_debug;
+};
+
+RenCache default_cache;
+RenCache *cache = &default_cache;
+
 static unsigned cells_buf1[CELLS_X * CELLS_Y];
 static unsigned cells_buf2[CELLS_X * CELLS_Y];
 static unsigned* cells_prev = cells_buf1;
@@ -40,7 +55,7 @@ static unsigned* cells = cells_buf2;
 static RenRect rect_buf[CELLS_X * CELLS_Y / 2];
 static char command_buf[COMMAND_BUF_SIZE];
 static int command_buf_idx;
-static RenRect screen_rect;
+static RenRect target_rect;
 static bool show_debug;
 
 static inline int min(int a, int b) { return a < b ? a : b; }
@@ -128,13 +143,13 @@ void rencache_set_clip_rect(RenRect rect)
 {
     Command* cmd = push_command(SET_CLIP, sizeof(Command));
     if (cmd) {
-        cmd->rect = intersect_rects(rect, screen_rect);
+        cmd->rect = intersect_rects(rect, target_rect);
     }
 }
 
 void rencache_draw_image(RenImage* image, RenRect rect)
 {
-    if (!rects_overlap(screen_rect, rect)) {
+    if (!rects_overlap(target_rect, rect)) {
         return;
     }
     Command* cmd = push_command(DRAW_IMAGE, sizeof(Command));
@@ -146,7 +161,7 @@ void rencache_draw_image(RenImage* image, RenRect rect)
 
 void rencache_draw_rect(RenRect rect, RenColor color, bool fill, float l)
 {
-    if (!rects_overlap(screen_rect, rect)) {
+    if (!rects_overlap(target_rect, rect)) {
         return;
     }
     Command* cmd = push_command(DRAW_RECT, sizeof(Command));
@@ -168,7 +183,7 @@ int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor c
     rect.width = fw;
     rect.height = fh;
 
-    if (rects_overlap(screen_rect, rect)) {
+    if (rects_overlap(target_rect, rect)) {
         int sz = strlen(text) + 1;
         Command* cmd = push_command(DRAW_TEXT, sizeof(Command) + sz);
         if (cmd) {
@@ -190,15 +205,15 @@ void rencache_invalidate(void)
     memset(cells_prev, 0xff, sizeof(cells_buf1));
 }
 
-void rencache_begin_frame(void)
+void rencache_begin_frame(RenCache *cache)
 {
     /* reset all cells if the screen width/height has changed */
     int w, h;
     ren_get_size(&w, &h);
 
-    if (screen_rect.width != w || h != screen_rect.height) {
-        screen_rect.width = w;
-        screen_rect.height = h;
+    if (target_rect.width != w || h != target_rect.height) {
+        target_rect.width = w;
+        target_rect.height = h;
         rencache_invalidate();
     }
 }
@@ -236,7 +251,7 @@ void rencache_end_frame(void)
 {
     /* update cells from commands */
     Command* cmd = NULL;
-    RenRect cr = screen_rect;
+    RenRect cr = target_rect;
     while (next_command(&cmd)) {
         if (cmd->type == SET_CLIP) {
             cr = cmd->rect;
@@ -252,8 +267,8 @@ void rencache_end_frame(void)
 
     /* push rects for all cells changed from last frame, reset cells */
     int rect_count = 0;
-    int max_x = screen_rect.width / CELL_SIZE + 1;
-    int max_y = screen_rect.height / CELL_SIZE + 1;
+    int max_x = target_rect.width / CELL_SIZE + 1;
+    int max_y = target_rect.height / CELL_SIZE + 1;
     for (int y = 0; y < max_y; y++) {
         for (int x = 0; x < max_x; x++) {
             /* compare previous and current cell for change */
@@ -272,7 +287,7 @@ void rencache_end_frame(void)
         r->y *= CELL_SIZE;
         r->width *= CELL_SIZE;
         r->height *= CELL_SIZE;
-        *r = intersect_rects(*r, screen_rect);
+        *r = intersect_rects(*r, target_rect);
     }
 
     /* redraw updated regions */
