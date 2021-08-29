@@ -10,6 +10,12 @@ int main(int argc, char **argv)
 {
     ren_init();
 
+    RenImage *tmp = ren_create_image(80,80);
+    ren_begin_frame(tmp);
+    ren_draw_rect({0,0,80,80}, {150,0,150});
+    ren_draw_rect({20,20,20,20}, {255,0,0});
+    ren_end_frame();
+
     view_item_ptr root_view = test3();
     layout_item_ptr root = root_view->layout();
 
@@ -20,7 +26,7 @@ int main(int argc, char **argv)
     // RenFont *font = ren_create_font("Fira Code 14");
     RenFont *font = ren_create_font("Source Code Pro 16");
 
-    // rencache_show_debug(true);
+    rencache_show_debug(true);
 
     int pw, ph;
 
@@ -31,9 +37,6 @@ int main(int argc, char **argv)
         view_input_list(view_list, root_view);
         view_input_events(view_list, events);
 
-        ren_begin_frame();
-        rencache_begin_frame();
-        
         int w, h;
         ren_get_size(&w, &h);
 
@@ -46,9 +49,14 @@ int main(int argc, char **argv)
             layout_render_list(render_list, root);
         }
 
+        ren_begin_frame();
+        rencache_begin_frame();
+
         rencache_draw_rect({x:0,y:0,width:w,height:h}, { 150, 150, 150});
         // rencache_draw_text(font, "Hello World", 20, 20, { 255, 255, 0 });
         // rencache_draw_text(font, "Hello World", 20, 40, { 255, 255, 0 });
+
+        rencache_draw_image(tmp, {240,240,80,80});
 
         for(auto i : render_list) {
             bool fill = false;
@@ -65,6 +73,7 @@ int main(int argc, char **argv)
             if (i->view && i->view->is_clicked()) {
                 printf(">>click\n");
             }
+
             // printf("%l %d %d %d %d\n", ct, i->render_rect.x, i->render_rect.y, i->render_rect.w, i->render_rect.h);
             rencache_draw_rect({
                 i->render_rect.x,
@@ -82,8 +91,14 @@ int main(int argc, char **argv)
                 false, false, true);
         }
 
-        rencache_end_frame();  
+        rencache_end_frame();
         ren_end_frame();
+
+        // ren_begin_frame();
+        // ren_draw_rect({0,0,pw,pw}, {150,150,150});
+        // ren_draw_image(tmp, {20,20,pw/2,ph/2});
+        // ren_draw_text(font, "hello", 20, 20, {255,255,255});
+        // ren_end_frame();
     }
 
     ren_shutdown();

@@ -15,6 +15,7 @@
 
 enum { FREE_FONT,
     SET_CLIP,
+    DRAW_IMAGE,
     DRAW_TEXT,
     DRAW_RECT };
 
@@ -22,12 +23,13 @@ typedef struct {
     int type, size;
     RenRect rect;
     RenColor color;
+    RenImage* image;
     RenFont* font;
     int bold;
     int italic;
     bool fill;
     float stroke;
-    float fixed;
+    bool fixed;
     char text[0];
 } Command;
 
@@ -127,6 +129,18 @@ void rencache_set_clip_rect(RenRect rect)
     Command* cmd = push_command(SET_CLIP, sizeof(Command));
     if (cmd) {
         cmd->rect = intersect_rects(rect, screen_rect);
+    }
+}
+
+void rencache_draw_image(RenImage* image, RenRect rect)
+{
+    if (!rects_overlap(screen_rect, rect)) {
+        return;
+    }
+    Command* cmd = push_command(DRAW_IMAGE, sizeof(Command));
+    if (cmd) {
+        cmd->rect = rect;
+        cmd->image = image;
     }
 }
 
@@ -277,6 +291,8 @@ void rencache_end_frame(void)
             case SET_CLIP:
                 ren_set_clip_rect(intersect_rects(cmd->rect, r));
                 break;
+            case DRAW_IMAGE:
+                ren_draw_image(cmd->image, cmd->rect);
             case DRAW_RECT:
                 ren_draw_rect(cmd->rect, cmd->color, cmd->fill, cmd->stroke);
                 break;
@@ -288,7 +304,7 @@ void rencache_end_frame(void)
 
         if (show_debug) {
             RenColor color = { (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(), 50 };
-            ren_draw_rect(r, color);
+            ren_draw_rect(r, color, false, 4.0f);
         }
     }
 

@@ -10,6 +10,7 @@ button_view::button_view(std::string t)
     can_press = true;
     can_hover = true;
 
+    layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
     layout()->justify = LAYOUT_JUSTIFY_CENTER;
     layout()->align = LAYOUT_ALIGN_CENTER;
 }

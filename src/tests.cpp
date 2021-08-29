@@ -20,17 +20,24 @@ view_item_ptr test3() {
     item_c->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
     item_c->add_child(item_d);
     item_c->add_child(item_e);
-    item_e->layout()->flex = 4;
+    item_e->layout()->grow = 4;
 
     view_item_ptr button = std::make_shared<button_view>("hey button");
+    button->add_child(std::make_shared<text_view>("hello world"));
+    
     // view_item_ptr button = std::make_shared<view_item>();
 
     button->layout()->width = 200;
     button->layout()->height = 40;
+    button->layout()->margin = 4;
+    button->layout()->wrap = true;
+    button->layout()->fit_children = true;
     button->can_press = true;
     button->can_hover = true;
     item_b->add_child(button);
     item_b->layout()->margin = 20;
+    item_b->layout()->scroll_x = -80;
+    item_b->layout()->scroll_y = 80;
 
 
     view_item_ptr item_f = std::make_shared<text_view>("hello world");
@@ -40,7 +47,7 @@ view_item_ptr test3() {
     return root;
 }
 
-layout_item_ptr test2() {
+view_item_ptr test2() {
     layout_item_ptr root = std::make_shared<layout_item>();
     // root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     root->direction = LAYOUT_FLEX_DIRECTION_ROW;
@@ -81,10 +88,13 @@ layout_item_ptr test2() {
         child->width = 200;
         child->height = 200;
     }
-    return root;
+
+    view_item_ptr view = std::make_shared<view_item>();
+    view->_layout = root;
+    return view;
 }
 
-layout_item_ptr test1() {
+view_item_ptr test1() {
     layout_item_ptr root = std::make_shared<layout_item>();
     root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     root->margin = 20;
@@ -134,8 +144,8 @@ layout_item_ptr test1() {
     item_g->children.push_back(std::make_shared<layout_item>());
     item_h->children.push_back(std::make_shared<layout_item>());
 
-    item_a->flex = 1;
-    item_b->flex = 3;
+    item_a->grow = 1;
+    item_b->grow = 3;
     // item_a->visible = false;
 
     root->children.push_back(item_a);
@@ -179,5 +189,8 @@ layout_item_ptr test1() {
     item_g->width = 80;
     item_h->width = 80;
     item_h->height = 200;
-    return root;
+
+    view_item_ptr view = std::make_shared<view_item>();
+    view->_layout = root;
+    return view;
 }

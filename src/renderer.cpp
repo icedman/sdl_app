@@ -7,6 +7,9 @@
 static SDL_Window* window;
 SDL_Surface* window_surface;
 
+RenRect* update_rects = 0;
+int update_rects_count = 0;
+
 static struct {
     int left, top, right, bottom;
 } clip;
@@ -48,13 +51,18 @@ RenImage* ren_create_image(int w, int h)
     return img;
 }
 
-void ren_free_image(RenImage *img)
+void ren_destroy_image(RenImage *img)
 {
     SDL_FreeSurface(img->sdl_surface);
     cairo_surface_destroy(img->cairo_surface);
     cairo_destroy(img->cairo_context);
     free(img->buffer);
     delete img;
+}
+
+void ren_save_image(RenImage *image, char *filename)
+{
+    cairo_surface_write_to_png(image->cairo_surface, filename);
 }
 
 RenFont* ren_create_font(char *fdsc)
@@ -102,7 +110,7 @@ void _destroy_cairo_context()
         return;
     }
 
-    ren_free_image(window_buffer);
+    ren_destroy_image(window_buffer);
     window_buffer = 0;
 }
 
@@ -142,6 +150,10 @@ RenFont* ren_get_default_font()
 
 void ren_get_size(int *w, int *h)
 {
+    if (!target_buffer) {
+        target_buffer = window_buffer;
+        cairo_context = window_buffer->cairo_context;
+    }
     *w = target_buffer->width;
     *h = target_buffer->height;
 }
@@ -190,11 +202,24 @@ void ren_begin_frame(RenImage *target)
     // cairo_paint(cairo_context);
 }
 
-void ren_end_frame()
+void _blit_to_window()
 {
     SDL_Surface* window_surface = SDL_GetWindowSurface(window);
     SDL_BlitSurface(target_buffer->sdl_surface, nullptr, window_surface, nullptr);
+
+    if (update_rects_count) {
+        SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)update_rects, update_rects_count);
+        update_rects_count = 0;
+    }
+
     SDL_UpdateWindowSurface(window);
+}
+
+void ren_end_frame()
+{
+    if (target_buffer == window_buffer) {
+        _blit_to_window();
+    }
 }
 
 void ren_quit()
@@ -205,6 +230,17 @@ void ren_quit()
 bool ren_is_running()
 {
     return !shouldEnd;
+}
+
+void ren_draw_image(RenImage *image, RenRect rect)
+{
+    cairo_pattern_t *pattern = cairo_pattern_create_for_surface(image->cairo_surface);
+    // cairo_set_source_surface(cairo_context, image->cairo_surface, image->width, image->height);
+    cairo_set_source(cairo_context, pattern);
+    cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_REPEAT);
+    cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
+    cairo_fill(cairo_context);
+    cairo_pattern_destroy(pattern);
 }
 
 void ren_draw_rect(RenRect rect, RenColor clr, bool fill, float l)
@@ -249,7 +285,8 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
 
 void ren_update_rects(RenRect* rects, int count)
 {
-    SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)rects, count);
+    update_rects = rects;
+    update_rects_count = count;
 }
 
 void ren_set_clip_rect(RenRect rect)

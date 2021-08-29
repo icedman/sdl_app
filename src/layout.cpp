@@ -5,11 +5,14 @@ void layout_render_list(layout_item_list& list, layout_item_ptr item) {
     if (!item->visible) {
         return;
     }
+    // if (item->did_overflow) {
+    //     return;
+    // }
     list.push_back(item);
     for(auto child : item->children) {
         child->render_rect = child->rect;
-        child->render_rect.x += item->render_rect.x;
-        child->render_rect.y += item->render_rect.y;
+        child->render_rect.x += item->render_rect.x + item->scroll_x;
+        child->render_rect.y += item->render_rect.y + item->scroll_y;
         layout_render_list(list, child);
     }
 }
@@ -54,7 +57,8 @@ void layout_position_items(layout_item_ptr item) {
     for(auto child : item->children) {
         if (!child->visible) {
             continue;
-        }
+        }    
+        child->did_overflow = false;
         child->rect.x = 0;
         child->rect.y = 0;
         if (consumed + child->rect.w * wd + child->rect.h * hd > constraint) {
@@ -124,6 +128,21 @@ void layout_position_items(layout_item_ptr item) {
 
             child->rect.x = (xx * hd) + ((offsetStart + offset) * wd);
             child->rect.y = (yy * wd) + ((offsetStart + offset) * hd);
+
+            if (item->rect.w < child->rect.x + child->rect.w + item->margin*2) {
+                if (item->fit_children) {
+                    item->rect.w = child->rect.x + child->rect.w + item->margin*2;
+                } else {
+                    child->did_overflow = true;
+                }
+            }
+            if (item->rect.h < child->rect.y + child->rect.h + item->margin*2) {
+                if (item->fit_children) {
+                    item->rect.h = child->rect.y + child->rect.h + item->margin*2;
+                } else {
+                    child->did_overflow = true;
+                }
+            }
 
             offset += child->rect.w * wd;
             offset += child->rect.h * hd;
@@ -207,7 +226,7 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
             layout_run(child, { 0, 0, child->width, cc });
         } else {
             flexItems.push_back(child);
-            totalFlex += child->flex;
+            totalFlex += child->grow;
             totalFlexBasis += child->flex_basis;
         }
     }
@@ -217,7 +236,7 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
         spaceRemaining = 0;
 
     for(auto child : flexItems) {
-        int ww = spaceRemaining * child->flex / totalFlex;
+        int ww = spaceRemaining * child->grow / totalFlex;
         layout_run(child, { 0, 0, ww, constraint.max_height });
     }
 
@@ -279,7 +298,7 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
             layout_run(child, { 0, 0, cc, child->height });
         } else {
             flexItems.push_back(child);
-            totalFlex += child->flex;
+            totalFlex += child->grow;
             totalFlexBasis += child->flex_basis;
         }
     }
@@ -289,7 +308,7 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
         spaceRemaining = 0;
 
     for(auto child : flexItems) {
-        int hh = spaceRemaining * child->flex / totalFlex;
+        int hh = spaceRemaining * child->grow / totalFlex;
         layout_run(child, { 0, 0, constraint.max_width, hh});
     }
 
@@ -325,27 +344,4 @@ void layout_run(layout_item_ptr item, layout_constraint constraint)
 {
     _layout_run(item, constraint);
     item->render_rect = item->rect; // root
-}
-
-layout_item::layout_item()
-    : flex(1)
-    , flex_shrink(0)
-    , flex_basis(0)
-    , x(0)
-    , y(0)
-    , width(0)
-    , height(0)
-    , margin(0)
-    , visible(true)
-    , align_self(LAYOUT_ALIGN_UNKNOWN)
-    , align(LAYOUT_ALIGN_FLEX_START)
-    , justify(LAYOUT_JUSTIFY_FLEX_START)
-    , direction(LAYOUT_FLEX_DIRECTION_COLUMN)
-    , view(0)
-{
-    rgb = {
-        r: 255,
-        g: 0,
-        b: 255
-    };
 }

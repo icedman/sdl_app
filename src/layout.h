@@ -5,32 +5,6 @@
 #include <vector>
 #include <memory>
 
-struct layout_view {
-
-    layout_view() 
-    : disabled(false)
-    , can_focus(false)
-    , can_press(false)
-    , can_drag(false)
-    , can_hover(false)
-    , can_input(false)
-    {}
-
-    bool disabled;
-    bool can_focus;
-    bool can_press;
-    bool can_drag;
-    bool can_hover;
-    bool can_input;
-
-    virtual bool is_focused() { return false; }
-    virtual bool is_pressed() { return false; }
-    virtual bool is_dragged() { return false; }
-    virtual bool is_hovered() { return false; }
-    virtual bool is_clicked() { return false; }
-    virtual void precalculate() {}
-};
-
 enum layout_flex_direction {
     LAYOUT_FLEX_DIRECTION_UNKNOWN,
     LAYOUT_FLEX_DIRECTION_COLUMN,
@@ -57,10 +31,11 @@ enum layout_align_items {
     LAYOUT_ALIGN_STRETCH
 };
 
-struct layout_rgb {
+struct layout_color {
     int r;
     int g;
     int b;
+    int a;
 };
 
 struct layout_rect {
@@ -82,12 +57,75 @@ struct layout_item;
 typedef std::shared_ptr<layout_item> layout_item_ptr;
 typedef std::vector<layout_item_ptr> layout_item_list;
 
+struct layout_view {
+
+    layout_view() 
+    : disabled(false)
+    , can_focus(false)
+    , can_press(false)
+    , can_drag(false)
+    , can_hover(false)
+    , can_input(false)
+    , color({ 255, 255, 255 })
+    , background({ 150, 150, 150 })
+    , border_color({ 150, 150, 150 })
+    , border_width(0)
+    {}
+
+    bool disabled;
+    bool can_focus;
+    bool can_press;
+    bool can_drag;
+    bool can_hover;
+    bool can_input;
+
+    layout_color color;
+    layout_color background;
+    layout_color border_color;
+    float border_width;
+
+    virtual bool is_focused() { return false; }
+    virtual bool is_pressed() { return false; }
+    virtual bool is_dragged() { return false; }
+    virtual bool is_hovered() { return false; }
+    virtual bool is_clicked() { return false; }
+    
+    virtual void precalculate() {}
+    virtual void render() {}
+};
+
 struct layout_item {
-    layout_item();
+    layout_item()
+        : grow(1)
+        , shrink(0)
+        , flex_basis(0)
+        , x(0)
+        , y(0)
+        , scroll_x(0)
+        , scroll_y(0)
+        , width(0)
+        , height(0)
+        , fit_children(true)
+        , did_overflow(false)
+        , margin(0)
+        , visible(true)
+        , wrap(false)
+        , align_self(LAYOUT_ALIGN_UNKNOWN)
+        , align(LAYOUT_ALIGN_FLEX_START)
+        , justify(LAYOUT_JUSTIFY_FLEX_START)
+        , direction(LAYOUT_FLEX_DIRECTION_COLUMN)
+        , view(0)
+    {
+        rgb = {
+            r: 255,
+            g: 0,
+            b: 255
+        };
+    }
 
     std::string name;
 
-    layout_rgb rgb;
+    layout_color rgb;
     layout_constraint constraint; // passed down
     layout_rect rect;             // relative computed
     layout_rect render_rect;      // final computed
@@ -96,9 +134,11 @@ struct layout_item {
     bool wrap;
     int margin;
     int x, y;
+    int scroll_x, scroll_y;
     int width, height;
-    int flex;                   // flex-grow
-    int flex_shrink;            // not yet implemented
+    bool fit_children;
+    int grow;                   // flex-grow
+    int shrink;            // not yet implemented
     int flex_basis;             // not yet implemented
     layout_align_items align;
     layout_align_items align_self;  // not yet implemented
@@ -107,6 +147,8 @@ struct layout_item {
     layout_item_list children;
 
     layout_view *view;
+
+    bool did_overflow;
 };
 
 void layout_run(layout_item_ptr item, layout_constraint constraint);
