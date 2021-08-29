@@ -13,6 +13,7 @@ enum event_type_e {
     EVT_MOUSE_DOWN,
     EVT_MOUSE_UP,
     EVT_MOUSE_MOTION,
+    EVT_MOUSE_WHEEL,
     EVT_WINDOW_RESIZE
 };
 

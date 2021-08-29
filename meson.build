@@ -38,6 +38,7 @@ app_files = [
     'src/view.cpp',
     'src/ui/text.cpp',
     'src/ui/button.cpp',
+    'src/ui/scrollarea.cpp',
     'src/tests.cpp',
     'src/main.cpp'
 ]

@@ -241,6 +241,8 @@ void rencache_begin_frame(int w, int h, RenCache *target)
         cache->target_rect.height = h;
         rencache_invalidate();
     }
+
+    rencache_state_save();
 }
 
 static void update_overlapping_cells(RenRect r, unsigned h)
@@ -374,6 +376,8 @@ void rencache_end_frame(void)
     cache->cells = cache->cells_prev;
     cache->cells_prev = tmp;
     cache->command_buf_idx = 0;
+
+    rencache_state_restore();
 }
 
 void rencache_init()

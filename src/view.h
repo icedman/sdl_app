@@ -35,6 +35,7 @@ struct view_item : layout_view {
     virtual bool mouse_down(int x, int y, int button);
     virtual bool mouse_up(int x, int y, int button);
     virtual bool mouse_move(int x, int y, int button);
+    virtual bool mouse_wheel(int y);
 
     view_item_list _views;
 
@@ -44,5 +45,6 @@ struct view_item : layout_view {
 void view_input_list(view_item_list &list, view_item_ptr item);
 void view_input_events(view_item_list &list, event_list &events);
 void view_input_button(int button, int x, int y, int pressed);
+void view_input_wheel(int y);
 
 #endif // VIEW_H

@@ -353,6 +353,13 @@ void ren_listen_events(event_list* events)
         });
         return;
 
+    case SDL_MOUSEWHEEL:
+        events->push_back({
+            type: EVT_MOUSE_WHEEL,
+            y: e.wheel.y
+        });
+        return;
+
     case SDL_KEYUP:
         events->push_back({
             type: EVT_KEY_UP,

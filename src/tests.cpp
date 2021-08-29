@@ -2,6 +2,25 @@
 
 #include "text.h"
 #include "button.h"
+#include "scrollarea.h"
+
+view_item_ptr test4() {
+    view_item_ptr root = std::make_shared<view_item>();
+    layout_item_ptr layout = root->layout();
+    layout->margin = 40;
+
+    view_item_ptr scrollarea = std::make_shared<scrollarea_view>();
+    view_item_ptr content = ((scrollarea_view*)scrollarea.get())->content;
+    root->add_child(scrollarea);
+
+    for(int i=0; i<10; i++) {
+        std::string t = "button ";
+        t += ('a' + i);
+        view_item_ptr button = std::make_shared<button_view>(t);
+        content->add_child(button);
+    }
+    return root;
+}
 
 view_item_ptr test3() {
     view_item_ptr root = std::make_shared<view_item>();
