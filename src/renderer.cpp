@@ -105,8 +105,6 @@ RenFont* ren_create_font(char *fdsc)
 
 void ren_destroy_font(RenFont *font)
 {
-    // pango_layout_free(fnt->layout);??
-    // pango_font_map_context_free(fnt->context);??
     delete font;
 }
 
@@ -297,6 +295,19 @@ void ren_set_clip_rect(RenRect rect)
     clip.top = rect.y;
     clip.right = rect.x + rect.width;
     clip.bottom = rect.y + rect.height;
+
+    cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
+    cairo_clip(cairo_context);
+}
+
+void ren_state_save()
+{
+    cairo_save(cairo_context);
+}
+
+void ren_state_restore()
+{
+    cairo_restore(cairo_context);
 }
 
 void ren_listen_events(event_list* events)

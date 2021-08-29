@@ -20,4 +20,7 @@ void rencache_invalidate(void);
 void rencache_begin_frame(int w, int h, RenCache *cache = 0);
 void rencache_end_frame(void);
 
+void rencache_state_save();
+void rencache_state_restore();
+
 #endif // RENDERER_CACHE_H

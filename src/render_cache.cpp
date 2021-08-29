@@ -13,11 +13,15 @@
 #define CELL_SIZE 96
 #define COMMAND_BUF_SIZE (1024 * 512)
 
-enum { FREE_FONT,
+enum {
+    FREE_FONT,
     SET_CLIP,
     DRAW_IMAGE,
     DRAW_TEXT,
-    DRAW_RECT };
+    DRAW_RECT,
+    SAVE_STATE,
+    RESTORE_STATE
+};
 
 typedef struct {
     int type, size;
@@ -150,6 +154,16 @@ void rencache_set_clip_rect(RenRect rect)
     if (cmd) {
         cmd->rect = intersect_rects(rect, cache->target_rect);
     }
+}
+
+void rencache_state_save()
+{
+    Command* cmd = push_command(SAVE_STATE, sizeof(Command));
+}
+
+void rencache_state_restore()
+{
+    Command* cmd = push_command(RESTORE_STATE, sizeof(Command));
 }
 
 void rencache_draw_image(RenImage* image, RenRect rect)
@@ -324,6 +338,12 @@ void rencache_end_frame(void)
                 break;
             case DRAW_TEXT:
                 ren_draw_text(cmd->font, cmd->text, cmd->rect.x, cmd->rect.y, cmd->color, cmd->bold, cmd->italic);
+                break;
+            case SAVE_STATE:
+                ren_state_save();
+                break;
+            case RESTORE_STATE:
+                ren_state_restore();
                 break;
             }
         }

@@ -18,7 +18,7 @@ struct view_item : layout_view {
     std::string name;
     std::string type;
 
-    layout_item_ptr layout();
+    layout_item_ptr layout() override;
 
     void add_child(view_item_ptr view);
     void remove_child(view_item_ptr view);
@@ -32,11 +32,10 @@ struct view_item : layout_view {
 
     RenImage* cache(int w, int h);
 
-    virtual void mouse_down(int x, int y, int button) {}
-    virtual void mouse_up(int x, int y, int button) {}
-    virtual void mouse_move(int x, int y, int button) {}
+    virtual bool mouse_down(int x, int y, int button);
+    virtual bool mouse_up(int x, int y, int button);
+    virtual bool mouse_move(int x, int y, int button);
 
-    layout_item_ptr _layout;
     view_item_list _views;
 
     RenImage *_cache;

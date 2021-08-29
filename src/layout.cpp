@@ -5,9 +5,6 @@ void layout_render_list(layout_item_list& list, layout_item_ptr item) {
     if (!item->visible) {
         return;
     }
-    // if (item->did_overflow) {
-    //     return;
-    // }
     list.push_back(item);
     for(auto child : item->children) {
         child->render_rect = child->rect;
@@ -58,7 +55,6 @@ void layout_position_items(layout_item_ptr item) {
         if (!child->visible) {
             continue;
         }    
-        child->did_overflow = false;
         child->rect.x = 0;
         child->rect.y = 0;
         if (consumed + child->rect.w * wd + child->rect.h * hd > constraint) {
@@ -132,15 +128,11 @@ void layout_position_items(layout_item_ptr item) {
             if (item->rect.w < child->rect.x + child->rect.w + item->margin*2) {
                 if (item->fit_children) {
                     item->rect.w = child->rect.x + child->rect.w + item->margin*2;
-                } else {
-                    child->did_overflow = true;
                 }
             }
             if (item->rect.h < child->rect.y + child->rect.h + item->margin*2) {
                 if (item->fit_children) {
                     item->rect.h = child->rect.y + child->rect.h + item->margin*2;
-                } else {
-                    child->did_overflow = true;
                 }
             }
 

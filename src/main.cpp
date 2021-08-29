@@ -6,38 +6,56 @@
 
 #include "text.h"
 
-void render_item(layout_item_ptr i)
+void render_item(layout_item_ptr item)
 {
+    if (!item->visible) {
+        return;
+    }
+
+    rencache_state_save();
+    rencache_set_clip_rect({
+        item->render_rect.x - 1,
+        item->render_rect.y - 1,
+        item->render_rect.w + 2,
+        item->render_rect.h + 2
+    });
+
     bool fill = false;
     float stroke = 1.0f;
-    RenColor clr = { i->rgb.r, i->rgb.g, i->rgb.b };
-    if (i->view && i->view->is_hovered()) {
+    RenColor clr = { item->rgb.r, item->rgb.g, item->rgb.b };
+    if (item->view && item->view->is_hovered()) {
         clr = { 150, 0, 150 };
     }
-    if (i->view && i->view->is_pressed()) {
+    if (item->view && item->view->is_pressed()) {
         clr = { 255, 0, 0 };
         // fill = true;
         stroke = 1.5f;
     }
-    if (i->view && i->view->is_clicked()) {
+    if (item->view && item->view->is_clicked()) {
         printf(">>click\n");
     }
 
-    // printf("%l %d %d %d %d\n", ct, i->render_rect.x, i->render_rect.y, i->render_rect.w, i->render_rect.h);
+    // printf("%l %d %d %d %d\n", ct, item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
     rencache_draw_rect({
-        i->render_rect.x,
-        i->render_rect.y,
-        i->render_rect.w,
-        i->render_rect.h
+        item->render_rect.x,
+        item->render_rect.y,
+        item->render_rect.w,
+        item->render_rect.h
     },
     clr, fill, stroke);
 
-    std::string text = i->view ? ((view_item*)i->view)->name : i->name;
-    if (i->view && ((view_item*)i->view)->type == "text") {
-        text = ((text_view*)i->view)->text;
+    std::string text = item->view ? ((view_item*)item->view)->name : item->name;
+    if (item->view && ((view_item*)item->view)->type == "text") {
+        text = ((text_view*)item->view)->text;
     }
-    rencache_draw_text(NULL, (char*)text.c_str(), i->render_rect.x + 4, i->render_rect.y + 2, { 255, 255, 0},
+    rencache_draw_text(NULL, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
         false, false, true);
+
+    for(auto child : item->children) {
+        render_item(child);
+    }
+
+    rencache_state_restore();
 }
 
 int main(int argc, char **argv)
@@ -94,9 +112,13 @@ int main(int argc, char **argv)
 
         rencache_draw_image(tmp, {240,240,80,80});
 
+        /*
         for(auto i : render_list) {
             render_item(i);
         }
+        */
+
+        render_item(root);
 
         rencache_end_frame();
         ren_end_frame();

@@ -31,6 +31,16 @@ enum layout_align_items {
     LAYOUT_ALIGN_STRETCH
 };
 
+enum layout_align_content {
+    LAYOUT_ALIGN_CONTENT_UNKNOWN = 0,
+    LAYOUT_ALIGN_CONTENT_FLEX_START,
+    LAYOUT_ALIGN_CONTENT_FLEX_END,
+    LAYOUT_ALIGN_CONTENT_CENTER,
+    LAYOUT_ALIGN_CONTENT_STRETCH,
+    LAYOUT_ALIGN_CONTENT_SPACE_BETWEEN,
+    LAYOUT_ALIGN_CONTENT_SPACE_AROUND
+};
+
 struct layout_color {
     int r;
     int g;
@@ -70,6 +80,7 @@ struct layout_view {
     , background({ 150, 150, 150 })
     , border_color({ 150, 150, 150 })
     , border_width(0)
+    , parent(0)
     {}
 
     bool disabled;
@@ -78,6 +89,9 @@ struct layout_view {
     bool can_drag;
     bool can_hover;
     bool can_input;
+
+    layout_view *parent;
+    layout_item_ptr _layout;
 
     layout_color color;
     layout_color background;
@@ -89,6 +103,8 @@ struct layout_view {
     virtual bool is_dragged() { return false; }
     virtual bool is_hovered() { return false; }
     virtual bool is_clicked() { return false; }
+    virtual layout_item_ptr layout() { return 0; }
+    virtual void set_layout(layout_item_ptr l) { _layout = l; }
     
     virtual void precalculate() {}
     virtual void render() {}
@@ -106,11 +122,11 @@ struct layout_item {
         , width(0)
         , height(0)
         , fit_children(true)
-        , did_overflow(false)
         , margin(0)
         , visible(true)
         , wrap(false)
         , align_self(LAYOUT_ALIGN_UNKNOWN)
+        , align_content(LAYOUT_ALIGN_CONTENT_UNKNOWN)
         , align(LAYOUT_ALIGN_FLEX_START)
         , justify(LAYOUT_JUSTIFY_FLEX_START)
         , direction(LAYOUT_FLEX_DIRECTION_COLUMN)
@@ -138,17 +154,16 @@ struct layout_item {
     int width, height;
     bool fit_children;
     int grow;                   // flex-grow
-    int shrink;            // not yet implemented
+    int shrink;                 // not yet implemented
     int flex_basis;             // not yet implemented
     layout_align_items align;
-    layout_align_items align_self;  // not yet implemented
+    layout_align_content align_content; // not yet implemented
+    layout_align_items align_self;      // not yet implemented
     layout_justify_content justify;
     layout_flex_direction direction;
     layout_item_list children;
 
     layout_view *view;
-
-    bool did_overflow;
 };
 
 void layout_run(layout_item_ptr item, layout_constraint constraint);

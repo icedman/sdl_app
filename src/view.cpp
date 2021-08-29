@@ -73,12 +73,14 @@ void view_item::add_child(view_item_ptr view)
             return;
         }
     }
+    view->parent = this;
     _views.push_back(view);
     layout()->children.push_back(view->layout());
 }
 
 void view_item::remove_child(view_item_ptr view)
 {
+    view->parent = 0;    
     view_item_list::iterator it = _views.begin();
     while(it++ != _views.end()) {
         if (*it == view) {
@@ -121,10 +123,49 @@ bool view_item::is_clicked()
     return this == view_clicked;
 }
 
+bool view_item::mouse_down(int x, int y, int button)
+{
+    view_item *p = (view_item*)parent;
+    while(p) {
+        if (p->mouse_down(x, y, button)) {
+            return true;
+        }
+        p = (view_item*)p->parent;
+    }
+    return false;
+}
+
+bool view_item::mouse_up(int x, int y, int button)
+{
+    view_item *p = (view_item*)parent;
+    while(p) {
+        if (p->mouse_up(x, y, button)) {
+            return true;
+        }
+        p = (view_item*)p->parent;
+    }
+    return false;
+}
+
+bool view_item::mouse_move(int x, int y, int button)
+{
+    view_item *p = (view_item*)parent;
+    while(p) {
+        if (p->mouse_move(x, y, button)) {
+            return true;
+        }
+        p = (view_item*)p->parent;
+    }
+    return false;
+}
+
 view_item_ptr view_find_xy(view_item_list &list, int x, int y)
 {
     for(auto v : list) {
         if (!v->can_press && !v->can_focus && !v->can_hover) {
+            continue;
+        }
+        if (!v->layout()->visible) {
             continue;
         }
         layout_rect r = v->layout()->render_rect;

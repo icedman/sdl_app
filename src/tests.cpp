@@ -31,7 +31,7 @@ view_item_ptr test3() {
     button->layout()->height = 40;
     button->layout()->margin = 4;
     button->layout()->wrap = true;
-    button->layout()->fit_children = true;
+    button->layout()->fit_children = false;
     button->can_press = true;
     button->can_hover = true;
     item_b->add_child(button);
@@ -90,7 +90,7 @@ view_item_ptr test2() {
     }
 
     view_item_ptr view = std::make_shared<view_item>();
-    view->_layout = root;
+    view->set_layout(root);
     return view;
 }
 
@@ -191,6 +191,6 @@ view_item_ptr test1() {
     item_h->height = 200;
 
     view_item_ptr view = std::make_shared<view_item>();
-    view->_layout = root;
+    view->set_layout(root);
     return view;
 }
