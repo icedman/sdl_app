@@ -36,27 +36,32 @@ typedef struct {
 struct RenCache {
     unsigned cells_buf1[CELLS_X * CELLS_Y];
     unsigned cells_buf2[CELLS_X * CELLS_Y];
-    unsigned* cells_prev = cells_buf1;
-    unsigned* cells = cells_buf2;
+    unsigned* cells_prev = 0;
+    unsigned* cells = 0;
     RenRect rect_buf[CELLS_X * CELLS_Y / 2];
     char command_buf[COMMAND_BUF_SIZE];
     int command_buf_idx;
     RenRect target_rect;
     bool show_debug;
+
+    RenCache() {
+        cells_prev = cells_buf1;
+        cells = cells_buf2;
+    }
 };
 
 RenCache default_cache;
-RenCache *cache = &default_cache;
+RenCache *cache = 0;
 
-static unsigned cells_buf1[CELLS_X * CELLS_Y];
-static unsigned cells_buf2[CELLS_X * CELLS_Y];
-static unsigned* cells_prev = cells_buf1;
-static unsigned* cells = cells_buf2;
-static RenRect rect_buf[CELLS_X * CELLS_Y / 2];
-static char command_buf[COMMAND_BUF_SIZE];
-static int command_buf_idx;
-static RenRect target_rect;
-static bool show_debug;
+RenCache* ren_create_cache()
+{
+    return new RenCache();
+}
+
+void ren_destroy_cache(RenCache *c)
+{
+    delete c;
+}
 
 static inline int min(int a, int b) { return a < b ? a : b; }
 static inline int max(int a, int b) { return a > b ? a : b; }
@@ -103,13 +108,13 @@ static RenRect merge_rects(RenRect a, RenRect b)
 
 static Command* push_command(int type, int size)
 {
-    Command* cmd = (Command*)(command_buf + command_buf_idx);
-    int n = command_buf_idx + size;
+    Command* cmd = (Command*)(cache->command_buf + cache->command_buf_idx);
+    int n = cache->command_buf_idx + size;
     if (n > COMMAND_BUF_SIZE) {
         fprintf(stderr, "Warning: (" __FILE__ "): exhausted command buffer\n");
         return NULL;
     }
-    command_buf_idx = n;
+    cache->command_buf_idx = n;
     memset(cmd, 0, sizeof(Command));
     cmd->type = type;
     cmd->size = size;
@@ -119,16 +124,16 @@ static Command* push_command(int type, int size)
 static bool next_command(Command** prev)
 {
     if (*prev == NULL) {
-        *prev = (Command*)command_buf;
+        *prev = (Command*)cache->command_buf;
     } else {
         *prev = (Command*)(((char*)*prev) + (*prev)->size);
     }
-    return *prev != ((Command*)(command_buf + command_buf_idx));
+    return *prev != ((Command*)(cache->command_buf + cache->command_buf_idx));
 }
 
 void rencache_show_debug(bool enable)
 {
-    show_debug = enable;
+    cache->show_debug = enable;
 }
 
 void rencache_free_font(RenFont* font)
@@ -143,13 +148,13 @@ void rencache_set_clip_rect(RenRect rect)
 {
     Command* cmd = push_command(SET_CLIP, sizeof(Command));
     if (cmd) {
-        cmd->rect = intersect_rects(rect, target_rect);
+        cmd->rect = intersect_rects(rect, cache->target_rect);
     }
 }
 
 void rencache_draw_image(RenImage* image, RenRect rect)
 {
-    if (!rects_overlap(target_rect, rect)) {
+    if (!rects_overlap(cache->target_rect, rect)) {
         return;
     }
     Command* cmd = push_command(DRAW_IMAGE, sizeof(Command));
@@ -161,7 +166,7 @@ void rencache_draw_image(RenImage* image, RenRect rect)
 
 void rencache_draw_rect(RenRect rect, RenColor color, bool fill, float l)
 {
-    if (!rects_overlap(target_rect, rect)) {
+    if (!rects_overlap(cache->target_rect, rect)) {
         return;
     }
     Command* cmd = push_command(DRAW_RECT, sizeof(Command));
@@ -183,7 +188,7 @@ int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor c
     rect.width = fw;
     rect.height = fh;
 
-    if (rects_overlap(target_rect, rect)) {
+    if (rects_overlap(cache->target_rect, rect)) {
         int sz = strlen(text) + 1;
         Command* cmd = push_command(DRAW_TEXT, sizeof(Command) + sz);
         if (cmd) {
@@ -202,18 +207,24 @@ int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor c
 
 void rencache_invalidate(void)
 {
-    memset(cells_prev, 0xff, sizeof(cells_buf1));
+    memset(cache->cells_prev, 0xff, sizeof(cache->cells_buf1));
 }
 
-void rencache_begin_frame(RenCache *cache)
+void rencache_begin_frame(int w, int h, RenCache *target)
 {
-    /* reset all cells if the screen width/height has changed */
-    int w, h;
-    ren_get_size(&w, &h);
+    if (target) {
+        cache = target;
+    } else {
+        cache = &default_cache;
+    }
 
-    if (target_rect.width != w || h != target_rect.height) {
-        target_rect.width = w;
-        target_rect.height = h;
+    /* reset all cells if the screen width/height has changed */
+    // int w, h;
+    // ren_get_size(&w, &h);
+
+    if (cache->target_rect.width != w || h != cache->target_rect.height) {
+        cache->target_rect.width = w;
+        cache->target_rect.height = h;
         rencache_invalidate();
     }
 }
@@ -228,7 +239,7 @@ static void update_overlapping_cells(RenRect r, unsigned h)
     for (int y = y1; y <= y2; y++) {
         for (int x = x1; x <= x2; x++) {
             int idx = cell_idx(x, y);
-            hash(&cells[idx], &h, sizeof(h));
+            hash(&(cache->cells[idx]), &h, sizeof(h));
         }
     }
 }
@@ -237,21 +248,21 @@ static void push_rect(RenRect r, int* count)
 {
     /* try to merge with existing rectangle */
     for (int i = *count - 1; i >= 0; i--) {
-        RenRect* rp = &rect_buf[i];
+        RenRect* rp = &cache->rect_buf[i];
         if (rects_overlap(*rp, r)) {
             *rp = merge_rects(*rp, r);
             return;
         }
     }
     /* couldn't merge with previous rectangle: push */
-    rect_buf[(*count)++] = r;
+    cache->rect_buf[(*count)++] = r;
 }
 
 void rencache_end_frame(void)
 {
     /* update cells from commands */
     Command* cmd = NULL;
-    RenRect cr = target_rect;
+    RenRect cr = cache->target_rect;
     while (next_command(&cmd)) {
         if (cmd->type == SET_CLIP) {
             cr = cmd->rect;
@@ -267,34 +278,34 @@ void rencache_end_frame(void)
 
     /* push rects for all cells changed from last frame, reset cells */
     int rect_count = 0;
-    int max_x = target_rect.width / CELL_SIZE + 1;
-    int max_y = target_rect.height / CELL_SIZE + 1;
+    int max_x = cache->target_rect.width / CELL_SIZE + 1;
+    int max_y = cache->target_rect.height / CELL_SIZE + 1;
     for (int y = 0; y < max_y; y++) {
         for (int x = 0; x < max_x; x++) {
             /* compare previous and current cell for change */
             int idx = cell_idx(x, y);
-            if (cells[idx] != cells_prev[idx]) {
+            if (cache->cells[idx] != cache->cells_prev[idx]) {
                 push_rect((RenRect){ x, y, 1, 1 }, &rect_count);
             }
-            cells_prev[idx] = HASH_INITIAL;
+            cache->cells_prev[idx] = HASH_INITIAL;
         }
     }
 
     /* expand rects from cells to pixels */
     for (int i = 0; i < rect_count; i++) {
-        RenRect* r = &rect_buf[i];
+        RenRect* r = &cache->rect_buf[i];
         r->x *= CELL_SIZE;
         r->y *= CELL_SIZE;
         r->width *= CELL_SIZE;
         r->height *= CELL_SIZE;
-        *r = intersect_rects(*r, target_rect);
+        *r = intersect_rects(*r, cache->target_rect);
     }
 
     /* redraw updated regions */
     bool has_free_commands = false;
     for (int i = 0; i < rect_count; i++) {
         /* draw */
-        RenRect r = rect_buf[i];
+        RenRect r = cache->rect_buf[i];
         ren_set_clip_rect(r);
 
         cmd = NULL;
@@ -317,7 +328,7 @@ void rencache_end_frame(void)
             }
         }
 
-        if (show_debug) {
+        if (cache->show_debug) {
             RenColor color = { (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(), 50 };
             ren_draw_rect(r, color, false, 4.0f);
         }
@@ -325,7 +336,7 @@ void rencache_end_frame(void)
 
     /* update dirty rects */
     if (rect_count > 0) {
-        ren_update_rects(rect_buf, rect_count);
+        ren_update_rects(cache->rect_buf, rect_count);
     }
 
     /* free fonts */
@@ -339,8 +350,16 @@ void rencache_end_frame(void)
     }
 
     /* swap cell buffer and reset */
-    unsigned* tmp = cells;
-    cells = cells_prev;
-    cells_prev = tmp;
-    command_buf_idx = 0;
+    unsigned* tmp = cache->cells;
+    cache->cells = cache->cells_prev;
+    cache->cells_prev = tmp;
+    cache->command_buf_idx = 0;
 }
+
+void rencache_init()
+{
+    cache = &default_cache;
+}
+
+void rencache_shutdown()
+{}

@@ -60,6 +60,12 @@ void ren_destroy_image(RenImage *img)
     delete img;
 }
 
+void ren_image_size(RenImage *image, int *w, int *h)
+{
+    *w = image->width;
+    *h = image->height;
+}
+
 void ren_save_image(RenImage *image, char *filename)
 {
     cairo_surface_write_to_png(image->cairo_surface, filename);
@@ -148,14 +154,10 @@ RenFont* ren_get_default_font()
     return default_font;
 }
 
-void ren_get_size(int *w, int *h)
+void ren_get_window_size(int *w, int *h)
 {
-    if (!target_buffer) {
-        target_buffer = window_buffer;
-        cairo_context = window_buffer->cairo_context;
-    }
-    *w = target_buffer->width;
-    *h = target_buffer->height;
+    *w = window_buffer->width;
+    *h = window_buffer->height;
 }
 
 void ren_init()

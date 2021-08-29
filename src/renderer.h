@@ -16,15 +16,6 @@ typedef struct {
     int x, y, width, height;
 } RenRect;
 
-struct RenState {
-    int x;
-    int y;
-    RenFont *font;
-    RenColor color;
-    RenColor background;
-    RenRect clip;
-};
-
 void ren_init();
 void ren_shutdown();
 void ren_begin_frame(RenImage *target = 0);
@@ -32,7 +23,7 @@ void ren_end_frame();
 
 void ren_quit();
 bool ren_is_running();
-void ren_get_size(int *w, int *h);
+void ren_get_window_size(int *w, int *h);
 
 void ren_update_rects(RenRect* rects, int count);
 void ren_set_clip_rect(RenRect rect);
@@ -41,6 +32,7 @@ void ren_listen_events(event_list* events);
 
 RenImage* ren_create_image(int w, int h);
 void ren_destroy_image(RenImage *image);
+void ren_image_size(RenImage *image, int *w, int *h);
 void ren_save_image(RenImage *image, char *filename);
 
 RenFont* ren_create_font(char *font_desc);

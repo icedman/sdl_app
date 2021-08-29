@@ -3,6 +3,7 @@
 
 #include "layout.h"
 #include "events.h"
+#include "renderer.h"
 
 #include <map>
 
@@ -12,6 +13,7 @@ typedef std::vector<view_item_ptr> view_item_list;
 struct view_item : layout_view {
     view_item(std::string type);
     view_item();
+    ~view_item();
 
     std::string name;
     std::string type;
@@ -28,12 +30,16 @@ struct view_item : layout_view {
     bool is_hovered() override;
     bool is_clicked() override;
 
+    RenImage* cache(int w, int h);
+
     virtual void mouse_down(int x, int y, int button) {}
     virtual void mouse_up(int x, int y, int button) {}
     virtual void mouse_move(int x, int y, int button) {}
 
     layout_item_ptr _layout;
     view_item_list _views;
+
+    RenImage *_cache;
 };
 
 void view_input_list(view_item_list &list, view_item_ptr item);

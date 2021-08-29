@@ -25,11 +25,36 @@ void view_input_list(view_item_list &list, view_item_ptr item)
 
 view_item::view_item()
     : type("view")
+    , _cache(0)
 {}
 
 view_item::view_item(std::string type)
     : type(type)
+    , _cache(0)
 {}
+
+view_item::~view_item()
+{
+    if (_cache) {
+        ren_destroy_image(_cache);
+    }
+}
+
+RenImage* view_item::cache(int w, int h)
+{
+    if (_cache) {
+        int cw, ch;
+        ren_image_size(_cache, &cw, &ch);
+        if (cw != w || ch != h) {
+            ren_destroy_image(_cache);
+            _cache = 0;
+        }
+    }
+    if (!_cache) {
+        _cache = ren_create_image(w, h);
+    }
+    return _cache;
+}
 
 layout_item_ptr view_item::layout()
 {

@@ -36,8 +36,8 @@ view_item_ptr test3() {
     button->can_hover = true;
     item_b->add_child(button);
     item_b->layout()->margin = 20;
-    item_b->layout()->scroll_x = -80;
-    item_b->layout()->scroll_y = 80;
+    // item_b->layout()->scroll_x = -80;
+    // item_b->layout()->scroll_y = 80;
 
 
     view_item_ptr item_f = std::make_shared<text_view>("hello world");
