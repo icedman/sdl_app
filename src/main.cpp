@@ -4,8 +4,141 @@
 #include "events.h"
 #include "tests.h"
 
+#include "app.h"
+#include "search.h"
+#include "statusbar.h"
+#include "explorer.h"
+#include "editor.h"
+#include "operation.h"
+#include "keyinput.h"
+#include "util.h"
+
 #include "text.h"
 #include "button.h"
+
+#include "theme.h"
+
+#define SELECTED_OFFSET 500
+static std::map<int, int> colorMap;
+
+struct BgFg {
+    color_info_t bg;
+    color_info_t fg;
+};
+
+static std::map<int, BgFg> colorPairs;
+static std::map<int, int> colorIndices;
+
+static void addColorPair(int idx, int fg, int bg)
+{
+    app_t* app = app_t::instance();
+
+    BgFg pair = {
+        .bg = color_info_t::true_color(bg),
+        .fg = color_info_t::true_color(fg)
+    };
+
+    colorPairs[idx] = pair;
+    // printf(">>>%d %d %d\n", idx, fg, bg);
+}
+
+static int _pairForColor(int colorIdx, bool selected)
+{
+    // printf("%d\n", colorIdx);
+    // return colorIdx;
+    if (selected && colorIdx == color_pair_e::NORMAL) {
+        return color_pair_e::SELECTED;
+    }
+
+    int idx = colorIdx + (selected ? SELECTED_OFFSET : 0);
+    // if (!colorMap.count(idx)) {
+    //     return -1;
+    // }
+    return colorMap[idx];
+}
+
+static void updateColors()
+{
+    app_t* app = app_t::instance();
+    theme_ptr theme = app->theme;
+
+    //---------------
+    // build the color pairs
+    //---------------
+    addColorPair(color_pair_e::NORMAL, app->fg, app->bgApp);
+    addColorPair(color_pair_e::SELECTED, app->selFg, app->selBg);
+
+    colorMap[color_pair_e::NORMAL] = color_pair_e::NORMAL;
+    colorMap[color_pair_e::SELECTED] = color_pair_e::SELECTED;
+
+    int idx = 32;
+
+    auto it = theme->colorIndices.begin();
+    while (it != theme->colorIndices.end()) {
+        colorMap[it->first] = idx;
+        addColorPair(idx++, it->first, app->bgApp);
+        it++;
+    }
+
+    it = theme->colorIndices.begin();
+    while (it != theme->colorIndices.end()) {
+        colorMap[it->first + SELECTED_OFFSET] = idx;
+        addColorPair(idx++, it->first, app->selBg);
+        if (it->first == app->selBg) {
+            colorMap[it->first + SELECTED_OFFSET] = idx + 1;
+        }
+        it++;
+    }
+}
+
+void render_editor(layout_item_ptr item)
+{
+    // rencache_draw_rect({
+    //     item->render_rect.x,
+    //     item->render_rect.y,
+    //     item->render_rect.w,
+    //     item->render_rect.h
+    // },
+    // { 255, 255, 255 }, true, 1.0f);
+    
+    int fw, fh;
+    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+
+    editor_ptr editor = app_t::instance()->currentEditor;
+    cursor_t cursor = editor->document.cursor();
+    block_ptr block = cursor.block();
+
+    editor->highlight(0, 40);
+
+    int colorPair = color_pair_e::NORMAL;
+    int colorPairSelected = color_pair_e::SELECTED;
+
+    int l=0;
+    while(block && l++<20) {
+        struct blockdata_t* blockData = block->data.get();
+
+        std::string text = block->text() + " ";
+        const char *line = text.c_str();
+
+        for(auto s : blockData->spans) {
+
+            colorPair = _pairForColor(s.colorIndex, false);
+            colorPairSelected = _pairForColor(s.colorIndex, true);
+
+            BgFg clr = colorPairs[colorPair];
+
+            std::string span_text = text.substr(s.start, s.length);
+            rencache_draw_text(NULL, (char*)span_text.c_str(), 
+                item->render_rect.x + (s.start * fw),
+                item->render_rect.y + (l * fh), { (int)clr.fg.red, (int)clr.fg.green, (int)clr.fg.blue },
+                false, false, true);
+   
+        }
+
+        block = block->next();
+    }
+
+}
 
 void render_item(layout_item_ptr item)
 {
@@ -32,7 +165,16 @@ void render_item(layout_item_ptr item)
         // fill = true;
         stroke = 1.5f;
     }
-    
+
+    if (item->view && item->view->is_clicked()) {
+        printf(">>click\n");
+    }
+
+    if (item->view && ((view_item*)item->view)->type == "editor") {
+        render_editor(item);
+        return;
+    }
+
     // printf("%l %d %d %d %d\n", ct, item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
     rencache_draw_rect({
         item->render_rect.x,
@@ -67,6 +209,24 @@ void render_item(layout_item_ptr item)
 
 int main(int argc, char **argv)
 {
+    app_t app;
+    keybinding_t keybinding;
+    explorer_t explorer;
+    statusbar_t statusbar;
+    search_t search;
+
+    app.configure(argc, argv);
+    app.setupColors();
+    std::string file = "./src/main.cpp";
+    if (argc > 1) {
+        file = argv[argc - 1];
+    }
+
+    updateColors();
+
+    app.openEditor(file);
+    // explorer_t::instance()->setRootFromFile(file);
+
     ren_init();
     rencache_init();
 
@@ -114,11 +274,18 @@ int main(int argc, char **argv)
         rencache_begin_frame(w, h);
 
         rencache_set_clip_rect({0,0,w,h});
-        rencache_draw_rect({x:0,y:0,width:w,height:h}, { 150, 150, 150});
+
+        rencache_draw_rect({x:0,y:0,width:w,height:h}, { 50, 50, 50});
         // rencache_draw_text(font, "Hello World", 20, 20, { 255, 255, 0 });
         // rencache_draw_text(font, "Hello World", 20, 40, { 255, 255, 0 });
 
         // rencache_draw_image(tmp, {240,240,80,80});
+
+        /*
+        for(auto i : render_list) {
+            render_item(i);
+        }
+        */
 
         render_item(root);
 
@@ -128,4 +295,6 @@ int main(int argc, char **argv)
 
     rencache_shutdown();
     ren_shutdown();
+
+    app.shutdown();
 }

@@ -4,7 +4,7 @@
 #include "button.h"
 #include "scrollarea.h"
 
-view_item_ptr test4() {
+view_item_ptr test5() {
     view_item_ptr root = std::make_shared<view_item>();
     layout_item_ptr layout = root->layout();
     layout->margin = 40;
@@ -19,6 +19,15 @@ view_item_ptr test4() {
         view_item_ptr button = std::make_shared<button_view>(t);
         content->add_child(button);
     }
+    return root;
+}
+
+view_item_ptr test4() {
+    view_item_ptr root = std::make_shared<view_item>();
+    root->layout()->margin = 40;
+
+    view_item_ptr editor = std::make_shared<view_item>("editor");    
+    root->add_child(editor);
     return root;
 }
 
