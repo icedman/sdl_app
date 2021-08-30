@@ -3,6 +3,15 @@
 #include "text.h"
 #include "button.h"
 
+view_item_ptr test4() {
+    view_item_ptr root = std::make_shared<view_item>();
+    root->layout()->margin = 40;
+
+    view_item_ptr editor = std::make_shared<view_item>("editor");    
+    root->add_child(editor);
+    return root;
+}
+
 view_item_ptr test3() {
     view_item_ptr root = std::make_shared<view_item>();
 
