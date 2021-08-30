@@ -14,10 +14,32 @@
 #include "util.h"
 
 #include "text.h"
+#include "button.h"
 
 #include "theme.h"
 
 static std::map<int, color_info_t> colorMap;
+static std::map<int, RenImage*> blockRenderCache;
+
+#if 1
+#define draw_rect rencache_draw_rect
+#define draw_text rencache_draw_text
+#define draw_image rencache_draw_image
+#define set_clip_rect rencache_set_clip_rect
+#define state_save rencache_state_save
+#define state_restore rencache_state_restore
+#define begin_frame(w, h) ren_begin_frame(); rencache_begin_frame(w, h);
+#define end_frame() rencache_end_frame(); ren_end_frame();
+#else
+#define draw_rect ren_draw_rect
+#define draw_text ren_draw_text
+#define draw_image ren_draw_image
+#define set_clip_rect ren_set_clip_rect
+#define state_save ren_state_save
+#define state_restore ren_state_restore
+#define begin_frame(w, h) ren_begin_frame();
+#define end_frame() ren_end_frame();
+#endif
 
 void updateColors()
 {
@@ -36,9 +58,10 @@ void updateColors()
     }
 }
 
-int start = 0;
-void render_editor(layout_item_ptr item)
+void prerender_editor()
 {
+    // editor_view *ev = (editor_view*)item->view;
+
     // rencache_draw_rect({
     //     item->render_rect.x,
     //     item->render_rect.y,
@@ -52,9 +75,14 @@ void render_editor(layout_item_ptr item)
 
     editor_ptr editor = app_t::instance()->currentEditor;
 
-    if (start >= editor->document.lastBlock()->lineNumber) {
-        start = editor->document.lastBlock()->lineNumber;
+    int start = 0;//ev->start;
+    if (start < 0) {
+        start = 0;
     }
+    if (start >= editor->document.blocks.size()) {
+        start = editor->document.blocks.size()-1;
+    }
+    // ev->start = start;
 
     cursor_t cursor = editor->document.cursor();
     block_ptr block = editor->document.blockAtLine(start);
@@ -63,7 +91,7 @@ void render_editor(layout_item_ptr item)
     it += start;
 
     editor->highlight(start, 38);
-    
+
     app_t* app = app_t::instance();
     theme_ptr theme = app->theme;
 
@@ -78,19 +106,130 @@ void render_editor(layout_item_ptr item)
         std::string text = block->text() + "\n";
         const char *line = text.c_str();
 
-        for(auto &s : blockData->spans) {
-            color_info_t fg = colorMap[s.colorIndex];
+        RenImage *img = blockRenderCache[block->lineNumber];
 
-            std::string span_text = text.substr(s.start, s.length);
+        if (!img) {
+            RenRect rect = { 0, 0, 0, fh };
+            for(auto &s : blockData->spans) {
+                if (rect.width < (s.start + s.length) * fw) {
+                    rect.width = (s.start + s.length) * fw;
+                }
+            }
 
-            // printf("%s:\n", span_text.c_str());
+            img = ren_create_image(rect.width, rect.height);
+            blockRenderCache[block->lineNumber] = img;
 
-            rencache_draw_text(NULL, (char*)span_text.c_str(), 
-                item->render_rect.x + (s.start * fw),
-                item->render_rect.y + (l * fh), { (int)fg.red,(int)fg.green,(int)fg.blue },
-                false, false, true);
-   
+            ren_begin_frame(img);
+
+            int bw = fw * block->length();
+            int bh = fh;
+            ren_draw_rect(rect, { 50, 50, 50 }, true, 0.5f);
+
+            int i = 0;
+            for(auto &s : blockData->spans) {
+                color_info_t fg = colorMap[s.colorIndex];
+
+                std::string span_text = text.substr(s.start, s.length);
+
+                // printf("%s:\n", span_text.c_str());
+
+                ren_draw_text(NULL, (char*)span_text.c_str(), 
+                    (s.start * fw),
+                    0, { (int)fg.red,(int)fg.green,(int)fg.blue },
+                    false, false, true);
+            }
+
+            ren_end_frame();
+            char tmp[255];
+            sprintf(tmp, "out/img_%d.png", block->lineNumber);
+            ren_save_image(img, tmp);
         }
+
+        l++;
+        if (l>10) break;
+    }
+}
+
+void render_editor(layout_item_ptr item)
+{
+    editor_view *ev = (editor_view*)item->view;
+
+    // return;
+
+    // rencache_draw_rect({
+    //     item->render_rect.x,
+    //     item->render_rect.y,
+    //     item->render_rect.w,
+    //     item->render_rect.h
+    // },
+    // { 255, 255, 255 }, true, 1.0f);
+    
+    int fw, fh;
+    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+
+    editor_ptr editor = app_t::instance()->currentEditor;
+
+    int start = ev->start;
+    if (start < 0) {
+        start = 0;
+    }
+    if (start >= editor->document.blocks.size()) {
+        start = editor->document.blocks.size()-1;
+    }
+    ev->start = start;
+
+    cursor_t cursor = editor->document.cursor();
+    block_ptr block = editor->document.blockAtLine(start);
+
+    block_list::iterator it = editor->document.blocks.begin();
+    it += start;
+
+    int view_height = 38;
+    editor->highlight(start, view_height);
+
+    app_t* app = app_t::instance();
+    theme_ptr theme = app->theme;
+
+    int l=0;
+    while(it != editor->document.blocks.end() && l<view_height) {
+        block_ptr block = *it++;
+        if (!block->data) {
+            break;
+        }
+
+        struct blockdata_t* blockData = block->data.get();
+
+        std::string text = block->text() + "\n";
+        const char *line = text.c_str();
+
+        /*
+        RenImage *img = blockRenderCache[block->lineNumber];        
+        if (img) {
+            int iw, ih;
+            ren_image_size(img, &iw, &ih);
+            draw_image(img, {
+                item->render_rect.x,
+                item->render_rect.y + (l * fw),
+                iw, ih
+            });
+        }
+        */
+
+            int i = 0;
+            for(auto &s : blockData->spans) {
+                color_info_t fg = colorMap[s.colorIndex];
+
+                std::string span_text = text.substr(s.start, s.length);
+
+                // printf("%s:\n", span_text.c_str());
+
+                draw_text(NULL, (char*)span_text.c_str(), 
+                    item->render_rect.x + (s.start * fw),
+                    item->render_rect.y + (l*fh), 
+                    { (int)fg.red,(int)fg.green,(int)fg.blue },
+                    false, false, true);
+            }
+
 
         l++;
     }
@@ -103,8 +242,8 @@ void render_item(layout_item_ptr item)
         return;
     }
 
-    rencache_state_save();
-    rencache_set_clip_rect({
+    state_save();
+    set_clip_rect({
         item->render_rect.x - 1,
         item->render_rect.y - 1,
         item->render_rect.w + 2,
@@ -122,18 +261,18 @@ void render_item(layout_item_ptr item)
         // fill = true;
         stroke = 1.5f;
     }
+
     if (item->view && item->view->is_clicked()) {
         printf(">>click\n");
-        start++;
     }
 
     if (item->view && ((view_item*)item->view)->type == "editor") {
         render_editor(item);
-        // return;
+        return;
     }
 
     // printf("%l %d %d %d %d\n", ct, item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
-    rencache_draw_rect({
+    draw_rect({
         item->render_rect.x,
         item->render_rect.y,
         item->render_rect.w,
@@ -145,14 +284,23 @@ void render_item(layout_item_ptr item)
     if (item->view && ((view_item*)item->view)->type == "text") {
         text = ((text_view*)item->view)->text;
     }
-    rencache_draw_text(NULL, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
+    draw_text(NULL, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
         false, false, true);
 
+    if (item->view && item->view->is_clicked()) {
+        // button_view *btn = (button_view*)item->view;
+        // text_view *txt = (text_view*)btn->text.get();
+        // printf(">>click %s\n", txt->text.c_str());
+    }
+
     for(auto child : item->children) {
+        child->render_rect = child->rect;
+        child->render_rect.x += item->render_rect.x + item->scroll_x;
+        child->render_rect.y += item->render_rect.y + item->scroll_y;
         render_item(child);
     }
 
-    rencache_state_restore();
+    state_restore();
 }
 
 int main(int argc, char **argv)
@@ -179,11 +327,11 @@ int main(int argc, char **argv)
     ren_init();
     rencache_init();
 
-    RenImage *tmp = ren_create_image(80,80);
-    ren_begin_frame(tmp);
-    ren_draw_rect({0,0,80,80}, {150,0,150});
-    ren_draw_rect({20,20,20,20}, {255,0,0});
-    ren_end_frame();
+    // RenImage *tmp = ren_create_image(80,80);
+    // ren_begin_frame(tmp);
+    // ren_draw_rect({0,0,80,80}, {150,0,150});
+    // ren_draw_rect({20,20,20,20}, {255,0,0});
+    // ren_end_frame();
 
     view_item_ptr root_view = test4();
     layout_item_ptr root = root_view->layout();
@@ -211,28 +359,32 @@ int main(int argc, char **argv)
         int w, h;
         ren_get_window_size(&w, &h);
 
+        prerender_editor();
+
         if (pw != w || ph != h) {
             pw = w;
             ph = h;
 
             layout_run(root, { 0, 0, w, h });
-            render_list.clear();
-            layout_render_list(render_list, root);
 
-            ren_begin_frame();
-            ren_draw_rect({x:0,y:0,width:w,height:h}, { (int)fg.red,(int)fg.green,(int)fg.blue });
-            ren_end_frame();
+            // ren_begin_frame();
+            // ren_draw_rect({x:0,y:0,width:w,height:h}, { (int)fg.red,(int)fg.green,(int)fg.blue });
+            // ren_end_frame();
+
+            render_list.clear();
+            layout_render_list(render_list, root); // << this positions items on the screen
         }
 
-        ren_begin_frame();
-        rencache_begin_frame(w, h);
+        begin_frame(w, h);
+        set_clip_rect({0,0,w,h});
 
-        rencache_draw_rect({x:0,y:0,width:w,height:h}, { (int)fg.red,(int)fg.green,(int)fg.blue });
+        state_save();
+        draw_rect({x:0,y:0,width:w,height:h}, { (int)fg.red,(int)fg.green,(int)fg.blue });
+        // draw_rect({x:0,y:0,width:w,height:h}, { 50, 50, 50});
 
-        // rencache_draw_rect({x:0,y:0,width:w,height:h}, { 50, 50, 50});
-        // rencache_draw_text(font, "Hello World", 20, 20, { 255, 255, 0 });
-        // rencache_draw_text(font, "Hello World", 20, 40, { 255, 255, 0 });
-        // rencache_draw_image(tmp, {240,240,80,80});
+        // draw_text(font, "Hello World", 20, 20, { 255, 255, 0 });
+        // draw_text(font, "Hello World", 20, 40, { 255, 255, 0 });
+        // draw_image(tmp, {240,240,80,80});
 
         /*
         for(auto i : render_list) {
@@ -242,8 +394,8 @@ int main(int argc, char **argv)
 
         render_item(root);
 
-        rencache_end_frame();
-        ren_end_frame();
+        state_restore();
+        end_frame();
     }
 
     rencache_shutdown();

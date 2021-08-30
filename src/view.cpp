@@ -159,6 +159,18 @@ bool view_item::mouse_move(int x, int y, int button)
     return false;
 }
 
+bool view_item::mouse_wheel(int x, int y)
+{
+    view_item *p = (view_item*)parent;
+    while(p) {
+        if (p->mouse_wheel(x, y)) {
+            return true;
+        }
+        p = (view_item*)p->parent;
+    }
+    return false;
+}
+
 view_item_ptr view_find_xy(view_item_list &list, int x, int y)
 {
     for(auto v : list) {
@@ -187,6 +199,9 @@ void view_input_events(view_item_list &list, event_list &events)
     _view_list = &list;
     for(auto e : events) {
         switch(e.type) {
+        case EVT_MOUSE_WHEEL:
+            view_input_wheel(e.x, e.y);
+            break;
         case EVT_MOUSE_DOWN:
             view_input_button(e.button, e.x, e.y, true);
             break;
@@ -231,5 +246,13 @@ void view_input_button(int button, int x, int y, int pressed)
 
     if (view_pressed) {
         view_hovered = view_pressed->can_hover ? view_pressed : view_hovered;
+    }
+}
+
+void view_input_wheel(int x, int y)
+{
+    if (view_hovered) {
+        // printf("%d %s\n", y, view_hovered->type.c_str());
+        view_hovered->mouse_wheel(x, y);
     }
 }

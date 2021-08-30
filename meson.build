@@ -80,6 +80,7 @@ app_files = [
     'src/view.cpp',
     'src/ui/text.cpp',
     'src/ui/button.cpp',
+    'src/ui/scrollarea.cpp',
     'src/tests.cpp',
     'src/main.cpp'
 ]
@@ -93,7 +94,7 @@ library('tmparser',
 tmparser_lib = cc.find_library('tmparser', required: false, dirs:[pwd + '/build'])
 tmparser_dep = declare_dependency(dependencies: [ tmparser_lib ], include_directories: [ textmate_inc ])
 
-library('editor',
+editor_lib = library('editor',
     editor_files, 
     include_directories: [ editor_inc ],
     dependencies: [ tmparser_dep, jsoncpp_dep, onigmo_dep, pthread_dep ]

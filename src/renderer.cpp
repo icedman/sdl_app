@@ -21,6 +21,7 @@ struct RenImage {
     SDL_Surface* sdl_surface;
     cairo_surface_t* cairo_surface;
     cairo_t *cairo_context;
+    cairo_pattern_t *pattern;
 };
 
 struct RenFont {
@@ -31,6 +32,7 @@ struct RenFont {
     PangoContext* context;
 };
 
+int listen_quick_frames = 0;
 RenImage* window_buffer = 0;
 RenImage* target_buffer = 0;
 cairo_t* cairo_context = 0;
@@ -48,15 +50,17 @@ RenImage* ren_create_image(int w, int h)
     img->sdl_surface = SDL_CreateRGBSurfaceFrom(img->buffer, w, h, 32, stride, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
     img->cairo_surface = cairo_image_surface_create_for_data(img->buffer, CAIRO_FORMAT_ARGB32, w, h, stride);
     img->cairo_context = cairo_create(img->cairo_surface);
+    img->pattern = cairo_pattern_create_for_surface(img->cairo_surface);
     return img;
 }
 
 void ren_destroy_image(RenImage *img)
 {
-    SDL_FreeSurface(img->sdl_surface);
+    cairo_pattern_destroy(img->pattern);
     cairo_surface_destroy(img->cairo_surface);
     cairo_destroy(img->cairo_context);
     free(img->buffer);
+    SDL_FreeSurface(img->sdl_surface);
     delete img;
 }
 
@@ -234,13 +238,11 @@ bool ren_is_running()
 
 void ren_draw_image(RenImage *image, RenRect rect)
 {
-    cairo_pattern_t *pattern = cairo_pattern_create_for_surface(image->cairo_surface);
     // cairo_set_source_surface(cairo_context, image->cairo_surface, image->width, image->height);
-    cairo_set_source(cairo_context, pattern);
+    cairo_set_source(cairo_context, image->pattern);
     cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_REPEAT);
     cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
     cairo_fill(cairo_context);
-    cairo_pattern_destroy(pattern);
 }
 
 void ren_draw_rect(RenRect rect, RenColor clr, bool fill, float l)
@@ -310,15 +312,27 @@ void ren_state_restore()
     cairo_restore(cairo_context);
 }
 
+void ren_listen_quick(int frames)
+{
+    listen_quick_frames = frames;
+}
+
 void ren_listen_events(event_list* events)
 {
     events->clear();
 
     SDL_Event e;
 
-    if (!SDL_WaitEvent(&e)) {
-        SDL_Delay(50);
-        return;
+    if (listen_quick_frames > 0) {
+        listen_quick_frames--;
+        if (!SDL_PollEvent(&e)) {
+            return;
+        }
+    } else {
+        if (!SDL_WaitEvent(&e)) {
+            SDL_Delay(50);
+            return;
+        }
     }
 
     switch (e.type) {
@@ -350,6 +364,15 @@ void ren_listen_events(event_list* events)
             x: e.motion.x,
             y: e.motion.y,
             button: e.button.button
+        });
+        return;
+
+    case SDL_MOUSEWHEEL:
+        // ren_listen_quick(); // because we'll animate
+        events->push_back({
+            type: EVT_MOUSE_WHEEL,
+            x: e.wheel.x,
+            y: e.wheel.y
         });
         return;
 

@@ -11,6 +11,7 @@ void layout_render_list(layout_item_list& list, layout_item_ptr item) {
         child->render_rect.x += item->render_rect.x + item->scroll_x;
         child->render_rect.y += item->render_rect.y + item->scroll_y;
         layout_render_list(list, child);
+        // if offscreen or off area .. discard
     }
 }
 
@@ -141,8 +142,8 @@ void layout_position_items(layout_item_ptr item) {
             offset += offsetInc;
         }
 
-        xx += ww + item->margin;
-        yy += hh + item->margin;
+        xx += ww;
+        yy += hh;
     }
 
     // align items
