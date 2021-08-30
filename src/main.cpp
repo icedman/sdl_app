@@ -56,6 +56,9 @@ void render_item(layout_item_ptr item)
     }
 
     for(auto child : item->children) {
+        child->render_rect = child->rect;
+        child->render_rect.x += item->render_rect.x + item->scroll_x;
+        child->render_rect.y += item->render_rect.y + item->scroll_y;
         render_item(child);
     }
 
@@ -73,7 +76,7 @@ int main(int argc, char **argv)
     // ren_draw_rect({20,20,20,20}, {255,0,0});
     // ren_end_frame();
 
-    view_item_ptr root_view = test3();
+    view_item_ptr root_view = test4();
     layout_item_ptr root = root_view->layout();
 
     view_item_list view_list;
@@ -103,8 +106,8 @@ int main(int argc, char **argv)
             ph = h;
 
             layout_run(root, { 0, 0, w, h });
-            render_list.clear();
-            layout_render_list(render_list, root); // << this positions items on the screen
+            // render_list.clear();
+            // layout_render_list(render_list, root); // << this positions items on the screen
         }
 
         ren_begin_frame();
