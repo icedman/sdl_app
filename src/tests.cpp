@@ -13,6 +13,21 @@ bool editor_view::mouse_wheel(int x, int y)
 
 view_item_ptr test5() {
     view_item_ptr root = std::make_shared<view_item>();
+    root->layout()->margin = 40;
+
+    // view_item_ptr scrollarea = std::make_shared<editor_view>();
+    // view_item_ptr content = ((editor_view*)scrollarea.get())->content;
+    // root->add_child(scrollarea);
+
+    view_item_ptr editor = std::make_shared<editor_view>();  
+    editor->can_press = true;  
+    editor->can_hover = true;
+    root->add_child(editor);
+    return root;
+}
+
+view_item_ptr test4() {
+    view_item_ptr root = std::make_shared<view_item>();
     layout_item_ptr layout = root->layout();
     layout->margin = 40;
 
@@ -26,21 +41,6 @@ view_item_ptr test5() {
         view_item_ptr button = std::make_shared<button_view>(t);
         content->add_child(button);
     }
-    return root;
-}
-
-view_item_ptr test4() {
-    view_item_ptr root = std::make_shared<view_item>();
-    root->layout()->margin = 40;
-
-    // view_item_ptr scrollarea = std::make_shared<editor_view>();
-    // view_item_ptr content = ((editor_view*)scrollarea.get())->content;
-    // root->add_child(scrollarea);
-
-    view_item_ptr editor = std::make_shared<editor_view>();  
-    editor->can_press = true;  
-    editor->can_hover = true;
-    root->add_child(editor);
     return root;
 }
 

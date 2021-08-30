@@ -60,111 +60,9 @@ void updateColors()
     }
 }
 
-void prerender_editor()
-{
-    // editor_view *ev = (editor_view*)item->view;
-
-    // rencache_draw_rect({
-    //     item->render_rect.x,
-    //     item->render_rect.y,
-    //     item->render_rect.w,
-    //     item->render_rect.h
-    // },
-    // { 255, 255, 255 }, true, 1.0f);
-    
-    int fw, fh;
-    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
-
-    editor_ptr editor = app_t::instance()->currentEditor;
-
-    int start = 0;//ev->start;
-    if (start < 0) {
-        start = 0;
-    }
-    if (start >= editor->document.blocks.size()) {
-        start = editor->document.blocks.size()-1;
-    }
-    // ev->start = start;
-
-    cursor_t cursor = editor->document.cursor();
-    block_ptr block = editor->document.blockAtLine(start);
-
-    block_list::iterator it = editor->document.blocks.begin();
-    it += start;
-
-    editor->highlight(start, 38);
-
-    app_t* app = app_t::instance();
-    theme_ptr theme = app->theme;
-
-    int l=0;
-    while(it != editor->document.blocks.end() && l<38) {
-        block_ptr block = *it++;
-        if (!block->data) {
-            break;
-        }
-        struct blockdata_t* blockData = block->data.get();
-
-        std::string text = block->text() + "\n";
-        const char *line = text.c_str();
-
-        RenImage *img = blockRenderCache[block->lineNumber];
-
-        if (!img) {
-            RenRect rect = { 0, 0, 0, fh };
-            for(auto &s : blockData->spans) {
-                if (rect.width < (s.start + s.length) * fw) {
-                    rect.width = (s.start + s.length) * fw;
-                }
-            }
-
-            img = ren_create_image(rect.width, rect.height);
-            blockRenderCache[block->lineNumber] = img;
-
-            ren_begin_frame(img);
-
-            int bw = fw * block->length();
-            int bh = fh;
-            ren_draw_rect(rect, { 50, 50, 50 }, true, 0.5f);
-
-            int i = 0;
-            for(auto &s : blockData->spans) {
-                color_info_t fg = colorMap[s.colorIndex];
-
-                std::string span_text = text.substr(s.start, s.length);
-
-                // printf("%s:\n", span_text.c_str());
-
-                ren_draw_text(NULL, (char*)span_text.c_str(), 
-                    (s.start * fw),
-                    0, { (int)fg.red,(int)fg.green,(int)fg.blue },
-                    false, false, true);
-            }
-
-            ren_end_frame();
-            char tmp[255];
-            sprintf(tmp, "out/img_%d.png", block->lineNumber);
-            ren_save_image(img, tmp);
-        }
-
-        l++;
-        if (l>10) break;
-    }
-}
-
 void render_editor(layout_item_ptr item)
 {
     editor_view *ev = (editor_view*)item->view;
-
-    // return;
-
-    // rencache_draw_rect({
-    //     item->render_rect.x,
-    //     item->render_rect.y,
-    //     item->render_rect.w,
-    //     item->render_rect.h
-    // },
-    // { 255, 255, 255 }, true, 1.0f);
     
     int fw, fh;
     ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
@@ -204,26 +102,11 @@ void render_editor(layout_item_ptr item)
         std::string text = block->text() + "\n";
         const char *line = text.c_str();
 
-        /*
-        RenImage *img = blockRenderCache[block->lineNumber];        
-        if (img) {
-            int iw, ih;
-            ren_image_size(img, &iw, &ih);
-            draw_image(img, {
-                item->render_rect.x,
-                item->render_rect.y + (l * fw),
-                iw, ih
-            });
-        }
-        */
-
             int i = 0;
             for(auto &s : blockData->spans) {
                 color_info_t fg = colorMap[s.colorIndex];
 
                 std::string span_text = text.substr(s.start, s.length);
-
-                // printf("%s:\n", span_text.c_str());
 
                 draw_text(NULL, (char*)span_text.c_str(), 
                     item->render_rect.x + (s.start * fw),
@@ -335,7 +218,7 @@ int main(int argc, char **argv)
     // ren_draw_rect({20,20,20,20}, {255,0,0});
     // ren_end_frame();
 
-    view_item_ptr root_view = test4();
+    view_item_ptr root_view = test5();
     layout_item_ptr root = root_view->layout();
 
     view_item_list view_list;
@@ -362,8 +245,6 @@ int main(int argc, char **argv)
         int w, h;
         ren_get_window_size(&w, &h);
 
-        prerender_editor();
-
         if (pw != w || ph != h) {
             pw = w;
             ph = h;
@@ -376,6 +257,7 @@ int main(int argc, char **argv)
 
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
+            frames = FRAME_RENDER_INTERVAL;
         }
 
         // todo implement frame rate limit

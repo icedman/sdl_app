@@ -343,6 +343,8 @@ void ren_listen_events(event_list* events)
         }
     }
 
+    ren_listen_quick(24); // because we'll animate
+
     switch (e.type) {
     case SDL_QUIT:
         shouldEnd = true;
@@ -376,7 +378,6 @@ void ren_listen_events(event_list* events)
         return;
 
     case SDL_MOUSEWHEEL:
-        ren_listen_quick(); // because we'll animate
         events->push_back({
             type: EVT_MOUSE_WHEEL,
             x: e.wheel.x,
