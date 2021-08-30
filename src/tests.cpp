@@ -7,7 +7,8 @@ view_item_ptr test4() {
     view_item_ptr root = std::make_shared<view_item>();
     root->layout()->margin = 40;
 
-    view_item_ptr editor = std::make_shared<view_item>("editor");    
+    view_item_ptr editor = std::make_shared<view_item>("editor");  
+    editor->can_press = true;  
     root->add_child(editor);
     return root;
 }

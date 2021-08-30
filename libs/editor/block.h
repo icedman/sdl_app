@@ -31,6 +31,8 @@ struct span_info_t {
     bool italic;
     block_state_e state;
     std::string scope;
+    // render coordinates
+    int sx, sy;
 };
 
 struct bracket_info_t {

@@ -163,7 +163,7 @@ void highlighter_t::highlightBlock(block_ptr block)
                     .state = state,
                     .scope = scopeName
                 };
-
+                
         if (blockData->spans.size() > 0) {
             span_info_t &prevSpan = blockData->spans.front();
             prevSpan.length = n - prevSpan.start;
