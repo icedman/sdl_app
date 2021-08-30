@@ -18,6 +18,8 @@
 
 #include "theme.h"
 
+#define FRAME_RENDER_INTERVAL 24
+
 static std::map<int, color_info_t> colorMap;
 static std::map<int, RenImage*> blockRenderCache;
 
@@ -348,6 +350,7 @@ int main(int argc, char **argv)
 
     color_info_t fg = colorMap[app.bgApp];
 
+    int frames = FRAME_RENDER_INTERVAL;
     int pw, ph;
     while(ren_is_running()) {
         ren_listen_events(&events);
@@ -374,6 +377,12 @@ int main(int argc, char **argv)
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
         }
+
+        // todo implement frame rate limit
+        if (frames++ < FRAME_RENDER_INTERVAL) {
+            continue;
+        }
+        frames = 0;
 
         begin_frame(w, h);
         set_clip_rect({0,0,w,h});

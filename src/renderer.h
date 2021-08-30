@@ -30,6 +30,7 @@ void ren_set_clip_rect(RenRect rect);
 
 void ren_listen_events(event_list* events);
 void ren_listen_quick(int frames = 120);
+bool ren_listen_is_quick();
 
 RenImage* ren_create_image(int w, int h);
 void ren_destroy_image(RenImage *image);

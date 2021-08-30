@@ -32,13 +32,13 @@ struct RenFont {
     PangoContext* context;
 };
 
-int listen_quick_frames = 0;
 RenImage* window_buffer = 0;
 RenImage* target_buffer = 0;
 cairo_t* cairo_context = 0;
 bool shouldEnd;
 
 RenFont *default_font = 0;
+int listen_quick_frames = 0;
 
 RenImage* ren_create_image(int w, int h)
 {
@@ -317,14 +317,22 @@ void ren_listen_quick(int frames)
     listen_quick_frames = frames;
 }
 
+bool ren_listen_is_quick()
+{
+    if (listen_quick_frames > 0) {
+        listen_quick_frames--;
+        return true;
+    }
+    return false;
+}
+
 void ren_listen_events(event_list* events)
 {
     events->clear();
 
     SDL_Event e;
 
-    if (listen_quick_frames > 0) {
-        listen_quick_frames--;
+    if (ren_listen_is_quick()) {
         if (!SDL_PollEvent(&e)) {
             return;
         }
@@ -368,7 +376,7 @@ void ren_listen_events(event_list* events)
         return;
 
     case SDL_MOUSEWHEEL:
-        // ren_listen_quick(); // because we'll animate
+        ren_listen_quick(); // because we'll animate
         events->push_back({
             type: EVT_MOUSE_WHEEL,
             x: e.wheel.x,
