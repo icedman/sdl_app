@@ -8,6 +8,11 @@ struct scrollbar_view : scrollarea_view {
     scrollbar_view();
 
     void precalculate() override;
+    
+    bool mouse_down(int x, int y, int button, int clicks = 0) override { return true; };
+    bool mouse_up(int x, int y, int button) override { return true; };
+    bool mouse_move(int x, int y, int button) override { return true; };
+
     bool mouse_wheel(int x, int y) override;
     bool mouse_drag_start(int x, int y) override;
     bool mouse_drag_end(int x, int y) override;

@@ -12,8 +12,9 @@ struct editor_view : view_item {
     
     bool mouse_down(int x, int y, int button, int clicks = 0) override;
     bool mouse_up(int x, int y, int button) override;
-    bool mouse_click(int x, int y, int button) override;
     bool mouse_move(int x, int y, int button) override;
+    void render() override;
+    void precalculate() override;
 
     int start;
 

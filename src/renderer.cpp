@@ -394,20 +394,101 @@ void ren_listen_events(event_list* events)
         events->push_back({
             type: EVT_KEY_UP,
             key: e.key.keysym.sym,
-            mod: e.key.keysym.mod
+            mod: 0
         });
         return;
 
-    case SDL_KEYDOWN:
+    case SDL_KEYDOWN: {
+        std::string keySequence;
+        std::string mod;
+        int keyMods = e.key.keysym.mod;
+        switch (e.key.keysym.sym) {
+        case SDLK_ESCAPE:
+            // pushKey(27, "");
+            // return 1;
+            keySequence = "escape";
+            break;
+        case SDLK_TAB:
+            keySequence = "tab";
+            break;
+        case SDLK_HOME:
+            keySequence = "home";
+            break;
+        case SDLK_END:
+            keySequence = "end";
+            break;
+        case SDLK_PAGEUP:
+            keySequence = "pageup";
+            break;
+        case SDLK_PAGEDOWN:
+            keySequence = "pagedown";
+            break;
+        case SDLK_RETURN:
+            keySequence = "enter";
+            break;
+        case SDLK_BACKSPACE:
+            keySequence = "backspace";
+            break;
+        case SDLK_DELETE:
+            keySequence = "delete";
+            break;
+        case SDLK_LEFT:
+            keySequence = "left";
+            break;
+        case SDLK_RIGHT:
+            keySequence = "right";
+            break;
+        case SDLK_UP:
+            keySequence = "up";
+            break;
+        case SDLK_DOWN:
+            keySequence = "down";
+            break;
+        default:
+            if (e.key.keysym.sym >= SDLK_a && e.key.keysym.sym <= SDLK_z) {
+                keySequence += (char)(e.key.keysym.sym - SDLK_a) + 'a';
+            } else if (e.key.keysym.sym >= SDLK_1 && e.key.keysym.sym <= SDLK_9) {
+                keySequence += (char)(e.key.keysym.sym - SDLK_1) + '1';
+            } else if (e.key.keysym.sym == SDLK_0) {
+                keySequence += (char)'0';
+            } else if (e.key.keysym.sym == '/') {
+                keySequence += (char)'/';
+            }
+            break;
+        }
+
+        int _mod = 0;
+        if (keyMods & KMOD_CTRL) {
+            mod = "ctrl";
+            _mod = K_MOD_CTRL;
+        }
+        if (keyMods & KMOD_SHIFT) {
+            if (mod.length())
+                mod += "+";
+            mod += "shift";
+            _mod = K_MOD_SHIFT | _mod;
+        }
+        if (keyMods & KMOD_ALT) {
+            if (mod.length())
+                mod += "+";
+            mod += "alt";
+            _mod = K_MOD_ATL | _mod;
+        }
+        if (keySequence.length() && mod.length()) {
+            keySequence = mod + "+" + keySequence;
+        }
+        if (keySequence.length() > 1) {
+            shouldEnd = keySequence == "ctrl+escape";
+        }
+
         events->push_back({
             type: EVT_KEY_DOWN,
             key: e.key.keysym.sym,
-            mod: e.key.keysym.sym
+            mod: _mod
         });
-        // printf("%d %d\n", e.key.keysym.sym, e.key.keysym.mod);
-        shouldEnd = (e.key.keysym.sym == 113 && e.key.keysym.mod == 64);
-        return;
 
+        return;
+    }
     case SDL_TEXTINPUT:
         events->push_back({
             type: EVT_KEY_TEXT,

@@ -4,7 +4,29 @@
 #include "events.h"
 #include <stdint.h>
 
-struct nk_context;
+#if 0
+#define draw_rect rencache_draw_rect
+#define draw_text rencache_draw_text
+#define draw_image rencache_draw_image
+#define set_clip_rect rencache_set_clip_rect
+#define state_save rencache_state_save
+#define state_restore rencache_state_restore
+#define begin_frame(w, h) ren_begin_frame(); rencache_begin_frame(w, h);
+#define end_frame() rencache_end_frame(); ren_end_frame();
+#else
+#define draw_rect ren_draw_rect
+#define draw_text ren_draw_text
+#define draw_image ren_draw_image
+#define set_clip_rect ren_set_clip_rect
+#define state_save ren_state_save
+#define state_restore ren_state_restore
+#define begin_frame(w, h) ren_begin_frame();
+#define end_frame() ren_end_frame();
+#endif
+
+#define K_MOD_SHIFT 1<<1
+#define K_MOD_CTRL  1<<2
+#define K_MOD_ATL   1<<3
 
 typedef struct RenImage RenImage;
 typedef struct RenFont RenFont;

@@ -20,28 +20,7 @@
 
 #define FRAME_RENDER_INTERVAL 24
 
-static std::map<int, color_info_t> colorMap;
-static std::map<int, RenImage*> blockRenderCache;
-
-#if 0
-#define draw_rect rencache_draw_rect
-#define draw_text rencache_draw_text
-#define draw_image rencache_draw_image
-#define set_clip_rect rencache_set_clip_rect
-#define state_save rencache_state_save
-#define state_restore rencache_state_restore
-#define begin_frame(w, h) ren_begin_frame(); rencache_begin_frame(w, h);
-#define end_frame() rencache_end_frame(); ren_end_frame();
-#else
-#define draw_rect ren_draw_rect
-#define draw_text ren_draw_text
-#define draw_image ren_draw_image
-#define set_clip_rect ren_set_clip_rect
-#define state_save ren_state_save
-#define state_restore ren_state_restore
-#define begin_frame(w, h) ren_begin_frame();
-#define end_frame() ren_end_frame();
-#endif
+std::map<int, color_info_t> colorMap;
 
 void updateColors()
 {
@@ -63,122 +42,7 @@ void updateColors()
 void render_editor(layout_item_ptr item)
 {
     editor_view *ev = (editor_view*)item->view;
-    scrollbar_view *sv = (scrollbar_view*)ev->_views[1].get();
-
-    // printf(">>%d\n", sv->index);
-
-    int fw, fh;
-    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
-
-    editor_ptr editor = app_t::instance()->currentEditor;
-
-    int start = ev->start;
-    if (start < 0) {
-        start = 0;
-    }
-    if (start >= editor->document.blocks.size() - (38/2)) {
-        start = editor->document.blocks.size() - (1 + 38/2);
-    }
-    sv->set_index(start);
-    sv->set_size(editor->document.blocks.size() - (38/2), 38);
-    ev->start = start;
-
-    document_t *doc = &editor->document;
-    cursor_t cursor = doc->cursor();
-    block_ptr block = doc->blockAtLine(start);
-    cursor_list cursors = doc->cursors;
-    cursor_t mainCursor = doc->cursor();
-
-    bool hlMainCursor = cursors.size() == 1 && !mainCursor.hasSelection();
-
-    block_list::iterator it = doc->blocks.begin();
-    it += start;
-
-    int view_height = 38;
-    editor->highlight(start, view_height);
-
-    app_t* app = app_t::instance();
-    theme_ptr theme = app->theme;
-
-    color_info_t sel = colorMap[app_t::instance()->selBg];
-
-    int l=0;
-    while(it != doc->blocks.end() && l<view_height) {
-        block_ptr block = *it++;
-        if (!block->data) {
-            break;
-        }
-
-        struct blockdata_t* blockData = block->data.get();
-
-        std::string text = block->text() + "\n";
-        const char *line = text.c_str();
-
-        for(auto &s : blockData->spans) {
-            color_info_t fg = colorMap[s.colorIndex];
-
-            std::string span_text = text.substr(s.start, s.length);
-
-            // cursors
-            for (int pos = s.start; pos < s.start+s.length; pos++) {
-                bool hl = false;
-                bool ul = false;
-                for (auto& c : cursors) {
-                    if (pos == c.position() && block == c.block()) {
-                        hl = true;
-                        ul = c.hasSelection();
-                        break;
-                    }
-                    if (!c.hasSelection())
-                        continue;
-
-                    cursor_position_t start = c.selectionStart();
-                    cursor_position_t end = c.selectionEnd();
-
-                    if (block->lineNumber < start.block->lineNumber || block->lineNumber > end.block->lineNumber)
-                        continue;
-                    if (block == start.block && pos < start.position)
-                        continue;
-                    if (block == end.block && pos > end.position)
-                        continue;
-
-                    hl = true;
-                    break;
-                }
-
-                if (hl) {
-                    RenRect cr = {
-                        item->render_rect.x + (pos * fw),
-                        item->render_rect.y + (l * fh),
-                        fw, fh
-                    };
-                    draw_rect(cr, { (int)sel.red, (int)sel.green, (int)sel.blue, 125 }, true, 1.0f);
-                    if (ul) {
-                        cr.y += fh - 2;
-                        cr.height = 1;
-                        draw_rect(cr, { (int)fg.red, (int)fg.green, (int)fg.blue }, true, 1.0f);
-                    }
-                }
-            }
-
-            draw_text(NULL, (char*)span_text.c_str(), 
-                item->render_rect.x + (s.start * fw),
-                item->render_rect.y + (l*fh), 
-                { (int)fg.red,(int)fg.green,(int)fg.blue },
-                false, false, true);
-        }
-
-
-        l++;
-    }
-
-    // char tmp[32];
-    // sprintf(tmp, "%d %d\n", cursor.block()->lineNumber, cursor.position());
-    // draw_text(NULL, tmp, 
-    //     item->render_rect.x,
-    //     item->render_rect.y, 
-    //     { 255,255,255 },
-    //     false, false, true);
+    ev->render();
 }
 
 void render_item(layout_item_ptr item)

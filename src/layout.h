@@ -109,6 +109,7 @@ struct layout_view {
     virtual void set_layout(layout_item_ptr l) { _layout = l; }
     
     virtual void precalculate() {}
+    virtual void update() {}
     virtual void render() {}
 };
 

@@ -98,7 +98,11 @@ void scrollbar_view::_scroll(int x, int y)
 void scrollbar_view::precalculate()
 {
     layout_item_ptr lo = layout();
-    content->layout()->height = (float)lo->render_rect.h * window / count;
+    int th = (float)lo->render_rect.h * window / count;
+    if (th < 40) {
+        th = 40;
+    }
+    content->layout()->height = th;
     content->layout()->rect.h = content->layout()->height;
     content->layout()->render_rect.h = content->layout()->height;
 }
@@ -143,10 +147,8 @@ void scrollbar_view::set_index(int idx)
 {
     index = idx;
     float p = (float)idx / count;
-
     layout_item_ptr lo = layout();
     lo->scroll_y = p * lo->render_rect.h;
-
     on_scroll();
 }
 
