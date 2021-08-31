@@ -5,9 +5,12 @@ scrollbar_view::scrollbar_view()
     : scrollarea_view()
     , drag_offset_x(0)
     , drag_offset_y(0)
+    , dragging(false)
     , index(0)
     , window(4)
     , count(12)
+    , prevWindow(0)
+    , prevCount(0)
 {
     type = "scrollbar";
     can_press = true;
@@ -15,7 +18,7 @@ scrollbar_view::scrollbar_view()
 
     // content->can_scroll = true;
     // content->can_hover = true;
-    content->layout()->height = 270;
+    content->type = "thumb";
     content->layout()->rgb = { 255, 255, 0 };
 }
 
@@ -45,6 +48,7 @@ bool scrollbar_view::mouse_drag_start(int x, int y)
     }
 
     drag_offset_y = drag_offset_y - (th/2);
+    dragging = true;
     return true;
 }
 
@@ -52,6 +56,7 @@ bool scrollbar_view::mouse_drag_end(int x, int y)
 {
     drag_offset_x = 0;
     drag_offset_y = 0;
+    dragging = false;
     return true;
 }
 
@@ -62,6 +67,13 @@ bool scrollbar_view::mouse_drag(int x, int y)
 }
 
 bool scrollbar_view::mouse_click(int x, int y, int button)
+{
+    _scroll(x, y);
+    mouse_drag_end(x, y);
+    return true;
+}
+
+void scrollbar_view::_scroll(int x, int y)
 {
     layout_item_ptr l = layout();
 
@@ -81,15 +93,26 @@ bool scrollbar_view::mouse_click(int x, int y, int button)
     l->scroll_y -= drag_offset_y;
 
     on_scroll();
-    return true;
 }
 
-void scrollbar_view::on_scroll()
+void scrollbar_view::precalculate()
 {
     layout_item_ptr l = layout();
 
     content->layout()->height = (float)l->render_rect.h * window / count;
+    content->layout()->rect.h = content->layout()->height;
     content->layout()->render_rect.h = content->layout()->height;
+}
+
+bool scrollbar_view::on_scroll()
+{
+    layout_item_ptr l = layout();
+
+    if (prevCount != count || prevWindow != window) {
+        prevCount = count;
+        prevWindow = window;
+        layout_request();
+    }
     
     // printf("%f\n", (float)content->layout()->render_rect.h);
 
@@ -110,5 +133,27 @@ void scrollbar_view::on_scroll()
     float p = (float)l->scroll_y / (l->render_rect.h - th);
     int idx = count * p;
 
-    // printf("%d %f\n", idx, p);
+    index = idx;
+    if (parent) {
+        ((view_item*)parent)->on_scroll();
+    }
+    return true;
+}
+
+void scrollbar_view::set_index(int idx)
+{
+    index = idx;
+    float p = (float)idx / count;
+
+    layout_item_ptr l = layout();
+    l->scroll_y = p * l->render_rect.h;
+
+    on_scroll();
+}
+
+void scrollbar_view::set_size(int c, int w)
+{
+    count = c;
+    window = w;
+    on_scroll();
 }

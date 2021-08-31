@@ -1,6 +1,8 @@
 #include "layout.h"
 #include <stdio.h>
 
+static bool run_requested = false;
+
 void layout_render_list(layout_item_list& list, layout_item_ptr item) {
     if (!item->visible) {
         return;
@@ -343,4 +345,16 @@ void layout_run(layout_item_ptr item, layout_constraint constraint)
 {
     _layout_run(item, constraint);
     item->render_rect = item->rect; // root
+}
+
+void layout_request()
+{
+    run_requested = true;
+}
+
+bool layout_should_run()
+{
+    bool res = run_requested;
+    run_requested = false;
+    return res;
 }

@@ -23,7 +23,7 @@
 static std::map<int, color_info_t> colorMap;
 static std::map<int, RenImage*> blockRenderCache;
 
-#if 1
+#if 0
 #define draw_rect rencache_draw_rect
 #define draw_text rencache_draw_text
 #define draw_image rencache_draw_image
@@ -65,6 +65,8 @@ void render_editor(layout_item_ptr item)
     editor_view *ev = (editor_view*)item->view;
     scrollbar_view *sv = (scrollbar_view*)ev->_views[1].get();
 
+    // printf(">>%d\n", sv->index);
+
     int fw, fh;
     ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
 
@@ -74,9 +76,11 @@ void render_editor(layout_item_ptr item)
     if (start < 0) {
         start = 0;
     }
-    if (start >= editor->document.blocks.size()) {
-        start = editor->document.blocks.size()-1;
+    if (start >= editor->document.blocks.size() - (38/2)) {
+        start = editor->document.blocks.size() - (1 + 38/2);
     }
+    sv->set_index(start);
+    sv->set_size(editor->document.blocks.size() - (38/2), 38);
     ev->start = start;
 
     cursor_t cursor = editor->document.cursor();
@@ -150,6 +154,11 @@ void render_item(layout_item_ptr item)
 
     if (item->view && item->view->is_clicked()) {
         printf(">>click\n");
+    }
+
+    if (item->view && ((view_item*)item->view)->type == "thumb") {
+        // printf("???%d %d %d %d\n", item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
+        clr = { 255, 0, 0 };
     }
 
     if (item->view && ((view_item*)item->view)->type == "editor") {
@@ -245,7 +254,7 @@ int main(int argc, char **argv)
         int w, h;
         ren_get_window_size(&w, &h);
 
-        if (pw != w || ph != h) {
+        if (layout_should_run() || pw != w || ph != h) {
             pw = w;
             ph = h;
 

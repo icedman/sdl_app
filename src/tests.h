@@ -10,7 +10,8 @@ struct editor_view : view_item {
     editor_view();
 
     bool mouse_wheel(int x, int y) override;
-
+    bool on_scroll() override; // scrollbar events
+    
     int start;
 
     view_item_ptr vscroll;

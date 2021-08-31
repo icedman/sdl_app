@@ -40,6 +40,7 @@ struct view_item : layout_view {
     virtual bool mouse_drag_end(int x, int y);
     virtual bool mouse_drag(int x, int y);
     virtual bool mouse_wheel(int x, int y);
+    virtual bool on_scroll() { return false; }
 
     view_item_list _views;
 

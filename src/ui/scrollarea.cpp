@@ -6,8 +6,7 @@ scrollarea_view::scrollarea_view()
 {
     can_hover = true;
     can_scroll = true;
-
-    content = std::make_shared<view_item>();
+    content = std::make_shared<view_item>("content");
     content->layout()->fit_children = true;
     content->layout()->wrap = true;
     add_child(content);

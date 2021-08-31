@@ -10,7 +10,7 @@ editor_view::editor_view()
 {
     layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
     vscroll = std::make_shared<scrollbar_view>();
-    vscroll->layout()->width = 32;
+    vscroll->layout()->width = 24;
 
     can_scroll = true;
 
@@ -21,7 +21,14 @@ editor_view::editor_view()
 
 bool editor_view::mouse_wheel(int x, int y)
 {
+    scrollbar_view *scrollbar =  ((scrollbar_view*)vscroll.get());
     start -= y;
+    return true;
+}
+
+bool editor_view::on_scroll()
+{
+    start = ((scrollbar_view*)vscroll.get())->index;
     return true;
 }
 
