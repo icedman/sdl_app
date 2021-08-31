@@ -247,7 +247,11 @@ void ren_draw_image(RenImage *image, RenRect rect)
 
 void ren_draw_rect(RenRect rect, RenColor clr, bool fill, float l)
 {
-    cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
+    if (clr.a > 0) {
+        cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, clr.a/255.0f);
+    } else {
+        cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
+    }
     cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
     if (fill) {
         cairo_fill(cairo_context);
@@ -355,7 +359,8 @@ void ren_listen_events(event_list* events)
             type: EVT_MOUSE_DOWN,
             x: e.button.x,
             y: e.button.y,
-            button: e.button.button
+            button: e.button.button,
+            clicks: e.button.clicks
         });
         return;
 
@@ -397,9 +402,10 @@ void ren_listen_events(event_list* events)
         events->push_back({
             type: EVT_KEY_DOWN,
             key: e.key.keysym.sym,
-            mod: e.key.keysym.mod
+            mod: e.key.keysym.sym
         });
-        shouldEnd = true;
+        // printf("%d %d\n", e.key.keysym.sym, e.key.keysym.mod);
+        shouldEnd = (e.key.keysym.sym == 113 && e.key.keysym.mod == 64);
         return;
 
     case SDL_TEXTINPUT:
@@ -422,6 +428,9 @@ void ren_listen_events(event_list* events)
                 _create_cairo_context(evt.w, evt.h);
                 events->push_back(evt);
             }
+        }
+        if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+            SDL_FlushEvent(SDL_KEYDOWN);
         }
         return;
     }

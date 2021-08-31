@@ -78,6 +78,7 @@ ui_files = [
     'src/layout.cpp',
     'src/events.cpp',
     'src/view.cpp',
+    'src/ui/editor.cpp',
     'src/ui/text.cpp',
     'src/ui/button.cpp',
     'src/ui/scrollarea.cpp',

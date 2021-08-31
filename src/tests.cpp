@@ -4,37 +4,9 @@
 #include "button.h"
 #include "scrollbar.h"
 
-editor_view::editor_view() 
-        : view_item("editor")
-        , start(0)
-{
-    layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
-    vscroll = std::make_shared<scrollbar_view>();
-    vscroll->layout()->width = 24;
-
-    can_scroll = true;
-
-    view_item_ptr spacer = std::make_shared<view_item>();
-    add_child(spacer);
-    add_child(vscroll);
-}
-
-bool editor_view::mouse_wheel(int x, int y)
-{
-    scrollbar_view *scrollbar =  ((scrollbar_view*)vscroll.get());
-    start -= y;
-    return true;
-}
-
-bool editor_view::on_scroll()
-{
-    start = ((scrollbar_view*)vscroll.get())->index;
-    return true;
-}
-
 view_item_ptr test5() {
     view_item_ptr root = std::make_shared<view_item>();
-    // root->layout()->margin = 40;
+    root->layout()->margin = 40;
 
     // view_item_ptr scrollarea = std::make_shared<editor_view>();
     // view_item_ptr content = ((editor_view*)scrollarea.get())->content;

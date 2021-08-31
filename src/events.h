@@ -26,6 +26,7 @@ struct event_t {
     int key;
     int mod;
     int button;
+    int clicks;
     std::string text;
 };
 

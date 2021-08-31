@@ -32,7 +32,7 @@ struct view_item : layout_view {
 
     RenImage* cache(int w, int h);
 
-    virtual bool mouse_down(int x, int y, int button);
+    virtual bool mouse_down(int x, int y, int button, int clicks);
     virtual bool mouse_up(int x, int y, int button);
     virtual bool mouse_click(int x, int y, int button);
     virtual bool mouse_move(int x, int y, int button);
@@ -49,7 +49,8 @@ struct view_item : layout_view {
 
 void view_input_list(view_item_list &list, view_item_ptr item);
 void view_input_events(view_item_list &list, event_list &events);
-void view_input_button(int button, int x, int y, int pressed);
+void view_input_button(int button, int x, int y, int pressed, int clicks = 0);
 void view_input_wheel(int x, int y);
+int view_input_key_mods();
 
 #endif // VIEW_H

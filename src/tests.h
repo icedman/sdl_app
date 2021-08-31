@@ -5,18 +5,7 @@
 #include "layout.h"
 #include "scrollarea.h"
 #include "scrollbar.h"
-
-struct editor_view : view_item {
-    editor_view();
-
-    bool mouse_wheel(int x, int y) override;
-    bool on_scroll() override; // scrollbar events
-    
-    int start;
-
-    view_item_ptr vscroll;
-    view_item_ptr hscroll;
-};
+#include "editor.h"
 
 view_item_ptr test1();
 view_item_ptr test2();

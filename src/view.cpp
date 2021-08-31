@@ -9,6 +9,7 @@ static view_item *view_dragged = 0;
 static int drag_start_x = 0;
 static int drag_start_y = 0;
 static bool dragging = false;
+static int _keyMods = 0;
 
 void view_input_list(view_item_list &list, view_item_ptr item)
 {
@@ -124,11 +125,11 @@ bool view_item::is_clicked()
     return this == view_clicked;
 }
 
-bool view_item::mouse_down(int x, int y, int button)
+bool view_item::mouse_down(int x, int y, int button, int clicks)
 {
     view_item *p = (view_item*)parent;
     while(p) {
-        if (p->mouse_down(x, y, button)) {
+        if (p->mouse_down(x, y, button, clicks)) {
             return true;
         }
         p = (view_item*)p->parent;
@@ -254,14 +255,20 @@ void view_input_events(view_item_list &list, event_list &events)
     _view_list = &list;
     for(auto e : events) {
         switch(e.type) {
+        case EVT_KEY_UP:
+            _keyMods = e.mod;
+            break;
+        case EVT_KEY_DOWN:
+            _keyMods = e.mod;
+            break;
         case EVT_MOUSE_WHEEL:
             view_input_wheel(e.x, e.y);
             break;
         case EVT_MOUSE_DOWN:
-            view_input_button(e.button, e.x, e.y, true);
+            view_input_button(e.button, e.x, e.y, 1, e.clicks);
             break;
         case EVT_MOUSE_UP:
-            view_input_button(e.button, e.x, e.y, false);
+            view_input_button(e.button, e.x, e.y, 0);
             break;
         case EVT_MOUSE_MOTION:
             view_input_button(e.button, e.x, e.y, e.button != 0);
@@ -270,7 +277,7 @@ void view_input_events(view_item_list &list, event_list &events)
     }
 }
 
-void view_input_button(int button, int x, int y, int pressed)
+void view_input_button(int button, int x, int y, int pressed, int clicks)
 {
     view_item_ptr v = view_find_xy((*_view_list).back(), x, y);
     view_hovered = 0;
@@ -307,7 +314,7 @@ void view_input_button(int button, int x, int y, int pressed)
         }
         if (!view_pressed) {
             view_pressed = v && v->can_press ? v.get() : 0;
-            if (view_pressed) view_pressed->mouse_down(x, y, button);
+            if (view_pressed) view_pressed->mouse_down(x, y, button, clicks);
         }
         if (v && v->can_focus) {
             view_focused = v.get();
@@ -342,4 +349,9 @@ void view_input_wheel(int x, int y)
         // printf("%d %s\n", y, view_hovered->type.c_str());
         view_hovered->mouse_wheel(x, y);
     }
+}
+
+int view_input_key_mods()
+{
+    return _keyMods;
 }
