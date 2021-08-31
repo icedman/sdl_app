@@ -139,10 +139,10 @@ void render_item(layout_item_ptr item)
     float stroke = 1.0f;
     RenColor clr = { item->rgb.r, item->rgb.g, item->rgb.b };
     if (item->view && item->view->is_hovered()) {
-        clr = { 150, 0, 150 };
+        // clr = { 150, 0, 150 };
     }
     if (item->view && item->view->is_pressed()) {
-        clr = { 255, 0, 0 };
+        // clr = { 255, 0, 0 };
         // fill = true;
         stroke = 1.5f;
     }
@@ -153,7 +153,6 @@ void render_item(layout_item_ptr item)
 
     if (item->view && ((view_item*)item->view)->type == "editor") {
         render_editor(item);
-        return;
     }
 
     // printf("%l %d %d %d %d\n", ct, item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);

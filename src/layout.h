@@ -76,6 +76,7 @@ struct layout_view {
     , can_drag(false)
     , can_hover(false)
     , can_input(false)
+    , can_scroll(false)
     , color({ 255, 255, 255 })
     , background({ 150, 150, 150 })
     , border_color({ 150, 150, 150 })
@@ -89,6 +90,7 @@ struct layout_view {
     bool can_drag;
     bool can_hover;
     bool can_input;
+    bool can_scroll;
 
     layout_view *parent;
     layout_item_ptr _layout;
@@ -130,6 +132,8 @@ struct layout_item {
         , align(LAYOUT_ALIGN_FLEX_START)
         , justify(LAYOUT_JUSTIFY_FLEX_START)
         , direction(LAYOUT_FLEX_DIRECTION_COLUMN)
+        , constraint({0,0,0,0})
+        , render_rect({0,0,0,0})
         , view(0)
     {
         rgb = {
@@ -164,6 +168,15 @@ struct layout_item {
     layout_item_list children;
 
     layout_view *view;
+
+    bool is_column() {
+        return direction == LAYOUT_FLEX_DIRECTION_COLUMN ||
+                direction ==LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
+    }
+    bool is_row() {
+        return direction == LAYOUT_FLEX_DIRECTION_ROW ||
+                direction ==LAYOUT_FLEX_DIRECTION_ROW_REVERSE;
+    }
 };
 
 void layout_run(layout_item_ptr item, layout_constraint constraint);

@@ -40,8 +40,7 @@ void layout_position_items(layout_item_ptr item) {
 
     int wd = 0;
     int hd = 0;
-    if (item->direction == LAYOUT_FLEX_DIRECTION_ROW ||
-            item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
+    if (item->is_row()) {
         wd = 1;
     } else {
         hd = 1;
@@ -309,13 +308,20 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     layout_reverse_items(item, constraint.max_height);
 }
 
+void _precalculate(layout_item_ptr item)
+{
+    if (item->view) {
+        item->view->precalculate();
+    }
+    for(auto child : item->children) {
+        _precalculate(child);
+    }
+}
+
 void _layout_run(layout_item_ptr item, layout_constraint constraint)
 {
-    for(auto child : item->children) {
-        if (child->view) {
-            child->view->precalculate();
-        }
-    }
+    _precalculate(item);
+
     if (item->direction == LAYOUT_FLEX_DIRECTION_ROW ||
             item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
         layout_horizontal_run(item, constraint);

@@ -72,7 +72,7 @@ else
     quickjs_dep = declare_dependency(dependencies: [ dl_dep, quickjs_lib ], include_directories: ['/usr/include/quickjs'])
 endif
 
-app_files = [
+ui_files = [
     'src/renderer.cpp',
     'src/render_cache.cpp',
     'src/layout.cpp',
@@ -81,6 +81,7 @@ app_files = [
     'src/ui/text.cpp',
     'src/ui/button.cpp',
     'src/ui/scrollarea.cpp',
+    'src/ui/scrollbar.cpp',
     'src/tests.cpp',
     'src/main.cpp'
 ]
@@ -104,7 +105,7 @@ editor_lib = cc.find_library('editor', required: false, dirs:[pwd + '/build'])
 editor_dep = declare_dependency(dependencies: [ editor_lib ], include_directories: [ editor_inc ])
 
 executable('app',
-    app_files,
+    ui_files,
     include_directories: [ './src', './src/ui' ],
     dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep ],
     install : true

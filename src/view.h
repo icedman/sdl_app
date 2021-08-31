@@ -34,7 +34,11 @@ struct view_item : layout_view {
 
     virtual bool mouse_down(int x, int y, int button);
     virtual bool mouse_up(int x, int y, int button);
+    virtual bool mouse_click(int x, int y, int button);
     virtual bool mouse_move(int x, int y, int button);
+    virtual bool mouse_drag_start(int x, int y);
+    virtual bool mouse_drag_end(int x, int y);
+    virtual bool mouse_drag(int x, int y);
     virtual bool mouse_wheel(int x, int y);
 
     view_item_list _views;
