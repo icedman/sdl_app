@@ -63,7 +63,8 @@ void updateColors()
 void render_editor(layout_item_ptr item)
 {
     editor_view *ev = (editor_view*)item->view;
-    
+    scrollbar_view *sv = (scrollbar_view*)ev->_views[1].get();
+
     int fw, fh;
     ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
 
