@@ -13,9 +13,6 @@ scrollbar_view::scrollbar_view()
     layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
 
     type = "scrollbar";
-    can_press = true;
-    can_drag = true;
-
     content->type = "thumb";
     content->layout()->rgb = { 255, 255, 0 };
 }

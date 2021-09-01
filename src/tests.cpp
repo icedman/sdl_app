@@ -20,8 +20,6 @@ view_item_ptr test5() {
     root->add_child(explorer);
 
     view_item_ptr editor = std::make_shared<editor_view>();  
-    editor->can_press = true;  
-    editor->can_hover = true;
     root->add_child(editor);
     return root;
 }
@@ -86,7 +84,6 @@ view_item_ptr test4() {
         std::string t = "button ";
         t += ('a' + i);
         view_item_ptr button = std::make_shared<button_view>(t);
-        button->can_scroll = true;
         button->layout()->height = 120;
         content->add_child(button);
     }
@@ -135,8 +132,6 @@ view_item_ptr test3() {
     button->layout()->margin = 4;
     button->layout()->wrap = true;
     button->layout()->fit_children = false;
-    button->can_press = true;
-    button->can_hover = true;
     item_b->add_child(button);
     item_b->layout()->margin = 20;
     // item_b->layout()->scroll_x = -80;

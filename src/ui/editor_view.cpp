@@ -176,9 +176,6 @@ editor_view::editor_view()
     vscroll = std::make_shared<scrollbar_view>();
     vscroll->layout()->width = 18;
     can_focus = true;
-    can_press = true;
-    can_input_text = true;
-    can_scroll = true;
 
     view_item_ptr spacer = std::make_shared<view_item>();
     add_child(spacer);

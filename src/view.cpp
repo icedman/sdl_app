@@ -308,7 +308,7 @@ view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
         }
     }
 
-    if (item->can_press || item->can_focus || item->can_hover) {
+    if (!item->disabled) {
         return item;
     }
     return 0;
@@ -374,10 +374,10 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
 
     // printf("%s\n", v->type.c_str());
 
-    view_hovered = v && v->can_hover ? v : 0;
+    view_hovered = v;
     if (view_hovered) view_hovered->mouse_move(x, y, button);
 
-    if (view_pressed && view_pressed->can_drag) {
+    if (view_pressed) {
         if (!dragging) {
             int dx = drag_start_x - x;
             int dy = drag_start_y - y;
@@ -397,7 +397,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
             drag_start_y = y;
         }
         if (!view_pressed) {
-            view_pressed = v && v->can_press ? v : 0;
+            view_pressed = v;
             if (view_pressed) view_pressed->mouse_down(x, y, button, clicks);
         }
         if (v && v->can_focus) {
@@ -405,11 +405,11 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
         }
     } else {
         if (dragging) {
-            if (view_pressed && view_pressed->can_drag) {
+            if (view_pressed) {
                 view_pressed->mouse_drag_end(x, y);
             }
         }
-        view_released = v && v->can_press ? v : 0;
+        view_released = v ? v : 0;
         view_clicked = view_released == view_pressed ? view_released : 0;
         if (view_clicked && !dragging) {
             view_clicked->mouse_click(x, y, button);
@@ -419,7 +419,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
     }
 
     if (view_pressed) {
-        view_hovered = view_pressed->can_hover ? view_pressed : view_hovered;
+        view_hovered = view_pressed;
     }
 
     if (!v || !pressed) {
@@ -429,7 +429,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
 
 void view_input_wheel(int x, int y)
 {
-    if (view_hovered && view_hovered->can_scroll) {
+    if (view_hovered) {
         view_hovered->mouse_wheel(x, y);
     }
 }
