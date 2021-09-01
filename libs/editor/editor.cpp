@@ -822,7 +822,7 @@ bool editor_t::input(char ch, std::string keySequence)
 
     editor_t* editor = this;
 
-    if (ch == 27 || op == CANCEL) {
+    if (op == CANCEL) {
         editor->pushOp(CLEAR_CURSORS);
         return true;
     }
@@ -840,9 +840,9 @@ bool editor_t::input(char ch, std::string keySequence)
         return true;
     }
 
-    std::string s;
-    s += (char)ch;
-    editor->pushOp(INSERT, s);
+    // std::string s;
+    // s += (char)ch;
+    // editor->pushOp(INSERT, s);
     return true;
 }
 

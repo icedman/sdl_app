@@ -310,19 +310,19 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     layout_reverse_items(item, constraint.max_height);
 }
 
-void _precalculate(layout_item_ptr item)
+void _prelayout(layout_item_ptr item)
 {
     if (item->view) {
-        item->view->precalculate();
+        item->view->prelayout();
     }
     for(auto child : item->children) {
-        _precalculate(child);
+        _prelayout(child);
     }
 }
 
 void _layout_run(layout_item_ptr item, layout_constraint constraint)
 {
-    _precalculate(item);
+    _prelayout(item);
 
     if (item->direction == LAYOUT_FLEX_DIRECTION_ROW ||
             item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {

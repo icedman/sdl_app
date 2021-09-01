@@ -1,13 +1,17 @@
-#include "editor.h"
+#include "editor_view.h"
 #include "scrollbar.h"
 
 #include "app.h"
 #include "renderer.h"
+#include "render_cache.h"
+#include "view.h"
 
 extern std::map<int, color_info_t> colorMap;
 
 static void render_editor(editor_view *ev)
 {
+    state_save();
+
     layout_item_ptr lo = ev->layout();
     scrollbar_view *sv = (scrollbar_view*)ev->_views[1].get();
 
@@ -15,19 +19,30 @@ static void render_editor(editor_view *ev)
 
     int fw, fh;
     ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+    int cols = (lo->render_rect.w / fw);
+    int rows = (lo->render_rect.h / fh) + 1;
 
+    set_clip_rect({
+        lo->render_rect.x,
+        lo->render_rect.y,
+        lo->render_rect.w - 18,
+        lo->render_rect.h
+    });
+
+    ev->rows = rows;
+    ev->cols = cols;
     editor_ptr editor = app_t::instance()->currentEditor;
 
-    int start = ev->start;
+    int start = ev->start_row;
     if (start < 0) {
         start = 0;
     }
-    if (start >= editor->document.blocks.size() - (38/2)) {
-        start = editor->document.blocks.size() - (1 + 38/2);
+    if (start >= editor->document.blocks.size() - (rows/2)) {
+        start = editor->document.blocks.size() - (1 + rows/2);
     }
-    sv->set_index(start);
-    sv->set_size(editor->document.blocks.size() - (38/2), 38);
-    ev->start = start;
+    // sv->set_index(start);
+    // sv->set_size(editor->document.blocks.size() - (rows/2), rows);
+    ev->start_row = start;
 
     document_t *doc = &editor->document;
     cursor_t cursor = doc->cursor();
@@ -40,7 +55,7 @@ static void render_editor(editor_view *ev)
     block_list::iterator it = doc->blocks.begin();
     it += start;
 
-    int view_height = 38;
+    int view_height = rows;
     int hl_prior = view_height/4;
     int hl_start = start - hl_prior;
     int hl_length = view_height + hl_prior;
@@ -112,7 +127,15 @@ static void render_editor(editor_view *ev)
                         lo->render_rect.y + (l * fh),
                         fw, fh
                     };
-                    draw_rect(cr, { (int)sel.red, (int)sel.green, (int)sel.blue, 125 }, true, 1.0f);
+                    color_info_t cur = sel;
+                    if (hlMainCursor) {
+                        int cursor_pad = 4;
+                        cr.width = 2;
+                        cr.y -= cursor_pad;
+                        cr.height += cursor_pad * 2;
+                        cur = clr;
+                    }
+                    draw_rect(cr, { (int)cur.red, (int)cur.green, (int)cur.blue, 125 }, true, 1.0f);
                     if (ul) {
                         cr.y += fh - 2;
                         cr.height = 1;
@@ -139,21 +162,29 @@ static void render_editor(editor_view *ev)
     //     item->render_rect.y, 
     //     { 255,255,255 },
     //     false, false, true);
+
+    state_restore();
 }
 
 editor_view::editor_view() 
         : view_item("editor")
-        , start(0)
+        , start_row(0)
 {
     layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
+    layout()->fit_children = false;
+
     vscroll = std::make_shared<scrollbar_view>();
     vscroll->layout()->width = 18;
-
+    can_focus = true;
+    can_press = true;
+    can_input_text = true;
     can_scroll = true;
 
     view_item_ptr spacer = std::make_shared<view_item>();
     add_child(spacer);
     add_child(vscroll);
+
+    view_set_focused(this);
 }
 
 void editor_view::render()
@@ -161,28 +192,28 @@ void editor_view::render()
     render_editor(this);
 }
 
-void editor_view::precalculate()
-{
+void editor_view::update()
+{    
     scrollbar_view *sv = (scrollbar_view*)_views[1].get();
 
-
     editor_ptr editor = app_t::instance()->currentEditor;
-    int _start = start;
-    sv->set_index(start);
-    sv->set_size(editor->document.blocks.size() - (38/2), 38);
-    start = _start;
+    int _start = start_row;
+    sv->set_index(start_row);
+    sv->set_size(editor->document.blocks.size() - (rows/2), rows);
+    start_row = _start;
+
+    if (editor->document.columns != cols || editor->document.rows != rows) {
+        editor->document.setColumns(cols);
+        editor->document.setRows(rows);
+        layout_request();
+    }
 }
 
 bool editor_view::mouse_wheel(int x, int y)
 {
     scrollbar_view *scrollbar =  ((scrollbar_view*)vscroll.get());
-    start -= y;
-    return true;
-}
-
-bool editor_view::on_scroll()
-{
-    start = ((scrollbar_view*)vscroll.get())->index;
+    start_row -= y;
+    rencache_invalidate();
     return true;
 }
 
@@ -200,10 +231,9 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
     // printf("%d %d\n", x, y);
 
     cursor_t cursor = editor->document.cursor();
-    block_ptr block = editor->document.blockAtLine(start);
 
     block_list::iterator it = editor->document.blocks.begin();
-    it += start;
+    it += start_row;
 
     int fw, fh;
     ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
@@ -285,4 +315,74 @@ bool editor_view::mouse_move(int x, int y, int button)
         }
     }
     return true;
+}
+
+bool editor_view::on_scroll()
+{
+    int idx = ((scrollbar_view*)vscroll.get())->index;
+    if (scrollbar_index != idx) {
+        scrollbar_index = idx;
+        rencache_invalidate();
+        start_row = idx;
+    }
+    return true;
+}
+
+bool editor_view::input_key(int k) {
+    ensure_visible_cursor();
+    return true;
+}
+
+bool editor_view::input_text(std::string text) {
+    editor_ptr editor = app_t::instance()->currentEditor;
+    editor->pushOp(INSERT, text);
+    editor->runAllOps();
+    ensure_visible_cursor();
+    // printf("text\n");
+    return true;
+}
+
+bool editor_view::input_sequence(std::string text) {
+    editor_ptr editor = app_t::instance()->currentEditor;
+    editor->input(-1, text);
+    editor->runAllOps();
+    ensure_visible_cursor();
+    // printf("sequence %s\n", text.c_str());
+    return true;
+}
+
+void editor_view::scroll_to_cursor(cursor_t c, bool animate, bool centered)
+{
+    block_ptr block = c.block();
+    int l = block->lineNumber - 1;
+
+    int cols = block->document->columns;
+    int rows = block->document->rows;
+    if (start_row > l) {
+        start_row = l;
+    }
+    if (start_row + rows - 4 < l) {
+        start_row = l - (rows - 4);
+    }
+
+    // printf("(%d %d) %d - %d : %d\n", cols, rows, start_row, start_row + block->document->rows, l);
+}
+
+void editor_view::ensure_visible_cursor(bool animate)
+{
+    layout_item_ptr lo = layout();
+
+    editor_ptr editor = app_t::instance()->currentEditor;
+    document_t *doc = &editor->document;
+
+    int fw, fh;
+    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+
+    int cols = lo->render_rect.w / fw;
+    int rows = lo->render_rect.h / fh;
+    doc->setColumns(cols);
+    doc->setRows(rows);
+    
+    cursor_t mainCursor = doc->cursor();
+    scroll_to_cursor(mainCursor);
 }

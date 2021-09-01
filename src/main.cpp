@@ -39,17 +39,13 @@ void updateColors()
     }
 }
 
-void render_editor(layout_item_ptr item)
-{
-    editor_view *ev = (editor_view*)item->view;
-    ev->render();
-}
-
 void render_item(layout_item_ptr item)
 {
     if (!item->visible) {
         return;
     }
+
+    view_item *view = (view_item*)item->view;
 
     state_save();
     set_clip_rect({
@@ -61,27 +57,22 @@ void render_item(layout_item_ptr item)
 
     bool fill = false;
     float stroke = 1.0f;
-    RenColor clr = { item->rgb.r, item->rgb.g, item->rgb.b };
-    if (item->view && item->view->is_hovered()) {
+    RenColor clr = { item->rgb.r, item->rgb.g, item->rgb.b, 50 };
+    if (view && view->is_hovered()) {
         // clr = { 150, 0, 150 };
     }
-    if (item->view && item->view->is_pressed()) {
+    if (view && view->is_pressed()) {
         // clr = { 255, 0, 0 };
         // fill = true;
         stroke = 1.5f;
     }
 
-    if (item->view && item->view->is_clicked()) {
+    if (view && view->is_clicked()) {
         printf(">>click\n");
     }
 
-    if (item->view && ((view_item*)item->view)->type == "thumb") {
-        // printf("???%d %d %d %d\n", item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
-        clr = { 255, 0, 0 };
-    }
-
-    if (item->view && ((view_item*)item->view)->type == "editor") {
-        render_editor(item);
+    if (view) {
+        view->render();
     }
 
     // printf("%l %d %d %d %d\n", ct, item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
@@ -97,13 +88,14 @@ void render_item(layout_item_ptr item)
     if (item->view && ((view_item*)item->view)->type == "text") {
         text = ((text_view*)item->view)->text;
     }
+
     draw_text(NULL, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
         false, false, true);
 
     if (item->view && item->view->is_clicked()) {
-        // button_view *btn = (button_view*)item->view;
-        // text_view *txt = (text_view*)btn->text.get();
-        // printf(">>click %s\n", txt->text.c_str());
+        button_view *btn = (button_view*)item->view;
+        text_view *txt = (text_view*)btn->text.get();
+        printf(">>click %s\n", txt->text.c_str());
     }
 
     for(auto child : item->children) {
@@ -140,13 +132,24 @@ int main(int argc, char **argv)
     ren_init();
     rencache_init();
 
+    color_info_t bg = colorMap[app.bgApp];
+
+    // quick draw
+    int w, h;
+    ren_get_window_size(&w, &h);
+    ren_begin_frame();
+    ren_draw_rect({x:0,y:0,width:w,height:h}, { (int)bg.red,(int)bg.green,(int)bg.blue });
+    ren_end_frame();
+    w = 0;
+    h = 0;
+
     // RenImage *tmp = ren_create_image(80,80);
     // ren_begin_frame(tmp);
     // ren_draw_rect({0,0,80,80}, {150,0,150});
     // ren_draw_rect({20,20,20,20}, {255,0,0});
     // ren_end_frame();
 
-    view_item_ptr root_view = test5();
+    view_item_ptr root_view = test4();
     layout_item_ptr root = root_view->layout();
 
     view_item_list view_list;
@@ -157,12 +160,9 @@ int main(int argc, char **argv)
     // RenFont *font = ren_create_font("Source Code Pro 16");
     ren_set_default_font(font);
 
-    // rencache_show_debug(true);
-
-    color_info_t fg = colorMap[app.bgApp];
+    rencache_show_debug(true);
 
     int frames = FRAME_RENDER_INTERVAL;
-    int pw, ph;
     while(ren_is_running()) {
         ren_listen_events(&events);
 
@@ -172,23 +172,17 @@ int main(int argc, char **argv)
 
         app_t::instance()->currentEditor->runAllOps();
 
-        int w, h;
+        int pw = w;
+        int ph = h;
         ren_get_window_size(&w, &h);
-
         if (layout_should_run() || pw != w || ph != h) {
-            pw = w;
-            ph = h;
-
             layout_run(root, { 0, 0, w, h });
-
-            // ren_begin_frame();
-            // ren_draw_rect({x:0,y:0,width:w,height:h}, { (int)fg.red,(int)fg.green,(int)fg.blue });
-            // ren_end_frame();
-
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
             frames = FRAME_RENDER_INTERVAL;
         }
+
+        root_view->update();
 
         // todo implement frame rate limit
         if (frames++ < FRAME_RENDER_INTERVAL) {
@@ -197,21 +191,9 @@ int main(int argc, char **argv)
         frames = 0;
 
         begin_frame(w, h);
-        set_clip_rect({0,0,w,h});
-
         state_save();
-        draw_rect({x:0,y:0,width:w,height:h}, { (int)fg.red,(int)fg.green,(int)fg.blue });
-        // draw_rect({x:0,y:0,width:w,height:h}, { 50, 50, 50});
 
-        // draw_text(font, "Hello World", 20, 20, { 255, 255, 0 });
-        // draw_text(font, "Hello World", 20, 40, { 255, 255, 0 });
-        // draw_image(tmp, {240,240,80,80});
-
-        /*
-        for(auto i : render_list) {
-            render_item(i);
-        }
-        */
+        draw_rect({x:0,y:0,width:w,height:h}, { (int)bg.red,(int)bg.green,(int)bg.blue });
 
         render_item(root);
 

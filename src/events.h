@@ -9,7 +9,7 @@ enum event_type_e {
     EVT_KEY_DOWN,
     EVT_KEY_UP,
     EVT_KEY_TEXT,
-    EVT_KEY_SHORTCUT,
+    EVT_KEY_SEQUENCE,
     EVT_MOUSE_DOWN,
     EVT_MOUSE_UP,
     EVT_MOUSE_MOTION,

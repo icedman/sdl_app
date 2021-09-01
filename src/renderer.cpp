@@ -4,6 +4,8 @@
 #include <cairo.h>
 #include <pango/pangocairo.h>
 
+int _state = 0;
+
 static SDL_Window* window;
 SDL_Surface* window_surface;
 
@@ -221,6 +223,9 @@ void _blit_to_window()
 
 void ren_end_frame()
 {
+    if (_state != 0) {
+        printf("warning: states stack at %d\n", _state);
+    }
     if (target_buffer == window_buffer) {
         _blit_to_window();
     }
@@ -309,11 +314,13 @@ void ren_set_clip_rect(RenRect rect)
 void ren_state_save()
 {
     cairo_save(cairo_context);
+    _state++;
 }
 
 void ren_state_restore()
 {
     cairo_restore(cairo_context);
+    _state--;
 }
 
 void ren_listen_quick(int frames)
@@ -404,8 +411,6 @@ void ren_listen_events(event_list* events)
         int keyMods = e.key.keysym.mod;
         switch (e.key.keysym.sym) {
         case SDLK_ESCAPE:
-            // pushKey(27, "");
-            // return 1;
             keySequence = "escape";
             break;
         case SDLK_TAB:
@@ -476,9 +481,15 @@ void ren_listen_events(event_list* events)
         }
         if (keySequence.length() && mod.length()) {
             keySequence = mod + "+" + keySequence;
+            shouldEnd = keySequence == "ctrl+q";
         }
+
         if (keySequence.length() > 1) {
-            shouldEnd = keySequence == "ctrl+escape";
+            events->push_back({
+                type: EVT_KEY_SEQUENCE,
+                text: keySequence
+            });
+            return;
         }
 
         events->push_back({
@@ -516,4 +527,18 @@ void ren_listen_events(event_list* events)
         return;
     }
 
+}
+
+std::string ren_get_clipboard()
+{
+    if (!SDL_HasClipboardText()) {
+        return "";
+    }
+    std::string res = SDL_GetClipboardText();;
+    return res;
+}
+
+void ren_set_clipboard(std::string text)
+{
+    SDL_SetClipboardText(text.c_str());
 }

@@ -2,15 +2,22 @@
 
 #include "text.h"
 #include "button.h"
+#include "explorer.h"
 #include "scrollbar.h"
+
+#include "render_cache.h"
 
 view_item_ptr test5() {
     view_item_ptr root = std::make_shared<view_item>();
-    root->layout()->margin = 40;
+    root->layout()->margin = 0;
+    root->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
 
     // view_item_ptr scrollarea = std::make_shared<editor_view>();
     // view_item_ptr content = ((editor_view*)scrollarea.get())->content;
     // root->add_child(scrollarea);
+
+    view_item_ptr explorer = std::make_shared<explorer_view>();  
+    root->add_child(explorer);
 
     view_item_ptr editor = std::make_shared<editor_view>();  
     editor->can_press = true;  
@@ -19,21 +26,74 @@ view_item_ptr test5() {
     return root;
 }
 
+struct my_root : view_item {
+    bool on_scroll() override {
+        int v = ((scrollbar_view*)v_scroll.get())->index;
+        int h = ((scrollbar_view*)h_scroll.get())->index;
+        // printf(">%d %d\n", v,h);
+
+        layout_item_ptr lo = scrollarea->layout();
+        lo->scroll_x = -h * 20;
+        lo->scroll_y = -v * 20;
+
+        rencache_invalidate();
+        return true;
+    }
+
+    void update() override {
+        ((scrollbar_view*)v_scroll.get())->set_size(100, 10);
+        ((scrollbar_view*)h_scroll.get())->set_size(100, 10);
+    }
+
+    view_item_ptr v_scroll;
+    view_item_ptr h_scroll;
+    view_item_ptr scrollarea;
+};
+
 view_item_ptr test4() {
-    view_item_ptr root = std::make_shared<view_item>();
+    view_item_ptr root = std::make_shared<my_root>();
     layout_item_ptr layout = root->layout();
     layout->margin = 40;
+    layout->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
+
+    view_item_ptr h_layout = std::make_shared<view_item>();
+    h_layout->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
+
+    view_item_ptr v_scroll = std::make_shared<vscrollbar_view>();
+    v_scroll->layout()->width = 18;
+    view_item_ptr h_scroll = std::make_shared<hscrollbar_view>();
+    h_scroll->layout()->height = 18;
 
     view_item_ptr scrollarea = std::make_shared<scrollarea_view>();
     view_item_ptr content = ((scrollarea_view*)scrollarea.get())->content;
-    root->add_child(scrollarea);
+    h_layout->add_child(scrollarea);
+    h_layout->add_child(v_scroll);
+
+    my_root *_root = ((my_root*)root.get());
+    _root->scrollarea = scrollarea;
+    _root->v_scroll = v_scroll;
+    _root->h_scroll = h_scroll;
 
     for(int i=0; i<10; i++) {
         std::string t = "button ";
         t += ('a' + i);
         view_item_ptr button = std::make_shared<button_view>(t);
+        button->can_scroll = true;
         content->add_child(button);
     }
+
+    root->add_child(h_layout);
+
+    view_item_ptr hv = std::make_shared<view_item>();
+    hv->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
+    hv->layout()->height = h_scroll->layout()->height;
+    hv->add_child(h_scroll);
+    view_item_ptr hvs = std::make_shared<view_item>();
+    hvs->layout()->width = 18;
+    hvs->layout()->height = 18;
+    hv->add_child(hvs);
+    
+    root->add_child(hv);
     return root;
 }
 

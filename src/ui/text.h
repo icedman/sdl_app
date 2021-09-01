@@ -6,7 +6,7 @@
 struct text_view : view_item {
     text_view(std::string text);
 
-    void precalculate() override;
+    void prelayout() override;
     
     std::string text;
 };

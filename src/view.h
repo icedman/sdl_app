@@ -19,6 +19,7 @@ struct view_item : layout_view {
     std::string type;
 
     layout_item_ptr layout() override;
+    void update() override;
 
     void add_child(view_item_ptr view);
     void remove_child(view_item_ptr view);
@@ -40,17 +41,25 @@ struct view_item : layout_view {
     virtual bool mouse_drag_end(int x, int y);
     virtual bool mouse_drag(int x, int y);
     virtual bool mouse_wheel(int x, int y);
-    virtual bool on_scroll() { return false; }
+    virtual bool input_key(int k);
+    virtual bool input_text(std::string text);
+    virtual bool input_sequence(std::string text);
+
+    virtual bool on_scroll();
 
     view_item_list _views;
 
     RenImage *_cache;
 };
 
+void view_set_focused(view_item *item);
 void view_input_list(view_item_list &list, view_item_ptr item);
 void view_input_events(view_item_list &list, event_list &events);
 void view_input_button(int button, int x, int y, int pressed, int clicks = 0);
 void view_input_wheel(int x, int y);
+void view_input_key(int key);
+void view_input_text(std::string text);
+void view_input_sequence(std::string sequence);
 int view_input_key_mods();
 
 #endif // VIEW_H

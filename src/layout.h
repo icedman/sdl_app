@@ -76,6 +76,7 @@ struct layout_view {
     , can_drag(false)
     , can_hover(false)
     , can_input(false)
+    , can_input_text(false)
     , can_scroll(false)
     , color({ 255, 255, 255 })
     , background({ 150, 150, 150 })
@@ -89,8 +90,9 @@ struct layout_view {
     bool can_press;
     bool can_drag;
     bool can_hover;
-    bool can_input;
     bool can_scroll;
+    bool can_input;
+    bool can_input_text;
 
     layout_view *parent;
     layout_item_ptr _layout;
@@ -108,7 +110,7 @@ struct layout_view {
     virtual layout_item_ptr layout() { return 0; }
     virtual void set_layout(layout_item_ptr l) { _layout = l; }
     
-    virtual void precalculate() {}
+    virtual void prelayout() {}
     virtual void update() {}
     virtual void render() {}
 };
@@ -172,11 +174,11 @@ struct layout_item {
 
     bool is_column() {
         return direction == LAYOUT_FLEX_DIRECTION_COLUMN ||
-                direction ==LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
+                direction == LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     }
     bool is_row() {
         return direction == LAYOUT_FLEX_DIRECTION_ROW ||
-                direction ==LAYOUT_FLEX_DIRECTION_ROW_REVERSE;
+                direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE;
     }
 };
 

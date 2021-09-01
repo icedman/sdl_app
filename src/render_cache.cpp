@@ -27,13 +27,9 @@ typedef struct {
     int type, size;
     RenRect rect;
     RenColor color;
-    RenImage* image;
-    RenFont* font;
-    int bold;
-    int italic;
-    bool fill;
-    float stroke;
-    bool fixed;
+    void* font; // image
+    int bold;   // fill
+    int italic; // stroke
     char text[0];
 } Command;
 
@@ -150,6 +146,7 @@ void rencache_free_font(RenFont* font)
 
 void rencache_set_clip_rect(RenRect rect)
 {
+    // printf("%d %d %d %d\n", rect.x, rect.y, rect.width, rect.height);
     Command* cmd = push_command(SET_CLIP, sizeof(Command));
     if (cmd) {
         cmd->rect = intersect_rects(rect, cache->target_rect);
@@ -159,11 +156,17 @@ void rencache_set_clip_rect(RenRect rect)
 void rencache_state_save()
 {
     Command* cmd = push_command(SAVE_STATE, sizeof(Command));
+    if (cmd) {
+        cmd->rect = { 0, 0, 0, 0 };
+    }
 }
 
 void rencache_state_restore()
 {
     Command* cmd = push_command(RESTORE_STATE, sizeof(Command));
+    if (cmd) {
+        cmd->rect = { 0, 0, 0, 0 };
+    }
 }
 
 void rencache_draw_image(RenImage* image, RenRect rect)
@@ -174,7 +177,7 @@ void rencache_draw_image(RenImage* image, RenRect rect)
     Command* cmd = push_command(DRAW_IMAGE, sizeof(Command));
     if (cmd) {
         cmd->rect = rect;
-        cmd->image = image;
+        cmd->font = (void*)image;
     }
 }
 
@@ -187,13 +190,17 @@ void rencache_draw_rect(RenRect rect, RenColor color, bool fill, float l)
     if (cmd) {
         cmd->rect = rect;
         cmd->color = color;
-        cmd->fill = fill;
-        cmd->stroke = l;
+        cmd->bold = fill;
+        cmd->italic = l;
     }
 }
 
 int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold, bool italic, bool fixed)
 {
+    int len = strlen(text);
+    if (len == 0) {
+        return 0;
+    }
     int fw, fh;
     ren_get_font_extents(font, &fw, &fh, text, strlen(text));
     RenRect rect;
@@ -203,16 +210,15 @@ int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor c
     rect.height = fh;
 
     if (rects_overlap(cache->target_rect, rect)) {
-        int sz = strlen(text) + 1;
+        int sz = len + 1;
         Command* cmd = push_command(DRAW_TEXT, sizeof(Command) + sz);
         if (cmd) {
             memcpy(cmd->text, text, sz);
             cmd->color = color;
-            cmd->font = font;
+            cmd->font = (void*)font;
             cmd->rect = rect;
             cmd->bold = bold;
             cmd->italic = italic;
-            cmd->fixed = fixed;
         }
     }
 
@@ -282,6 +288,7 @@ void rencache_end_frame(void)
     while (next_command(&cmd)) {
         if (cmd->type == SET_CLIP) {
             cr = cmd->rect;
+            continue;
         }
         RenRect r = intersect_rects(cmd->rect, cr);
         if (r.width == 0 || r.height == 0) {
@@ -334,12 +341,12 @@ void rencache_end_frame(void)
                 ren_set_clip_rect(intersect_rects(cmd->rect, r));
                 break;
             case DRAW_IMAGE:
-                ren_draw_image(cmd->image, cmd->rect);
+                ren_draw_image((RenImage*)cmd->font, cmd->rect);
             case DRAW_RECT:
-                ren_draw_rect(cmd->rect, cmd->color, cmd->fill, cmd->stroke);
+                ren_draw_rect(cmd->rect, cmd->color, cmd->bold, cmd->italic);
                 break;
             case DRAW_TEXT:
-                ren_draw_text(cmd->font, cmd->text, cmd->rect.x, cmd->rect.y, cmd->color, cmd->bold, cmd->italic);
+                ren_draw_text((RenFont*)cmd->font, cmd->text, cmd->rect.x, cmd->rect.y, cmd->color, cmd->bold, cmd->italic);
                 break;
             case SAVE_STATE:
                 ren_state_save();
@@ -351,7 +358,8 @@ void rencache_end_frame(void)
         }
 
         if (cache->show_debug) {
-            RenColor color = { (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(), 50 };
+            // RenColor color = { (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(), 50 };
+            RenColor color = { 255,255,0,50 };
             ren_draw_rect(r, color, false, 4.0f);
         }
     }
@@ -366,7 +374,7 @@ void rencache_end_frame(void)
         cmd = NULL;
         while (next_command(&cmd)) {
             if (cmd->type == FREE_FONT) {
-                ren_destroy_font(cmd->font);
+                ren_destroy_font((RenFont*)cmd->font);
             }
         }
     }

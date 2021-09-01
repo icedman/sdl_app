@@ -5,7 +5,8 @@
 #include "layout.h"
 #include "scrollarea.h"
 #include "scrollbar.h"
-#include "editor.h"
+#include "editor_view.h"
+#include "explorer_view.h"
 
 view_item_ptr test1();
 view_item_ptr test2();

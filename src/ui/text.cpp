@@ -8,7 +8,7 @@ text_view::text_view(std::string text)
     layout()->height = 40;
 }
 
-void text_view::precalculate()
+void text_view::prelayout()
 {
     int fw, fh;
     ren_get_font_extents(NULL, &fw, &fh, text.c_str(), text.length(), false);
