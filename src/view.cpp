@@ -434,7 +434,6 @@ void view_input_key(int key)
 void view_input_text(std::string text)
 {
     if (view_focused) {
-        // printf("??%s\n", view_focused->type.c_str());
         view_focused->input_text(text);
     }
 }
