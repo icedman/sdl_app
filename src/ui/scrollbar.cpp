@@ -138,6 +138,9 @@ bool scrollbar_view::on_scroll()
 
 void scrollbar_view::set_index(int idx)
 {
+    if (idx == index) {
+        return;
+    }
     index = idx;
     float p = (float)idx / count;
     layout_item_ptr lo = layout();
@@ -153,11 +156,11 @@ void scrollbar_view::set_index(int idx)
 void scrollbar_view::set_size(int c, int w)
 {
     if (c != count || w != window) {
+        count = c;
+        window = w;
+        on_scroll();
         layout_request();
     }
-    count = c;
-    window = w;
-    on_scroll();
 }
 
 void scrollbar_view::render()
@@ -200,6 +203,12 @@ void scrollbar_view::render()
     },
     { 255,255,255 } , false, 1);
     */
+}
+
+bool scrollbar_view::on_wheel()
+{
+    on_scroll();
+    return true;
 }
 
 int scrollbar_view::_thumbSize()

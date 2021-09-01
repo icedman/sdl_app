@@ -41,11 +41,13 @@ struct view_item : layout_view {
     virtual bool mouse_drag_end(int x, int y);
     virtual bool mouse_drag(int x, int y);
     virtual bool mouse_wheel(int x, int y);
+
     virtual bool input_key(int k);
     virtual bool input_text(std::string text);
     virtual bool input_sequence(std::string text);
 
     virtual bool on_scroll();
+    virtual bool on_wheel();
 
     view_item_list _views;
 

@@ -240,6 +240,18 @@ bool view_item::on_scroll()
     return false;
 }
 
+bool view_item::on_wheel()
+{
+    view_item *p = (view_item*)parent;
+    while(p) {
+        if (p->on_wheel()) {
+            return true;
+        }
+        p = (view_item*)p->parent;
+    }
+    return false;
+}
+
 bool view_item::input_key(int k)
 {
     view_item *p = (view_item*)parent;

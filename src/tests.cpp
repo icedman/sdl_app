@@ -30,12 +30,17 @@ struct my_root : view_item {
     bool on_scroll() override {
         int v = ((scrollbar_view*)v_scroll.get())->index;
         int h = ((scrollbar_view*)h_scroll.get())->index;
-        // printf(">%d %d\n", v,h);
 
         layout_item_ptr lo = scrollarea->layout();
         lo->scroll_x = -h * 20;
         lo->scroll_y = -v * 20;
 
+        rencache_invalidate();
+        return true;
+    }
+
+    bool on_wheel() override {
+        // update scrollbars
         rencache_invalidate();
         return true;
     }
@@ -69,6 +74,9 @@ view_item_ptr test4() {
     h_layout->add_child(scrollarea);
     h_layout->add_child(v_scroll);
 
+    content->layout()->wrap = false;
+    content->layout()->fit_children = false;
+
     my_root *_root = ((my_root*)root.get());
     _root->scrollarea = scrollarea;
     _root->v_scroll = v_scroll;
@@ -79,6 +87,7 @@ view_item_ptr test4() {
         t += ('a' + i);
         view_item_ptr button = std::make_shared<button_view>(t);
         button->can_scroll = true;
+        button->layout()->height = 120;
         content->add_child(button);
     }
 

@@ -3,6 +3,8 @@
 
 scrollarea_view::scrollarea_view()
     : view_item("scrollarea")
+    , move_factor_x(20)
+    , move_factor_y(20)
 {
     can_hover = true;
     can_scroll = true;
@@ -14,9 +16,10 @@ scrollarea_view::scrollarea_view()
 
 bool scrollarea_view::mouse_wheel(int x, int y)
 {
-    int move = 20;
-	layout()->scroll_x += x * move;
-    layout()->scroll_y += y * move;
+	layout()->scroll_x += x * move_factor_x;
+    layout()->scroll_y += y * move_factor_y;
 	// printf(">%s %d\n", type.c_str(), layout()->scroll_y);
+    // on_scroll();
+    on_wheel();
 	return true;
 }

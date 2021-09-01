@@ -9,6 +9,8 @@ struct scrollarea_view : view_item {
 	virtual bool mouse_wheel(int x, int y) override;
 
     view_item_ptr content;
+    float move_factor_x;
+    float move_factor_y;
 };
 
 #endif // SCROLLAREA_VIEW_H

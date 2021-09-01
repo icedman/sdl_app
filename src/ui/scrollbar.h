@@ -18,6 +18,7 @@ struct scrollbar_view : scrollarea_view {
     bool mouse_drag_end(int x, int y) override;
     bool mouse_drag(int x, int y) override;
     bool mouse_click(int x, int y, int button) override;
+    bool on_wheel() override; 
     bool on_scroll() override;
 
     void set_index(int idx);
@@ -42,6 +43,8 @@ struct vscrollbar_view : scrollbar_view {
     {
         layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
         layout()->width = 18;
+        move_factor_x = 0;
+        move_factor_y = 20;
     }
 };
 
@@ -50,6 +53,8 @@ struct hscrollbar_view : scrollbar_view {
     {
         layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
         layout()->height = 18;
+        move_factor_x = 20;
+        move_factor_y = 0;
     }
 };
 
