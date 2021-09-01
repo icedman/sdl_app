@@ -4,8 +4,20 @@
 #include "button.h"
 #include "explorer.h"
 #include "scrollbar.h"
+#include "panel.h"
 
 #include "render_cache.h"
+
+view_item_ptr test_root()
+{
+    return test6();
+}
+
+view_item_ptr test6() {
+    view_item_ptr root = std::make_shared<panel_view>();
+    root->layout()->margin = 40;
+    return root;
+}
 
 view_item_ptr test5() {
     view_item_ptr root = std::make_shared<view_item>();
@@ -33,12 +45,6 @@ struct my_root : view_item {
         lo->scroll_x = -h * 20;
         lo->scroll_y = -v * 20;
 
-        rencache_invalidate();
-        return true;
-    }
-
-    bool on_wheel() override {
-        // update scrollbars
         rencache_invalidate();
         return true;
     }

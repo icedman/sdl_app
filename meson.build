@@ -84,8 +84,8 @@ ui_files = [
     'src/ui/button.cpp',
     'src/ui/scrollarea.cpp',
     'src/ui/scrollbar.cpp',
-    'src/tests.cpp',
-    'src/main.cpp'
+    'src/ui/panel.cpp',
+    'src/tests.cpp'
 ]
 
 library('tmparser',
@@ -107,6 +107,7 @@ editor_lib = cc.find_library('editor', required: false, dirs:[pwd + '/build'])
 editor_dep = declare_dependency(dependencies: [ editor_lib ], include_directories: [ editor_inc ])
 
 executable('app',
+    'src/main.cpp',
     ui_files,
     include_directories: [ './src', './src/ui' ],
     dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep ],

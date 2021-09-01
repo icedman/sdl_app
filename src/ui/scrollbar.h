@@ -8,6 +8,7 @@ struct scrollbar_view : scrollarea_view {
     scrollbar_view();
 
     void prelayout() override;
+    void postlayout() override;
     void render() override;
     
     bool mouse_down(int x, int y, int button, int clicks = 0) override { return true; };
@@ -18,7 +19,6 @@ struct scrollbar_view : scrollarea_view {
     bool mouse_drag_end(int x, int y) override;
     bool mouse_drag(int x, int y) override;
     bool mouse_click(int x, int y, int button) override;
-    bool on_wheel() override; 
     bool on_scroll() override;
 
     void set_index(int idx);
@@ -26,9 +26,10 @@ struct scrollbar_view : scrollarea_view {
 
     void _scroll(int pos);
 
-    int _thumbSize();
-    int _barSize();
-    int _scrollPos();
+    void _validate();
+    int _thumb_size();
+    int _bar_size();
+    int _scroll_pos();
 
     int index;
     int window;

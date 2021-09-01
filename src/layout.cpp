@@ -320,6 +320,16 @@ void _prelayout(layout_item_ptr item)
     }
 }
 
+void _postlayout(layout_item_ptr item)
+{
+    if (item->view) {
+        item->view->postlayout();
+    }
+    for(auto child : item->children) {
+        _postlayout(child);
+    }
+}
+
 void _layout_run(layout_item_ptr item, layout_constraint constraint)
 {
     _prelayout(item);
@@ -339,6 +349,8 @@ void _layout_run(layout_item_ptr item, layout_constraint constraint)
         child->rect.x += item->margin;
         child->rect.y += item->margin;
     }
+
+    _postlayout(item);
 }
 
 void layout_run(layout_item_ptr item, layout_constraint constraint)

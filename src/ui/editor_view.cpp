@@ -178,6 +178,8 @@ editor_view::editor_view()
     can_focus = true;
 
     view_item_ptr spacer = std::make_shared<view_item>();
+    spacer->disabled = true;
+    
     add_child(spacer);
     add_child(vscroll);
 

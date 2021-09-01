@@ -16,8 +16,6 @@ bool scrollarea_view::mouse_wheel(int x, int y)
 {
 	layout()->scroll_x += x * move_factor_x;
     layout()->scroll_y += y * move_factor_y;
-	// printf(">%s %d\n", type.c_str(), layout()->scroll_y);
-    // on_scroll();
-    on_wheel();
+    on_scroll();
 	return true;
 }

@@ -25,7 +25,7 @@ bool scrollbar_view::mouse_drag_start(int x, int y)
     if (lo->is_row()) {
         drag_offset = x - (lo->render_rect.x + lo->scroll_x);
     }
-    float th = _thumbSize();
+    float th = _thumb_size();
     if (drag_offset < 0 || drag_offset > th) {
         drag_offset = 0;
     }
@@ -60,9 +60,9 @@ void scrollbar_view::_scroll(int pos)
 {
     layout_item_ptr lo = layout();
 
-    float th = _thumbSize();
+    float th = _thumb_size();
     float pp = pos - (lo->is_row() ? lo->render_rect.x : lo->render_rect.y);
-    float p = pp / _barSize();
+    float p = pp / _bar_size();
 
     if (p < 0) {
         p = 0;
@@ -71,7 +71,7 @@ void scrollbar_view::_scroll(int pos)
         p = 1;
     }
 
-    int newPos = _barSize() * p;
+    int newPos = _bar_size() * p;
     newPos -= th/2;
     newPos -= drag_offset;
     
@@ -81,21 +81,17 @@ void scrollbar_view::_scroll(int pos)
         lo->scroll_y = newPos;
     }
 
-    // lo->scroll_y = _barSize() * p;
-    // lo->scroll_y -= th/2;
-    // lo->scroll_y -= drag_offset;
-
     on_scroll();
 }
 
 void scrollbar_view::prelayout()
 {
     layout_item_ptr lo = layout();
-    int th = (float)_barSize() * window / count;
+    int th = (float)_bar_size() * window / count;
     if (th < 40) {
         th = 40;
     }
-
+    
     if (lo->is_row()) {
         content->layout()->width = th;
         content->layout()->rect.w = th;
@@ -105,7 +101,12 @@ void scrollbar_view::prelayout()
     }
 }
 
-bool scrollbar_view::on_scroll()
+void scrollbar_view::postlayout()
+{
+    on_scroll();
+}
+
+void scrollbar_view::_validate()
 {
     layout_item_ptr lo = layout();
 
@@ -122,11 +123,16 @@ bool scrollbar_view::on_scroll()
         lo->scroll_x = lo->render_rect.w - content->layout()->width;
     }
 
-    float th = _thumbSize();
-    float p = (float)_scrollPos() / (_barSize() - th);
+    float th = _thumb_size();
+    float p = (float)_scroll_pos() / (_bar_size() - th);
     int idx = count * p;
 
     index = idx;
+}
+
+bool scrollbar_view::on_scroll()
+{
+    _validate();
     if (parent) {
         ((view_item*)parent)->on_scroll();
     }
@@ -143,9 +149,9 @@ void scrollbar_view::set_index(int idx)
     layout_item_ptr lo = layout();
 
     if (lo->is_row()) {
-        lo->scroll_x = p * _barSize();
+        lo->scroll_x = p * _bar_size();
     } else {
-        lo->scroll_y = p * _barSize();
+        lo->scroll_y = p * _bar_size();
     }
     on_scroll();
 }
@@ -155,7 +161,6 @@ void scrollbar_view::set_size(int c, int w)
     if (c != count || w != window) {
         count = c;
         window = w;
-        on_scroll();
         layout_request();
     }
 }
@@ -181,34 +186,9 @@ void scrollbar_view::render()
         lot->render_rect.h - 8
     },
     { 255,0,255}, false, (content->is_pressed() || is_hovered()) ? 2.0f : 1.0f);
-
-    // invalidate
-    /*
-    draw_rect({
-        lot->render_rect.x,
-        lo->render_rect.y,
-        lot->render_rect.w,
-        lot->render_rect.y - lo->render_rect.y
-    },
-    { 255,255,255 } , false, 1);
-
-    draw_rect({
-        lot->render_rect.x,
-        lot->render_rect.y + lot->render_rect.h,
-        lot->render_rect.w,
-        lo->render_rect.y + lo->render_rect.h - lot->render_rect.y - lot->render_rect.h
-    },
-    { 255,255,255 } , false, 1);
-    */
 }
 
-bool scrollbar_view::on_wheel()
-{
-    on_scroll();
-    return true;
-}
-
-int scrollbar_view::_thumbSize()
+int scrollbar_view::_thumb_size()
 {
     if (layout()->is_row()) {
         return content->layout()->width;
@@ -216,7 +196,7 @@ int scrollbar_view::_thumbSize()
     return content->layout()->height;
 }
 
-int scrollbar_view::_barSize()
+int scrollbar_view::_bar_size()
 {
     if (layout()->is_row()) {
         return layout()->render_rect.w;
@@ -224,7 +204,7 @@ int scrollbar_view::_barSize()
     return layout()->render_rect.h;
 }
 
-int scrollbar_view::_scrollPos()
+int scrollbar_view::_scroll_pos()
 {
     if (layout()->is_row()) {
         return layout()->scroll_x;

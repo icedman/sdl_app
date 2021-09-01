@@ -240,18 +240,6 @@ bool view_item::on_scroll()
     return false;
 }
 
-bool view_item::on_wheel()
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->on_wheel()) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
 bool view_item::input_key(int k)
 {
     view_item *p = (view_item*)parent;
@@ -379,6 +367,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
 
     if (view_pressed) {
         if (!dragging) {
+            printf(">start %s\n", v->type.c_str());
             int dx = drag_start_x - x;
             int dy = drag_start_y - y;
             int drag_distance = dx * dx + dy *dy;
@@ -387,6 +376,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
                     dragging = true; 
             }
         } else {
+            printf(">drag %s\n", v->type.c_str());
             view_pressed->mouse_drag(x, y);
         }
     }

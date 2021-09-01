@@ -149,7 +149,7 @@ int main(int argc, char **argv)
     // ren_draw_rect({20,20,20,20}, {255,0,0});
     // ren_end_frame();
 
-    view_item_ptr root_view = test5();
+    view_item_ptr root_view = test_root();
     layout_item_ptr root = root_view->layout();
 
     view_item_list view_list;

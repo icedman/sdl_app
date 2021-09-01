@@ -47,11 +47,24 @@ struct view_item : layout_view {
     virtual bool input_sequence(std::string text);
 
     virtual bool on_scroll();
-    virtual bool on_wheel();
 
     view_item_list _views;
 
     RenImage *_cache;
+};
+
+struct vertical_container : view_item {
+    vertical_container() : view_item("container")
+    {
+        layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
+    }
+};
+
+struct horizontal_container : view_item {
+    horizontal_container() : view_item("container")
+    {
+        layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
+    }
 };
 
 void view_set_focused(view_item *item);
@@ -62,6 +75,6 @@ void view_input_wheel(int x, int y);
 void view_input_key(int key);
 void view_input_text(std::string text);
 void view_input_sequence(std::string sequence);
-int view_input_key_mods();
+ int view_input_key_mods();
 
 #endif // VIEW_H
