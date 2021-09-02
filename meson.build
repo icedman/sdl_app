@@ -3,10 +3,10 @@ project('app', 'cpp',
   default_options : ['warning_level=3', 'cpp_std=c++17']
 )
 
+add_global_arguments('-w', language: 'cpp')
+
 pwd = meson.current_source_dir()
 cc = meson.get_compiler('cpp')
-
-add_global_arguments('-w', language: 'cpp')
 
 textmate_inc = include_directories(
     'libs/tm-parser/textmate/parser',

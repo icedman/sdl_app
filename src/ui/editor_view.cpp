@@ -79,7 +79,7 @@ static void render_editor(editor_view *ev)
             draw_text(NULL, (char*)block->text().c_str(), 
                 lo->render_rect.x,
                 lo->render_rect.y + (l*fh), 
-                { (int)fg.red,(int)fg.green,(int)fg.blue },
+                { (uint8_t)fg.red,(uint8_t)fg.green,(uint8_t)fg.blue },
                 false, false, true);
 
             l++;
@@ -135,11 +135,11 @@ static void render_editor(editor_view *ev)
                         cr.height += cursor_pad * 2;
                         cur = clr;
                     }
-                    draw_rect(cr, { (int)cur.red, (int)cur.green, (int)cur.blue, 125 }, true, 1.0f);
+                    draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
                     if (ul) {
                         cr.y += fh - 2;
                         cr.height = 1;
-                        draw_rect(cr, { (int)clr.red, (int)clr.green, (int)clr.blue }, true, 1.0f);
+                        draw_rect(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue }, true, 1.0f);
                     }
                 }
             }
@@ -147,7 +147,7 @@ static void render_editor(editor_view *ev)
             draw_text(NULL, (char*)span_text.c_str(), 
                 lo->render_rect.x + (s.start * fw),
                 lo->render_rect.y + (l*fh), 
-                { (int)clr.red,(int)clr.green,(int)clr.blue },
+                { (uint8_t)clr.red,(uint8_t)clr.green,(uint8_t)clr.blue },
                 false, false, true);
         }
 

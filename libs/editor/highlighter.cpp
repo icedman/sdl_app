@@ -155,8 +155,8 @@ void highlighter_t::highlightBlock(block_ptr block)
 
         style_t style = theme->styles_for_scope(scopeName);
         span_info_t span = {
-                    .start = n,
-                    .length = l - n,
+                    .start = (int)n,
+                    .length = (int)(l - n),
                     .colorIndex = style.foreground.index,
                     .bold = style.bold == bool_true,
                     .italic = style.italic == bool_true,
@@ -222,7 +222,7 @@ void highlighter_t::highlightBlock(block_ptr block)
                 // setFormatFromStyle(0, endComment + lang->blockCommentEnd.length(), s, first, blockData, "comment");
                 span_info_t span = {
                     .start = 0,
-                    .length = endComment + lang->blockCommentEnd.length(),
+                    .length = (int)(endComment + lang->blockCommentEnd.length()),
                     .colorIndex = s.foreground.index,
                     .bold = s.bold == bool_true,
                     .italic = s.italic == bool_true,

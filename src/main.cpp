@@ -57,7 +57,7 @@ void render_item(layout_item_ptr item)
 
     bool fill = false;
     float stroke = 1.0f;
-    RenColor clr = { item->rgb.r, item->rgb.g, item->rgb.b, 50 };
+    RenColor clr = { (uint8_t)item->rgb.r, (uint8_t)item->rgb.g, (uint8_t)item->rgb.b, 50 };
     if (view && view->is_hovered()) {
         // clr = { 150, 0, 150 };
     }
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
     int w, h;
     ren_get_window_size(&w, &h);
     ren_begin_frame();
-    ren_draw_rect({x:0,y:0,width:w,height:h}, { (int)bg.red,(int)bg.green,(int)bg.blue });
+    ren_draw_rect({x:0,y:0,width:w,height:h}, { (uint8_t)bg.red,(uint8_t)bg.green,(uint8_t)bg.blue });
     ren_end_frame();
     w = 0;
     h = 0;
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
         begin_frame(w, h);
         state_save();
 
-        draw_rect({x:0,y:0,width:w,height:h}, { (int)bg.red,(int)bg.green,(int)bg.blue });
+        draw_rect({x:0,y:0,width:w,height:h}, { (uint8_t)bg.red,(uint8_t)bg.green,(uint8_t)bg.blue });
 
         render_item(root);
 
