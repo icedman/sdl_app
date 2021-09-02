@@ -103,7 +103,7 @@ void scrollbar_view::prelayout()
 
 void scrollbar_view::postlayout()
 {
-    on_scroll();
+    _validate();
 }
 
 void scrollbar_view::_validate()
@@ -153,7 +153,8 @@ void scrollbar_view::set_index(int idx)
     } else {
         lo->scroll_y = p * _bar_size();
     }
-    on_scroll();
+
+    _validate();
 }
 
 void scrollbar_view::set_size(int c, int w)

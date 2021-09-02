@@ -181,6 +181,13 @@ void rencache_draw_image(RenImage* image, RenRect rect)
     }
 }
 
+void rencache_invalidate_rect(RenRect rect)
+{
+    rencache_draw_rect(rect, {
+        (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(),0
+    }, false, 0);
+}
+
 void rencache_draw_rect(RenRect rect, RenColor color, bool fill, float l)
 {
     if (!rects_overlap(cache->target_rect, rect)) {
@@ -343,7 +350,9 @@ void rencache_end_frame(void)
             case DRAW_IMAGE:
                 ren_draw_image((RenImage*)cmd->font, cmd->rect);
             case DRAW_RECT:
-                ren_draw_rect(cmd->rect, cmd->color, cmd->bold, cmd->italic);
+                if (cmd->bold || cmd->italic) { // bold = filled, italic == stroke
+                    ren_draw_rect(cmd->rect, cmd->color, cmd->bold, cmd->italic);
+                }
                 break;
             case DRAW_TEXT:
                 ren_draw_text((RenFont*)cmd->font, cmd->text, cmd->rect.x, cmd->rect.y, cmd->color, cmd->bold, cmd->italic);

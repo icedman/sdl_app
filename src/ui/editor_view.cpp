@@ -193,14 +193,7 @@ void editor_view::render()
 
 void editor_view::update()
 {    
-    scrollbar_view *sv = (scrollbar_view*)_views[1].get();
-
     editor_ptr editor = app_t::instance()->currentEditor;
-    int _start = start_row;
-    sv->set_index(start_row);
-    sv->set_size(editor->document.blocks.size() - (rows/2), rows);
-    start_row = _start;
-
     if (editor->document.columns != cols || editor->document.rows != rows) {
         editor->document.setColumns(cols);
         editor->document.setRows(rows);
@@ -208,10 +201,24 @@ void editor_view::update()
     }
 }
 
+void editor_view::_update_scrollbars()
+{
+    scrollbar_view *scrollbar =  ((scrollbar_view*)vscroll.get());
+    editor_ptr editor = app_t::instance()->currentEditor;
+    scrollbar->set_index(start_row);
+    scrollbar->set_size(editor->document.blocks.size() - (rows/2), rows);
+}
+
+void editor_view::prelayout()
+{
+    _update_scrollbars();
+}
+
 bool editor_view::mouse_wheel(int x, int y)
 {
     scrollbar_view *scrollbar =  ((scrollbar_view*)vscroll.get());
     start_row -= y;
+    _update_scrollbars();
     rencache_invalidate();
     return true;
 }

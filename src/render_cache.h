@@ -13,6 +13,7 @@ void rencache_shutdown();
 void rencache_show_debug(bool enable);
 void rencache_free_font(RenFont* font);
 void rencache_set_clip_rect(RenRect rect);
+void rencache_invalidate_rect(RenRect rect);
 void rencache_draw_image(RenImage* image, RenRect rect);
 void rencache_draw_rect(RenRect rect, RenColor color, bool fill = true, float l = 1.0f);
  int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold = false, bool italic = false, bool fixed = false);

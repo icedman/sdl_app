@@ -50,7 +50,11 @@ struct view_item : layout_view {
 
     view_item_list _views;
 
+    void invalidate_rect();
+    void invalidate_render();
+
     RenImage *_cache;
+    bool _invalidate;
 };
 
 struct vertical_container : view_item {
