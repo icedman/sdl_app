@@ -15,8 +15,6 @@ static void render_editor(editor_view *ev)
     layout_item_ptr lo = ev->layout();
     scrollbar_view *sv = (scrollbar_view*)ev->_views[1].get();
 
-    // printf(">>%d\n", sv->index);
-
     int fw, fh;
     ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
     int cols = (lo->render_rect.w / fw);
@@ -70,7 +68,7 @@ static void render_editor(editor_view *ev)
     int l=0;
     while(it != doc->blocks.end() && l<view_height) {
         block_ptr block = *it++;
-        
+
         struct blockdata_t* blockData;
         if (block->data) {
             blockData = block->data.get();
@@ -144,6 +142,13 @@ static void render_editor(editor_view *ev)
                 }
             }
 
+            // draw_rect({
+            //     lo->render_rect.x + (s.start * fw),
+            //     lo->render_rect.y + (l*fh),
+            //     fw * s.length,
+            //     fh
+            // }, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
+    
             draw_text(NULL, (char*)span_text.c_str(), 
                 lo->render_rect.x + (s.start * fw),
                 lo->render_rect.y + (l*fh), 

@@ -5,6 +5,7 @@
 #include "tests.h"
 
 #include "app.h"
+#include "backend.h"
 #include "search.h"
 #include "statusbar.h"
 #include "explorer.h"
@@ -19,6 +20,16 @@
 #include "theme.h"
 
 #define FRAME_RENDER_INTERVAL 24
+
+struct sdl_backend_t : backend_t {
+    void setClipboardText(std::string text) override {
+        ren_set_clipboard(text);
+    };
+
+    std::string getClipboardText() override {
+        return ren_get_clipboard();
+    };
+};
 
 std::map<int, color_info_t> colorMap;
 
@@ -110,6 +121,7 @@ void render_item(layout_item_ptr item)
 
 int main(int argc, char **argv)
 {
+    sdl_backend_t backend;
     app_t app;
     keybinding_t keybinding;
     explorer_t explorer;
@@ -156,7 +168,8 @@ int main(int argc, char **argv)
     layout_item_list render_list;
     event_list events;
 
-    RenFont *font = ren_create_font("Fira Code 12");
+    // RenFont *font = ren_create_font("Monaco 12");
+    RenFont *font = ren_create_font("Fira Code 14");
     // RenFont *font = ren_create_font("Source Code Pro 16");
     ren_set_default_font(font);
 

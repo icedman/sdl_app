@@ -33,6 +33,7 @@ editor_inc = [
 
 editor_files = [
     'libs/editor/app.cpp',
+    'libs/editor/backend.cpp',
     'libs/editor/block.cpp',
     'libs/editor/cursor.cpp',
     'libs/editor/document.cpp',
@@ -61,6 +62,7 @@ pthread_dep = cc.find_library('pthread', required : true, disabler: true)
 sdl2_dep = dependency('SDL2', required: false, disabler: true)
 cairo_dep = dependency('cairo', required: false, disabler: true)
 pango_dep = dependency('pangocairo', required: false, disabler: true)
+rsvg_dep = dependency('rsvg', required: false, disabler: true)
 jsoncpp_dep = dependency('jsoncpp', required: true)
 onigmo_dep = dependency('onigmo', required: true)
 dl_dep = cc.find_library('dl', required : true) 

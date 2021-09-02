@@ -35,6 +35,8 @@ void ren_listen_quick(int frames = 120);
 bool ren_listen_is_quick();
 
 RenImage* ren_create_image(int w, int h);
+RenImage* ren_create_image_from_svg(char *filename, int w, int h);
+// RenImage* ren_create_image_from_png(char *filename, int w, int h);
 void ren_destroy_image(RenImage *image);
 void ren_image_size(RenImage *image, int *w, int *h);
 void ren_save_image(RenImage *image, char *filename);

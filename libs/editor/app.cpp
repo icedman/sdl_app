@@ -10,6 +10,8 @@
 #include "highlighter.h"
 #include "indexer.h"
 
+#include "backend.h"
+
 static struct app_t* appInstance = 0;
 
 int pairForColor(int colorIdx, bool selected)
@@ -91,17 +93,17 @@ bool app_t::isFresh()
 void app_t::setClipboard(std::string text)
 {
     clipText = text;
-    // if (render_t::instance()) {
-    //     render_t::instance()->setClipboardText(text);
-    // }
+    if (backend_t::instance()) {
+        backend_t::instance()->setClipboardText(text);
+    }
 }
 
 std::string app_t::clipboard()
 {
     std::string res;
-    // if (render_t::instance()) {
-    //     res = render_t::instance()->getClipboardText();
-    // }
+    if (backend_t::instance()) {
+        res = backend_t::instance()->getClipboardText();
+    }
     if (res.length()) {
         return res;
     }

@@ -29,6 +29,7 @@ struct RenImage {
 struct RenFont {
     int font_width;
     int font_height;
+    bool firable;
     PangoFontMap* font_map;
     PangoLayout* layout;
     PangoContext* context;
@@ -54,6 +55,13 @@ RenImage* ren_create_image(int w, int h)
     img->cairo_context = cairo_create(img->cairo_surface);
     img->pattern = cairo_pattern_create_for_surface(img->cairo_surface);
     return img;
+}
+
+RenImage* ren_create_image_from_svg(char *filename, int w, int h)
+{
+    RenImage* img = ren_create_image(w, h);
+
+    return img;    
 }
 
 void ren_destroy_image(RenImage *img)
@@ -83,6 +91,7 @@ RenFont* ren_create_font(char *fdsc)
     fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
     fnt->context = pango_font_map_create_context(fnt->font_map);
     fnt->layout = pango_layout_new(fnt->context);
+    fnt->firable = true;
 
     PangoFontDescription* font_desc = pango_font_description_from_string(fdsc);
     pango_layout_set_font_description(fnt->layout, nullptr);   // pango will silently not make a copy if
@@ -266,6 +275,14 @@ void ren_draw_rect(RenRect rect, RenColor clr, bool fill, float l)
     }
 }
 
+static bool is_firable(char c) {
+    const char firs[] = "<>-=!:+|_&";
+    for(int i=0;firs[i]!=0;i++) {
+        if (firs[i] == c) return true;
+    }
+    return false;
+}
+
 int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool fixed_width)
 {
     if (!font) {
@@ -274,21 +291,50 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     int length = strlen(text);
     cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
 
-    if (!fixed_width) {
-        pango_layout_set_text(font->layout, text, length);
-        cairo_move_to(cairo_context, x, y);
-        pango_cairo_show_layout(cairo_context, font->layout);
-        return 0;
-    }
+    // if (!fixed_width) {
+    //     pango_layout_set_text(font->layout, text, length);
+    //     cairo_move_to(cairo_context, x, y);
+    //     pango_cairo_show_layout(cairo_context, font->layout);
+    //     return 0;
+    // }
 
-    char tmp[2];
-    tmp[2] = 0;
-    for(int i=0; i<length; i++) {
+    /*
+    char tmp[3];
+    tmp[1] = 0;
+    for(int i=0; i<length; i) {
+        int l = 1;
         tmp[0] = text[i];
-        pango_layout_set_text(font->layout, tmp, 1);
-        cairo_move_to(cairo_context, x, y);
+        if (i<length &&
+                ((tmp[0] == '<' && text[i+1] == '=') ||
+                (tmp[0] == '-' && text[i+1] == '>')
+            )) {
+            tmp[1] = text[i+1];
+            tmp[2] = 0;
+            l = 2;
+
+        }
+        pango_layout_set_text(font->layout, tmp, l);
+        cairo_move_to(cairo_context, x + (i*font->font_width), y);
         pango_cairo_show_layout(cairo_context, font->layout);
-        x += font->font_width;
+        i+=l;
+    }
+    */
+
+    char tmp[4];
+    for(int i=0; i<length; i) {
+        int l = 1;
+        tmp[0] = text[i];
+        tmp[1] = 0;
+        if (font->firable && i<length && is_firable(text[i]) && is_firable(text[i+1])) {
+            tmp[1] = text[i+1];
+            tmp[2] = 0;
+            l = 2;
+
+        }
+        pango_layout_set_text(font->layout, tmp, l);
+        cairo_move_to(cairo_context, x + (i*font->font_width), y);
+        pango_cairo_show_layout(cairo_context, font->layout);
+        i+=l;
     }
 
     return x;
