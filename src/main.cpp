@@ -103,12 +103,6 @@ void render_item(layout_item_ptr item)
     draw_text(NULL, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
         false, false, true);
 
-    if (item->view && item->view->is_clicked()) {
-        button_view *btn = (button_view*)item->view;
-        text_view *txt = (text_view*)btn->text.get();
-        printf(">>click %s\n", txt->text.c_str());
-    }
-
     for(auto child : item->children) {
         child->render_rect = child->rect;
         child->render_rect.x += item->render_rect.x + item->scroll_x;
@@ -155,6 +149,7 @@ int main(int argc, char **argv)
     w = 0;
     h = 0;
 
+    RenImage *tmp = ren_create_image_from_svg("./resources/3d.svg", 24,24);
     // RenImage *tmp = ren_create_image(80,80);
     // ren_begin_frame(tmp);
     // ren_draw_rect({0,0,80,80}, {150,0,150});
@@ -209,6 +204,8 @@ int main(int argc, char **argv)
         draw_rect({x:0,y:0,width:w,height:h}, { (uint8_t)bg.red,(uint8_t)bg.green,(uint8_t)bg.blue });
 
         render_item(root);
+
+        draw_image(tmp,{0,0,80,80});
 
         state_restore();
         end_frame();

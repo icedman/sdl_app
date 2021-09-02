@@ -24,7 +24,7 @@ void rencache_end_frame(void);
 void rencache_state_save();
 void rencache_state_restore();
 
-#if 1
+#if 0
 #define draw_rect rencache_draw_rect
 #define draw_text rencache_draw_text
 #define draw_image rencache_draw_image

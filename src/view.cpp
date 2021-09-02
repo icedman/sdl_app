@@ -33,7 +33,6 @@ view_item::view_item()
 view_item::view_item(std::string type)
     : type(type)
     , _cache(0)
-    , _invalidate(0)
 {}
 
 view_item::~view_item()
@@ -41,27 +40,6 @@ view_item::~view_item()
     if (_cache) {
         ren_destroy_image(_cache);
     }
-}
-
-void view_item::invalidate_rect()
-{
-    _invalidate = true;
-}
-
-void view_item::invalidate_render()
-{
-    if (!_invalidate) {
-        return;
-    }
-
-    layout_item_ptr lo = layout();
-    rencache_invalidate_rect({
-        lo->render_rect.x,
-        lo->render_rect.y,
-        lo->render_rect.w,
-        lo->render_rect.h
-    });
-    _invalidate = false;
 }
 
 RenImage* view_item::cache(int w, int h)

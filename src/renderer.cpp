@@ -4,6 +4,7 @@
 #include <cairo.h>
 #include <pango/pangocairo.h>
 #include <rsvg.h>
+#include <algorithm>
 
 int _state = 0;
 
@@ -36,6 +37,9 @@ struct RenFont {
     PangoContext* context;
 };
 
+std::vector<RenImage*> images;
+std::vector<RenFont*> fonts;
+
 RenImage* window_buffer = 0;
 RenImage* target_buffer = 0;
 cairo_t* cairo_context = 0;
@@ -49,24 +53,32 @@ RenImage* ren_create_image(int w, int h)
     RenImage* img = new RenImage();
     int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, w);
     img->buffer =(uint8_t*) malloc(stride*h);
+    memset(img->buffer, 0, stride*h);
     img->width = w;
     img->height = h;
     img->sdl_surface = SDL_CreateRGBSurfaceFrom(img->buffer, w, h, 32, stride, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
     img->cairo_surface = cairo_image_surface_create_for_data(img->buffer, CAIRO_FORMAT_ARGB32, w, h, stride);
     img->cairo_context = cairo_create(img->cairo_surface);
     img->pattern = cairo_pattern_create_for_surface(img->cairo_surface);
+    images.push_back(img);
     return img;
 }
 
 RenImage* ren_create_image_from_svg(char *filename, int w, int h)
 {
     RenImage* img = ren_create_image(w, h);
-
+    RsvgHandle *svg = rsvg_handle_new_from_file(filename, 0);
+    rsvg_handle_render_cairo (svg, img->cairo_context);
+    rsvg_handle_free(svg);
     return img;    
 }
 
 void ren_destroy_image(RenImage *img)
 {
+    std::vector<RenImage*>::iterator it = std::find(images.begin(), images.end(), img);
+    if (it != images.end()) {
+        images.erase(it);
+    }
     cairo_pattern_destroy(img->pattern);
     cairo_surface_destroy(img->cairo_surface);
     cairo_destroy(img->cairo_context);
@@ -116,11 +128,16 @@ RenFont* ren_create_font(char *fdsc)
     fnt->font_height = h;
 
     default_font = fnt;
+    fonts.push_back(fnt);
     return fnt;
 }
 
 void ren_destroy_font(RenFont *font)
 {
+    std::vector<RenFont*>::iterator it = std::find(fonts.begin(), fonts.end(), font);
+    if (it != fonts.end()) {
+        fonts.erase(it);
+    }
     delete font;
 }
 
@@ -201,6 +218,16 @@ void ren_init()
 
 void ren_shutdown()
 {
+    std::vector<RenImage*> _images = images;
+    for(auto img : _images) {
+        ren_destroy_image(img);
+    }
+    
+    std::vector<RenFont*> _fonts = fonts;
+    for(auto fnt : _fonts) {
+        ren_destroy_font(fnt);
+    }
+
     SDL_Quit();
     printf("shutdown\n");
 }
@@ -253,11 +280,15 @@ bool ren_is_running()
 
 void ren_draw_image(RenImage *image, RenRect rect)
 {
+    cairo_save(cairo_context);
+    cairo_translate(cairo_context, rect.x, rect.y);
+    // cairo_scale(cairo_context, rect.width / image->width, rect.height / image->height);
     // cairo_set_source_surface(cairo_context, image->cairo_surface, image->width, image->height);
     cairo_set_source(cairo_context, image->pattern);
-    cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_REPEAT);
-    cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
+    cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_NONE);
+    cairo_rectangle(cairo_context, 0, 0, rect.width, rect.height);
     cairo_fill(cairo_context);
+    cairo_restore(cairo_context);
 }
 
 void ren_draw_rect(RenRect rect, RenColor clr, bool fill, float l)
@@ -292,34 +323,13 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     int length = strlen(text);
     cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
 
+    // pango..fixed width broken in macos
     // if (!fixed_width) {
     //     pango_layout_set_text(font->layout, text, length);
     //     cairo_move_to(cairo_context, x, y);
     //     pango_cairo_show_layout(cairo_context, font->layout);
     //     return 0;
     // }
-
-    /*
-    char tmp[3];
-    tmp[1] = 0;
-    for(int i=0; i<length; i) {
-        int l = 1;
-        tmp[0] = text[i];
-        if (i<length &&
-                ((tmp[0] == '<' && text[i+1] == '=') ||
-                (tmp[0] == '-' && text[i+1] == '>')
-            )) {
-            tmp[1] = text[i+1];
-            tmp[2] = 0;
-            l = 2;
-
-        }
-        pango_layout_set_text(font->layout, tmp, l);
-        cairo_move_to(cairo_context, x + (i*font->font_width), y);
-        pango_cairo_show_layout(cairo_context, font->layout);
-        i+=l;
-    }
-    */
 
     char tmp[4];
     for(int i=0; i<length; i) {

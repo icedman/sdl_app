@@ -70,7 +70,7 @@ rsvg_lib = cc.find_library('rsvg-2', required: false, dirs:['/usr/lib/', '/usr/l
 if build_machine.system() == 'darwin'
     rsvg_dep = declare_dependency(dependencies: [ dl_dep, rsvg_lib ], include_directories: ['/usr/local/include/librsvg-2.0/librsvg', '/usr/local/include/gdk-pixbuf-2.0'])
 else
-    rsvg_dep = declare_dependency(dependencies: [ dl_dep, rsvg_lib ], include_directories: ['/usr/include/rsvg'])
+    rsvg_dep = declare_dependency(dependencies: [ dl_dep, rsvg_lib ], include_directories: ['/usr/include/librsvg-2.0/librsvg', '/usr/include/gdk-pixbuf-2.0'])
 endif
 
 quickjs_lib = cc.find_library('quickjs', required: false, dirs:['/usr/lib/quickjs', '/usr/local/lib/quickjs'])
