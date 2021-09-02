@@ -187,6 +187,14 @@ void app_t::configure(int argc, char** argv)
         theme = theme_from_name(defaultTheme, extensions);
     }
 
+    if (settings["icon_theme"].isString()) {
+        printf("%s\n", settings["icon_theme"].asString().c_str());
+        icons = icon_theme_from_name(settings["icon_theme"].asString().c_str(), extensions);
+    }
+    if (settings["default_icons"].isString()) {
+        icons_default = icon_theme_from_name(settings["default_icons"].asString().c_str(), extensions);
+    }
+
     //-------------------
     // editor settings
     //-------------------

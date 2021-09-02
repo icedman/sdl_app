@@ -50,6 +50,8 @@ struct app_t {
 
     extension_list extensions;
     theme_ptr theme;
+    icon_theme_ptr icons;
+    icon_theme_ptr icons_default;
     
     std::string markup;
 

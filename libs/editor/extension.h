@@ -47,6 +47,9 @@ icon_theme_ptr icon_theme_from_name(const std::string path, std::vector<struct e
 theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t>& extensions);
 language_info_ptr language_from_file(const std::string path, std::vector<struct extension_t>& extensions);
 
+std::string icon_for_file(icon_theme_ptr icons, std::string file, std::vector<struct extension_t>& extensions);
+std::string icon_for_folder(icon_theme_ptr icons, std::string folder, std::vector<struct extension_t>& extensions);
+
 bool color_is_dark(color_info_t& color);
 bool theme_is_dark(theme_ptr theme);
 

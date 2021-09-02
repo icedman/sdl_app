@@ -135,6 +135,9 @@ int main(int argc, char **argv)
     app.openEditor(file);
     // explorer_t::instance()->setRootFromFile(file);
 
+    std::string icon = icon_for_file(app.icons, file, app.extensions);
+    printf(">%s\n", icon.c_str());
+
     ren_init();
     rencache_init();
 
@@ -149,7 +152,7 @@ int main(int argc, char **argv)
     w = 0;
     h = 0;
 
-    RenImage *tmp = ren_create_image_from_svg("./resources/3d.svg", 24,24);
+    RenImage *tmp = ren_create_image_from_svg((char*)icon.c_str(), 24,24);
     // RenImage *tmp = ren_create_image(80,80);
     // ren_begin_frame(tmp);
     // ren_draw_rect({0,0,80,80}, {150,0,150});

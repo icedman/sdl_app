@@ -42,7 +42,6 @@ editor_files = [
     'libs/editor/explorer.cpp',
     'libs/editor/extension.cpp',
     'libs/editor/highlighter.cpp',
-    'libs/editor/icons.cpp',
     'libs/editor/indexer.cpp',
     'libs/editor/operation.cpp',
     'libs/editor/search.cpp',

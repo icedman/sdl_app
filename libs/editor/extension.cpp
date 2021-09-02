@@ -309,6 +309,7 @@ icon_theme_ptr icon_theme_from_name(const std::string path, std::vector<struct e
             Json::Value theme = themes[i];
             if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
                 theme_path = ext.path + "/" + theme["path"].asString();
+                icons_path = ext.path + "/icons/";
                 // icons_path = ext.path.toStdString() + "/icons/";
                 // icons_path = QFileInfo(QString(theme_path.c_str())).path().toStdString() + "/";
                 found = true;
@@ -378,6 +379,82 @@ theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t
     theme_ptr theme = parse_theme(json);
     return theme;
 }
+
+
+std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<struct extension_t>& _extensions)
+{
+    std::set<char> delims = { '\\', '/', '.' };
+    std::vector<std::string> spath = split_path(filename, delims);
+
+    std::string _suffix = spath.back();
+    std::string cacheId = _suffix;
+    // std::string cacheId = _suffix + color.name();
+
+    printf("cacheId: %s\n", cacheId.c_str());
+
+    static std::map<std::string, std::string> cache;
+    auto it = cache.find(cacheId);
+    if (it != cache.end()) {
+        // std::cout << "cached icon.." << std::endl;
+        return it->second;
+    }
+
+    std::string svg = icons->icons_path + "/" + _suffix + ".svg";
+    return svg;
+    
+    // printf("%s\n", svg.c_str());
+
+#if 0 // font based icons
+    Json::Value definitions = icons->definition["iconDefinitions"];
+
+    std::string iconName;
+    std::string fontCharacter = "x";
+    std::string fontColor;
+
+    Json::Value extensions = icons->definition["fileExtensions"];
+
+    if (icons->definition.isMember(filename)) {
+        iconName = icons->definition[filename].asString();
+    }
+
+    if (!iconName.length(), extensions.isMember(_suffix)) {
+        iconName = extensions[_suffix].asString();
+    }
+
+    if (!iconName.length()) {
+        Json::Value languageIds = icons->definition["languageIds"];
+
+        std::string _fileName = "file." + _suffix;
+        language_info_ptr lang = language_from_file(_fileName.c_str(), _extensions);
+        if (lang) {
+            if (languageIds.isMember(lang->id)) {
+                iconName = languageIds[lang->id].asString();
+            }
+        }
+
+        if (!iconName.length()) {
+            if (languageIds.isMember(_suffix)) {
+                iconName = languageIds[_suffix].asString();
+            }
+        }
+    }
+
+    if (!iconName.length()) {
+        std::string res = icons->definition["file"].asString();
+        cache.emplace(cacheId, res);
+        return res;
+    }
+#endif
+
+    return "";
+}
+
+std::string icon_for_folder(icon_theme_ptr icons, std::string folder, std::vector<struct extension_t>& _extensions)
+{
+    return "";
+}
+
+
 
 bool theme_is_dark(theme_ptr theme)
 {
