@@ -383,7 +383,7 @@ theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t
 
 std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<struct extension_t>& _extensions)
 {
-    std::set<char> delims = { '\\', '/', '.' };
+    std::set<char> delims = { '.' };
     std::vector<std::string> spath = split_path(filename, delims);
 
     std::string _suffix = spath.back();
@@ -401,7 +401,7 @@ std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vecto
 
     std::string svg = icons->icons_path + "/" + _suffix + ".svg";
     return svg;
-    
+
     // printf("%s\n", svg.c_str());
 
 #if 0 // font based icons

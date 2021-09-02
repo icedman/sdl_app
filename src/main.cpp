@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     theme_ptr theme = app.theme;
 
     app.openEditor(file);
-    // explorer_t::instance()->setRootFromFile(file);
+    explorer.setRootFromFile(file);
 
     std::string icon = icon_for_file(app.icons, file, app.extensions);
     printf(">%s\n", icon.c_str());
