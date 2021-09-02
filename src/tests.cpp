@@ -10,7 +10,7 @@
 
 view_item_ptr test_root()
 {
-    return test6();
+    return test5();
 }
 
 view_item_ptr test6() {
