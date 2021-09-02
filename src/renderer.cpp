@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <cairo.h>
 #include <pango/pangocairo.h>
+#include <rsvg.h>
 
 int _state = 0;
 

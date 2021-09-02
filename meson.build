@@ -62,10 +62,16 @@ pthread_dep = cc.find_library('pthread', required : true, disabler: true)
 sdl2_dep = dependency('SDL2', required: false, disabler: true)
 cairo_dep = dependency('cairo', required: false, disabler: true)
 pango_dep = dependency('pangocairo', required: false, disabler: true)
-rsvg_dep = dependency('rsvg', required: false, disabler: true)
 jsoncpp_dep = dependency('jsoncpp', required: true)
 onigmo_dep = dependency('onigmo', required: true)
 dl_dep = cc.find_library('dl', required : true) 
+
+rsvg_lib = cc.find_library('rsvg-2', required: false, dirs:['/usr/lib/', '/usr/local/lib/'])
+if build_machine.system() == 'darwin'
+    rsvg_dep = declare_dependency(dependencies: [ dl_dep, rsvg_lib ], include_directories: ['/usr/local/include/librsvg-2.0/librsvg', '/usr/local/include/gdk-pixbuf-2.0'])
+else
+    rsvg_dep = declare_dependency(dependencies: [ dl_dep, rsvg_lib ], include_directories: ['/usr/include/rsvg'])
+endif
 
 quickjs_lib = cc.find_library('quickjs', required: false, dirs:['/usr/lib/quickjs', '/usr/local/lib/quickjs'])
 if build_machine.system() == 'darwin'
@@ -112,6 +118,6 @@ executable('app',
     'src/main.cpp',
     ui_files,
     include_directories: [ './src', './src/ui' ],
-    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep ],
+    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, rsvg_dep ],
     install : true
 )
