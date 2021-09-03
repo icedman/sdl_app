@@ -142,8 +142,8 @@ RenFont* ren_create_font(char *fdsc)
     cairo_font_options_t *cairo_font_options = cairo_font_options_create();
     cairo_font_options_set_antialias(cairo_font_options, CAIRO_ANTIALIAS_SUBPIXEL);
 
-    cairo_font_options_set_hint_style(cairo_font_options, CAIRO_HINT_STYLE_DEFAULT);
-    cairo_font_options_set_hint_metrics(cairo_font_options, CAIRO_HINT_METRICS_ON);
+    cairo_font_options_set_hint_style(cairo_font_options, CAIRO_HINT_STYLE_DEFAULT); // NONE DEFAULT SLIGHT MEDIUM FULL
+    cairo_font_options_set_hint_metrics(cairo_font_options, CAIRO_HINT_METRICS_ON);  // ON OFF
 
     pango_cairo_context_set_font_options(fnt->context, cairo_font_options);
 
