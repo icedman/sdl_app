@@ -56,6 +56,8 @@ struct editor_t {
 
     indexer_t *indexer;
 
+    bool singleLineEdit;
+    
     bool _scrollToCursor;
     int _foldedLines;
 

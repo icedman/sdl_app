@@ -135,6 +135,8 @@ int main(int argc, char **argv)
     app.openEditor(file);
     explorer.setRootFromFile(file);
 
+    app.currentEditor->singleLineEdit = true;
+
     ren_init();
     rencache_init();
 

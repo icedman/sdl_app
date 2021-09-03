@@ -48,6 +48,12 @@ struct explorer_item_view : horizontal_container {
         explorer_t::instance()->print();
         return true;
     }
+
+    void render() override {
+        layout_item_ptr lo = layout();
+        layout_rect r = lo->render_rect;
+        // printf("%s %d %d %d %d\n", file->name.c_str(), r.x, r.y, r.w, r.h);
+    }
 };
 
 explorer_view::explorer_view()
@@ -62,11 +68,29 @@ explorer_view::explorer_view()
 }
 
 void explorer_view::prelayout()
-{
+{}
+
+void explorer_view::update()
+{   
     explorer_t *explorer = explorer_t::instance();
     explorer->update(0);
 
     // printf("%d %d\n", explorer->renderList.size(), _views.size());
+
+    bool hasChanges = false;
+    if (explorer->renderList.size() == content()->_views.size()) {
+        view_item_list::iterator it = content()->_views.begin();
+        for(auto f : explorer->renderList) {
+            view_item_ptr btn = *it++;
+            if (((explorer_item_view*)btn.get())->file == f) {
+                continue;
+            }
+            hasChanges = true;
+            break;
+        }
+    } else {
+        hasChanges = true;
+    }
 
     while(content()->_views.size() < explorer->renderList.size()) {
         view_item_ptr btn = std::make_shared<explorer_item_view>();
@@ -93,30 +117,14 @@ void explorer_view::prelayout()
         std::string icon_path =icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
 
         view_item_ptr icon = btn->_views[0];
-        ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)icon_path.c_str(), 24,24);
+        if (!f->isDirectory) {
+            ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)icon_path.c_str(), 24,24);
+        }
 
         view_item_ptr text = btn->_views[1];
         ((text_view*)text.get())->text = f->name;
-    }
-}
 
-void explorer_view::update()
-{   
-    explorer_t *explorer = explorer_t::instance();
-    explorer->update(0);
-
-    bool hasChanges = false;
-    if (explorer->renderList.size() == content()->_views.size()) {
-        view_item_list::iterator it = content()->_views.begin();
-        for(auto f : explorer->renderList) {
-            view_item_ptr btn = *it++;
-            if (((explorer_item_view*)btn.get())->file == f) {
-                continue;
-            }
-            hasChanges = true;
-            break;
-        }
-    } else {
-        hasChanges = true;
+        text->prelayout();
+        text->layout()->rect.w = text->layout()->width;
     }
 }

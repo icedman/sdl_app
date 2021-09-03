@@ -51,6 +51,9 @@ static void render_editor(editor_view *ev)
     bool hlMainCursor = cursors.size() == 1 && !mainCursor.hasSelection();
 
     block_list::iterator it = doc->blocks.begin();
+    if (start >= doc->blocks.size()) {
+        start = (doc->blocks.size() - 1);
+    }
     it += start;
 
     int view_height = rows;

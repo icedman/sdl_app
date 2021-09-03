@@ -16,6 +16,7 @@
 editor_t::editor_t()
     : view(0)
     , indexer(0)
+    , singleLineEdit(false)
 {
     document.editor = this;
     _scrollToCursor = true;
@@ -225,6 +226,19 @@ void editor_t::runOp(operation_t op)
     }
 
     for (auto& cur : cursors) {
+
+        bool skipOp = false;
+        if (singleLineEdit) {
+            switch(_op) {
+            case ENTER:
+            case DUPLICATE_LINE:
+                skipOp = true;
+                break;
+            }
+        }
+
+        if (skipOp) continue;
+
         switch (_op) {
 
         case SELECT_WORD: {

@@ -240,11 +240,6 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
 
 void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
 {
-    if (constraint.max_width == item->constraint.max_width &&
-            constraint.max_height == item->constraint.max_height) {
-        return;
-    }
-
     layout_rect rect = {
         x: item->x, 
         y: item->y,
