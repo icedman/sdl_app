@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <cairo.h>
+#include <pango/pango.h>
 #include <pango/pangocairo.h>
 #include <rsvg.h>
 #include <algorithm>
@@ -137,6 +138,14 @@ RenFont* ren_create_font(char *fdsc)
     // info out there getting detailed on Pango.
 
     pango_font_description_free(font_desc); 
+
+    cairo_font_options_t *cairo_font_options = cairo_font_options_create();
+    cairo_font_options_set_antialias(cairo_font_options, CAIRO_ANTIALIAS_SUBPIXEL);
+
+    cairo_font_options_set_hint_style(cairo_font_options, CAIRO_HINT_STYLE_DEFAULT);
+    cairo_font_options_set_hint_metrics(cairo_font_options, CAIRO_HINT_METRICS_ON);
+
+    pango_cairo_context_set_font_options(fnt->context, cairo_font_options);
 
     const char text[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
     int len = strlen(text);
@@ -343,12 +352,12 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
 
     // pango..fixed width broken in macos
-    // if (!fixed_width) {
-    //     pango_layout_set_text(font->layout, text, length);
-    //     cairo_move_to(cairo_context, x, y);
-    //     pango_cairo_show_layout(cairo_context, font->layout);
-    //     return 0;
-    // }
+    if (!fixed_width) {
+        pango_layout_set_text(font->layout, text, length);
+        cairo_move_to(cairo_context, x, y);
+        pango_cairo_show_layout(cairo_context, font->layout);
+        return 0;
+    }
 
     char tmp[4];
     for(int i=0; i<length; i) {

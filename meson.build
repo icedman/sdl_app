@@ -59,6 +59,7 @@ endif
 
 pthread_dep = cc.find_library('pthread', required : true, disabler: true)
 sdl2_dep = dependency('SDL2', required: false, disabler: true)
+sdl2ttf_dep = dependency('SDL2_ttf', required: false, disabler: true) 
 cairo_dep = dependency('cairo', required: false, disabler: true)
 pango_dep = dependency('pangocairo', required: false, disabler: true)
 jsoncpp_dep = dependency('jsoncpp', required: true)
@@ -117,6 +118,6 @@ executable('app',
     'src/main.cpp',
     ui_files,
     include_directories: [ './src', './src/ui' ],
-    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, rsvg_dep ],
+    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, sdl2ttf_dep, cairo_dep, pango_dep, rsvg_dep ],
     install : true
 )
