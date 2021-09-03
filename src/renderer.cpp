@@ -2,8 +2,6 @@
 
 #include <SDL2/SDL.h>
 #include <cairo.h>
-#include <pango/pango.h>
-#include <pango/pangocairo.h>
 #include <rsvg.h>
 #include <algorithm>
 
@@ -30,18 +28,7 @@ struct RenImage {
     std::string path;
 };
 
-struct RenFont {
-    int font_width;
-    int font_height;
-    bool firable;
-    PangoFontMap* font_map;
-    PangoLayout* layout;
-    PangoContext* context;
-    std::string desc;
-};
-
 std::vector<RenImage*> images;
-std::vector<RenFont*> fonts;
 
 RenImage* window_buffer = 0;
 RenImage* target_buffer = 0;
@@ -65,6 +52,14 @@ RenImage* ren_create_image(int w, int h)
     img->pattern = cairo_pattern_create_for_surface(img->cairo_surface);
     images.push_back(img);
     return img;
+}
+
+cairo_t*  ren_context() {
+    return cairo_context;
+}
+
+cairo_t*  ren_image_context(RenImage* image) {
+    return image->cairo_context;
 }
 
 RenImage* ren_create_image_from_svg(char *filename, int w, int h)
@@ -100,6 +95,13 @@ void ren_destroy_image(RenImage *img)
     delete img;
 }
 
+void ren_destroy_images() {
+    std::vector<RenImage*> _images = images;
+    for(auto img : _images) {
+        ren_destroy_image(img);
+    }
+}
+
 void ren_image_size(RenImage *image, int *w, int *h)
 {
     *w = image->width;
@@ -109,64 +111,6 @@ void ren_image_size(RenImage *image, int *w, int *h)
 void ren_save_image(RenImage *image, char *filename)
 {
     cairo_surface_write_to_png(image->cairo_surface, filename);
-}
-
-RenFont* ren_create_font(char *fdsc)
-{
-    for(auto fnt : fonts) {
-        if (fnt->desc == fdsc) {
-            return fnt;
-        }
-    }
-
-    RenFont *fnt = new RenFont();
-    fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
-    fnt->context = pango_font_map_create_context(fnt->font_map);
-    fnt->layout = pango_layout_new(fnt->context);
-    fnt->desc = fdsc;
-    fnt->firable = true;
-
-    PangoFontDescription* font_desc = pango_font_description_from_string(fdsc);
-    pango_layout_set_font_description(fnt->layout, nullptr);   // pango will silently not make a copy if
-    // the new fontdesc matches the old one
-    // whether by pointer or deep compare.
-    // this makes sure the old one is deleted
-    // in favor of a new copy
-    pango_layout_set_font_description(fnt->layout, font_desc);
-    pango_font_map_load_font(fnt->font_map, fnt->context, font_desc);  // most examples do this, but does not appear
-    // to actually be necessary? There's not much
-    // info out there getting detailed on Pango.
-
-    pango_font_description_free(font_desc); 
-
-    cairo_font_options_t *cairo_font_options = cairo_font_options_create();
-    cairo_font_options_set_antialias(cairo_font_options, CAIRO_ANTIALIAS_SUBPIXEL);
-
-    cairo_font_options_set_hint_style(cairo_font_options, CAIRO_HINT_STYLE_DEFAULT); // NONE DEFAULT SLIGHT MEDIUM FULL
-    cairo_font_options_set_hint_metrics(cairo_font_options, CAIRO_HINT_METRICS_ON);  // ON OFF
-
-    pango_cairo_context_set_font_options(fnt->context, cairo_font_options);
-
-    const char text[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
-    int len = strlen(text);
-    int w, h;
-    ren_get_font_extents(fnt, &w, &h, text, len);
-
-    fnt->font_width = (w/len);
-    fnt->font_height = h;
-
-    default_font = fnt;
-    fonts.push_back(fnt);
-    return fnt;
-}
-
-void ren_destroy_font(RenFont *font)
-{
-    std::vector<RenFont*>::iterator it = std::find(fonts.begin(), fonts.end(), font);
-    if (it != fonts.end()) {
-        fonts.erase(it);
-    }
-    delete font;
 }
 
 void _destroy_cairo_context()
@@ -186,22 +130,6 @@ cairo_t* _create_cairo_context(int width, int height)
     }
     window_buffer = ren_create_image(width, height);
     return window_buffer->cairo_context;
-}
-
-void ren_get_font_extents(RenFont *font, int *w, int *h, const char *text, int len, bool fixed)
-{
-    if (!font) {
-        font = default_font;
-    }
-
-    if (fixed) {
-        *w = font->font_width * len;
-        *h = font->font_height;
-        return;
-    }
-    pango_layout_set_attributes(font->layout, nullptr);
-    pango_layout_set_text(font->layout, text, len);
-    pango_layout_get_pixel_size(font->layout, w, h);
 }
 
 void ren_set_default_font(RenFont *font) {
@@ -246,15 +174,8 @@ void ren_init()
 
 void ren_shutdown()
 {
-    std::vector<RenImage*> _images = images;
-    for(auto img : _images) {
-        ren_destroy_image(img);
-    }
-    
-    std::vector<RenFont*> _fonts = fonts;
-    for(auto fnt : _fonts) {
-        ren_destroy_font(fnt);
-    }
+    ren_destroy_images();
+    ren_destroy_fonts();
 
     SDL_Quit();
     printf("shutdown\n");
@@ -306,16 +227,18 @@ bool ren_is_running()
     return !shouldEnd;
 }
 
-void ren_draw_image(RenImage *image, RenRect rect)
+void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
 {
     cairo_save(cairo_context);
     cairo_translate(cairo_context, rect.x, rect.y);
     // cairo_scale(cairo_context, rect.width / image->width, rect.height / image->height);
     // cairo_set_source_surface(cairo_context, image->cairo_surface, image->width, image->height);
-    cairo_set_source(cairo_context, image->pattern);
-    cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_NONE);
-    cairo_rectangle(cairo_context, 0, 0, rect.width, rect.height);
-    cairo_fill(cairo_context);
+    // cairo_set_source(cairo_context, image->pattern);
+    cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, clr.a/255.0f);
+    // cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_NONE);
+    // cairo_rectangle(cairo_context, 0, 0, rect.width, rect.height);
+    // cairo_fill(cairo_context);
+    cairo_mask(cairo_context, image->pattern);
     cairo_restore(cairo_context);
 }
 
@@ -341,42 +264,6 @@ static bool is_firable(char c) {
         if (firs[i] == c) return true;
     }
     return false;
-}
-
-int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool fixed_width)
-{
-    if (!font) {
-        font = default_font;
-    }
-    int length = strlen(text);
-    cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
-
-    // pango..fixed width broken in macos
-    if (!fixed_width) {
-        pango_layout_set_text(font->layout, text, length);
-        cairo_move_to(cairo_context, x, y);
-        pango_cairo_show_layout(cairo_context, font->layout);
-        return 0;
-    }
-
-    char tmp[4];
-    for(int i=0; i<length; i) {
-        int l = 1;
-        tmp[0] = text[i];
-        tmp[1] = 0;
-        if (font->firable && i<length && is_firable(text[i]) && is_firable(text[i+1])) {
-            tmp[1] = text[i+1];
-            tmp[2] = 0;
-            l = 2;
-
-        }
-        pango_layout_set_text(font->layout, tmp, l);
-        cairo_move_to(cairo_context, x + (i*font->font_width), y);
-        pango_cairo_show_layout(cairo_context, font->layout);
-        i+=l;
-    }
-
-    return x;
 }
 
 void ren_update_rects(RenRect* rects, int count)

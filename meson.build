@@ -82,6 +82,7 @@ endif
 
 ui_files = [
     'src/renderer.cpp',
+    'src/render_font.cpp',
     'src/render_cache.cpp',
     'src/layout.cpp',
     'src/events.cpp',

@@ -169,7 +169,7 @@ void rencache_state_restore()
     }
 }
 
-void rencache_draw_image(RenImage* image, RenRect rect)
+void rencache_draw_image(RenImage* image, RenRect rect, RenColor color)
 {
     if (!rects_overlap(cache->target_rect, rect)) {
         return;
@@ -177,6 +177,7 @@ void rencache_draw_image(RenImage* image, RenRect rect)
     Command* cmd = push_command(DRAW_IMAGE, sizeof(Command));
     if (cmd) {
         cmd->rect = rect;
+        cmd->color = color;
         cmd->font = (void*)image;
     }
 }
@@ -348,7 +349,7 @@ void rencache_end_frame(void)
                 ren_set_clip_rect(intersect_rects(cmd->rect, r));
                 break;
             case DRAW_IMAGE:
-                ren_draw_image((RenImage*)cmd->font, cmd->rect);
+                ren_draw_image((RenImage*)cmd->font, cmd->rect, cmd->color);
             case DRAW_RECT:
                 if (cmd->bold || cmd->italic) { // bold = filled, italic == stroke
                     ren_draw_rect(cmd->rect, cmd->color, cmd->bold, cmd->italic);
