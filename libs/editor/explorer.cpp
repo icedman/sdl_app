@@ -81,7 +81,7 @@ void fileitem_t::load(std::string p)
         setPath(p);
     }
 
-    // log("load %s", fullPath.c_str());
+    log("load %s", fullPath.c_str());
     std::vector<std::string>& excludeFiles = app_t::instance()->excludeFiles;
     std::vector<std::string>& excludeFolders = app_t::instance()->excludeFolders;
 
@@ -135,11 +135,6 @@ void fileitem_t::load(std::string p)
     }
 
     sort(files.begin(), files.end(), compareFile);
-
-    // if (!files.size()) {
-    //     explorer_t::instance()->setVisible(false);
-    //     app_t::instance()->explorerScrollbar.setVisible(false);
-    // }
 }
 
 static struct explorer_t* explorerInstance = 0;

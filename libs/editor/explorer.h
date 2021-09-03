@@ -6,6 +6,9 @@
 
 #include "extension.h"
 
+struct fileitem_t;
+typedef std::shared_ptr<struct fileitem_t> fileitem_ptr;
+
 struct fileitem_t {
 
     fileitem_t();
@@ -14,7 +17,7 @@ struct fileitem_t {
     std::string name;
     std::string path;
     std::string fullPath;
-    std::vector<std::shared_ptr<struct fileitem_t>> files;
+    std::vector<fileitem_ptr> files;
 
     bool expanded;
     bool isDirectory;

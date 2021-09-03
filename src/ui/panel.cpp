@@ -6,7 +6,7 @@
 panel_view::panel_view()
 {
     int scrollbar_size = 18;
-
+    
     v_scroll = std::make_shared<vscrollbar_view>();
     v_scroll->layout()->width = scrollbar_size;
     h_scroll = std::make_shared<hscrollbar_view>();

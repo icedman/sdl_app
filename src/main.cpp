@@ -70,7 +70,7 @@ void render_item(layout_item_ptr item)
     float stroke = 1.0f;
     RenColor clr = { (uint8_t)item->rgb.r, (uint8_t)item->rgb.g, (uint8_t)item->rgb.b, 50 };
     if (view && view->is_hovered()) {
-        // clr = { 150, 0, 150 };
+        clr.a = 200;
     }
     if (view && view->is_pressed()) {
         // clr = { 255, 0, 0 };
@@ -135,9 +135,6 @@ int main(int argc, char **argv)
     app.openEditor(file);
     explorer.setRootFromFile(file);
 
-    std::string icon = icon_for_file(app.icons, file, app.extensions);
-    printf(">%s\n", icon.c_str());
-
     ren_init();
     rencache_init();
 
@@ -152,7 +149,7 @@ int main(int argc, char **argv)
     w = 0;
     h = 0;
 
-    RenImage *tmp = ren_create_image_from_svg((char*)icon.c_str(), 24,24);
+    // RenImage *tmp = ren_create_image_from_svg((char*)icon.c_str(), 24,24);
     // RenImage *tmp = ren_create_image(80,80);
     // ren_begin_frame(tmp);
     // ren_draw_rect({0,0,80,80}, {150,0,150});
@@ -182,6 +179,7 @@ int main(int argc, char **argv)
         view_input_events(view_list, events);
 
         app_t::instance()->currentEditor->runAllOps();
+        root_view->update();
 
         int pw = w;
         int ph = h;
@@ -190,10 +188,8 @@ int main(int argc, char **argv)
             layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
-            frames = FRAME_RENDER_INTERVAL;
+            frames = FRAME_RENDER_INTERVAL - 4;
         }
-
-        root_view->update();
 
         // todo implement frame rate limit
         if (frames++ < FRAME_RENDER_INTERVAL) {
@@ -208,7 +204,7 @@ int main(int argc, char **argv)
 
         render_item(root);
 
-        draw_image(tmp,{0,0,80,80});
+        // draw_image(tmp,{0,0,80,80});
 
         state_restore();
         end_frame();

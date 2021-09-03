@@ -296,9 +296,10 @@ view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
         }
     }
 
-    if (!item->disabled) {
+    if (!item->disabled && item->interactive) {
         return item;
     }
+
     return 0;
 
     // return item;
@@ -390,7 +391,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
             view_pressed = v;
             if (view_pressed) view_pressed->mouse_down(x, y, button, clicks);
         }
-        if (v && v->can_focus) {
+        if (v && v->focusable) {
             view_focused = v;
         }
     } else {

@@ -2,13 +2,16 @@
 #define EXPLORER_VIEW_H
 
 #include "view.h"
-#include "text.h"
+#include "panel.h"
 
-struct explorer_view : view_item {
+struct explorer_view : panel_view {
     explorer_view();
     
     view_item_ptr vscroll;
     view_item_ptr hscroll;
+
+    void prelayout() override;
+    void update() override;
 };
 
 #endif // EXPLORER_VIEW_H

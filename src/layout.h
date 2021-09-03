@@ -71,13 +71,8 @@ struct layout_view {
 
     layout_view() 
     : disabled(false)
-    , can_focus(false)
-    // , can_press(false)
-    // , can_drag(false)
-    // , can_hover(false)
-    // , can_input(false)
-    // , can_input_text(false)
-    // , can_scroll(false)
+    , focusable(false)
+    , interactive(false)
     , color({ 255, 255, 255 })
     , background({ 150, 150, 150 })
     , border_color({ 150, 150, 150 })
@@ -86,14 +81,8 @@ struct layout_view {
     {}
 
     bool disabled;
-    bool can_focus;
-    // bool can_press;
-    // bool can_drag;
-    // bool can_hover;
-    // bool can_scroll;
-    // bool can_input;
-    // bool can_input_text;
-
+    bool focusable;
+    bool interactive;
     layout_view *parent;
     layout_item_ptr _layout;
 

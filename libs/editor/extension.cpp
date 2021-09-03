@@ -390,7 +390,7 @@ std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vecto
     std::string cacheId = _suffix;
     // std::string cacheId = _suffix + color.name();
 
-    printf("cacheId: %s\n", cacheId.c_str());
+    // log("cacheId: %s\n", cacheId.c_str());
 
     static std::map<std::string, std::string> cache;
     auto it = cache.find(cacheId);

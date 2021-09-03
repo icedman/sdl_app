@@ -26,6 +26,7 @@ struct RenImage {
     cairo_surface_t* cairo_surface;
     cairo_t *cairo_context;
     cairo_pattern_t *pattern;
+    std::string path;
 };
 
 struct RenFont {
@@ -35,6 +36,7 @@ struct RenFont {
     PangoFontMap* font_map;
     PangoLayout* layout;
     PangoContext* context;
+    std::string desc;
 };
 
 std::vector<RenImage*> images;
@@ -66,10 +68,20 @@ RenImage* ren_create_image(int w, int h)
 
 RenImage* ren_create_image_from_svg(char *filename, int w, int h)
 {
+    for(auto img : images) {
+        if (img->path == filename) {
+            return img;
+        }
+    }
+
     RenImage* img = ren_create_image(w, h);
+    img->path = filename;
+    
     RsvgHandle *svg = rsvg_handle_new_from_file(filename, 0);
-    rsvg_handle_render_cairo (svg, img->cairo_context);
-    rsvg_handle_free(svg);
+    if (svg) {
+        rsvg_handle_render_cairo (svg, img->cairo_context);
+        rsvg_handle_free(svg);
+    }
     return img;    
 }
 
@@ -100,10 +112,17 @@ void ren_save_image(RenImage *image, char *filename)
 
 RenFont* ren_create_font(char *fdsc)
 {
+    for(auto fnt : fonts) {
+        if (fnt->desc == fdsc) {
+            return fnt;
+        }
+    }
+
     RenFont *fnt = new RenFont();
     fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
     fnt->context = pango_font_map_create_context(fnt->font_map);
     fnt->layout = pango_layout_new(fnt->context);
+    fnt->desc = fdsc;
     fnt->firable = true;
 
     PangoFontDescription* font_desc = pango_font_description_from_string(fdsc);

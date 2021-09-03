@@ -6,6 +6,8 @@ scrollarea_view::scrollarea_view()
     , move_factor_x(20)
     , move_factor_y(20)
 {
+    interactive = true;
+    layout()->fit_children = false;
     content = std::make_shared<view_item>("content");
     content->layout()->fit_children = true;
     content->layout()->wrap = true;

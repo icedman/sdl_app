@@ -10,6 +10,7 @@ scrollbar_view::scrollbar_view()
     , window(4)
     , count(12)
 {
+    interactive = true;
     layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
 
     type = "scrollbar";

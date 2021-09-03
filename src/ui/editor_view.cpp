@@ -175,12 +175,14 @@ editor_view::editor_view()
         : view_item("editor")
         , start_row(0)
 {
+    interactive = true;
+    
     layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
     layout()->fit_children = false;
 
     vscroll = std::make_shared<scrollbar_view>();
     vscroll->layout()->width = 18;
-    can_focus = true;
+    focusable = true;
 
     view_item_ptr spacer = std::make_shared<view_item>();
     spacer->disabled = true;
