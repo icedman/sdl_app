@@ -68,10 +68,6 @@ void explorer_view::prelayout()
 
     // printf("%d %d\n", explorer->renderList.size(), _views.size());
 
-    for(auto _v : content()->_views) {
-        _v->layout()->visible = false;
-    }
-
     while(content()->_views.size() < explorer->renderList.size()) {
         view_item_ptr btn = std::make_shared<explorer_item_view>();
         btn->layout()->height = 32;
@@ -83,6 +79,9 @@ void explorer_view::prelayout()
         content()->add_child(btn);
     }
 
+    for(auto _v : content()->_views) {
+        _v->layout()->visible = false;
+    }
     // content()->layout()->rect.h = 32 * explorer->renderList.size();
     
     view_item_list::iterator it = content()->_views.begin();
