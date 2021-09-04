@@ -101,7 +101,7 @@ void render_item(layout_item_ptr item)
     }
 
     draw_text(NULL, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
-        false, false, true);
+        false, true, true);
 
     for(auto child : item->children) {
         child->render_rect = child->rect;
