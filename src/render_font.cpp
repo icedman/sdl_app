@@ -75,7 +75,6 @@ RenFont* ren_create_font(char *fdsc)
         }
     }
 
-
     RenFont *fnt = new RenFont();
     PangoFontMap* font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
     PangoContext* context = pango_font_map_create_context(font_map);
@@ -140,9 +139,8 @@ RenFont* ren_create_font(char *fdsc)
 	        utf8_to_codepoint(_p, &cp);
 
 	    	_ren_get_font_extents(layout, &cw, &ch, _p, 1);
-	    	cw++;
 
-	    	set[cp].image = ren_create_image(cw, ch);
+	    	set[cp].image = ren_create_image(cw + 1, ch);
 	    	set[cp].cw = cw;
 	    	set[cp].ch = ch;
 	    	ren_begin_frame(set[cp].image);
@@ -156,6 +154,7 @@ RenFont* ren_create_font(char *fdsc)
 	    }
 	}
 
+	// fnt->font_width -= 1;
     fonts.push_back(fnt);
 
     if (!ren_get_default_font()) {
@@ -217,7 +216,8 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
 
         GlyphSet *glyph = &set[cp]; 
 		ren_draw_image(glyph->image, {
-			x + (i*font->font_width) + (font->font_width/2) - (glyph->cw/2), y,
+			x + (i*font->font_width) + (font->font_width/2) - (glyph->cw/2),
+			y +  (font->font_height/2) - (glyph->ch/2),
 			glyph->cw, glyph->ch
 		}, clr);
     }

@@ -156,7 +156,7 @@ static void render_editor(editor_view *ev)
                 lo->render_rect.x + (s.start * fw),
                 lo->render_rect.y + (l*fh), 
                 { (uint8_t)clr.red,(uint8_t)clr.green,(uint8_t)clr.blue },
-                false, false, true);
+                s.bold, s.italic, true);
         }
 
 
