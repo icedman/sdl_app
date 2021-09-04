@@ -231,14 +231,15 @@ void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
 {
     cairo_save(cairo_context);
     cairo_translate(cairo_context, rect.x, rect.y);
-    // cairo_scale(cairo_context, rect.width / image->width, rect.height / image->height);
-    // cairo_set_source_surface(cairo_context, image->cairo_surface, image->width, image->height);
-    // cairo_set_source(cairo_context, image->pattern);
-    cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, clr.a/255.0f);
-    // cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_NONE);
-    // cairo_rectangle(cairo_context, 0, 0, rect.width, rect.height);
-    // cairo_fill(cairo_context);
-    cairo_mask(cairo_context, image->pattern);
+    if (clr.a == 0) {
+        cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, 1.0f);
+        cairo_mask(cairo_context, image->pattern);
+    } else {
+        cairo_set_source(cairo_context, image->pattern);
+        cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_NONE);
+        cairo_rectangle(cairo_context, 0, 0, rect.width, rect.height);
+        cairo_fill(cairo_context);
+    }
     cairo_restore(cairo_context);
 }
 

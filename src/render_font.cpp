@@ -5,13 +5,25 @@
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
 
+#include <algorithm>
+
 #define MAX_GLYPHSET 256
+
+typedef struct {
+    char t[3];
+    int index;
+} Ligature;
 
 typedef struct {
     RenImage* image;
     int cw;
     int ch;
 } GlyphSet;
+
+const char _ligatures [][3] = {
+    "==", "!=", "<=", ">=", "->", "<-", "!!", "&&", "||", "::", ":=",
+    ":)", ":(", ":|", 0
+};
 
 struct RenFont {
     int font_width;
@@ -21,6 +33,8 @@ struct RenFont {
     GlyphSet regular[MAX_GLYPHSET];
     GlyphSet italic[MAX_GLYPHSET];
     GlyphSet bold[MAX_GLYPHSET];
+
+    Ligature ligatures[32];
 
     std::string desc;
 };
@@ -129,23 +143,41 @@ RenFont* ren_create_font(char *fdsc)
 	    }
 
 	    // generate glyphs
-	    for(int i=0;i<128;i++) {
+	    for(int i=0;i<MAX_GLYPHSET;i++) {
 	    	int cw, ch;
 	    	int x = 0;
 	    	int y = 0;
 
-	        char _p[] = { (char)i, 0 };
+	        char _p[] = { (char)i, 0, 0 };
 	        unsigned cp = 0;
 	        utf8_to_codepoint(_p, &cp);
 
-	    	_ren_get_font_extents(layout, &cw, &ch, _p, 1);
+            if (i>127) {
+                int j = i - 128;
+                Ligature *l = &fnt->ligatures[j];
+                if (_ligatures[j][0] == 0) {
+                    break;
+                }
+
+                strcpy(_p, _ligatures[j]);
+                strcpy(l->t, _p);
+
+                l++;
+                l->t[0] = 0;
+                cp = i;
+
+                printf("%s\n", _p);
+            }
+
+            int _pl = strlen(_p);
+	    	_ren_get_font_extents(layout, &cw, &ch, _p, _pl);
 
 	    	set[cp].image = ren_create_image(cw + 1, ch);
 	    	set[cp].cw = cw;
 	    	set[cp].ch = ch;
 	    	ren_begin_frame(set[cp].image);
 
-	        pango_layout_set_text(layout, _p, 1);
+	        pango_layout_set_text(layout, _p, _pl);
 	        cairo_set_source_rgb(ren_image_context(set[cp].image), 1,1,1);
 	        cairo_move_to(ren_image_context(set[cp].image), x, y);
 	        pango_cairo_show_layout(ren_image_context(set[cp].image), layout);
@@ -207,19 +239,41 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
 		set = font->bold;
 	}
 
-    for(int i=0; i<length; i++) {
+    int xx = 0;
+    for(int i=0; i<length;) {
         char _p[] = { (char)text[i], 0 };
         unsigned cp = 0;
         utf8_to_codepoint(_p, &cp);
 
-        clr.a = 255;
+        int adv = 1;
+
+        if (i+1<length) {
+            char _p[] = { (char)text[i], (char)text[i+1], 0 };
+            for(int j=0;j<32;j++) {
+                Ligature *l = &font->ligatures[j];
+                if (l->t[0] == 0) {
+                    break;
+                }
+
+                if (strcmp(_p, l->t) == 0) {
+                    adv = 2;
+                    i++;
+                    cp = 128 + j;
+                    // printf("%s %s %d\n", _p, l->t, cp);
+                }
+            }
+        }
+
+        clr.a = 0;
 
         GlyphSet *glyph = &set[cp]; 
 		ren_draw_image(glyph->image, {
-			x + (i*font->font_width) + (font->font_width/2) - (glyph->cw/2),
+			x + (i*font->font_width) + (font->font_width/2) - (glyph->cw/2) - (adv == 2 ? (float)glyph->cw/4 : 0),
 			y +  (font->font_height/2) - (glyph->ch/2),
 			glyph->cw, glyph->ch
 		}, clr);
+
+        i += adv;
     }
 
     return x;
