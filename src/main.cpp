@@ -77,7 +77,6 @@ void render_item(layout_item_ptr item)
         // fill = true;
         stroke = 1.5f;
     }
-
     if (view && view->is_clicked()) {
         printf(">>click\n");
     }
@@ -87,18 +86,18 @@ void render_item(layout_item_ptr item)
     }
 
     // printf("%l %d %d %d %d\n", ct, item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
-    draw_rect({
-        item->render_rect.x,
-        item->render_rect.y,
-        item->render_rect.w,
-        item->render_rect.h
-    },
-    clr, fill, stroke);
+    // draw_rect({
+    //     item->render_rect.x,
+    //     item->render_rect.y,
+    //     item->render_rect.w,
+    //     item->render_rect.h
+    // },
+    // clr, fill, stroke);
 
-    std::string text = item->view ? ((view_item*)item->view)->name : item->name;
-    if (item->view && ((view_item*)item->view)->type == "text") {
-        text = ((text_view*)item->view)->text;
-    }
+    // std::string text = item->view ? ((view_item*)item->view)->name : item->name;
+    // if (item->view && ((view_item*)item->view)->type == "text") {
+    //     text = ((text_view*)item->view)->text;
+    // }
 
     // draw_text(fontUI, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
     //     false, false, true);
@@ -181,7 +180,9 @@ int main(int argc, char **argv)
         view_input_list(view_list, root_view);
         view_input_events(view_list, events);
 
-        app_t::instance()->currentEditor->runAllOps();
+        if (app_t::instance()->currentEditor) {
+            app_t::instance()->currentEditor->runAllOps();
+        }
         root_view->update();
 
         int pw = w;

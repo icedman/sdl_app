@@ -454,7 +454,6 @@ void ren_listen_events(event_list* events)
         }
         if (keySequence.length() && mod.length()) {
             keySequence = mod + "+" + keySequence;
-            shouldEnd = keySequence == "ctrl+q";
         }
 
         if (keySequence.length() > 1) {

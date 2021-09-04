@@ -76,13 +76,17 @@ struct app_t {
     std::vector<std::string> excludeFolders;
     std::string scriptPath;
 
-    editor_ptr openEditor(std::string path);
+    editor_ptr openEditor(std::string path, bool check = true);
+    editor_ptr newEditor();
+    void closeEditor(editor_ptr editor);
     editor_ptr currentEditor;
 
     editor_list editors;
 
     bool end;
     int refreshCount;
+
+    void *view;
 };
 
 int pairForColor(int colorIdx, bool selected);

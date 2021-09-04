@@ -92,6 +92,7 @@ ui_files = [
     'src/ui/explorer_view.cpp',
     'src/ui/text.cpp',
     'src/ui/button.cpp',
+    'src/ui/image.cpp',
     'src/ui/scrollarea.cpp',
     'src/ui/scrollbar.cpp',
     'src/ui/tabbar.cpp',

@@ -147,6 +147,7 @@ struct explorer_t* explorer_t::instance()
 explorer_t::explorer_t()
     : currentItem(-1)
     , regenerateList(true)
+    , view(0)
 {
     loadDepth = 0;
     allFilesLoaded = false;

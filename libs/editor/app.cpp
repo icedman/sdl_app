@@ -6,6 +6,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <algorithm>
 
 #include "highlighter.h"
 #include "indexer.h"
@@ -68,6 +69,7 @@ struct app_t* app_t::instance()
 app_t::app_t()
     : end(false)
     , refreshCount(0)
+    , view(0)
 {
     appInstance = this;
 }
@@ -369,23 +371,17 @@ void app_t::setupColors()
     log("%d registered colors", theme->colorIndices.size());
 }
 
-editor_ptr app_t::openEditor(std::string path)
+editor_ptr app_t::openEditor(std::string path, bool check)
 {
     log("open: %s", path.c_str());
 
-    // for (auto gem : editors) {
-    //     if (!gem->split)
-    //         gem->setVisible(false);
-    // }
-
-    for (auto e : editors) {
-        if (e->document.fullPath == path) {
-            log("reopening existing tab");
-            currentEditor = e;
-            // view_t::setFocus(currentEditor.get());
-            // gem->setVisible(true);
-            // focused = currentEditor.get();
-            return e;
+    if (check) {
+        for (auto e : editors) {
+            if (e->document.fullPath == path) {
+                log("reopening existing tab");
+                currentEditor = e;
+                return e;
+            }
         }
     }
 
@@ -394,7 +390,7 @@ editor_ptr app_t::openEditor(std::string path)
     editor_ptr editor = std::make_shared<editor_t>();
     editor->highlighter.lang = language_from_file(filename, extensions);
     editor->highlighter.theme = theme;
-    // editor->enableIndexer();
+    editor->enableIndexer();
 
     editor->pushOp("OPEN", filename);
     editor->runAllOps();
@@ -405,10 +401,26 @@ editor_ptr app_t::openEditor(std::string path)
 
     editors.emplace_back(editor);
 
-    // gem->applyTheme();
-    // view_t::setFocus(currentEditor.get());
-    // editor->highlighter.run(editor.get());
     return editor;
+}
+
+editor_ptr app_t::newEditor()
+{
+    return openEditor("", false)
+;}
+
+void app_t::closeEditor(editor_ptr editor)
+{
+    editor_list::iterator it = editors.begin();
+    while (it != editors.end()) {
+        editor_ptr e = *it;
+        if (e == editor) {
+            currentEditor = 0;
+            editors.erase(it);
+            break;
+        }
+        it++;
+    }
 }
 
 void app_t::shutdown()

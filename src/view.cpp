@@ -1,6 +1,7 @@
 #include "view.h"
 #include "render_cache.h"
 
+static view_item *view_root = 0;
 static view_item *view_focused = 0;
 static view_item *view_hovered = 0;
 static view_item *view_pressed = 0;
@@ -40,6 +41,13 @@ view_item::~view_item()
     if (_cache) {
         ren_destroy_image(_cache);
     }
+
+    if (view_focused == this) view_focused = 0;
+    if (view_hovered == this) view_hovered = 0;
+    if (view_pressed == this) view_pressed = 0;
+    if (view_released == this) view_released = 0;
+    if (view_clicked == this) view_clicked = 0;
+    if (view_dragged == this) view_dragged = 0;
 }
 
 RenImage* view_item::cache(int w, int h)
@@ -84,19 +92,23 @@ void view_item::remove_child(view_item_ptr view)
 {
     view->parent = 0;    
     view_item_list::iterator it = _views.begin();
-    while(it++ != _views.end()) {
-        if (*it == view) {
+    while(it != _views.end()) {
+        view_item_ptr v = *it;
+        if (v == view) {
             _views.erase(it);
             break;
         }
+        it++;
     }
 
     layout_item_list::iterator lit = layout()->children.begin();
-    while(lit++ != layout()->children.end()) {
-        if (*lit == view->layout()) {
+    while(lit != layout()->children.end()) {
+        layout_item_ptr l = *lit;
+        if (l == view->layout()) {
             layout()->children.erase(lit);
             return;
         }
+        lit++;
     }
 }
 
@@ -112,7 +124,7 @@ bool view_item::is_pressed()
 
 bool view_item::is_dragged()
 {
-    return false;
+    return this == view_dragged;
 }
 
 bool view_item::is_hovered()
@@ -314,7 +326,7 @@ void view_input_events(view_item_list &list, event_list &events)
     for(auto e : events) {
         switch(e.type) {
         case EVT_KEY_UP:
-            _keyMods = e.mod;
+            // _keyMods = e.mod;
             break;
         case EVT_KEY_DOWN:
             _keyMods = e.mod;
@@ -374,6 +386,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
             int drag_distance = dx * dx + dy *dy;
             if (drag_distance >= 4) {
                     view_pressed->mouse_drag_start(drag_start_x, drag_start_y);
+                    view_dragged = view_pressed;
                     dragging = true; 
             }
         } else {
@@ -434,6 +447,7 @@ void view_input_key(int key)
 
 void view_input_text(std::string text)
 {
+    if (view_input_key_mods()) return;
     if (view_focused) {
         view_focused->input_text(text);
     }
@@ -441,9 +455,15 @@ void view_input_text(std::string text)
 
 void view_input_sequence(std::string sequence)
 {
+    if (view_root) {
+        if (view_root->input_sequence(sequence)) {
+            return;
+        }
+    }
     if (view_focused) {
         view_focused->input_sequence(sequence);
-    }}
+    }
+}
 
 int view_input_key_mods()
 {
@@ -453,4 +473,19 @@ int view_input_key_mods()
 void view_set_focused(view_item *item)
 {
     view_focused = item;
+}
+
+view_item* view_get_focused()
+{
+    return view_focused;
+}
+
+view_item* view_get_root()
+{
+    return view_root;
+}
+
+void view_set_root(view_item *item)
+{
+    view_root = item;
 }

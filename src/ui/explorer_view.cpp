@@ -3,29 +3,13 @@
 #include "render_cache.h"
 
 #include "scrollarea.h"
+#include "image.h"
 #include "text.h"
+#include "app_view.h"
 
 #include "app.h"
 #include "extension.h"
 #include "explorer.h"
-
-struct icon_view : view_item {
-    icon_view()
-        : view_item("icon")
-        , icon(0)
-    {
-        layout()->width = 32;
-        layout()->height = 24;
-    }
-
-    void render() override {
-        if (icon) {
-            draw_image(icon, { 4 + layout()->render_rect.x, layout()->render_rect.y, 24, 24 });
-        }
-    }
-
-    RenImage *icon;
-};
 
 struct explorer_item_view : horizontal_container {
 
@@ -36,6 +20,7 @@ struct explorer_item_view : horizontal_container {
     fileitem_t *file;
 
     bool mouse_click(int x, int y, int button) override {
+        app_t *app = app_t::instance();
         if (file && file->isDirectory) {
             if (file->canLoadMore) {
                 file->load();
@@ -44,6 +29,8 @@ struct explorer_item_view : horizontal_container {
             file->expanded = !file->expanded;
             explorer_t::instance()->regenerateList = true;
             layout_request();
+        } else {
+            ((app_view*)(app->view))->show_editor(app->openEditor(file->fullPath), true);
         }
         return true;
     }
@@ -93,6 +80,8 @@ void explorer_view::update()
     } else {
         hasChanges = true;
     }
+
+    if (!hasChanges) return;
 
     while(content()->_views.size() < explorer->renderList.size()) {
         view_item_ptr btn = std::make_shared<explorer_item_view>();

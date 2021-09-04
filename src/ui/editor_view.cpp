@@ -208,13 +208,17 @@ void editor_view::update()
         editor->document.setRows(rows);
         layout_request();
     }
+
+    if (is_focused()) {
+        app_t::instance()->currentEditor = editor;
+    }
 }
 
 void editor_view::_update_scrollbars()
 {
     scrollbar_view *scrollbar =  ((scrollbar_view*)v_scroll.get());
     scrollbar->set_index(start_row);
-    scrollbar->set_size(editor->document.blocks.size() - (rows/2), rows);
+    scrollbar->set_size(editor->document.blocks.size() + (rows/3), rows);
 }
 
 void editor_view::prelayout()

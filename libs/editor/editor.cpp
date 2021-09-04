@@ -854,6 +854,7 @@ bool editor_t::input(char ch, std::string keySequence)
         return true;
     }
 
+    // SDL_INPUTTEXT
     // std::string s;
     // s += (char)ch;
     // editor->pushOp(INSERT, s);

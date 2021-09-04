@@ -56,6 +56,8 @@ struct explorer_t {
 
     int currentItem;
     bool regenerateList;
+
+    void *view;
 };
 
 #endif // EXPLORER_H

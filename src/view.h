@@ -67,7 +67,10 @@ struct horizontal_container : view_item {
     }
 };
 
+view_item* view_get_root();
+void view_set_root(view_item *item);
 void view_set_focused(view_item *item);
+view_item* view_get_focused();
 void view_input_list(view_item_list &list, view_item_ptr item);
 void view_input_events(view_item_list &list, event_list &events);
 void view_input_button(int button, int x, int y, int pressed, int clicks = 0);
