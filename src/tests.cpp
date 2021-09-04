@@ -1,6 +1,7 @@
 #include "tests.h"
 
 #include "app.h"
+#include "app_view.h"
 
 #include "text.h"
 #include "button.h"
@@ -23,32 +24,7 @@ view_item_ptr test6() {
 }
 
 view_item_ptr test5() {
-    view_item_ptr root = std::make_shared<view_item>();
-    root->layout()->margin = 0;
-    root->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
-
-    // view_item_ptr scrollarea = std::make_shared<editor_view>();
-    // view_item_ptr content = ((editor_view*)scrollarea.get())->content;
-    // root->add_child(scrollarea);
-
-    view_item_ptr explorer = std::make_shared<explorer_view>();  
-
-    root->add_child(explorer);
-
-    view_item_ptr tab = std::make_shared<vertical_container>();
-    
-    view_item_ptr tabbar = std::make_shared<tabbar_view>();
-
-    view_item_ptr tabcontent = std::make_shared<horizontal_container>();
-    root->add_child(tab);
-    tab->add_child(tabbar);
-    tab->add_child(tabcontent);
-    
-    view_item_ptr editor = std::make_shared<editor_view>();  
-    ((editor_view*)editor.get())->editor = app_t::instance()->currentEditor;
-    tabcontent->add_child(editor);
-
-    return root;
+    return std::make_shared<app_view>();
 }
 
 struct my_root : view_item {

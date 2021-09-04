@@ -87,6 +87,7 @@ ui_files = [
     'src/layout.cpp',
     'src/events.cpp',
     'src/view.cpp',
+    'src/ui/app_view.cpp',
     'src/ui/editor_view.cpp',
     'src/ui/explorer_view.cpp',
     'src/ui/text.cpp',

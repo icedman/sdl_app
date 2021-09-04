@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include "render_cache.h"
 
+#include "scrollarea.h"
 #include "text.h"
 
 #include "app.h"
@@ -63,6 +64,9 @@ explorer_view::explorer_view()
     content()->layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
     content()->layout()->wrap = false;
     content()->layout()->fit_children = true;
+
+    ((scrollarea_view*)(scrollarea.get()))->move_factor_x = 10;
+    ((scrollarea_view*)(scrollarea.get()))->move_factor_y = 10;
 }
 
 void explorer_view::prelayout()

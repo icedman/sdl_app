@@ -19,7 +19,7 @@
 
 #include "theme.h"
 
-#define FRAME_RENDER_INTERVAL 24
+#define FRAME_RENDER_INTERVAL 16
 
 struct sdl_backend_t : backend_t {
     void setClipboardText(std::string text) override {

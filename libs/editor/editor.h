@@ -61,7 +61,7 @@ struct editor_t {
     bool _scrollToCursor;
     int _foldedLines;
 
-    view_t *view;
+    void *view;
 };
 
 typedef std::shared_ptr<struct editor_t> editor_ptr;
