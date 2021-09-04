@@ -398,10 +398,11 @@ std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vecto
 
     std::string _suffix = spath.back();
     std::string cacheId = _suffix;
-    // std::string cacheId = _suffix + color.name();
 
-    // log("cacheId: %s\n", cacheId.c_str());
-
+    if (spath.size() == 1) {
+        // printf(">> %s --- %s\n", filename.c_str(), _suffix.c_str());
+        return icons->icons_path + "/file.svg";
+    }
 
     static std::map<std::string, std::string> cache;
     auto it = cache.find(cacheId);

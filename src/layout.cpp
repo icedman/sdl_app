@@ -1,5 +1,6 @@
 #include "layout.h"
 #include <stdio.h>
+#include <algorithm>
 
 static bool run_requested = false;
 
@@ -352,4 +353,14 @@ bool layout_should_run()
     bool res = run_requested;
     run_requested = false;
     return res;
+}
+
+static bool compare_item_order(layout_item_ptr f1, layout_item_ptr f2)
+{
+    return f1->order < f2->order;
+}
+
+void layout_sort(layout_item_ptr item)
+{
+    sort(item->children.begin(), item->children.end(), compare_item_order);
 }

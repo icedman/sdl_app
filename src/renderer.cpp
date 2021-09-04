@@ -54,7 +54,7 @@ RenImage* ren_create_image(int w, int h)
     return img;
 }
 
-cairo_t*  ren_context() {
+cairo_t* ren_context() {
     return cairo_context;
 }
 
@@ -166,7 +166,7 @@ void ren_init()
 
     window = SDL_CreateWindow(
                  "", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
-                 SDL_WINDOW_RESIZABLE);
+                 SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE);
 
     _create_cairo_context(width, height);
     shouldEnd = false;

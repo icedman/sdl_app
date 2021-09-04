@@ -107,7 +107,8 @@ struct layout_view {
 
 struct layout_item {
     layout_item()
-        : grow(1)
+        : order(0)
+        , grow(1)
         , shrink(0)
         , flex_basis(0)
         , x(0)
@@ -143,6 +144,7 @@ struct layout_item {
     layout_rect rect;             // relative computed
     layout_rect render_rect;      // final computed
 
+    int order;
     bool visible;
     bool wrap;
     int margin;
@@ -173,6 +175,7 @@ struct layout_item {
 };
 
 void layout_run(layout_item_ptr item, layout_constraint constraint);
+void layout_sort(layout_item_ptr item);
 void layout_render_list(layout_item_list& list, layout_item_ptr item);
 void layout_request();
 bool layout_should_run();

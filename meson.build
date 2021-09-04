@@ -93,6 +93,7 @@ ui_files = [
     'src/ui/button.cpp',
     'src/ui/scrollarea.cpp',
     'src/ui/scrollbar.cpp',
+    'src/ui/tabbar.cpp',
     'src/ui/panel.cpp',
     'src/tests.cpp'
 ]

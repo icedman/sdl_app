@@ -29,6 +29,8 @@ struct span_info_t {
     int colorIndex;
     bool bold;
     bool italic;
+    int x;
+    int y;
     block_state_e state;
     std::string scope;
 };

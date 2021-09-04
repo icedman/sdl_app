@@ -21,7 +21,7 @@ void text_view::render()
 {
     int pad = 2;
     layout_item_ptr lo = layout();
-    draw_text(NULL, (char*)text.c_str(), 
+    draw_text(ren_font("ui"), (char*)text.c_str(), 
         lo->render_rect.x + pad,
         lo->render_rect.y + pad + ((lo->render_rect.h - (pad*2))/2) - (text_height/2),
         { 255, 255, 255 },

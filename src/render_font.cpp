@@ -37,6 +37,7 @@ struct RenFont {
     Ligature ligatures[32];
 
     std::string desc;
+    std::string alias;
 };
 
 std::vector<RenFont*> fonts;
@@ -73,7 +74,6 @@ static const char* utf8_to_codepoint(const char* p, unsigned* dst)
     return p + 1;
 }
 
-
 void _ren_get_font_extents(PangoLayout *layout, int *w, int *h, const char *text, int len)
 {
     pango_layout_set_attributes(layout, nullptr);
@@ -81,7 +81,7 @@ void _ren_get_font_extents(PangoLayout *layout, int *w, int *h, const char *text
     pango_layout_get_pixel_size(layout, w, h);
 }
 
-RenFont* ren_create_font(char *fdsc)
+RenFont* ren_create_font(char *fdsc, char *alias)
 {
     for(auto fnt : fonts) {
         if (fnt->desc == fdsc) {
@@ -98,6 +98,10 @@ RenFont* ren_create_font(char *fdsc)
 
     fnt->font_width = 0;
     fnt->font_height = 0;
+
+    if (alias) {
+        fnt->alias = alias;
+    }
 
     for(int i=0;i<3;i++) {
 
@@ -193,6 +197,16 @@ RenFont* ren_create_font(char *fdsc)
     	ren_set_default_font(fnt);
     }
     return fnt;
+}
+
+RenFont* ren_font(char* alias)
+{
+    for(auto f : fonts) {
+        if (f->alias == alias) {
+            return f;
+        }
+    }
+    return ren_get_default_font();
 }
 
 void ren_destroy_font(RenFont *font)

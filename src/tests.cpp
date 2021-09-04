@@ -1,10 +1,13 @@
 #include "tests.h"
 
+#include "app.h"
+
 #include "text.h"
 #include "button.h"
 #include "explorer.h"
 #include "scrollbar.h"
 #include "panel.h"
+#include "tabbar.h"
 
 #include "render_cache.h"
 
@@ -29,10 +32,22 @@ view_item_ptr test5() {
     // root->add_child(scrollarea);
 
     view_item_ptr explorer = std::make_shared<explorer_view>();  
+
     root->add_child(explorer);
 
+    view_item_ptr tab = std::make_shared<vertical_container>();
+    
+    view_item_ptr tabbar = std::make_shared<tabbar_view>();
+
+    view_item_ptr tabcontent = std::make_shared<horizontal_container>();
+    root->add_child(tab);
+    tab->add_child(tabbar);
+    tab->add_child(tabcontent);
+    
     view_item_ptr editor = std::make_shared<editor_view>();  
-    root->add_child(editor);
+    ((editor_view*)editor.get())->editor = app_t::instance()->currentEditor;
+    tabcontent->add_child(editor);
+
     return root;
 }
 

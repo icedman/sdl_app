@@ -3,10 +3,12 @@
 
 #include "view.h"
 #include "text.h"
+#include "panel.h"
 
 #include "cursor.h"
+#include "editor.h"
 
-struct editor_view : view_item {
+struct editor_view : panel_view {
     editor_view();
 
     void prelayout() override;
@@ -30,15 +32,17 @@ struct editor_view : view_item {
     void _update_scrollbars();
     
     int start_row;
-    int scrollbar_index;
-
-    view_item_ptr vscroll;
-    view_item_ptr hscroll;
+    int v_scroll_index;
 
     int mouse_x;
     int mouse_y;
     int rows;
     int cols;
+
+    editor_ptr editor;
+    view_item_ptr gutter;
+    view_item_ptr minimap;
+
 };
 
 

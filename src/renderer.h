@@ -45,7 +45,8 @@ void ren_save_image(RenImage *image, char *filename);
 void ren_state_save();
 void ren_state_restore();
 
-RenFont* ren_create_font(char *font_desc);
+RenFont* ren_create_font(char *font_desc, char *alias = 0);
+RenFont* ren_font(char* alias);
 void ren_destroy_font(RenFont *font);
 void ren_destroy_fonts();
 RenFont* ren_get_default_font();
