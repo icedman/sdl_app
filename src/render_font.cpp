@@ -273,6 +273,7 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
                     adv = 2;
                     i++;
                     cp = 128 + j;
+                    break;
                     // printf("%s %s %d\n", _p, l->t, cp);
                 }
             }

@@ -156,6 +156,8 @@ void scrollbar_view::set_index(int idx)
     }
 
     _validate();
+
+    // printf("index %d %f\n", idx, p);
 }
 
 void scrollbar_view::set_size(int c, int w)

@@ -447,7 +447,10 @@ void view_input_key(int key)
 
 void view_input_text(std::string text)
 {
-    if (view_input_key_mods()) return;
+    if ((view_input_key_mods() & K_MOD_CTRL) == K_MOD_CTRL ||
+        (view_input_key_mods() & K_MOD_ALT) == K_MOD_ALT) {
+        return;
+    }
     if (view_focused) {
         view_focused->input_text(text);
     }

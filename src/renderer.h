@@ -6,7 +6,7 @@
 
 #define K_MOD_SHIFT 1<<1
 #define K_MOD_CTRL  1<<2
-#define K_MOD_ATL   1<<3
+#define K_MOD_ALT   1<<3
 
 typedef struct RenImage RenImage;
 typedef struct RenFont RenFont;

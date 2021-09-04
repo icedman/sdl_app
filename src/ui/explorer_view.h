@@ -11,7 +11,12 @@ struct explorer_view : panel_view {
     view_item_ptr hscroll;
 
     void prelayout() override;
+    void postlayout() override;
     void update() override;
+    bool on_scroll() override;
+    bool mouse_wheel(int x, int y) override;
+
+    void _validate();
 };
 
 #endif // EXPLORER_VIEW_H

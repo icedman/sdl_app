@@ -16,8 +16,11 @@ scrollarea_view::scrollarea_view()
 
 bool scrollarea_view::mouse_wheel(int x, int y)
 {
+    if (view_item::mouse_wheel(x,y)) {
+        return true;
+    }
 	layout()->scroll_x += x * move_factor_x;
     layout()->scroll_y += y * move_factor_y;
-    on_scroll();
+    // on_scroll();
 	return true;
 }

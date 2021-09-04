@@ -450,7 +450,7 @@ void ren_listen_events(event_list* events)
             if (mod.length())
                 mod += "+";
             mod += "alt";
-            _mod = K_MOD_ATL | _mod;
+            _mod = K_MOD_ALT | _mod;
         }
         if (keySequence.length() && mod.length()) {
             keySequence = mod + "+" + keySequence;

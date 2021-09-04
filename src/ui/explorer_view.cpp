@@ -3,6 +3,7 @@
 #include "render_cache.h"
 
 #include "scrollarea.h"
+#include "scrollbar.h"
 #include "image.h"
 #include "text.h"
 #include "app_view.h"
@@ -53,12 +54,26 @@ explorer_view::explorer_view()
     content()->layout()->wrap = false;
     content()->layout()->fit_children = true;
 
-    ((scrollarea_view*)(scrollarea.get()))->move_factor_x = 10;
-    ((scrollarea_view*)(scrollarea.get()))->move_factor_y = 10;
+    ((scrollarea_view*)(scrollarea.get()))->move_factor_x = 2;
+    ((scrollarea_view*)(scrollarea.get()))->move_factor_y = 2;
 }
 
 void explorer_view::prelayout()
 {}
+
+void explorer_view::postlayout()
+{
+    // printf("%d %d\n", content()->layout()->rect.w, content()->layout()->rect.h);
+    ((scrollbar_view*)v_scroll.get())->set_size(
+        content()->layout()->rect.h, 
+        scrollarea->layout()->rect.h
+    );
+
+    ((scrollbar_view*)h_scroll.get())->set_size(
+        content()->layout()->rect.w, 
+        scrollarea->layout()->rect.w
+    );
+}
 
 void explorer_view::update()
 {   
@@ -139,4 +154,45 @@ void explorer_view::update()
         text->prelayout();
         text->layout()->rect.w = text->layout()->width;
     }
+}
+
+void explorer_view::_validate()
+{
+    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
+    
+    if (scroll->layout()->scroll_x > 0) {
+        scroll->layout()->scroll_x = 0;
+        layout_request();
+    }
+    if (scroll->layout()->scroll_y > 0) {
+        scroll->layout()->scroll_y = 0;
+    }
+}
+
+bool explorer_view::on_scroll()
+{
+    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
+    scroll->layout()->scroll_x = -((scrollbar_view*)h_scroll.get())->index;
+    scroll->layout()->scroll_y = -((scrollbar_view*)v_scroll.get())->index;
+    _validate();
+    return true;
+}
+
+bool explorer_view::mouse_wheel(int x, int y)
+{
+    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
+    
+    scroll->layout()->scroll_x += x * scroll->move_factor_x;
+    scroll->layout()->scroll_y += y * scroll->move_factor_y;
+
+    // printf("%d %d\n",
+    //     scroll->layout()->scroll_x,
+    //     scroll->layout()->scroll_y);
+
+    _validate();
+
+    ((scrollbar_view*)h_scroll.get())->set_index(-scroll->layout()->scroll_x);
+    ((scrollbar_view*)v_scroll.get())->set_index(-scroll->layout()->scroll_y);
+
+    return false;
 }

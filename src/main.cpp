@@ -168,6 +168,7 @@ int main(int argc, char **argv)
     RenFont *font = ren_create_font("Fira Code 16");
     // RenFont *font = ren_create_font("Source Code Pro 16");
     ren_create_font("Source Code Pro 12", "ui");
+    ren_create_font("Source Code Pro 10", "ui-small");
     ren_set_default_font(font);
 
     rencache_show_debug(true);
