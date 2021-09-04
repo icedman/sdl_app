@@ -6,6 +6,16 @@
 #include "theme.h"
 #include "util.h"
 
+static bool file_exists(const char *path)
+{
+    bool exists = false;
+    FILE *fp = fopen(path, "r");
+    if (fp) {
+        exists = true;
+        fclose(fp);
+    }
+    return exists;
+}
 void load_extensions(const std::string _path, std::vector<struct extension_t>& extensions)
 {
     char* cpath = (char*)malloc(_path.length() + 1 * sizeof(char));
@@ -392,6 +402,7 @@ std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vecto
 
     // log("cacheId: %s\n", cacheId.c_str());
 
+
     static std::map<std::string, std::string> cache;
     auto it = cache.find(cacheId);
     if (it != cache.end()) {
@@ -400,6 +411,18 @@ std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vecto
     }
 
     std::string svg = icons->icons_path + "/" + _suffix + ".svg";
+
+    if (!file_exists(svg.c_str())) {
+        language_info_ptr lang = language_from_file(filename, _extensions);
+        if (lang) {
+            svg = icons->icons_path + "/" + lang->id + ".svg";
+            if (!file_exists(svg.c_str())) {
+                svg = icons->icons_path + "/file.svg";
+            }
+        }
+    }
+
+    cache.emplace(cacheId, svg);
     return svg;
 
     // printf("%s\n", svg.c_str());

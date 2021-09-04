@@ -44,8 +44,6 @@ struct explorer_item_view : horizontal_container {
             explorer_t::instance()->regenerateList = true;
             layout_request();
         }
-
-        explorer_t::instance()->print();
         return true;
     }
 
@@ -94,10 +92,16 @@ void explorer_view::update()
 
     while(content()->_views.size() < explorer->renderList.size()) {
         view_item_ptr btn = std::make_shared<explorer_item_view>();
+        btn->layout()->align = LAYOUT_ALIGN_CENTER;
         btn->layout()->height = 32;
         view_item_ptr icon = std::make_shared<icon_view>();
         icon->layout()->width = 32;
+        icon->layout()->height = 24;
         view_item_ptr text = std::make_shared<text_view>("...");
+
+        view_item_ptr depth = std::make_shared<view_item>();
+        depth->layout()->width = 1;
+        btn->add_child(depth);
         btn->add_child(icon);
         btn->add_child(text);
         content()->add_child(btn);
@@ -108,6 +112,9 @@ void explorer_view::update()
     }
     // content()->layout()->rect.h = 32 * explorer->renderList.size();
     
+    std::string folder_icon_path =icon_for_file(app_t::instance()->icons, ".folder", app_t::instance()->extensions);
+    std::string folder_close_icon_path =icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);
+
     view_item_list::iterator it = content()->_views.begin();
     for(auto f : explorer->renderList) {
         view_item_ptr btn = *it++;
@@ -116,12 +123,23 @@ void explorer_view::update()
         ((explorer_item_view*)btn.get())->file = f;
         std::string icon_path =icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
 
-        view_item_ptr icon = btn->_views[0];
-        if (!f->isDirectory) {
+        view_item_ptr spacer = btn->_views[0];
+        spacer->layout()->width = 1 + (f->depth * 24);
+
+        // printf("%s %d\n", f->name.c_str(), f->depth);
+
+        view_item_ptr icon = btn->_views[1];
+        if (f->isDirectory) {
+            if (f->expanded) {
+                ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)folder_close_icon_path.c_str(), 24,24);
+            } else {
+                ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)folder_icon_path.c_str(), 24,24);
+            }
+        } else {
             ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)icon_path.c_str(), 24,24);
         }
 
-        view_item_ptr text = btn->_views[1];
+        view_item_ptr text = btn->_views[2];
         ((text_view*)text.get())->text = f->name;
 
         text->prelayout();

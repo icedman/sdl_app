@@ -239,15 +239,6 @@ view_item_ptr test1() {
     item_g->margin = 20;
     item_h->margin = 20;
 
-    item_a->children.push_back(std::make_shared<layout_item>());
-    item_b->children.push_back(std::make_shared<layout_item>());
-    item_c->children.push_back(std::make_shared<layout_item>());
-    item_d->children.push_back(std::make_shared<layout_item>());
-    item_e->children.push_back(std::make_shared<layout_item>());
-    item_f->children.push_back(std::make_shared<layout_item>());
-    item_g->children.push_back(std::make_shared<layout_item>());
-    item_h->children.push_back(std::make_shared<layout_item>());
-
     item_a->grow = 1;
     item_b->grow = 3;
     // item_a->visible = false;
@@ -278,23 +269,42 @@ view_item_ptr test1() {
     item_f->height = 80;
     item_f->width = 200;
 
-    // item_c->direction = LAYOUT_FLEX_DIRECTION_ROW;
-    item_c->direction = LAYOUT_FLEX_DIRECTION_ROW_REVERSE;
+    item_c->direction = LAYOUT_FLEX_DIRECTION_ROW;
+    // item_c->direction = LAYOUT_FLEX_DIRECTION_ROW_REVERSE;
     // item_c->justify = LAYOUT_JUSTIFY_FLEX_END;
     // item_c->justify = LAYOUT_JUSTIFY_CENTER;
-    // item_c->justify = LAYOUT_JUSTIFY_SPACE_BETWEEN;
-    item_c->justify = LAYOUT_JUSTIFY_SPACE_AROUND;
+    item_c->justify = LAYOUT_JUSTIFY_SPACE_BETWEEN;
+    // item_c->justify = LAYOUT_JUSTIFY_SPACE_AROUND;
     item_c->align = LAYOUT_ALIGN_FLEX_END;
     // item_c->align = LAYOUT_ALIGN_CENTER;
     // item_c->align = LAYOUT_ALIGN_STRETCH;
     item_c->children.push_back(item_g);
     item_c->children.push_back(item_h);
 
-    item_g->width = 80;
+    item_g->width = 100;
+    item_g->height = 400;
     item_h->width = 80;
     item_h->height = 200;
 
     view_item_ptr view = std::make_shared<view_item>();
     view->set_layout(root);
+
+    if (item_a->children.size() == 0)
+        item_a->children.push_back(std::make_shared<layout_item>());
+    if (item_b->children.size() == 0)
+        item_b->children.push_back(std::make_shared<layout_item>());
+    if (item_c->children.size() == 0)
+        item_c->children.push_back(std::make_shared<layout_item>());
+    if (item_d->children.size() == 0)
+        item_d->children.push_back(std::make_shared<layout_item>());
+    if (item_e->children.size() == 0)
+        item_e->children.push_back(std::make_shared<layout_item>());
+    if (item_f->children.size() == 0)
+        item_f->children.push_back(std::make_shared<layout_item>());
+    if (item_g->children.size() == 0)
+        item_g->children.push_back(std::make_shared<layout_item>());
+    if (item_h->children.size() == 0)
+        item_h->children.push_back(std::make_shared<layout_item>());
+
     return view;
 }

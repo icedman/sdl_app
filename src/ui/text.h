@@ -7,8 +7,11 @@ struct text_view : view_item {
     text_view(std::string text);
 
     void prelayout() override;
+    void render() override;
     
     std::string text;
+    int text_width;
+    int text_height;
 };
 
 #endif // TEXT_VIEW_H

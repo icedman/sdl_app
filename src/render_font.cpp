@@ -21,7 +21,7 @@ typedef struct {
 } GlyphSet;
 
 const char _ligatures [][3] = {
-    "==", "!=", "<=", ">=", "->", "<-", "!!", "&&", "||", "::", ":=",
+    "==", "!=", "<=", ">=", "->", "<-", "!!", "&&", "||", "::", ":=", "++", "--",
     ":)", ":(", ":|", 0
 };
 
@@ -139,7 +139,7 @@ RenFont* ren_create_font(char *fdsc)
 		    int len = strlen(text);
 		    _ren_get_font_extents(layout, &fnt->font_width, &fnt->font_height, text, len);
 		    fnt->font_width = ((float)fnt->font_width/len);
-		    printf(">>%d\n", fnt->font_width);
+		    // printf(">>%d\n", fnt->font_width);
 	    }
 
 	    // generate glyphs
@@ -166,7 +166,7 @@ RenFont* ren_create_font(char *fdsc)
                 l->t[0] = 0;
                 cp = i;
 
-                printf("%s\n", _p);
+                // printf("%s\n", _p);
             }
 
             int _pl = strlen(_p);

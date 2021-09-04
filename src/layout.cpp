@@ -114,16 +114,7 @@ void layout_position_items(layout_item_ptr item) {
             break;
         }
 
-        int ww = 0;
-        int hh = 0;
         for(auto child : group) {
-            if (hh == 0 || hh < child->rect.h) {
-                hh = child->rect.h * wd;
-            }
-            if (ww == 0 || ww < child->rect.w) {
-                ww = child->rect.w * hd;
-            }
-
             child->rect.x = (xx * hd) + ((offsetStart + offset) * wd);
             child->rect.y = (yy * wd) + ((offsetStart + offset) * hd);
 
@@ -142,32 +133,29 @@ void layout_position_items(layout_item_ptr item) {
             offset += child->rect.h * hd;
             offset += offsetInc;
         }
-
-        xx += ww;
-        yy += hh;
     }
 
     // align items
-    int alignOffset = (item->constraint.max_width - xx) * hd;
-    alignOffset += (item->constraint.max_height - yy) * wd;
-
-    switch(item->align) {
-    case LAYOUT_ALIGN_FLEX_START:
-        alignOffset = 0;
-        break;
-    case LAYOUT_ALIGN_CENTER:
-        alignOffset *= 0.5f;
-        break;
-    }
-
-    if (alignOffset > 0) {
-        for(auto child : item->children) {
-            if (!child->visible) {
-                continue;
-            }
-            child->rect.x += alignOffset * hd;
-            child->rect.y += alignOffset * wd;
+    for(auto child : item->children) {
+        if (!child->visible) {
+            continue;
         }
+
+        int alignOffset = (item->constraint.max_width - child->rect.w) * hd;
+        alignOffset += (item->constraint.max_height - child->rect.h) * wd;
+
+        int align = child->align_self ? child->align_self : item->align;
+        switch(align) {
+        case LAYOUT_ALIGN_FLEX_START:
+            alignOffset = 0;
+            break;
+        case LAYOUT_ALIGN_CENTER:
+            alignOffset *= 0.5f;
+            break;
+        }
+
+        child->rect.x += alignOffset * hd;
+        child->rect.y += alignOffset * wd;
     }
 }
 

@@ -100,8 +100,8 @@ void render_item(layout_item_ptr item)
         text = ((text_view*)item->view)->text;
     }
 
-    draw_text(NULL, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
-        false, true, true);
+    // draw_text(fontUI, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
+    //     false, false, true);
 
     for(auto child : item->children) {
         child->render_rect = child->rect;
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
     event_list events;
 
     // RenFont *font = ren_create_font("Monaco 12");
-    RenFont *font = ren_create_font("Fira Code 14");
+    RenFont *font = ren_create_font("Fira Code 16");
     // RenFont *font = ren_create_font("Source Code Pro 16");
     ren_set_default_font(font);
 
