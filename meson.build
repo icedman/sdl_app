@@ -90,12 +90,13 @@ ui_files = [
     'src/ui/app_view.cpp',
     'src/ui/editor_view.cpp',
     'src/ui/explorer_view.cpp',
+    'src/ui/statusbar_view.cpp',
+    'src/ui/tabbar.cpp',
     'src/ui/text.cpp',
     'src/ui/button.cpp',
     'src/ui/image.cpp',
     'src/ui/scrollarea.cpp',
     'src/ui/scrollbar.cpp',
-    'src/ui/tabbar.cpp',
     'src/ui/panel.cpp',
     'src/tests.cpp'
 ]

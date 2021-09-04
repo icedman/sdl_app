@@ -30,7 +30,8 @@ struct explorer_item_view : horizontal_container {
             explorer_t::instance()->regenerateList = true;
             layout_request();
         } else {
-            ((app_view*)(app->view))->show_editor(app->openEditor(file->fullPath), true);
+            bool multi = (view_input_key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
+            ((app_view*)(app->view))->show_editor(app->openEditor(file->fullPath), !multi);
         }
         return true;
     }

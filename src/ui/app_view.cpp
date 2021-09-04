@@ -3,9 +3,11 @@
 
 #include "app.h"
 #include "operation.h"
+#include "statusbar.h"
 
 #include "editor_view.h"
 #include "explorer_view.h"
+#include "statusbar_view.h"
 #include "tabbar.h"
 
 app_view::app_view()
@@ -37,8 +39,7 @@ app_view::app_view()
     menu = std::make_shared<horizontal_container>();
     menu->layout()->height = 24;
 
-    statusbar = std::make_shared<horizontal_container>();
-    statusbar->layout()->height = 24;
+    statusbar = std::make_shared<statusbar_view>();
 
     add_child(menu);
     add_child(content);
@@ -59,6 +60,12 @@ bool app_view::input_sequence(std::string keySequence)
         return true;
     case NEW_TAB: {
         app->newEditor(); // focus
+        return true;
+    }
+    case SAVE: {
+        if (statusbar_t::instance()) {
+            statusbar_t::instance()->setStatus("saved...");
+        }
         return true;
     }
     case CLOSE:

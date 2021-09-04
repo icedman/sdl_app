@@ -86,13 +86,13 @@ void render_item(layout_item_ptr item)
     }
 
     // printf("%l %d %d %d %d\n", ct, item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
-    // draw_rect({
-    //     item->render_rect.x,
-    //     item->render_rect.y,
-    //     item->render_rect.w,
-    //     item->render_rect.h
-    // },
-    // clr, fill, stroke);
+    draw_rect({
+        item->render_rect.x,
+        item->render_rect.y,
+        item->render_rect.w,
+        item->render_rect.h
+    },
+    clr, fill, stroke);
 
     // std::string text = item->view ? ((view_item*)item->view)->name : item->name;
     // if (item->view && ((view_item*)item->view)->type == "text") {
@@ -182,6 +182,9 @@ int main(int argc, char **argv)
 
         if (app_t::instance()->currentEditor) {
             app_t::instance()->currentEditor->runAllOps();
+        }
+        if (statusbar_t::instance()) {
+            statusbar_t::instance()->update(10);
         }
         root_view->update();
 
