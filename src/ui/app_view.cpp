@@ -124,7 +124,9 @@ void app_view::destroy_editor_view(editor_ptr editor)
             tabcontent->remove_child(tab);
             break;
         }
-        view_set_focused(ev);
+        if (ev->layout()->visible) {
+            view_set_focused(ev);
+        }
     }
 
     app->closeEditor(editor);
@@ -136,7 +138,18 @@ void app_view::destroy_editor_view(editor_ptr editor)
     }
 
     if (!view_get_focused()) {
-        view_set_focused((view_item*)(app->editors[0]->view));
+        for(auto tab : tabcontent->_views) {
+            editor_view *ev = ((editor_view*)(tab.get()));
+            if (ev->layout()->visible) {
+                view_set_focused(ev);
+                break;
+            }
+        }
+        if (!view_get_focused()) {
+            editor_view *ev = (editor_view*)(app->editors[0]->view);
+            ev->layout()->visible = true;
+            view_set_focused(ev);
+        }
     }
 }
 

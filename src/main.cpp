@@ -67,7 +67,7 @@ void render_item(layout_item_ptr item)
     });
 
     bool fill = false;
-    float stroke = 1.0f;
+    int stroke = 1;
     RenColor clr = { (uint8_t)item->rgb.r, (uint8_t)item->rgb.g, (uint8_t)item->rgb.b, 50 };
     if (view && view->is_hovered()) {
         clr.a = 200;
@@ -92,7 +92,7 @@ void render_item(layout_item_ptr item)
         item->render_rect.w,
         item->render_rect.h
     },
-    clr, fill, stroke);
+    clr, fill, stroke, 0);
 
     // std::string text = item->view ? ((view_item*)item->view)->name : item->name;
     // if (item->view && ((view_item*)item->view)->type == "text") {
@@ -167,8 +167,10 @@ int main(int argc, char **argv)
     // RenFont *font = ren_create_font("Monaco 12");
     RenFont *font = ren_create_font("Fira Code 16");
     // RenFont *font = ren_create_font("Source Code Pro 16");
-    ren_create_font("Source Code Pro 12", "ui");
-    ren_create_font("Source Code Pro 10", "ui-small");
+    ren_register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
+    ren_create_font("monospace 16", "ui");
+    ren_create_font("monospace 14", "ui-small");
+
     ren_set_default_font(font);
 
     rencache_show_debug(true);

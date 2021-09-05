@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+// from lite editor
 /* a cache over the software renderer -- all drawing operations are stored as
 ** commands when issued. At the end of the frame we write the commands to a grid
 ** of hash values, take the cells that have changed since the previous frame,
@@ -27,7 +28,7 @@ typedef struct {
     int type, size;
     RenRect rect;
     RenColor color;
-    void* font; // image
+    void* font; // image / radius
     int bold;   // fill
     int italic; // stroke
     char text[0];
@@ -189,7 +190,7 @@ void rencache_invalidate_rect(RenRect rect)
     }, false, 0);
 }
 
-void rencache_draw_rect(RenRect rect, RenColor color, bool fill, float l)
+void rencache_draw_rect(RenRect rect, RenColor color, bool fill, int stroke, int radius)
 {
     if (!rects_overlap(cache->target_rect, rect)) {
         return;
@@ -199,7 +200,7 @@ void rencache_draw_rect(RenRect rect, RenColor color, bool fill, float l)
         cmd->rect = rect;
         cmd->color = color;
         cmd->bold = fill;
-        cmd->italic = l;
+        cmd->italic = ((stroke & 0xf) << 0xf) | radius;
     }
 }
 
@@ -350,11 +351,15 @@ void rencache_end_frame(void)
                 break;
             case DRAW_IMAGE:
                 ren_draw_image((RenImage*)cmd->font, cmd->rect, cmd->color);
-            case DRAW_RECT:
-                if (cmd->bold || cmd->italic) { // bold = filled, italic == stroke
-                    ren_draw_rect(cmd->rect, cmd->color, cmd->bold, cmd->italic);
+            case DRAW_RECT: {
+                bool fill = cmd->bold;
+                int stroke = cmd->italic >> 0xf;
+                int radius = cmd->italic & 0xf;
+                if (cmd->bold || cmd->italic) {
+                    ren_draw_rect(cmd->rect, cmd->color, fill, stroke, radius);
                 }
                 break;
+            }
             case DRAW_TEXT:
                 ren_draw_text((RenFont*)cmd->font, cmd->text, cmd->rect.x, cmd->rect.y, cmd->color, cmd->bold, cmd->italic);
                 break;

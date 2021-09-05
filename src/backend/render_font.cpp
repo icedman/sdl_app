@@ -4,6 +4,7 @@
 #include <cairo.h>
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
+#include <fontconfig/fontconfig.h>
 
 #include <vector>
 #include <algorithm>
@@ -293,4 +294,12 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     }
 
     return x;
+}
+
+void ren_register_font(char *path)
+{
+    std::string fontPath = path;
+    const FcChar8 * file = (const FcChar8 *)fontPath.c_str();
+    FcBool fontAddStatus = FcConfigAppFontAddFile(FcConfigGetCurrent(), file);
+    printf(">font %s %d\n", path, fontAddStatus);
 }

@@ -62,6 +62,7 @@ sdl2_dep = dependency('SDL2', required: false, disabler: true)
 sdl2ttf_dep = dependency('SDL2_ttf', required: false, disabler: true) 
 cairo_dep = dependency('cairo', required: false, disabler: true)
 pango_dep = dependency('pangocairo', required: false, disabler: true)
+fontconfig_dep = dependency('fontconfig', required: false, disabler: true)
 jsoncpp_dep = dependency('jsoncpp', required: true)
 onigmo_dep = dependency('onigmo', required: true)
 dl_dep = cc.find_library('dl', required : true) 
@@ -121,6 +122,6 @@ executable('app',
     'src/main.cpp',
     ui_files,
     include_directories: [ './src', './src/ui', './src/backend' ],
-    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, rsvg_dep ],
+    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep ],
     install : true
 )

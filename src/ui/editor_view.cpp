@@ -204,10 +204,6 @@ editor_view::editor_view()
     
     layout_sort(container->layout());
 
-    on(EVT_MOUSE_CLICK, [this](event_t& evt) {
-        evt.cancelled = true;
-        return this->mouse_click(evt.x, evt.y, evt.button);
-    });
     on(EVT_MOUSE_DOWN, [this](event_t& evt) {
         evt.cancelled = true;
         return this->mouse_down(evt.x, evt.y, evt.button, evt.clicks);
@@ -362,7 +358,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
             ss << ":";
             ss << hitPos;
             int mods = view_input_key_mods();
-            if (clicks == 0 || mods & K_MOD_SHIFT) {
+            if (clicks == 0 || mods & K_MOD_SHIFT == K_MOD_SHIFT) {
                 editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
             } else if (clicks == 1) {
                 editor->pushOp(MOVE_CURSOR, ss.str());

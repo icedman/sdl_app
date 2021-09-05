@@ -191,7 +191,7 @@ void ren_begin_frame(RenImage *target)
         cairo_context = window_buffer->cairo_context;
     }
     
-    cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
+    // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
 }
 
 void _blit_to_window()
@@ -251,18 +251,39 @@ void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
     cairo_restore(cairo_context);
 }
 
-void ren_draw_rect(RenRect rect, RenColor clr, bool fill, float l)
+void ren_draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
 {
+    double border = (double)stroke / 2;
     if (clr.a > 0) {
         cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, clr.a/255.0f);
     } else {
         cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
     }
-    cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
+    
+    if (rad == 0) {
+        cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
+    } else {
+        // path
+        double aspect = 1.0f;
+        double radius = rad / aspect;
+        double degrees = M_PI / 180.0;
+
+        int x = rect.x;
+        int y = rect.y;
+        int width = rect.width;
+        int height = rect.height;
+        cairo_new_sub_path (cairo_context);
+        cairo_arc (cairo_context, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
+        cairo_arc (cairo_context, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
+        cairo_arc (cairo_context, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
+        cairo_arc (cairo_context, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
+        cairo_close_path (cairo_context);
+    }
+
     if (fill) {
         cairo_fill(cairo_context);
     } else {
-        cairo_set_line_width(cairo_context, l);
+        cairo_set_line_width(cairo_context, border);
         cairo_stroke(cairo_context);
     }
 }

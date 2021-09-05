@@ -163,7 +163,7 @@ void view_item::propagate_event(event_t& event)
 {
     if (parent) {
         ((view_item*)parent)->propagate_event(event);
-        if (event.cancelled) return;
+        // if (event.cancelled) return;
     }
     for(auto c : callbacks[event.type]) {
         c(event);
