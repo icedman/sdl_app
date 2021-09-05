@@ -68,20 +68,6 @@ void explorer_view::prelayout()
     ((scrollarea_view*)(scrollarea.get()))->move_factor_y = fh/2;
 }
 
-void explorer_view::postlayout()
-{
-    // printf("%d %d\n", content()->layout()->rect.w, content()->layout()->rect.h);
-    ((scrollbar_view*)v_scroll.get())->set_size(
-        content()->layout()->rect.h, 
-        scrollarea->layout()->rect.h
-    );
-
-    ((scrollbar_view*)h_scroll.get())->set_size(
-        content()->layout()->rect.w, 
-        scrollarea->layout()->rect.w
-    );
-}
-
 void explorer_view::update()
 {   
     explorer_t *explorer = explorer_t::instance();

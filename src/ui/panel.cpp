@@ -127,7 +127,26 @@ void panel_view::update()
     scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
     hs->layout()->visible = hs->window < hs->count;
 
-    printf(">%d %d\n", vs->window, vs->count);
+    // printf(">%d %d\n", vs->window, vs->count);
 
     view_item::update();
+}
+
+void panel_view::postlayout()
+{
+    // printf("%d %d\n", content()->layout()->rect.w, content()->layout()->rect.h);
+    ((scrollbar_view*)v_scroll.get())->set_size(
+        content()->layout()->rect.h, 
+        scrollarea->layout()->rect.h
+    );
+
+    ((scrollbar_view*)h_scroll.get())->set_size(
+        content()->layout()->rect.w, 
+        scrollarea->layout()->rect.w
+    );
+}
+
+void panel_view::update_scrollbars()
+{
+    mouse_wheel(0, 0);
 }

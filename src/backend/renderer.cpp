@@ -231,13 +231,13 @@ void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
 {
     cairo_save(cairo_context);
     cairo_translate(cairo_context, rect.x, rect.y);
+    cairo_scale(cairo_context,
+        (double)rect.width / image->width,
+        (double)rect.height / image->height);
     if (clr.a == 0) {
         cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, 1.0f);
         cairo_mask(cairo_context, image->pattern);
     } else {
-        cairo_scale(cairo_context,
-            (double)rect.width / image->width,
-            (double)rect.height / image->height);
         cairo_set_source_surface(cairo_context, image->cairo_surface, 0, 0);
         cairo_paint(cairo_context);
 

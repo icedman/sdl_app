@@ -341,7 +341,6 @@ void view_input_wheel(int x, int y, event_t event)
         event.type = EVT_MOUSE_WHEEL;
         event.source = view_hovered;
         view_hovered->propagate_event(event);
-        // view_hovered->mouse_wheel(x, y);
     }
 }
 
@@ -351,7 +350,6 @@ void view_input_key(int key, event_t event)
         event.type = EVT_KEY_DOWN;
         event.source = view_focused;
         view_focused->propagate_event(event);
-        // view_focused->input_key(key);
     }
 }
 
@@ -365,7 +363,6 @@ void view_input_text(std::string text, event_t event)
         event.type = EVT_KEY_TEXT;
         event.source = view_focused;
         view_focused->propagate_event(event);
-        // view_focused->input_text(text);
     }
 }
 
@@ -378,14 +375,11 @@ void view_input_sequence(std::string sequence, event_t event)
         if (event.cancelled) {
             return;
         }
-        // if (view_root->input_sequence(sequence)) {
-        //     return;
-        // }
     }
     if (view_focused) {
         event.type = EVT_KEY_SEQUENCE;
         event.source = view_focused;
-        view_focused->input_sequence(sequence);
+        view_focused->propagate_event(event);
     }
 }
 

@@ -16,30 +16,30 @@ void editor_view::render()
 
     state_save();
 
+    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
+    layout_item_ptr alo = area->layout();
     layout_item_ptr lo = content()->layout();
-    scrollbar_view *sv = (scrollbar_view*)_views[1].get();
 
     int fw, fh;
     ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
-    cols = (lo->render_rect.w / fw);
-    rows = (lo->render_rect.h / fh) + 1;
+    cols = (area->layout()->render_rect.w / fw);
+    rows = (area->layout()->render_rect.h / fh) + 1;
 
     set_clip_rect({
-        lo->render_rect.x,
-        lo->render_rect.y,
-        lo->render_rect.w - 18,
-        lo->render_rect.h
+        alo->render_rect.x,
+        alo->render_rect.y,
+        alo->render_rect.w,
+        alo->render_rect.h
     });
 
-    int start = start_row;
+    int start = (-area->layout()->scroll_y / fh) ;
+    // printf(">?%d\n", start);
     if (start < 0) {
         start = 0;
     }
     if (start >= editor->document.blocks.size() - (rows/2)) {
         start = editor->document.blocks.size() - (1 + rows/2);
     }
-    // sv->set_index(start);
-    // sv->set_size(editor->document.blocks.size() - (rows/2), rows);
     start_row = start;
 
     document_t *doc = &editor->document;
@@ -56,6 +56,8 @@ void editor_view::render()
     }
     it += start;
 
+    // printf(">>%d %d\n", start_row, rows);
+
     int view_height = rows;
     int hl_prior = view_height/4;
     int hl_start = start - hl_prior;
@@ -69,7 +71,7 @@ void editor_view::render()
     color_info_t sel = colorMap[app_t::instance()->selBg];
 
     int l=0;
-    while(it != doc->blocks.end() && l<view_height) {
+    while(it != doc->blocks.end() && l<hl_length) {
         block_ptr block = *it++;
 
         struct blockdata_t* blockData;
@@ -125,8 +127,8 @@ void editor_view::render()
 
                 if (hl) {
                     RenRect cr = {
-                        lo->render_rect.x + (pos * fw),
-                        lo->render_rect.y + (l * fh),
+                        alo->render_rect.x + (pos * fw),
+                        alo->render_rect.y + (l * fh),
                         fw, fh
                     };
                     color_info_t cur = sel;
@@ -146,15 +148,16 @@ void editor_view::render()
                 }
             }
 
-            // draw_rect({
-            //     lo->render_rect.x + (s.start * fw),
-            //     lo->render_rect.y + (l*fh),
-            //     fw * s.length,
-            //     fh
-            // }, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
+            s.x = alo->render_rect.x + (s.start * fw);
+            s.y = alo->render_rect.y + (l*fh);
+            draw_rect({
+                s.x,
+                s.y,
+                fw * s.length,
+                fh
+            }, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
     
-            s.x = lo->render_rect.x + (s.start * fw);
-            s.y = lo->render_rect.y + (l*fh);
+
             draw_text(NULL, (char*)span_text.c_str(), 
                 s.x,
                 s.y, 
@@ -165,14 +168,6 @@ void editor_view::render()
 
         l++;
     }
-
-    // char tmp[32];
-    // sprintf(tmp, "%d %d\n", cursor.block()->lineNumber, cursor.position());
-    // draw_text(NULL, tmp, 
-    //     item->render_rect.x,
-    //     item->render_rect.y, 
-    //     { 255,255,255 },
-    //     false, false, true);
 
     state_restore();
 }
@@ -216,10 +211,6 @@ editor_view::editor_view()
         evt.cancelled = true;
         return this->mouse_move(evt.x, evt.y, evt.button);
     });
-    on(EVT_MOUSE_WHEEL, [this](event_t& evt) {
-        evt.cancelled = true;
-        return this->mouse_wheel(evt.x, evt.y);
-    });
     on(EVT_KEY_DOWN, [this](event_t& evt) {
         evt.cancelled = true;
         return this->input_key(evt.key);
@@ -231,14 +222,6 @@ editor_view::editor_view()
     on(EVT_KEY_SEQUENCE, [this](event_t& evt) {
         evt.cancelled = true;
         return this->input_sequence(evt.text);
-    });
-    v_scroll->on(EVT_SCROLLBAR_MOVE, [this](event_t& evt) {
-        evt.cancelled = true;
-        return this->scrollbar_move();
-    });
-    h_scroll->on(EVT_SCROLLBAR_MOVE, [this](event_t& evt) {
-        evt.cancelled = true;
-        return this->scrollbar_move();
     });
 }
 
@@ -261,31 +244,19 @@ void editor_view::update()
     view_item::update();
 }
 
-void editor_view::_update_scrollbars()
-{
-    if (!editor) {
-        return;
-    }
-
-    int window = rows;
-    int count = editor->document.blocks.size() + (rows/3);
-
-    scrollbar_view *scrollbar =  ((scrollbar_view*)v_scroll.get());
-    scrollbar->set_index(start_row);
-    scrollbar->set_size(count, rows);
-}
-
 void editor_view::prelayout()
 {
-    _update_scrollbars();
-}
+    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
+    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
+    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
 
-bool editor_view::mouse_wheel(int x, int y)
-{
-    start_row -= y;
-    _update_scrollbars();
-    rencache_invalidate();
-    return true;
+    int fw, fh;
+    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+    
+    int count = editor->document.blocks.size();
+
+    content()->layout()->width = area->layout()->render_rect.w;
+    content()->layout()->height = (count + rows/4) * fh;
 }
 
 bool editor_view::mouse_down(int x, int y, int button, int clicks)
@@ -298,11 +269,6 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
     mouse_y = y;
 
     layout_item_ptr lo = content()->layout();
-
-    // x -= lo->render_rect.x;
-    // y -= lo->render_rect.y;
-
-    // printf("%d %d\n", x, y);
 
     cursor_t cursor = editor->document.cursor();
 
@@ -397,17 +363,6 @@ bool editor_view::mouse_move(int x, int y, int button)
     return true;
 }
 
-bool editor_view::scrollbar_move()
-{
-    int idx = ((scrollbar_view*)v_scroll.get())->index;
-    if (v_scroll_index != idx) {
-        v_scroll_index = idx;
-        rencache_invalidate();
-        start_row = idx;
-    }
-    return true;
-}
-
 bool editor_view::input_key(int k) {
     ensure_visible_cursor();
     return true;
@@ -420,7 +375,6 @@ bool editor_view::input_text(std::string text) {
     editor->pushOp(INSERT, text);
     editor->runAllOps();
     ensure_visible_cursor();
-    // printf("text\n");
     return true;
 }
 
@@ -449,12 +403,19 @@ void editor_view::scroll_to_cursor(cursor_t c, bool animate, bool centered)
         start_row = l - (rows - 4);
     }
 
-    // printf("(%d %d) %d - %d : %d\n", cols, rows, start_row, start_row + block->document->rows, l);
+    int fw, fh;
+    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+
+    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
+    area->layout()->scroll_y = -start_row * fh;
+
+    update_scrollbars();
 }
 
 void editor_view::ensure_visible_cursor(bool animate)
 {
-    layout_item_ptr lo = layout();
+    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
+    layout_item_ptr lo = area->layout();
 
     document_t *doc = &editor->document;
 
