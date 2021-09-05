@@ -123,9 +123,9 @@ bool panel_view::mouse_wheel(int x, int y)
 void panel_view::update()
 {
     scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
-    vs->layout()->visible = vs->window < vs->count;
+    vs->layout()->visible = vs->disabled ? false : vs->window < vs->count;
     scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
-    hs->layout()->visible = hs->window < hs->count;
+    hs->layout()->visible = hs->disabled ? false : hs->window < hs->count;
 
     // printf(">%d %d\n", vs->window, vs->count);
 

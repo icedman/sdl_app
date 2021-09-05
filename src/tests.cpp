@@ -9,17 +9,22 @@
 #include "scrollbar.h"
 #include "panel.h"
 #include "tabbar.h"
+#include "inputtext.h"
 
 #include "render_cache.h"
 
 view_item_ptr test_root()
 {
-    return test5();
+    return test6();
 }
 
 view_item_ptr test6() {
     view_item_ptr root = std::make_shared<panel_view>();
     root->layout()->margin = 40;
+
+    panel_view *panel = view_item::cast<panel_view>(root);
+    panel->content()->add_child(std::make_shared<inputtext_view>());
+    panel->content()->add_child(std::make_shared<inputtext_view>());
     return root;
 }
 
