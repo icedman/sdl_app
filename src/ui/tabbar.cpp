@@ -14,6 +14,11 @@ struct tab_item_view : horizontal_container {
 
     tab_item_view() : horizontal_container() {
         interactive = true;
+
+        on(EVT_MOUSE_CLICK, [this](event_t& evt) {
+            evt.cancelled = true;
+            return this->mouse_click(evt.x, evt.y, evt.button);
+        });
     }
 
     editor_ptr editor;

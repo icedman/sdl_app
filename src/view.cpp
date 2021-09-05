@@ -144,148 +144,18 @@ void view_item::update()
     }
 }
 
-bool view_item::mouse_down(int x, int y, int button, int clicks)
+int view_item::on(event_type_e event_type, event_callback_t callback)
 {
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->mouse_down(x, y, button, clicks)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
+    callbacks[event_type].insert(callbacks[event_type].begin(), callback);
+    return 0;
 }
 
-bool view_item::mouse_up(int x, int y, int button)
+void view_item::propagate_event(event_t& event)
 {
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->mouse_up(x, y, button)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
+    for(auto c : callbacks[event.type]) {
+        c(event);
+        if (event.cancelled) break;
     }
-    return false;
-}
-
-bool view_item::mouse_click(int x, int y, int button)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->mouse_click(x, y, button)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::mouse_move(int x, int y, int button)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->mouse_move(x, y, button)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::mouse_drag_start(int x, int y)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->mouse_drag_start(x, y)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::mouse_drag_end(int x, int y)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->mouse_drag_end(x, y)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::mouse_drag(int x, int y)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->mouse_drag(x, y)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::mouse_wheel(int x, int y)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->mouse_wheel(x, y)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::on_scroll()
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->on_scroll()) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::input_key(int k)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->input_key(k)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::input_text(std::string text)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->input_text(text)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
-}
-
-bool view_item::input_sequence(std::string text)
-{
-    view_item *p = (view_item*)parent;
-    while(p) {
-        if (p->input_sequence(text)) {
-            return true;
-        }
-        p = (view_item*)p->parent;
-    }
-    return false;
 }
 
 view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
@@ -313,8 +183,6 @@ view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
     }
 
     return 0;
-
-    // return item;
 }
 
 view_item_list *_view_list;
@@ -324,37 +192,42 @@ void view_input_events(view_item_list &list, event_list &events)
 
     _view_list = &list;
     for(auto e : events) {
+        
+        e.source = 0;
+        e.target = 0;
+        e.cancelled = false;
+
         switch(e.type) {
         case EVT_KEY_UP:
             // _keyMods = e.mod;
             break;
         case EVT_KEY_DOWN:
             _keyMods = e.mod;
-            view_input_key(e.key);
+            view_input_key(e.key, e);
             break;
         case EVT_KEY_TEXT:
-            view_input_text(e.text);
+            view_input_text(e.text, e);
             break;
         case EVT_KEY_SEQUENCE:
-            view_input_sequence(e.text);
+            view_input_sequence(e.text, e);
             break;
         case EVT_MOUSE_WHEEL:
-            view_input_wheel(e.x, e.y);
+            view_input_wheel(e.x, e.y, e);
             break;
         case EVT_MOUSE_DOWN:
-            view_input_button(e.button, e.x, e.y, 1, e.clicks);
+            view_input_button(e.button, e.x, e.y, 1, e.clicks, e);
             break;
         case EVT_MOUSE_UP:
-            view_input_button(e.button, e.x, e.y, 0);
+            view_input_button(e.button, e.x, e.y, 0, 0, e);
             break;
         case EVT_MOUSE_MOTION:
-            view_input_button(e.button, e.x, e.y, e.button != 0);
+            view_input_button(e.button, e.x, e.y, e.button != 0, 0, e);
             break;
         }
     }
 }
 
-void view_input_button(int button, int x, int y, int pressed, int clicks)
+void view_input_button(int button, int x, int y, int pressed, int clicks, event_t event)
 {
     view_item *v = 0;
     view_item_ptr _v = view_find_xy((*_view_list).back(), x, y);
@@ -376,22 +249,28 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
     // printf("%s\n", v->type.c_str());
 
     view_hovered = v;
-    if (view_hovered) view_hovered->mouse_move(x, y, button);
+    if (view_hovered) {
+        event.type = EVT_MOUSE_MOTION;
+        event.source = view_hovered;
+        view_hovered->propagate_event(event);
+    }
 
     if (view_pressed) {
         if (!dragging) {
-            printf(">start %s\n", v->type.c_str());
             int dx = drag_start_x - x;
             int dy = drag_start_y - y;
             int drag_distance = dx * dx + dy *dy;
             if (drag_distance >= 4) {
-                    view_pressed->mouse_drag_start(drag_start_x, drag_start_y);
+                    event.type = EVT_MOUSE_DRAG_START;
+                    event.source = view_pressed;
+                    view_pressed->propagate_event(event);
                     view_dragged = view_pressed;
                     dragging = true; 
             }
         } else {
-            printf(">drag %s\n", v->type.c_str());
-            view_pressed->mouse_drag(x, y);
+            event.type = EVT_MOUSE_DRAG;
+            event.source = view_pressed;
+            view_pressed->propagate_event(event);
         }
     }
 
@@ -402,7 +281,11 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
         }
         if (!view_pressed) {
             view_pressed = v;
-            if (view_pressed) view_pressed->mouse_down(x, y, button, clicks);
+            if (view_pressed) {
+                event.type = EVT_MOUSE_DOWN;
+                event.source = view_pressed;
+                view_pressed->propagate_event(event);
+            }
         }
         if (v && v->focusable) {
             view_focused = v;
@@ -410,16 +293,24 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
     } else {
         if (dragging) {
             if (view_pressed) {
-                view_pressed->mouse_drag_end(x, y);
+                event.type = EVT_MOUSE_DRAG_END;
+                event.source = view_pressed;
+                view_pressed->propagate_event(event);
             }
         }
         view_released = v ? v : 0;
         view_clicked = view_released == view_pressed ? view_released : 0;
         if (view_clicked && !dragging) {
-            view_clicked->mouse_click(x, y, button);
+            event.type = EVT_MOUSE_CLICK;
+            event.source = view_clicked;
+            view_clicked->propagate_event(event);
         }
         view_pressed = 0;
-        if (view_released) view_released->mouse_up(x, y, button);
+        if (view_released) {
+            event.type = EVT_MOUSE_UP;
+            event.source = view_released;
+            view_released->propagate_event(event);
+        }
     }
 
     if (view_pressed) {
@@ -431,39 +322,56 @@ void view_input_button(int button, int x, int y, int pressed, int clicks)
     }
 }
 
-void view_input_wheel(int x, int y)
+void view_input_wheel(int x, int y, event_t event)
 {
     if (view_hovered) {
-        view_hovered->mouse_wheel(x, y);
+        event.type = EVT_MOUSE_WHEEL;
+        event.source = view_hovered;
+        view_hovered->propagate_event(event);
+        // view_hovered->mouse_wheel(x, y);
     }
 }
 
-void view_input_key(int key)
+void view_input_key(int key, event_t event)
 {
     if (view_focused) {
-        view_focused->input_key(key);
+        event.type = EVT_KEY_DOWN;
+        event.source = view_focused;
+        view_focused->propagate_event(event);
+        // view_focused->input_key(key);
     }
 }
 
-void view_input_text(std::string text)
+void view_input_text(std::string text, event_t event)
 {
     if ((view_input_key_mods() & K_MOD_CTRL) == K_MOD_CTRL ||
         (view_input_key_mods() & K_MOD_ALT) == K_MOD_ALT) {
         return;
     }
     if (view_focused) {
-        view_focused->input_text(text);
+        event.type = EVT_KEY_TEXT;
+        event.source = view_focused;
+        view_focused->propagate_event(event);
+        // view_focused->input_text(text);
     }
 }
 
-void view_input_sequence(std::string sequence)
+void view_input_sequence(std::string sequence, event_t event)
 {
     if (view_root) {
-        if (view_root->input_sequence(sequence)) {
+        event.type = EVT_KEY_SEQUENCE;
+        event.source = view_focused;
+        view_root->propagate_event(event);
+        if (event.cancelled) {
             return;
         }
+        // if (view_root->input_sequence(sequence)) {
+        //     return;
+        // }
     }
     if (view_focused) {
+        event.type = EVT_KEY_SEQUENCE;
+        event.source = view_focused;
         view_focused->input_sequence(sequence);
     }
 }

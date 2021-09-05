@@ -199,6 +199,47 @@ editor_view::editor_view()
     minimap->layout()->order = 3;
     
     layout_sort(container->layout());
+
+    on(EVT_MOUSE_CLICK, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_click(evt.x, evt.y, evt.button);
+    });
+    on(EVT_MOUSE_DOWN, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_down(evt.x, evt.y, evt.button, evt.clicks);
+    });
+    on(EVT_MOUSE_UP, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_up(evt.x, evt.y, evt.button);
+    });
+    on(EVT_MOUSE_MOTION, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_move(evt.x, evt.y, evt.button);
+    });
+    on(EVT_MOUSE_WHEEL, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_wheel(evt.x, evt.y);
+    });
+    on(EVT_KEY_DOWN, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->input_key(evt.key);
+    });
+    on(EVT_KEY_TEXT, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->input_text(evt.text);
+    });
+    on(EVT_KEY_SEQUENCE, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->input_sequence(evt.text);
+    });
+    v_scroll->on(EVT_SCROLLBAR_MOVE, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->scrollbar_move();
+    });
+    h_scroll->on(EVT_SCROLLBAR_MOVE, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->scrollbar_move();
+    });
 }
 
 void editor_view::update()
@@ -280,7 +321,6 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
                 int pos = (x - s.x) / fw;
 
                 std::string span_text = text.substr(s.start, s.length);
-                printf("%s %d\n", span_text.c_str(), pos);
 
                 hitSpan = true;
                 hitPos = pos + s.start;
@@ -336,7 +376,7 @@ bool editor_view::mouse_move(int x, int y, int button)
     return true;
 }
 
-bool editor_view::on_scroll()
+bool editor_view::scrollbar_move()
 {
     int idx = ((scrollbar_view*)v_scroll.get())->index;
     if (v_scroll_index != idx) {

@@ -46,6 +46,13 @@ app_view::app_view()
     add_child(statusbar);
 
     view_set_root(this);
+
+    on(EVT_KEY_SEQUENCE, [this](event_t& evt) {
+        if (this->input_sequence(evt.text)) {
+            evt.cancelled = true;
+        }
+        return true;
+    });
 }
 
 bool app_view::input_sequence(std::string keySequence)

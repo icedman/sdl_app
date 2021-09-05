@@ -12,6 +12,11 @@ scrollarea_view::scrollarea_view()
     content->layout()->fit_children = true;
     content->layout()->wrap = true;
     add_child(content);
+
+    on(EVT_MOUSE_WHEEL, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_wheel(evt.x, evt.y);
+    });
 }
 
 bool scrollarea_view::mouse_wheel(int x, int y)

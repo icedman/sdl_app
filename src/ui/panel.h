@@ -15,8 +15,11 @@ struct panel_view : vertical_container {
 
     view_item_ptr _hscrollbar_container;
 
-    virtual bool on_scroll() override;
+    void _validate();
+
     virtual void update() override;
+    virtual bool mouse_wheel(int x, int y) override;
+    virtual bool scrollbar_move() override;
 };
 
 #endif // PANEL_VIEW_H

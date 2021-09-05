@@ -29,6 +29,19 @@ panel_view::panel_view()
     add_child(container);
 
     _hscrollbar_container = container;
+
+    v_scroll->on(EVT_SCROLLBAR_MOVE, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->scrollbar_move();
+    });
+    h_scroll->on(EVT_SCROLLBAR_MOVE, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->scrollbar_move();
+    });
+    on(EVT_MOUSE_WHEEL, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_wheel(evt.x, evt.y);
+    });
 }
 
 view_item_ptr panel_view::content()
@@ -36,15 +49,52 @@ view_item_ptr panel_view::content()
     return ((scrollarea_view*)scrollarea.get())->content;
 }
 
-bool panel_view::on_scroll()
+void panel_view::_validate()
 {
+    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
+    
+    if (scroll->layout()->scroll_x > 0) {
+        scroll->layout()->scroll_x = 0;
+        layout_request();
+    }
+    if (scroll->layout()->scroll_y > 0) {
+        scroll->layout()->scroll_y = 0;
+    }
+}
+
+bool panel_view::scrollbar_move()
+{
+    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
+
+    // ((scrollbar_view*)h_scroll.get())->index + ((scrollbar_view*)h_scroll.get())->window;
+    // ((scrollbar_view*)v_scroll.get())->index + ((scrollbar_view*)v_scroll.get())->window;
+
+    scroll->layout()->scroll_x = -((scrollbar_view*)h_scroll.get())->index + ((scrollbar_view*)h_scroll.get())->window;
+    scroll->layout()->scroll_y = -((scrollbar_view*)v_scroll.get())->index + ((scrollbar_view*)v_scroll.get())->window;
+    _validate();
+
     // printf("%d\n", (int)rand());
     rencache_invalidate();
     return true;
 }
 
+bool panel_view::mouse_wheel(int x, int y)
+{
+    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
+    
+    scroll->layout()->scroll_x += x * scroll->move_factor_x;
+    scroll->layout()->scroll_y += y * scroll->move_factor_y;
+
+    _validate();
+
+    ((scrollbar_view*)h_scroll.get())->set_index(-scroll->layout()->scroll_x);
+    ((scrollbar_view*)v_scroll.get())->set_index(-scroll->layout()->scroll_y);
+
+    return false;
+}
+
 void panel_view::update()
 {
-    ((scrollbar_view*)v_scroll.get())->set_size(100, 10);
-    ((scrollbar_view*)h_scroll.get())->set_size(100, 10);
+    // ((scrollbar_view*)v_scroll.get())->set_size(100, 10);
+    // ((scrollbar_view*)h_scroll.get())->set_size(100, 10);
 }

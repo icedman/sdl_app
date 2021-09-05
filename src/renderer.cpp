@@ -461,6 +461,10 @@ void ren_listen_events(event_list* events)
                 type: EVT_KEY_SEQUENCE,
                 text: keySequence
             });
+
+            if (keySequence == "ctrl+q") {
+                ren_quit();
+            }
             return;
         }
 

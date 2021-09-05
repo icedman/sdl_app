@@ -17,14 +17,15 @@ struct editor_view : panel_view {
     bool mouse_down(int x, int y, int button, int clicks = 0) override;
     bool mouse_up(int x, int y, int button) override;
     bool mouse_move(int x, int y, int button) override;
-    bool on_scroll() override; // scrollbar events
-    
-    void render() override;
-    void update() override;
-    
+
     bool input_key(int k) override;
     bool input_text(std::string text) override;
     bool input_sequence(std::string text) override;
+
+    bool scrollbar_move() override;
+    
+    void render() override;
+    void update() override;
 
     void ensure_visible_cursor(bool animate = false);
     void scroll_to_cursor(cursor_t c, bool animate = false, bool centered = false);

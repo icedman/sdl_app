@@ -13,10 +13,6 @@ struct explorer_view : panel_view {
     void prelayout() override;
     void postlayout() override;
     void update() override;
-    bool on_scroll() override;
-    bool mouse_wheel(int x, int y) override;
-
-    void _validate();
 };
 
 #endif // EXPLORER_VIEW_H

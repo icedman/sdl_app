@@ -16,6 +16,11 @@ struct explorer_item_view : horizontal_container {
 
     explorer_item_view() : horizontal_container() {
         interactive = true;
+
+        on(EVT_MOUSE_CLICK, [this](event_t& evt) {
+            evt.cancelled = true;
+            return this->mouse_click(evt.x, evt.y, evt.button);
+        });
     }
 
     fileitem_t *file;
@@ -154,45 +159,4 @@ void explorer_view::update()
         text->prelayout();
         text->layout()->rect.w = text->layout()->width;
     }
-}
-
-void explorer_view::_validate()
-{
-    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
-    
-    if (scroll->layout()->scroll_x > 0) {
-        scroll->layout()->scroll_x = 0;
-        layout_request();
-    }
-    if (scroll->layout()->scroll_y > 0) {
-        scroll->layout()->scroll_y = 0;
-    }
-}
-
-bool explorer_view::on_scroll()
-{
-    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
-    scroll->layout()->scroll_x = -((scrollbar_view*)h_scroll.get())->index;
-    scroll->layout()->scroll_y = -((scrollbar_view*)v_scroll.get())->index;
-    _validate();
-    return true;
-}
-
-bool explorer_view::mouse_wheel(int x, int y)
-{
-    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
-    
-    scroll->layout()->scroll_x += x * scroll->move_factor_x;
-    scroll->layout()->scroll_y += y * scroll->move_factor_y;
-
-    // printf("%d %d\n",
-    //     scroll->layout()->scroll_x,
-    //     scroll->layout()->scroll_y);
-
-    _validate();
-
-    ((scrollbar_view*)h_scroll.get())->set_index(-scroll->layout()->scroll_x);
-    ((scrollbar_view*)v_scroll.get())->set_index(-scroll->layout()->scroll_y);
-
-    return false;
 }

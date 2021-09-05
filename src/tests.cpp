@@ -83,6 +83,11 @@ view_item_ptr test4() {
         view_item_ptr button = std::make_shared<button_view>(t);
         button->layout()->height = 120;
         content->add_child(button);
+
+        button->on(EVT_MOUSE_CLICK, [i](event_t e) {
+            printf("click! %d\n", i);
+            return true;
+        });
     }
 
     root->add_child(h_layout);

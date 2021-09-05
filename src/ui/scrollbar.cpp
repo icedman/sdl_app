@@ -16,6 +16,23 @@ scrollbar_view::scrollbar_view()
     type = "scrollbar";
     content->type = "thumb";
     content->layout()->rgb = { 255, 255, 0 };
+
+    on(EVT_MOUSE_CLICK, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_click(evt.x, evt.y, evt.button);
+    });
+    on(EVT_MOUSE_DRAG_START, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_drag_start(evt.x, evt.y);
+    });
+    on(EVT_MOUSE_DRAG, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_drag(evt.x, evt.y);
+    });
+    on(EVT_MOUSE_DRAG_END, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->mouse_drag_end(evt.x, evt.y);
+    });
 }
 
 bool scrollbar_view::mouse_drag_start(int x, int y)
@@ -82,7 +99,7 @@ void scrollbar_view::_scroll(int pos)
         lo->scroll_y = newPos;
     }
 
-    on_scroll();
+    propagate_scrollbar_event();
 }
 
 void scrollbar_view::prelayout()
@@ -131,13 +148,15 @@ void scrollbar_view::_validate()
     index = idx;
 }
 
-bool scrollbar_view::on_scroll()
+void scrollbar_view::propagate_scrollbar_event()
 {
     _validate();
-    if (parent) {
-        ((view_item*)parent)->on_scroll();
-    }
-    return true;
+
+    event_t event;
+    event.type = EVT_SCROLLBAR_MOVE;
+    event.source = this;
+    event.cancelled = false;
+    propagate_event(event);
 }
 
 void scrollbar_view::set_index(int idx)
