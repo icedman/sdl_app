@@ -3,7 +3,7 @@
 
 #include "renderer.h"
 
-#define ENABLE_RENDER_CACHE
+// #define ENABLE_RENDER_CACHE
 
 typedef struct RenCache RenCache;
 

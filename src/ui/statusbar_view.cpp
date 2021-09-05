@@ -6,16 +6,22 @@
 statusbar_view::statusbar_view()
     : horizontal_container()
 {
-    layout()->grow = 3;
     layout()->height = 24;
     layout()->fit_children = false;
     layout()->justify = LAYOUT_JUSTIFY_SPACE_AROUND;
 
+    view_item_ptr container = std::make_shared<view_item>();
+    container->layout()->height = 24;
+    container->layout()->grow = 3;
+
     status = std::make_shared<text_view>("status");
+    status->layout()->height = 24;
     items = std::make_shared<horizontal_container>();
-    layout()->grow = 2;
+    items->layout()->justify = LAYOUT_JUSTIFY_FLEX_END;
+    items->layout()->grow = 2;
     
-    add_child(status);
+    container->add_child(status);
+    add_child(container);
     add_child(items);
 
     for(int i=0;i<5;i++) {
@@ -37,7 +43,7 @@ void statusbar_view::update()
         int i=0;
         for(auto v : items->_views) {
             text_view* text = view_item::cast<text_view>(v);
-            text->text = statusbar->text[i++];
+            // text->text = statusbar->text[i++];
             text->prelayout();
             text->layout()->rect.w = text->layout()->width;
         }

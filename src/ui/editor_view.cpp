@@ -306,6 +306,10 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
 
     cursor_t cursor = editor->document.cursor();
 
+    if (start_row >= editor->document.blocks.size()) {
+        start_row = editor->document.blocks.size() -  1;
+    }
+
     block_list::iterator it = editor->document.blocks.begin();
     it += start_row;
 
@@ -358,7 +362,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
             ss << ":";
             ss << hitPos;
             int mods = view_input_key_mods();
-            if (clicks == 0 || mods & K_MOD_SHIFT == K_MOD_SHIFT) {
+            if (clicks == 0 || mods & K_MOD_SHIFT) {
                 editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
             } else if (clicks == 1) {
                 editor->pushOp(MOVE_CURSOR, ss.str());
