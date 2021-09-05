@@ -51,10 +51,6 @@ struct tab_item_view : horizontal_container {
         },
         clr, false, 1);
     }
-
-    void update() override {
-        // text_view *text = (text_view*)(_views[1].get());
-    }
 };
 
 
@@ -110,7 +106,6 @@ void tabbar_view::update()
         }
     } else {
         hasChanges = true;
-        layout_request();
     }
 
     if (!hasChanges) return;
@@ -164,6 +159,8 @@ void tabbar_view::update()
         text->prelayout();
         text->layout()->rect.w = text->layout()->width;
     }
+
+    view_item::update();
 }
 
 view_item_ptr tabbar_view::content()

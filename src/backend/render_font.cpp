@@ -5,6 +5,7 @@
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
 
+#include <vector>
 #include <algorithm>
 
 #define MAX_GLYPHSET 256
@@ -285,7 +286,7 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
 		ren_draw_image(glyph->image, {
 			x + (i*font->font_width) + (font->font_width/2) - (glyph->cw/2) - (adv == 2 ? (float)glyph->cw/4 : 0),
 			y +  (font->font_height/2) - (glyph->ch/2),
-			glyph->cw, glyph->ch
+			glyph->cw + 1, glyph->ch
 		}, clr);
 
         i += adv;

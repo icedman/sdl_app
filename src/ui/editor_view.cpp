@@ -10,6 +10,10 @@ extern std::map<int, color_info_t> colorMap;
 
 void editor_view::render()
 {
+    if (!editor) {
+        return;
+    }
+
     state_save();
 
     layout_item_ptr lo = content()->layout();
@@ -244,6 +248,10 @@ editor_view::editor_view()
 
 void editor_view::update()
 {
+    if (!editor) {
+        return;
+    }
+
     if (editor->document.columns != cols || editor->document.rows != rows) {
         editor->document.setColumns(cols);
         editor->document.setRows(rows);
@@ -253,13 +261,22 @@ void editor_view::update()
     if (is_focused()) {
         app_t::instance()->currentEditor = editor;
     }
+
+    view_item::update();
 }
 
 void editor_view::_update_scrollbars()
 {
+    if (!editor) {
+        return;
+    }
+
+    int window = rows;
+    int count = editor->document.blocks.size() + (rows/3);
+
     scrollbar_view *scrollbar =  ((scrollbar_view*)v_scroll.get());
     scrollbar->set_index(start_row);
-    scrollbar->set_size(editor->document.blocks.size() + (rows/3), rows);
+    scrollbar->set_size(count, rows);
 }
 
 void editor_view::prelayout()
@@ -277,6 +294,10 @@ bool editor_view::mouse_wheel(int x, int y)
 
 bool editor_view::mouse_down(int x, int y, int button, int clicks)
 {
+    if (!editor) {
+        return false;
+    }
+
     mouse_x = x;
     mouse_y = y;
 
@@ -393,6 +414,9 @@ bool editor_view::input_key(int k) {
 }
 
 bool editor_view::input_text(std::string text) {
+    if (!editor) {
+        return false;
+    }
     editor->pushOp(INSERT, text);
     editor->runAllOps();
     ensure_visible_cursor();
@@ -401,6 +425,9 @@ bool editor_view::input_text(std::string text) {
 }
 
 bool editor_view::input_sequence(std::string text) {
+    if (!editor) {
+        return false;
+    }
     editor->input(-1, text);
     editor->runAllOps();
     ensure_visible_cursor();

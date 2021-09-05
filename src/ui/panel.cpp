@@ -55,12 +55,6 @@ void panel_view::_validate()
     scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
     scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
     scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
-    if (area->layout()->scroll_x > 0) {
-        area->layout()->scroll_x = 0;
-    }
-    if (area->layout()->scroll_y > 0) {
-        area->layout()->scroll_y = 0;
-    }
 
     int hp = ((hs->count + (area->overscroll * hs->count) - hs->window));
     if (area->layout()->scroll_x < -hp) {
@@ -69,6 +63,13 @@ void panel_view::_validate()
     int vp = ((vs->count + (area->overscroll * vs->count) - vs->window));
     if (area->layout()->scroll_y < -vp) {
         area->layout()->scroll_y = -vp;
+    }
+
+    if (area->layout()->scroll_x > 0) {
+        area->layout()->scroll_x = 0;
+    }
+    if (area->layout()->scroll_y > 0) {
+        area->layout()->scroll_y = 0;
     }
 }
 
@@ -121,6 +122,12 @@ bool panel_view::mouse_wheel(int x, int y)
 
 void panel_view::update()
 {
-    // ((scrollbar_view*)v_scroll.get())->set_size(100, 10);
-    // ((scrollbar_view*)h_scroll.get())->set_size(100, 10);
+    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
+    vs->layout()->visible = vs->window < vs->count;
+    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
+    hs->layout()->visible = hs->window < hs->count;
+
+    printf(">%d %d\n", vs->window, vs->count);
+
+    view_item::update();
 }

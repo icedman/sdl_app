@@ -10,6 +10,7 @@ struct statusbar_view : horizontal_container {
     void update() override;
 
     view_item_ptr status;
+    view_item_ptr items;
 };
 
 #endif // STATUSBAR_VIEW_H

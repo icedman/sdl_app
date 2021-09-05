@@ -1,6 +1,6 @@
 project('app', 'cpp',
   version : '0.1',
-  default_options : ['warning_level=3', 'cpp_std=c++17']
+  default_options : ['warning_level=3', 'cpp_std=c++11']
 )
 
 add_global_arguments('-w', language: 'cpp')
@@ -81,9 +81,9 @@ else
 endif
 
 ui_files = [
-    'src/renderer.cpp',
-    'src/render_font.cpp',
-    'src/render_cache.cpp',
+    'src/backend/renderer.cpp',
+    'src/backend/render_font.cpp',
+    'src/backend/render_cache.cpp',
     'src/layout.cpp',
     'src/events.cpp',
     'src/view.cpp',
@@ -101,28 +101,26 @@ ui_files = [
     'src/tests.cpp'
 ]
 
-library('tmparser',
+tmparser_lib = library('tmparser',
     textmate_files, 
     include_directories: [ textmate_inc ],
     dependencies: [ jsoncpp_dep, onigmo_dep ]
 )
 
-tmparser_lib = cc.find_library('tmparser', required: false, dirs:[pwd + '/build'])
-tmparser_dep = declare_dependency(dependencies: [ tmparser_lib ], include_directories: [ textmate_inc ])
+tmparser_dep = declare_dependency(link_with: tmparser_lib, include_directories: [ textmate_inc ])
 
-library('editor',
+editor_lib = library('editor',
     editor_files, 
     include_directories: [ editor_inc ],
     dependencies: [ tmparser_dep, jsoncpp_dep, onigmo_dep, pthread_dep ]
 )
 
-editor_lib = cc.find_library('editor', required: false, dirs:[pwd + '/build'])
-editor_dep = declare_dependency(dependencies: [ editor_lib ], include_directories: [ editor_inc ])
+editor_dep = declare_dependency(link_with: editor_lib, include_directories: [ editor_inc ])
 
 executable('app',
     'src/main.cpp',
     ui_files,
-    include_directories: [ './src', './src/ui' ],
-    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, sdl2ttf_dep, cairo_dep, pango_dep, rsvg_dep ],
+    include_directories: [ './src', './src/ui', './src/backend' ],
+    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, rsvg_dep ],
     install : true
 )

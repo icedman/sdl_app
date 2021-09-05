@@ -65,6 +65,7 @@ bool app_view::input_sequence(std::string keySequence)
     case QUIT:
         ren_quit();
         return true;
+
     case NEW_TAB: {
         app->newEditor(); // focus
         return true;
@@ -90,7 +91,6 @@ void app_view::update()
     for(auto e : app->editors) {
         if (!e->view) {
             create_editor_view(e);
-            layout_request();
         }
     }
 
@@ -105,12 +105,15 @@ void app_view::create_editor_view(editor_ptr editor)
     editor->view = ev.get();
     tabcontent->add_child(ev);
 
+    layout_request();
     view_set_focused((view_item*)editor->view);
 }
 
 void app_view::destroy_editor_view(editor_ptr editor)
 {
-    if (!editor) return;
+    if (!editor) {
+        return;
+    }
 
     app_t *app = app_t::instance();
 
@@ -151,5 +154,6 @@ void app_view::show_editor(editor_ptr editor, bool sole)
     if (editor->view) {
         view_set_focused((view_item*)(editor->view));
         ((view_item*)(editor->view))->layout()->visible = true;
+        layout_request();
     }
 }

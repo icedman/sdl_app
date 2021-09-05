@@ -184,6 +184,7 @@ void scrollbar_view::set_size(int c, int w)
     if (c != count || w != window) {
         count = c;
         window = w;
+        layout()->visible = count > window;
         layout_request();
     }
 }

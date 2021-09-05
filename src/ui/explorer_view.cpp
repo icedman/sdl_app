@@ -58,13 +58,15 @@ explorer_view::explorer_view()
     content()->layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
     content()->layout()->wrap = false;
     content()->layout()->fit_children = true;
-
-    ((scrollarea_view*)(scrollarea.get()))->move_factor_x = 2;
-    ((scrollarea_view*)(scrollarea.get()))->move_factor_y = 2;
 }
 
 void explorer_view::prelayout()
-{}
+{
+    int fw, fh;
+    ren_get_font_extents(ren_font("ui-small"), &fw, &fh, "A", 1);
+    ((scrollarea_view*)(scrollarea.get()))->move_factor_x = fw/2;
+    ((scrollarea_view*)(scrollarea.get()))->move_factor_y = fh/2;
+}
 
 void explorer_view::postlayout()
 {
@@ -159,4 +161,6 @@ void explorer_view::update()
         text->prelayout();
         text->layout()->rect.w = text->layout()->width;
     }
+
+    view_item::update();
 }

@@ -2,6 +2,8 @@
 #define EVENT_H
 
 #include <map>
+#include <vector>
+#include <algorithm>
 #include <string>
 #include <functional>
 

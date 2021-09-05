@@ -154,7 +154,7 @@ void ren_init()
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
     SDL_EnableScreenSaver();
     SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
-    // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
     atexit(SDL_Quit);
 
@@ -190,8 +190,8 @@ void ren_begin_frame(RenImage *target)
         target_buffer = window_buffer;
         cairo_context = window_buffer->cairo_context;
     }
-    // cairo_set_source_rgb(cairo_context, 0.5f, 0.5f, 0.5f);
-    // cairo_paint(cairo_context);
+    
+    cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
 }
 
 void _blit_to_window()
@@ -235,10 +235,18 @@ void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
         cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, 1.0f);
         cairo_mask(cairo_context, image->pattern);
     } else {
+        cairo_scale(cairo_context,
+            (double)rect.width / image->width,
+            (double)rect.height / image->height);
+        cairo_set_source_surface(cairo_context, image->cairo_surface, 0, 0);
+        cairo_paint(cairo_context);
+
+        /*
         cairo_set_source(cairo_context, image->pattern);
         cairo_pattern_set_extend(cairo_get_source(cairo_context), CAIRO_EXTEND_NONE);
-        cairo_rectangle(cairo_context, 0, 0, rect.width, rect.height);
+        cairo_rectangle(cairo_context, 0, 0, image->width, image->height);
         cairo_fill(cairo_context);
+        */
     }
     cairo_restore(cairo_context);
 }
@@ -374,7 +382,7 @@ void ren_listen_events(event_list* events)
         events->push_back({
             type: EVT_KEY_UP,
             key: e.key.keysym.sym,
-            mod: 0
+            mod: e.key.keysym.mod
         });
         return;
 

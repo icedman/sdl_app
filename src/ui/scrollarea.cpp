@@ -5,7 +5,7 @@ scrollarea_view::scrollarea_view()
     : view_item("scrollarea")
     , move_factor_x(20)
     , move_factor_y(20)
-    , overscroll(0.05f)
+    , overscroll(0.0f)
 {
     interactive = true;
     layout()->fit_children = false;
@@ -22,11 +22,7 @@ scrollarea_view::scrollarea_view()
 
 bool scrollarea_view::mouse_wheel(int x, int y)
 {
-    if (view_item::mouse_wheel(x,y)) {
-        return true;
-    }
 	layout()->scroll_x += x * move_factor_x;
     layout()->scroll_y += y * move_factor_y;
-    // on_scroll();
 	return true;
 }

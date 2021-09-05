@@ -34,6 +34,7 @@ view_item::view_item()
 view_item::view_item(std::string type)
     : type(type)
     , _cache(0)
+    , delete_later(0)
 {}
 
 view_item::~view_item()
@@ -112,6 +113,14 @@ void view_item::remove_child(view_item_ptr view)
     }
 }
 
+void view_item::relayout()
+{
+    if (parent) {
+        view_item* v = (view_item*)parent;
+        layout_run(v->layout(), v->layout()->constraint);
+    }
+}
+
 bool view_item::is_focused()
 {
     return this == view_focused;
@@ -154,6 +163,7 @@ void view_item::propagate_event(event_t& event)
 {
     if (parent) {
         ((view_item*)parent)->propagate_event(event);
+        if (event.cancelled) return;
     }
     for(auto c : callbacks[event.type]) {
         c(event);
@@ -202,7 +212,7 @@ void view_input_events(view_item_list &list, event_list &events)
 
         switch(e.type) {
         case EVT_KEY_UP:
-            // _keyMods = e.mod;
+            _keyMods = e.mod;
             break;
         case EVT_KEY_DOWN:
             _keyMods = e.mod;

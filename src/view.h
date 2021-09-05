@@ -23,7 +23,7 @@ struct view_item : layout_view, event_object_t {
 
     void add_child(view_item_ptr view);
     void remove_child(view_item_ptr view);
-    // void delete_later();
+    void relayout();
 
     bool is_focused() override;
     bool is_pressed() override;
@@ -56,6 +56,7 @@ struct view_item : layout_view, event_object_t {
     event_callback_list callbacks;
 
     RenImage *_cache;
+    bool delete_later;
 
     template <class T>
     static T* cast (view_item_ptr v) { return (T*)(v.get()); };
