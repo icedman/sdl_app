@@ -5,6 +5,7 @@ scrollarea_view::scrollarea_view()
     : view_item("scrollarea")
     , move_factor_x(20)
     , move_factor_y(20)
+    , overscroll(0.05f)
 {
     interactive = true;
     layout()->fit_children = false;

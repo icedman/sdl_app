@@ -46,31 +46,48 @@ panel_view::panel_view()
 
 view_item_ptr panel_view::content()
 {
-    return ((scrollarea_view*)scrollarea.get())->content;
+    // return ((scrollarea_view*)scrollarea.get())->content;
+    return (view_item::cast<scrollarea_view>(scrollarea))->content;
 }
 
 void panel_view::_validate()
 {
-    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
-    
-    if (scroll->layout()->scroll_x > 0) {
-        scroll->layout()->scroll_x = 0;
-        layout_request();
+    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
+    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
+    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
+    if (area->layout()->scroll_x > 0) {
+        area->layout()->scroll_x = 0;
     }
-    if (scroll->layout()->scroll_y > 0) {
-        scroll->layout()->scroll_y = 0;
+    if (area->layout()->scroll_y > 0) {
+        area->layout()->scroll_y = 0;
+    }
+
+    int hp = ((hs->count + (area->overscroll * hs->count) - hs->window));
+    if (area->layout()->scroll_x < -hp) {
+        area->layout()->scroll_x = -hp;
+    }
+    int vp = ((vs->count + (area->overscroll * vs->count) - vs->window));
+    if (area->layout()->scroll_y < -vp) {
+        area->layout()->scroll_y = -vp;
     }
 }
 
 bool panel_view::scrollbar_move()
 {
-    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
+    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
+    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
+    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
+    
+    if (vs->window < vs->count) {
+        int vp = ((vs->count + (area->overscroll * vs->count) - vs->window) * vs->index / vs->count);
+        area->layout()->scroll_y = -vp;
+    
+    }
+    if (hs->window < hs->count) {
+        int hp = ((hs->count + (area->overscroll * hs->count) - hs->window) * hs->index / hs->count);
+        area->layout()->scroll_x = -hs->index + hs->window;
+    }
 
-    // ((scrollbar_view*)h_scroll.get())->index + ((scrollbar_view*)h_scroll.get())->window;
-    // ((scrollbar_view*)v_scroll.get())->index + ((scrollbar_view*)v_scroll.get())->window;
-
-    scroll->layout()->scroll_x = -((scrollbar_view*)h_scroll.get())->index + ((scrollbar_view*)h_scroll.get())->window;
-    scroll->layout()->scroll_y = -((scrollbar_view*)v_scroll.get())->index + ((scrollbar_view*)v_scroll.get())->window;
     _validate();
 
     // printf("%d\n", (int)rand());
@@ -80,17 +97,26 @@ bool panel_view::scrollbar_move()
 
 bool panel_view::mouse_wheel(int x, int y)
 {
-    scrollarea_view *scroll = (scrollarea_view*)(scrollarea.get());
+    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
+    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
+    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
     
-    scroll->layout()->scroll_x += x * scroll->move_factor_x;
-    scroll->layout()->scroll_y += y * scroll->move_factor_y;
+    area->layout()->scroll_x += x * area->move_factor_x;
+    area->layout()->scroll_y += y * area->move_factor_y;
 
     _validate();
 
-    ((scrollbar_view*)h_scroll.get())->set_index(-scroll->layout()->scroll_x);
-    ((scrollbar_view*)v_scroll.get())->set_index(-scroll->layout()->scroll_y);
+    int hi = (-area->layout()->scroll_x * hs->count) / (hs->count + (area->overscroll * hs->count) - hs->window);
+    if (hi < 0)
+        hi = 0;
+    hs->set_index(hi);
 
-    return false;
+    int vi = (-area->layout()->scroll_y * vs->count) / (vs->count + (area->overscroll * vs->count) - vs->window);
+    if (vi < 0)
+        vi = 0;
+    vs->set_index(vi);
+
+    return true;
 }
 
 void panel_view::update()

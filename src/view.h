@@ -56,6 +56,9 @@ struct view_item : layout_view, event_object_t {
     event_callback_list callbacks;
 
     RenImage *_cache;
+
+    template <class T>
+    static T* cast (view_item_ptr v) { return (T*)(v.get()); };
 };
 
 struct vertical_container : view_item {
