@@ -11,6 +11,9 @@ inputtext_view::inputtext_view()
     editor = std::make_shared<editor_view>();
     editor_view *ev = view_item::cast<editor_view>(editor);
 
+    int h = 30;
+    int m = 4;
+
     ev->editor = std::make_shared<editor_t>();
     ev->editor->singleLineEdit = true;
     ev->editor->highlighter.lang = language_from_file("", app->extensions);
@@ -18,7 +21,7 @@ inputtext_view::inputtext_view()
     ev->editor->view = ev;
     ev->editor->pushOp("OPEN", "");
     ev->editor->runAllOps();
-    ev->layout()->height = 32;
+    ev->layout()->height = h;
 
     ev->v_scroll->disabled = true;
     ev->h_scroll->disabled = true;
@@ -29,8 +32,8 @@ inputtext_view::inputtext_view()
     ev->minimap->layout()->visible = false;
     ((view_item*)(ev->resizer->parent))->layout()->visible = false;
 
-    layout()->margin = 4;
-    layout()->height = 60;
+    ev->layout()->margin = m;
+    layout()->height = h + m + (m/2);
 
     add_child(editor);
 }

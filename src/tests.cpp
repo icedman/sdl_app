@@ -15,7 +15,7 @@
 
 view_item_ptr test_root()
 {
-    return test6();
+    return test4();
 }
 
 view_item_ptr test6() {
@@ -33,17 +33,17 @@ view_item_ptr test5() {
 }
 
 struct my_root : view_item {
-    bool on_scroll() override {
-        int v = ((scrollbar_view*)v_scroll.get())->index;
-        int h = ((scrollbar_view*)h_scroll.get())->index;
+    // bool on_scroll() {
+    //     int v = ((scrollbar_view*)v_scroll.get())->index;
+    //     int h = ((scrollbar_view*)h_scroll.get())->index;
 
-        layout_item_ptr lo = scrollarea->layout();
-        lo->scroll_x = -h * 20;
-        lo->scroll_y = -v * 20;
+    //     layout_item_ptr lo = scrollarea->layout();
+    //     lo->scroll_x = -h * 20;
+    //     lo->scroll_y = -v * 20;
 
-        rencache_invalidate();
-        return true;
-    }
+    //     rencache_invalidate();
+    //     return true;
+    // }
 
     void update() override {
         ((scrollbar_view*)v_scroll.get())->set_size(100, 10);

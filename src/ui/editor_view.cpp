@@ -70,6 +70,8 @@ void editor_view::render()
     color_info_t fg = colorMap[app_t::instance()->fg];
     color_info_t sel = colorMap[app_t::instance()->selBg];
 
+    bool has_focus = is_focused();
+    
     int l=0;
     while(it != doc->blocks.end() && l<hl_length) {
         block_ptr block = *it++;
@@ -125,7 +127,7 @@ void editor_view::render()
                     break;
                 }
 
-                if (hl) {
+                if (hl && has_focus) {
                     RenRect cr = {
                         alo->render_rect.x + (pos * fw),
                         alo->render_rect.y + (l * fh),

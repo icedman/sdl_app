@@ -231,6 +231,9 @@ void editor_t::runOp(operation_t op)
         if (singleLineEdit) {
             switch(_op) {
             case ENTER:
+            case TAB:
+            case INDENT:
+            case UNINDENT:
             case DUPLICATE_LINE:
                 skipOp = true;
                 break;
