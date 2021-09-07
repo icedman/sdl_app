@@ -19,11 +19,13 @@ void view_input_list(view_item_list& list, view_item_ptr item)
         return;
     }
 
-    list.insert(list.begin(), 1, item);
+    if (item->interactive) {
+        list.insert(list.begin(), 1, item);
+    }
     for (auto child : item->_views) {
-        if (!child->interactive && !child->_views.size()) {
-            continue;
-        }
+        // if (!child->interactive && !child->_views.size()) {
+        //     continue;
+        // }
         view_input_list(list, child);
     }
 }

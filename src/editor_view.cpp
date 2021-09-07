@@ -154,11 +154,11 @@ void editor_view::render()
             s.x = alo->render_rect.x + (s.start * fw);
             s.y = alo->render_rect.y + (l * fh);
 
-            draw_rect({ s.x,
-                          s.y,
-                          fw * s.length,
-                          fh },
-                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
+            // draw_rect({ s.x,
+            //               s.y,
+            //               fw * s.length,
+            //               fh },
+            //     { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
 
             draw_text(_font, (char*)span_text.c_str(),
                 s.x,

@@ -196,6 +196,8 @@ RenFont* ren_create_font(char* fdsc, char* alias)
 
             ren_end_frame();
         }
+
+        break; // no bold/italic glyphs
     }
 
     // fnt->font_width -= 1;
@@ -254,16 +256,18 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
         font = ren_get_default_font();
     }
     int length = strlen(text);
+    bool shear = false;
 
     cairo_t* cairo_context = ren_context();
 
     GlyphSet* set = font->regular;
     if (italic) {
-        set = font->italic;
+        shear = true;
+        // set = font->italic;
     }
-    if (bold) {
-        set = font->bold;
-    }
+    // if (bold) {
+    //     set = font->bold;
+    // }
 
     int xx = 0;
     for (int i = 0; i < length;) {
@@ -293,7 +297,7 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
         clr.a = 0;
 
         GlyphSet* glyph = &set[cp];
-        ren_draw_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr);
+        ren_draw_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr, shear);
 
         i += adv;
     }
