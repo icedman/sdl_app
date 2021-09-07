@@ -171,13 +171,6 @@ int main(int argc, char** argv)
     w = 0;
     h = 0;
 
-    // RenImage *tmp = ren_create_image_from_svg((char*)icon.c_str(), 24,24);
-    // RenImage *tmp = ren_create_image(80,80);
-    // ren_begin_frame(tmp);
-    // ren_draw_rect({0,0,80,80}, {150,0,150});
-    // ren_draw_rect({20,20,20,20}, {255,0,0});
-    // ren_end_frame();
-
     view_item_ptr root_view = test_root();
     layout_item_ptr root = root_view->layout();
 
@@ -198,13 +191,13 @@ int main(int argc, char** argv)
 
     int frames = FRAME_RENDER_INTERVAL;
     while (ren_is_running()) {
-        // ren_performance_begin();
-
         ren_listen_events(&events);
 
         view_list.clear();
         view_input_list(view_list, root_view);
         view_input_events(view_list, events);
+
+        printf(">%d\n", view_list.size());
 
         if (app_t::instance()->currentEditor) {
             app_t::instance()->currentEditor->runAllOps();
@@ -213,11 +206,7 @@ int main(int argc, char** argv)
             statusbar_t::instance()->update(10);
         }
 
-        ren_timer_begin();
         root_view->update();
-        uint32_t update = ren_timer_end();
-        if (update > 0)
-            printf("update: %d\n", update);
 
         int pw = w;
         int ph = h;
@@ -239,22 +228,17 @@ int main(int argc, char** argv)
             frames = 0;
         }
 
-        ren_timer_begin();
+        // ren_timer_begin();
         begin_frame(w, h);
         state_save();
 
         draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
 
         render_item(root);
-        // root_view->render();
-
-        // draw_image(tmp,{0,0,80,80});
 
         state_restore();
         end_frame();
-        printf("rendered:%d time:%d\n", ren_rendered, ren_timer_end());
-
-        // ren_performance_end();
+        // printf("rendered:%d time:%d\n", ren_rendered, ren_timer_end());
     }
 
     rencache_shutdown();

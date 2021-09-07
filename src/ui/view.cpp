@@ -21,6 +21,9 @@ void view_input_list(view_item_list& list, view_item_ptr item)
 
     list.insert(list.begin(), 1, item);
     for (auto child : item->_views) {
+        if (!child->interactive && !child->_views.size()) {
+            continue;
+        }
         view_input_list(list, child);
     }
 }
@@ -162,6 +165,18 @@ void view_item::update()
     for (auto v : _views) {
         v->update();
     }
+}
+
+void view_item::render()
+{
+    layout_item_ptr lo = layout();
+    draw_rect({
+        lo->render_rect.x,
+        lo->render_rect.y,
+        lo->render_rect.w,
+        lo->render_rect.h
+    },
+    { 255, 0, 255, 50 }, false, 1, 0);
 }
 
 int view_item::on(event_type_e event_type, event_callback_t callback)

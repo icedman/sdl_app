@@ -20,6 +20,7 @@ struct view_item : layout_view, event_object_t {
 
     layout_item_ptr layout() override;
     void update() override;
+    void render() override;
 
     void add_child(view_item_ptr view);
     void remove_child(view_item_ptr view);

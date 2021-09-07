@@ -283,7 +283,6 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
 
                 if (strcmp(_p, l->t) == 0) {
                     adv = 2;
-                    i++;
                     cp = 128 + j;
                     break;
                     // printf("%s %s %d\n", _p, l->t, cp);
@@ -294,7 +293,7 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
         clr.a = 0;
 
         GlyphSet* glyph = &set[cp];
-        ren_draw_image(glyph->image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr);
+        ren_draw_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr);
 
         i += adv;
     }
