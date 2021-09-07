@@ -1,9 +1,9 @@
 #include "renderer.h"
 
 #include <SDL2/SDL.h>
+#include <algorithm>
 #include <cairo.h>
 #include <rsvg.h>
-#include <algorithm>
 
 int _state = 0;
 
@@ -27,8 +27,8 @@ struct RenImage {
     uint8_t* buffer;
     SDL_Surface* sdl_surface;
     cairo_surface_t* cairo_surface;
-    cairo_t *cairo_context;
-    cairo_pattern_t *pattern;
+    cairo_t* cairo_context;
+    cairo_pattern_t* pattern;
     std::string path;
 };
 
@@ -39,15 +39,15 @@ RenImage* target_buffer = 0;
 cairo_t* cairo_context = 0;
 bool shouldEnd;
 
-RenFont *default_font = 0;
+RenFont* default_font = 0;
 int listen_quick_frames = 0;
 
 RenImage* ren_create_image(int w, int h)
 {
     RenImage* img = new RenImage();
     int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, w);
-    img->buffer =(uint8_t*) malloc(stride*h);
-    memset(img->buffer, 0, stride*h);
+    img->buffer = (uint8_t*)malloc(stride * h);
+    memset(img->buffer, 0, stride * h);
     img->width = w;
     img->height = h;
     img->sdl_surface = SDL_CreateRGBSurfaceFrom(img->buffer, w, h, 32, stride, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
@@ -58,17 +58,19 @@ RenImage* ren_create_image(int w, int h)
     return img;
 }
 
-cairo_t* ren_context() {
+cairo_t* ren_context()
+{
     return cairo_context;
 }
 
-cairo_t*  ren_image_context(RenImage* image) {
+cairo_t* ren_image_context(RenImage* image)
+{
     return image->cairo_context;
 }
 
-RenImage* ren_create_image_from_svg(char *filename, int w, int h)
+RenImage* ren_create_image_from_svg(char* filename, int w, int h)
 {
-    for(auto img : images) {
+    for (auto img : images) {
         if (img->path == filename) {
             return img;
         }
@@ -76,16 +78,16 @@ RenImage* ren_create_image_from_svg(char *filename, int w, int h)
 
     RenImage* img = ren_create_image(w, h);
     img->path = filename;
-    
-    RsvgHandle *svg = rsvg_handle_new_from_file(filename, 0);
+
+    RsvgHandle* svg = rsvg_handle_new_from_file(filename, 0);
     if (svg) {
-        rsvg_handle_render_cairo (svg, img->cairo_context);
+        rsvg_handle_render_cairo(svg, img->cairo_context);
         rsvg_handle_free(svg);
     }
-    return img;    
+    return img;
 }
 
-void ren_destroy_image(RenImage *img)
+void ren_destroy_image(RenImage* img)
 {
     std::vector<RenImage*>::iterator it = std::find(images.begin(), images.end(), img);
     if (it != images.end()) {
@@ -99,20 +101,21 @@ void ren_destroy_image(RenImage *img)
     }
 }
 
-void ren_destroy_images() {
+void ren_destroy_images()
+{
     std::vector<RenImage*> _images = images;
-    for(auto img : _images) {
+    for (auto img : _images) {
         ren_destroy_image(img);
     }
 }
 
-void ren_image_size(RenImage *image, int *w, int *h)
+void ren_image_size(RenImage* image, int* w, int* h)
 {
     *w = image->width;
     *h = image->height;
 }
 
-void ren_save_image(RenImage *image, char *filename)
+void ren_save_image(RenImage* image, char* filename)
 {
     cairo_surface_write_to_png(image->cairo_surface, filename);
 }
@@ -136,7 +139,8 @@ cairo_t* _create_cairo_context(int width, int height)
     return window_buffer->cairo_context;
 }
 
-void ren_set_default_font(RenFont *font) {
+void ren_set_default_font(RenFont* font)
+{
     default_font = font;
 }
 
@@ -145,7 +149,7 @@ RenFont* ren_get_default_font()
     return default_font;
 }
 
-void ren_get_window_size(int *w, int *h)
+void ren_get_window_size(int* w, int* h)
 {
     *w = window_buffer->width;
     *h = window_buffer->height;
@@ -169,8 +173,8 @@ void ren_init()
     int height = dm.h * 0.75;
 
     window = SDL_CreateWindow(
-                 "", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
-                 SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE | SDL_WINDOW_OPENGL);
+        "", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE | SDL_WINDOW_OPENGL);
 
     _create_cairo_context(width, height);
     shouldEnd = false;
@@ -188,7 +192,7 @@ void ren_shutdown()
 std::vector<RenImage*> context_stack;
 void _set_context_from_stack()
 {
-    RenImage *target = context_stack.size() > 0 ? context_stack.back() : 0;
+    RenImage* target = context_stack.size() > 0 ? context_stack.back() : 0;
     if (target) {
         target_buffer = target;
         cairo_context = target->cairo_context;
@@ -230,9 +234,9 @@ void ren_performance_end()
     printf("%s\n", perf.c_str());
 }
 
-void ren_begin_frame(RenImage *target)
+void ren_begin_frame(RenImage* target)
 {
-    context_stack.push_back(target);   
+    context_stack.push_back(target);
     _set_context_from_stack();
     ren_rendered = 0;
     // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
@@ -276,7 +280,7 @@ bool ren_is_running()
     return !shouldEnd;
 }
 
-void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
+void ren_draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
     ren_rendered++;
     cairo_save(cairo_context);
@@ -286,7 +290,7 @@ void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
         (double)rect.height / image->height);
 
     if (clr.a == 0) {
-        cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, 1.0f);
+        cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, 1.0f);
         cairo_mask(cairo_context, image->pattern);
     } else {
         cairo_set_source_surface(cairo_context, image->cairo_surface, 0, 0);
@@ -307,11 +311,11 @@ void ren_draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
     ren_rendered++;
     double border = (double)stroke / 2;
     if (clr.a > 0) {
-        cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, clr.a/255.0f);
+        cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, clr.a / 255.0f);
     } else {
-        cairo_set_source_rgb(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f);
+        cairo_set_source_rgb(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f);
     }
-    
+
     if (rad == 0) {
         cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
     } else {
@@ -324,12 +328,12 @@ void ren_draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
         int y = rect.y;
         int width = rect.width;
         int height = rect.height;
-        cairo_new_sub_path (cairo_context);
-        cairo_arc (cairo_context, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
-        cairo_arc (cairo_context, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
-        cairo_arc (cairo_context, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
-        cairo_arc (cairo_context, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
-        cairo_close_path (cairo_context);
+        cairo_new_sub_path(cairo_context);
+        cairo_arc(cairo_context, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
+        cairo_arc(cairo_context, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
+        cairo_arc(cairo_context, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
+        cairo_arc(cairo_context, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
+        cairo_close_path(cairo_context);
     }
 
     if (fill) {
@@ -340,10 +344,12 @@ void ren_draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
     }
 }
 
-static bool is_firable(char c) {
+static bool is_firable(char c)
+{
     const char firs[] = "<>-=!:+|_&";
-    for(int i=0;firs[i]!=0;i++) {
-        if (firs[i] == c) return true;
+    for (int i = 0; firs[i] != 0; i++) {
+        if (firs[i] == c)
+            return true;
     }
     return false;
 }
@@ -412,45 +418,45 @@ void ren_listen_events(event_list* events)
 
     case SDL_MOUSEBUTTONDOWN:
         events->push_back({
-            type: EVT_MOUSE_DOWN,
-            x: e.button.x,
-            y: e.button.y,
-            button: e.button.button,
-            clicks: e.button.clicks
+            type : EVT_MOUSE_DOWN,
+            x : e.button.x,
+            y : e.button.y,
+            button : e.button.button,
+            clicks : e.button.clicks
         });
         return;
 
     case SDL_MOUSEBUTTONUP:
         events->push_back({
-            type: EVT_MOUSE_UP,
-            x: e.button.x,
-            y: e.button.y,
-            button: e.button.button
+            type : EVT_MOUSE_UP,
+            x : e.button.x,
+            y : e.button.y,
+            button : e.button.button
         });
         return;
 
     case SDL_MOUSEMOTION:
         events->push_back({
-            type: EVT_MOUSE_MOTION,
-            x: e.motion.x,
-            y: e.motion.y,
-            button: e.button.button
+            type : EVT_MOUSE_MOTION,
+            x : e.motion.x,
+            y : e.motion.y,
+            button : e.button.button
         });
         return;
 
-    case SDL_MOUSEWHEEL: 
+    case SDL_MOUSEWHEEL:
         events->push_back({
-            type: EVT_MOUSE_WHEEL,
-            x: e.wheel.x,
-            y: e.wheel.y
+            type : EVT_MOUSE_WHEEL,
+            x : e.wheel.x,
+            y : e.wheel.y
         });
         return;
 
     case SDL_KEYUP:
         events->push_back({
-            type: EVT_KEY_UP,
-            key: e.key.keysym.sym,
-            mod: e.key.keysym.mod
+            type : EVT_KEY_UP,
+            key : e.key.keysym.sym,
+            mod : e.key.keysym.mod
         });
         return;
 
@@ -540,8 +546,8 @@ void ren_listen_events(event_list* events)
 
         if (keySequence.length() > 1) {
             events->push_back({
-                type: EVT_KEY_SEQUENCE,
-                text: keySequence
+                type : EVT_KEY_SEQUENCE,
+                text : keySequence
             });
 
             if (keySequence == "ctrl+q") {
@@ -551,17 +557,17 @@ void ren_listen_events(event_list* events)
         }
 
         events->push_back({
-            type: EVT_KEY_DOWN,
-            key: e.key.keysym.sym,
-            mod: _mod
+            type : EVT_KEY_DOWN,
+            key : e.key.keysym.sym,
+            mod : _mod
         });
 
         return;
     }
     case SDL_TEXTINPUT:
         events->push_back({
-            type: EVT_KEY_TEXT,
-            text: e.text.text
+            type : EVT_KEY_TEXT,
+            text : e.text.text
         });
         return;
 
@@ -569,9 +575,9 @@ void ren_listen_events(event_list* events)
         if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
             if (e.window.data1 && e.window.data2) {
                 event_t evt = {
-                    type: EVT_WINDOW_RESIZE,
-                    w: e.window.data1,
-                    h: e.window.data2
+                    type : EVT_WINDOW_RESIZE,
+                    w : e.window.data1,
+                    h : e.window.data2
                 };
                 window_buffer->width = evt.w;
                 window_buffer->height = evt.h;
@@ -584,7 +590,6 @@ void ren_listen_events(event_list* events)
         }
         return;
     }
-
 }
 
 std::string ren_get_clipboard()
@@ -592,7 +597,8 @@ std::string ren_get_clipboard()
     if (!SDL_HasClipboardText()) {
         return "";
     }
-    std::string res = SDL_GetClipboardText();;
+    std::string res = SDL_GetClipboardText();
+    ;
     return res;
 }
 
@@ -614,4 +620,3 @@ uint32_t ren_timer_end()
     timer_begins.pop_back();
     return timer_end - timer_begin;
 }
-

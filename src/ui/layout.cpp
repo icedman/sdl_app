@@ -1,15 +1,16 @@
 #include "layout.h"
-#include <stdio.h>
 #include <algorithm>
+#include <stdio.h>
 
 static bool run_requested = false;
 
-void layout_render_list(layout_item_list& list, layout_item_ptr item) {
+void layout_render_list(layout_item_list& list, layout_item_ptr item)
+{
     if (!item->visible) {
         return;
     }
     list.push_back(item);
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         child->render_rect = child->rect;
         child->render_rect.x += item->render_rect.x + item->scroll_x;
         child->render_rect.y += item->render_rect.y + item->scroll_y;
@@ -21,7 +22,7 @@ void layout_render_list(layout_item_list& list, layout_item_ptr item) {
 void layout_reverse_items(layout_item_ptr item, int constraint)
 {
     if (item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
-        for(auto child : item->children) {
+        for (auto child : item->children) {
             if (!child->visible) {
                 continue;
             }
@@ -29,7 +30,7 @@ void layout_reverse_items(layout_item_ptr item, int constraint)
         }
     }
     if (item->direction == LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE) {
-        for(auto child : item->children) {
+        for (auto child : item->children) {
             if (!child->visible) {
                 continue;
             }
@@ -38,7 +39,8 @@ void layout_reverse_items(layout_item_ptr item, int constraint)
     }
 }
 
-void layout_position_items(layout_item_ptr item) {
+void layout_position_items(layout_item_ptr item)
+{
     int constraint = item->constraint.max_width;
 
     int wd = 0;
@@ -54,10 +56,10 @@ void layout_position_items(layout_item_ptr item) {
     std::vector<layout_item_list> groups;
     groups.push_back(layout_item_list());
     int consumed = 0;
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         if (!child->visible) {
             continue;
-        }    
+        }
         child->rect.x = 0;
         child->rect.y = 0;
         if (consumed + child->rect.w * wd + child->rect.h * hd > constraint) {
@@ -75,9 +77,9 @@ void layout_position_items(layout_item_ptr item) {
     // justify content
     int xx = 0;
     int yy = 0;
-    for(auto group : groups) {
+    for (auto group : groups) {
         int spaceRemaining = constraint;
-        for(auto child : group) {
+        for (auto child : group) {
             spaceRemaining -= child->rect.w * wd;
             spaceRemaining -= child->rect.h * hd;
         }
@@ -94,12 +96,12 @@ void layout_position_items(layout_item_ptr item) {
         if (visibleItems == 1 && justify == LAYOUT_JUSTIFY_SPACE_BETWEEN) {
             justify = LAYOUT_JUSTIFY_CENTER;
         }
-        switch (justify)  {
+        switch (justify) {
         case LAYOUT_JUSTIFY_FLEX_END:
             offsetStart = spaceRemaining;
             break;
         case LAYOUT_JUSTIFY_CENTER:
-            offsetStart = spaceRemaining/2;
+            offsetStart = spaceRemaining / 2;
             break;
         case LAYOUT_JUSTIFY_SPACE_BETWEEN:
             if (visibleItems > 1) {
@@ -115,18 +117,18 @@ void layout_position_items(layout_item_ptr item) {
             break;
         }
 
-        for(auto child : group) {
+        for (auto child : group) {
             child->rect.x = (xx * hd) + ((offsetStart + offset) * wd);
             child->rect.y = (yy * wd) + ((offsetStart + offset) * hd);
 
-            if (item->rect.w < child->rect.x + child->rect.w + item->margin*2) {
+            if (item->rect.w < child->rect.x + child->rect.w + item->margin * 2) {
                 if (item->fit_children) {
-                    item->rect.w = child->rect.x + child->rect.w + item->margin*2;
+                    item->rect.w = child->rect.x + child->rect.w + item->margin * 2;
                 }
             }
-            if (item->rect.h < child->rect.y + child->rect.h + item->margin*2) {
+            if (item->rect.h < child->rect.y + child->rect.h + item->margin * 2) {
                 if (item->fit_children) {
-                    item->rect.h = child->rect.y + child->rect.h + item->margin*2;
+                    item->rect.h = child->rect.y + child->rect.h + item->margin * 2;
                 }
             }
 
@@ -137,7 +139,7 @@ void layout_position_items(layout_item_ptr item) {
     }
 
     // align items
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         if (!child->visible) {
             continue;
         }
@@ -146,7 +148,7 @@ void layout_position_items(layout_item_ptr item) {
         alignOffset += (item->constraint.max_height - child->rect.h) * wd;
 
         int align = child->align_self ? child->align_self : item->align;
-        switch(align) {
+        switch (align) {
         case LAYOUT_ALIGN_FLEX_START:
             alignOffset = 0;
             break;
@@ -163,10 +165,10 @@ void layout_position_items(layout_item_ptr item) {
 void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
 {
     layout_rect rect = {
-        x: item->x, 
-        y: item->y,
-        w: constraint.max_width,
-        h: constraint.max_height
+        x : item->x,
+        y : item->y,
+        w : constraint.max_width,
+        h : constraint.max_height
     };
     item->rect = rect;
     item->render_rect = rect;
@@ -176,7 +178,7 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
     item->constraint = constraint;
 
     if (!item->visible) {
-        item->rect = { 0,0,0,0 };
+        item->rect = { 0, 0, 0, 0 };
         return;
     }
 
@@ -191,7 +193,7 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
     int totalFlex = 0;
     int totalFlexBasis = 0;
     int totalFixed = 0;
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         if (!child->visible) {
             continue;
         }
@@ -218,7 +220,7 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
     if (spaceRemaining < 0)
         spaceRemaining = 0;
 
-    for(auto child : flexItems) {
+    for (auto child : flexItems) {
         int ww = spaceRemaining * child->grow / totalFlex;
         layout_run(child, { 0, 0, ww, constraint.max_height });
     }
@@ -230,10 +232,10 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
 void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
 {
     layout_rect rect = {
-        x: item->x, 
-        y: item->y,
-        w: constraint.max_width,
-        h: constraint.max_height
+        x : item->x,
+        y : item->y,
+        w : constraint.max_width,
+        h : constraint.max_height
     };
     item->rect = rect;
     item->render_rect = rect;
@@ -243,7 +245,7 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     item->constraint = constraint;
 
     if (!item->visible) {
-        item->rect = { 0,0,0,0 };
+        item->rect = { 0, 0, 0, 0 };
         return;
     }
 
@@ -258,7 +260,7 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     int totalFlex = 0;
     int totalFlexBasis = 0;
     int totalFixed = 0;
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         if (!child->visible) {
             continue;
         }
@@ -285,9 +287,9 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     if (spaceRemaining < 0)
         spaceRemaining = 0;
 
-    for(auto child : flexItems) {
+    for (auto child : flexItems) {
         int hh = spaceRemaining * child->grow / totalFlex;
-        layout_run(child, { 0, 0, constraint.max_width, hh});
+        layout_run(child, { 0, 0, constraint.max_width, hh });
     }
 
     layout_position_items(item);
@@ -299,7 +301,7 @@ void _prelayout(layout_item_ptr item)
     if (item->view) {
         item->view->prelayout();
     }
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         _prelayout(child);
     }
 }
@@ -309,7 +311,7 @@ void _postlayout(layout_item_ptr item)
     if (item->view) {
         item->view->postlayout();
     }
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         _postlayout(child);
     }
 }
@@ -318,15 +320,14 @@ void _layout_run(layout_item_ptr item, layout_constraint constraint)
 {
     _prelayout(item);
 
-    if (item->direction == LAYOUT_FLEX_DIRECTION_ROW ||
-            item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
+    if (item->direction == LAYOUT_FLEX_DIRECTION_ROW || item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
         layout_horizontal_run(item, constraint);
     } else {
         layout_vertical_run(item, constraint);
     }
 
     // apply margin
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         if (!child->visible) {
             continue;
         }

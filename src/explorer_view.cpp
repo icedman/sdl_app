@@ -1,16 +1,16 @@
 #include "explorer_view.h"
-#include "renderer.h"
 #include "render_cache.h"
+#include "renderer.h"
 
+#include "app_view.h"
+#include "image.h"
 #include "scrollarea.h"
 #include "scrollbar.h"
-#include "image.h"
 #include "text.h"
-#include "app_view.h"
 
 #include "app.h"
-#include "extension.h"
 #include "explorer.h"
+#include "extension.h"
 
 explorer_view::explorer_view()
     : list_view()
@@ -20,7 +20,7 @@ explorer_view::explorer_view()
 
 void explorer_view::update()
 {
-    explorer_t *explorer = explorer_t::instance();
+    explorer_t* explorer = explorer_t::instance();
     bool hasChanges = explorer->regenerateList;
     explorer->update(0); // did change?
 
@@ -33,12 +33,11 @@ void explorer_view::update()
 
     printf("repopulate explorer\n");
 
-    std::string folder_icon_path =icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);
-    std::string folder_close_icon_path =icon_for_file(app_t::instance()->icons, ".folder", app_t::instance()->extensions);
+    std::string folder_icon_path = icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);
+    std::string folder_close_icon_path = icon_for_file(app_t::instance()->icons, ".folder", app_t::instance()->extensions);
 
     data.clear();
-    for(auto f : explorer->renderList)
-    {
+    for (auto f : explorer->renderList) {
         std::string icon;
         if (f->isDirectory) {
             if (f->expanded) {
@@ -50,10 +49,10 @@ void explorer_view::update()
             icon = icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
         }
         list_item_data_t item = {
-            icon: icon,
-            text: f->name,
-            indent: f->depth,
-            data: f
+            icon : icon,
+            text : f->name,
+            indent : f->depth,
+            data : f
         };
         data.push_back(item);
     }
@@ -61,11 +60,11 @@ void explorer_view::update()
     list_view::update();
 }
 
-void explorer_view::select_item(list_item_view *item)
+void explorer_view::select_item(list_item_view* item)
 {
-    fileitem_t *file = (fileitem_t*)item->data.data;
+    fileitem_t* file = (fileitem_t*)item->data.data;
 
-    app_t *app = app_t::instance();
+    app_t* app = app_t::instance();
     if (file && file->isDirectory) {
         if (file->canLoadMore) {
             file->load();

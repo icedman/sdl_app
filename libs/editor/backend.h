@@ -7,8 +7,8 @@ struct backend_t {
 
     backend_t();
 
-    virtual void setClipboardText(std::string text) {};
-    virtual std::string getClipboardText() {};
+    virtual void setClipboardText(std::string text){};
+    virtual std::string getClipboardText(){};
 
     static backend_t* instance();
 };

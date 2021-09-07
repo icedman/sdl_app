@@ -45,7 +45,7 @@ struct explorer_t {
     void buildFileList(std::vector<struct fileitem_t*>& list, struct fileitem_t* files, int depth, bool deep = false);
 
     void print();
-    
+
     std::vector<struct fileitem_t*> fileList();
 
     fileitem_t files;
@@ -57,7 +57,7 @@ struct explorer_t {
     int currentItem;
     bool regenerateList;
 
-    void *view;
+    void* view;
 };
 
 #endif // EXPLORER_H

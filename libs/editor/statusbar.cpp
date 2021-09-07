@@ -37,4 +37,3 @@ void statusbar_t::update(int delta)
         status = "";
     }
 }
-

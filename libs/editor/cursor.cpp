@@ -1,8 +1,8 @@
 #include "cursor.h"
+#include "app.h"
 #include "document.h"
 #include "search.h"
 #include "util.h"
-#include "app.h"
 
 #include <algorithm>
 
@@ -772,7 +772,7 @@ int cursor_t::unindent()
 static int _cursorToggleLineComment(cursor_t* cursor)
 {
     // editor_ptr editor = app_t::instance()->currentEditor;
-    editor_t *editor = cursor->block()->document->editor;
+    editor_t* editor = cursor->block()->document->editor;
     if (!editor->highlighter.lang || !editor->highlighter.lang->lineComment.length()) {
         return 0;
     }

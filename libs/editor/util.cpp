@@ -1,10 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
 #include <ctype.h>
 #include <dirent.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
 #include <strings.h>
-#include <stdarg.h>
 #include <wordexp.h>
 
 #include "util.h"
@@ -124,7 +124,7 @@ void log(const char* format, ...)
     if (!log_initialized) {
         initLog();
     }
-    
+
     static char string[1024] = "";
 
     va_list args;

@@ -29,7 +29,7 @@ typedef struct {
     RenRect rect;
     RenColor color;
     void* font; // image / radius
-    int bold;   // fill
+    int bold; // fill
     int italic; // stroke
     char text[0];
 } Command;
@@ -45,21 +45,22 @@ struct RenCache {
     RenRect target_rect;
     bool show_debug;
 
-    RenCache() {
+    RenCache()
+    {
         cells_prev = cells_buf1;
         cells = cells_buf2;
     }
 };
 
 RenCache default_cache;
-RenCache *cache = 0;
+RenCache* cache = 0;
 
 RenCache* ren_create_cache()
 {
     return new RenCache();
 }
 
-void ren_destroy_cache(RenCache *c)
+void ren_destroy_cache(RenCache* c)
 {
     delete c;
 }
@@ -185,9 +186,7 @@ void rencache_draw_image(RenImage* image, RenRect rect, RenColor color)
 
 void rencache_invalidate_rect(RenRect rect)
 {
-    rencache_draw_rect(rect, {
-        (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(),0
-    }, false, 0);
+    rencache_draw_rect(rect, { (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(), 0 }, false, 0);
 }
 
 void rencache_draw_rect(RenRect rect, RenColor color, bool fill, int stroke, int radius)
@@ -239,7 +238,7 @@ void rencache_invalidate(void)
     memset(cache->cells_prev, 0xff, sizeof(cache->cells_buf1));
 }
 
-void rencache_begin_frame(int w, int h, RenCache *target)
+void rencache_begin_frame(int w, int h, RenCache* target)
 {
     if (target) {
         cache = target;
@@ -374,7 +373,7 @@ void rencache_end_frame(void)
 
         if (cache->show_debug) {
             // RenColor color = { (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(), 50 };
-            RenColor color = { 255,255,0,50 };
+            RenColor color = { 255, 255, 0, 50 };
             ren_draw_rect(r, color, false, 4.0f);
         }
     }
@@ -409,4 +408,5 @@ void rencache_init()
 }
 
 void rencache_shutdown()
-{}
+{
+}

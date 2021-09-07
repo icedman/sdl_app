@@ -1,17 +1,18 @@
 #ifndef LIST_VIEW_H
 #define LIST_VIEW_H
 
-#include "view.h"
 #include "panel.h"
+#include "view.h"
 
 struct list_item_data_t {
     std::string icon;
     std::string text;
     int indent;
-    void *data;
+    void* data;
     bool selected;
 
-    bool equals(list_item_data_t d) {
+    bool equals(list_item_data_t d)
+    {
         return (icon == d.icon && text == d.text && indent == d.indent && data == d.data);
     }
 };
@@ -30,14 +31,14 @@ struct list_item_view : horizontal_container {
 struct list_view : panel_view {
     list_view(std::vector<list_item_data_t> items);
     list_view();
-    
+
     virtual void prelayout() override;
     virtual void update() override;
 
-    virtual void select_item(list_item_view *item);
+    virtual void select_item(list_item_view* item);
 
     std::vector<list_item_data_t> data;
-    list_item_view *selected;
+    list_item_view* selected;
 };
 
 #endif // LIST_VIEW_H

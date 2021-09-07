@@ -1,13 +1,13 @@
 #include "panel.h"
+#include "render_cache.h"
 #include "scrollarea.h"
 #include "scrollbar.h"
-#include "render_cache.h"
 
 panel_view::panel_view()
 {
     type = "panel";
     int scrollbar_size = 18;
-    
+
     v_scroll = std::make_shared<vscrollbar_view>();
     v_scroll->layout()->width = scrollbar_size;
     h_scroll = std::make_shared<hscrollbar_view>();
@@ -55,9 +55,9 @@ view_item_ptr panel_view::content()
 
 void panel_view::_validate()
 {
-    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
-    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
-    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
+    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+    scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
+    scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
 
     int hp = ((hs->count + (area->overscroll * hs->count) - hs->window));
     if (area->layout()->scroll_x < -hp) {
@@ -78,14 +78,13 @@ void panel_view::_validate()
 
 bool panel_view::scrollbar_move()
 {
-    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
-    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
-    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
-    
+    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+    scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
+    scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
+
     if (vs->window < vs->count) {
         int vp = ((vs->count + (area->overscroll * vs->count) - vs->window) * vs->index / vs->count);
         area->layout()->scroll_y = -vp;
-    
     }
     if (hs->window < hs->count) {
         int hp = ((hs->count + (area->overscroll * hs->count) - hs->window) * hs->index / hs->count);
@@ -101,10 +100,10 @@ bool panel_view::scrollbar_move()
 
 bool panel_view::mouse_wheel(int x, int y)
 {
-    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
-    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
-    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
-    
+    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+    scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
+    scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
+
     area->layout()->scroll_x += x * area->move_factor_x;
     area->layout()->scroll_y += y * area->move_factor_y;
 
@@ -125,8 +124,8 @@ bool panel_view::mouse_wheel(int x, int y)
 
 void panel_view::update()
 {
-    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
-    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
+    scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
+    scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
 
     vs->layout()->visible = vs->disabled ? false : vs->window < vs->count;
     hs->layout()->visible = hs->disabled ? false : hs->window < hs->count;
@@ -138,15 +137,9 @@ void panel_view::update()
 void panel_view::postlayout()
 {
     // printf("%d %d\n", content()->layout()->rect.w, content()->layout()->rect.h);
-    ((scrollbar_view*)v_scroll.get())->set_size(
-        content()->layout()->rect.h, 
-        scrollarea->layout()->rect.h
-    );
+    ((scrollbar_view*)v_scroll.get())->set_size(content()->layout()->rect.h, scrollarea->layout()->rect.h);
 
-    ((scrollbar_view*)h_scroll.get())->set_size(
-        content()->layout()->rect.w, 
-        scrollarea->layout()->rect.w
-    );
+    ((scrollbar_view*)h_scroll.get())->set_size(content()->layout()->rect.w, scrollarea->layout()->rect.w);
 }
 
 void panel_view::update_scrollbars()

@@ -1,9 +1,9 @@
 #ifndef LAYOUT_H
 #define LAYOUT_H
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 enum layout_flex_direction {
     LAYOUT_FLEX_DIRECTION_UNKNOWN,
@@ -69,21 +69,22 @@ typedef std::vector<layout_item_ptr> layout_item_list;
 
 struct layout_view {
 
-    layout_view() 
-    : disabled(false)
-    , focusable(false)
-    , interactive(false)
-    , color({ 255, 255, 255 })
-    , background({ 150, 150, 150 })
-    , border_color({ 150, 150, 150 })
-    , border_width(0)
-    , parent(0)
-    {}
+    layout_view()
+        : disabled(false)
+        , focusable(false)
+        , interactive(false)
+        , color({ 255, 255, 255 })
+        , background({ 150, 150, 150 })
+        , border_color({ 150, 150, 150 })
+        , border_width(0)
+        , parent(0)
+    {
+    }
 
     bool disabled;
     bool focusable;
     bool interactive;
-    layout_view *parent;
+    layout_view* parent;
     layout_item_ptr _layout;
 
     layout_color color;
@@ -98,7 +99,7 @@ struct layout_view {
     virtual bool is_clicked() { return false; }
     virtual layout_item_ptr layout() { return 0; }
     virtual void set_layout(layout_item_ptr l) { _layout = l; }
-    
+
     virtual void prelayout() {}
     virtual void postlayout() {}
     virtual void update() {}
@@ -127,14 +128,14 @@ struct layout_item {
         , align(LAYOUT_ALIGN_FLEX_START)
         , justify(LAYOUT_JUSTIFY_FLEX_START)
         , direction(LAYOUT_FLEX_DIRECTION_COLUMN)
-        , constraint({0,0,0,0})
-        , render_rect({0,0,0,0})
+        , constraint({ 0, 0, 0, 0 })
+        , render_rect({ 0, 0, 0, 0 })
         , view(0)
     {
         rgb = {
-            r: 255,
-            g: 0,
-            b: 255
+            r : 255,
+            g : 0,
+            b : 255
         };
     }
 
@@ -142,8 +143,8 @@ struct layout_item {
 
     layout_color rgb;
     layout_constraint constraint; // passed down
-    layout_rect rect;             // relative computed
-    layout_rect render_rect;      // final computed
+    layout_rect rect; // relative computed
+    layout_rect render_rect; // final computed
 
     int order;
     bool visible;
@@ -154,9 +155,9 @@ struct layout_item {
     int scroll_x, scroll_y;
     int width, height;
     bool fit_children;
-    int grow;                   // flex-grow
-    int shrink;                 // not yet implemented
-    int flex_basis;             // not yet implemented
+    int grow; // flex-grow
+    int shrink; // not yet implemented
+    int flex_basis; // not yet implemented
     layout_align_items align;
     layout_align_content align_content; // not yet implemented
     layout_align_items align_self;
@@ -164,15 +165,15 @@ struct layout_item {
     layout_flex_direction direction;
     layout_item_list children;
 
-    layout_view *view;
+    layout_view* view;
 
-    bool is_column() {
-        return direction == LAYOUT_FLEX_DIRECTION_COLUMN ||
-                direction == LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
+    bool is_column()
+    {
+        return direction == LAYOUT_FLEX_DIRECTION_COLUMN || direction == LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     }
-    bool is_row() {
-        return direction == LAYOUT_FLEX_DIRECTION_ROW ||
-                direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE;
+    bool is_row()
+    {
+        return direction == LAYOUT_FLEX_DIRECTION_ROW || direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE;
     }
 };
 

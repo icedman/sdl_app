@@ -1,9 +1,9 @@
 #ifndef EDITOR_VIEW_H
 #define EDITOR_VIEW_H
 
-#include "view.h"
-#include "text.h"
 #include "panel.h"
+#include "text.h"
+#include "view.h"
 
 #include "cursor.h"
 #include "editor.h"
@@ -42,6 +42,5 @@ struct editor_view : panel_view {
     std::string font;
     int fw, fh;
 };
-
 
 #endif // EDITOR_VIEW_H

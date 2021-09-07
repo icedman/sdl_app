@@ -1,11 +1,11 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-#include <map>
-#include <vector>
 #include <algorithm>
-#include <string>
 #include <functional>
+#include <map>
+#include <string>
+#include <vector>
 
 enum event_type_e {
     EVT_UNKNOWN = 0,
@@ -20,9 +20,9 @@ enum event_type_e {
     EVT_WINDOW_RESIZE,
 
     /* synthetic events */
-    EVT_MOUSE_CLICK, 
-    EVT_MOUSE_DRAG_START, 
-    EVT_MOUSE_DRAG, 
+    EVT_MOUSE_CLICK,
+    EVT_MOUSE_DRAG_START,
+    EVT_MOUSE_DRAG,
     EVT_MOUSE_DRAG_END,
     EVT_SCROLLBAR_MOVE
 };
@@ -41,8 +41,8 @@ struct event_t {
     int button;
     int clicks;
     std::string text;
-    event_object_t *source;
-    event_object_t *target;
+    event_object_t* source;
+    event_object_t* target;
     bool cancelled;
 };
 

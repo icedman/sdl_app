@@ -8,7 +8,7 @@ struct text_view : view_item {
 
     void prelayout() override;
     void render() override;
-    
+
     std::string text;
     std::string cached_text;
     int text_width;

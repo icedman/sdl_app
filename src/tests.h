@@ -1,12 +1,12 @@
 #ifndef TESTS_H
 #define TESTS_H
 
-#include "view.h"
+#include "editor_view.h"
+#include "explorer_view.h"
 #include "layout.h"
 #include "scrollarea.h"
 #include "scrollbar.h"
-#include "editor_view.h"
-#include "explorer_view.h"
+#include "view.h"
 
 view_item_ptr test_root();
 

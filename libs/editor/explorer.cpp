@@ -242,5 +242,4 @@ void explorer_t::print()
     for (auto file : files) {
         log(">%s\n", file->fullPath.c_str());
     }
-
 }

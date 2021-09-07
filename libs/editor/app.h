@@ -1,8 +1,8 @@
 #ifndef APP_H
 #define APP_H
 
-#include "extension.h"
 #include "editor.h"
+#include "extension.h"
 
 #include <string>
 
@@ -52,7 +52,7 @@ struct app_t {
     theme_ptr theme;
     icon_theme_ptr icons;
     icon_theme_ptr icons_default;
-    
+
     std::string markup;
 
     bool debug;
@@ -86,7 +86,7 @@ struct app_t {
     bool end;
     int refreshCount;
 
-    void *view;
+    void* view;
 };
 
 int pairForColor(int colorIdx, bool selected);

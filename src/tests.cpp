@@ -3,14 +3,14 @@
 #include "app.h"
 #include "app_view.h"
 
-#include "text.h"
 #include "button.h"
 #include "explorer.h"
-#include "scrollbar.h"
-#include "panel.h"
-#include "tabbar.h"
-#include "list.h"
 #include "inputtext.h"
+#include "list.h"
+#include "panel.h"
+#include "scrollbar.h"
+#include "tabbar.h"
+#include "text.h"
 
 #include "render_cache.h"
 
@@ -19,20 +19,21 @@ view_item_ptr test_root()
     return test5();
 }
 
-view_item_ptr test6() {
+view_item_ptr test6()
+{
     view_item_ptr root = std::make_shared<panel_view>();
     root->layout()->margin = 40;
 
-    panel_view *panel = view_item::cast<panel_view>(root);
+    panel_view* panel = view_item::cast<panel_view>(root);
     panel->content()->add_child(std::make_shared<inputtext_view>());
     panel->content()->add_child(std::make_shared<inputtext_view>());
 
     std::vector<list_item_data_t> data;
-    for(int i=0; i<20; i++) {
+    for (int i = 0; i < 20; i++) {
         std::string text = "item ";
         text += 'a' + i;
         list_item_data_t item = {
-            text: text
+            text : text
         };
         data.push_back(item);
     }
@@ -43,12 +44,14 @@ view_item_ptr test6() {
     return root;
 }
 
-view_item_ptr test5() {
+view_item_ptr test5()
+{
     return std::make_shared<app_view>();
 }
 
 struct my_root : view_item {
-    void update() override {
+    void update() override
+    {
         ((scrollbar_view*)v_scroll.get())->set_size(100, 10);
         ((scrollbar_view*)h_scroll.get())->set_size(100, 10);
     }
@@ -58,7 +61,8 @@ struct my_root : view_item {
     view_item_ptr scrollarea;
 };
 
-view_item_ptr test4() {
+view_item_ptr test4()
+{
     view_item_ptr root = std::make_shared<my_root>();
     layout_item_ptr layout = root->layout();
     layout->margin = 40;
@@ -80,12 +84,12 @@ view_item_ptr test4() {
     content->layout()->wrap = false;
     content->layout()->fit_children = false;
 
-    my_root *_root = ((my_root*)root.get());
+    my_root* _root = ((my_root*)root.get());
     _root->scrollarea = scrollarea;
     _root->v_scroll = v_scroll;
     _root->h_scroll = h_scroll;
 
-    for(int i=0; i<10; i++) {
+    for (int i = 0; i < 10; i++) {
         std::string t = "button ";
         t += ('a' + i);
         view_item_ptr button = std::make_shared<button_view>(t);
@@ -108,12 +112,13 @@ view_item_ptr test4() {
     hvs->layout()->width = 18;
     hvs->layout()->height = 18;
     hv->add_child(hvs);
-    
+
     root->add_child(hv);
     return root;
 }
 
-view_item_ptr test3() {
+view_item_ptr test3()
+{
     view_item_ptr root = std::make_shared<view_item>();
 
     view_item_ptr item_a = std::make_shared<view_item>();
@@ -134,7 +139,7 @@ view_item_ptr test3() {
 
     view_item_ptr button = std::make_shared<button_view>("hey button");
     button->add_child(std::make_shared<text_view>("hello world"));
-    
+
     // view_item_ptr button = std::make_shared<view_item>();
 
     button->layout()->width = 200;
@@ -147,7 +152,6 @@ view_item_ptr test3() {
     // item_b->layout()->scroll_x = -80;
     // item_b->layout()->scroll_y = 80;
 
-
     view_item_ptr item_f = std::make_shared<text_view>("hello world");
     item_b->add_child(item_f);
 
@@ -155,16 +159,17 @@ view_item_ptr test3() {
     return root;
 }
 
-view_item_ptr test2() {
+view_item_ptr test2()
+{
     layout_item_ptr root = std::make_shared<layout_item>();
     // root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     root->direction = LAYOUT_FLEX_DIRECTION_ROW;
-    
+
     // root->justify = LAYOUT_JUSTIFY_FLEX_END;
     root->justify = LAYOUT_JUSTIFY_CENTER;
     // root->justify = LAYOUT_JUSTIFY_SPACE_BETWEEN;
     // root->justify = LAYOUT_JUSTIFY_SPACE_AROUND;
-    
+
     root->align = LAYOUT_ALIGN_FLEX_START;
     // root->align = LAYOUT_ALIGN_FLEX_END;
     // root->align = LAYOUT_ALIGN_CENTER;
@@ -191,7 +196,7 @@ view_item_ptr test2() {
     root->children.push_back(item_h);
 
     int i = 0;
-    for(auto child : root->children) {
+    for (auto child : root->children) {
         child->name = 'a' + i++;
         child->width = 200;
         child->height = 200;
@@ -202,7 +207,8 @@ view_item_ptr test2() {
     return view;
 }
 
-view_item_ptr test1() {
+view_item_ptr test1()
+{
     layout_item_ptr root = std::make_shared<layout_item>();
     root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     root->margin = 20;

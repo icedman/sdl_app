@@ -1,7 +1,7 @@
 #include "editor.h"
+#include "indexer.h"
 #include "keyinput.h"
 #include "util.h"
-#include "indexer.h"
 
 // clipboard
 #include "app.h"
@@ -229,7 +229,7 @@ void editor_t::runOp(operation_t op)
 
         bool skipOp = false;
         if (singleLineEdit) {
-            switch(_op) {
+            switch (_op) {
             case ENTER:
             case TAB:
             case INDENT:
@@ -240,7 +240,8 @@ void editor_t::runOp(operation_t op)
             }
         }
 
-        if (skipOp) continue;
+        if (skipOp)
+            continue;
 
         switch (_op) {
 
@@ -471,7 +472,7 @@ void editor_t::runOp(operation_t op)
             // if (view && view->inputListener) {
             //     view->inputListener->onInput();
             // }
-            
+
             break;
 
         default:
@@ -890,8 +891,8 @@ void editor_t::highlight(int startingLine, int count)
     int l = 0;
     block_list::iterator it = document.blocks.begin();
 
-    int preceedingBlocks = count/2;
-    int trailingBlocks = count/3;
+    int preceedingBlocks = count / 2;
+    int trailingBlocks = count / 3;
     int idx = startingLine - preceedingBlocks;
     if (idx < 0) {
         idx = 0;

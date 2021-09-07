@@ -1,18 +1,20 @@
 #include "tabbar.h"
-#include "renderer.h"
 #include "render_cache.h"
+#include "renderer.h"
 
 #include "app.h"
 #include "app_view.h"
-#include "image.h"
 #include "button.h"
+#include "image.h"
 
 #include "app.h"
 #include "app_view.h"
 
 struct tab_item_view : horizontal_container {
 
-    tab_item_view() : horizontal_container() {
+    tab_item_view()
+        : horizontal_container()
+    {
         interactive = true;
 
         on(EVT_MOUSE_CLICK, [this](event_t& evt) {
@@ -23,14 +25,16 @@ struct tab_item_view : horizontal_container {
 
     editor_ptr editor;
 
-    bool mouse_click(int x, int y, int button) override {
+    bool mouse_click(int x, int y, int button) override
+    {
         // view_set_focused((view_item*)editor->view);
-        app_t *app = app_t::instance();
+        app_t* app = app_t::instance();
         ((app_view*)(app->view))->show_editor(editor, true);
         return true;
     }
 
-    void render() override {
+    void render() override
+    {
         layout_item_ptr lo = layout();
         layout_rect r = lo->render_rect;
         // printf("%s %d %d %d %d\n", file->name.c_str(), r.x, r.y, r.w, r.h);
@@ -43,16 +47,13 @@ struct tab_item_view : horizontal_container {
             255,
             focused ? 250 : 50
         };
-        draw_rect({
-            lo->render_rect.x,
-            lo->render_rect.y,
-            lo->render_rect.w,
-            lo->render_rect.h
-        },
-        clr, false, 1);
+        draw_rect({ lo->render_rect.x,
+                      lo->render_rect.y,
+                      lo->render_rect.w,
+                      lo->render_rect.h },
+            clr, false, 1);
     }
 };
-
 
 tabbar_view::tabbar_view()
     : horizontal_container()
@@ -92,12 +93,12 @@ void tabbar_view::prelayout()
 
 void tabbar_view::update()
 {
-    app_t *app = app_t::instance();
+    app_t* app = app_t::instance();
 
     bool hasChanges = false;
     if (app->editors.size() == content()->_views.size()) {
         view_item_list::iterator it = content()->_views.begin();
-        for(auto e : app->editors) {
+        for (auto e : app->editors) {
             view_item_ptr tab = *it++;
             if (((tab_item_view*)tab.get())->editor == e) {
                 continue;
@@ -109,9 +110,10 @@ void tabbar_view::update()
         hasChanges = true;
     }
 
-    if (!hasChanges) return;
+    if (!hasChanges)
+        return;
 
-    while(content()->_views.size() < app->editors.size()) {
+    while (content()->_views.size() < app->editors.size()) {
         view_item_ptr btn = std::make_shared<tab_item_view>();
         btn->layout()->justify = LAYOUT_JUSTIFY_CENTER;
         btn->layout()->align = LAYOUT_ALIGN_CENTER;
@@ -126,12 +128,12 @@ void tabbar_view::update()
         content()->add_child(btn);
     }
 
-    for(auto _v : content()->_views) {
+    for (auto _v : content()->_views) {
         _v->layout()->visible = false;
     }
 
     view_item_list::iterator it = content()->_views.begin();
-    for(auto e : app->editors) {
+    for (auto e : app->editors) {
         view_item_ptr btn = *it++;
         btn->layout()->visible = true;
 

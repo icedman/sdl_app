@@ -1,50 +1,58 @@
 #include "view.h"
 #include "render_cache.h"
 
-static view_item *view_root = 0;
-static view_item *view_focused = 0;
-static view_item *view_hovered = 0;
-static view_item *view_pressed = 0;
-static view_item *view_released = 0;
-static view_item *view_clicked = 0;
-static view_item *view_dragged = 0;
+static view_item* view_root = 0;
+static view_item* view_focused = 0;
+static view_item* view_hovered = 0;
+static view_item* view_pressed = 0;
+static view_item* view_released = 0;
+static view_item* view_clicked = 0;
+static view_item* view_dragged = 0;
 static int drag_start_x = 0;
 static int drag_start_y = 0;
 static bool dragging = false;
 static int _keyMods = 0;
 
-void view_input_list(view_item_list &list, view_item_ptr item)
+void view_input_list(view_item_list& list, view_item_ptr item)
 {
     if (!item->_layout || item->disabled || !item->layout()->visible || item->layout()->offscreen) {
         return;
     }
-    
+
     list.insert(list.begin(), 1, item);
-    for(auto child : item->_views) {
+    for (auto child : item->_views) {
         view_input_list(list, child);
     }
 }
 
 view_item::view_item()
     : view_item("view")
-{}
+{
+}
 
 view_item::view_item(std::string type)
     : type(type)
     , cached_image(0)
     , cache_enabled(false)
-{}
+{
+}
 
 view_item::~view_item()
 {
     destroy_cache();
 
-    if (view_focused == this) view_focused = 0;
-    if (view_hovered == this) view_hovered = 0;
-    if (view_pressed == this) view_pressed = 0;
-    if (view_released == this) view_released = 0;
-    if (view_clicked == this) view_clicked = 0;
-    if (view_dragged == this) view_dragged = 0;
+    if (view_focused == this)
+        view_focused = 0;
+    if (view_hovered == this)
+        view_hovered = 0;
+    if (view_pressed == this)
+        view_pressed = 0;
+    if (view_released == this)
+        view_released = 0;
+    if (view_clicked == this)
+        view_clicked = 0;
+    if (view_dragged == this)
+        view_dragged = 0;
 }
 
 RenImage* view_item::cache(int w, int h)
@@ -82,7 +90,7 @@ layout_item_ptr view_item::layout()
 
 void view_item::add_child(view_item_ptr view)
 {
-    for(auto i : layout()->children) {
+    for (auto i : layout()->children) {
         if (i == view->layout()) {
             return;
         }
@@ -94,9 +102,9 @@ void view_item::add_child(view_item_ptr view)
 
 void view_item::remove_child(view_item_ptr view)
 {
-    view->parent = 0;    
+    view->parent = 0;
     view_item_list::iterator it = _views.begin();
-    while(it != _views.end()) {
+    while (it != _views.end()) {
         view_item_ptr v = *it;
         if (v == view) {
             _views.erase(it);
@@ -106,7 +114,7 @@ void view_item::remove_child(view_item_ptr view)
     }
 
     layout_item_list::iterator lit = layout()->children.begin();
-    while(lit != layout()->children.end()) {
+    while (lit != layout()->children.end()) {
         layout_item_ptr l = *lit;
         if (l == view->layout()) {
             layout()->children.erase(lit);
@@ -151,7 +159,7 @@ bool view_item::is_clicked()
 
 void view_item::update()
 {
-    for(auto v : _views) {
+    for (auto v : _views) {
         v->update();
     }
 }
@@ -168,9 +176,10 @@ void view_item::propagate_event(event_t& event)
         ((view_item*)parent)->propagate_event(event);
         // if (event.cancelled) return;
     }
-    for(auto c : callbacks[event.type]) {
+    for (auto c : callbacks[event.type]) {
         c(event);
-        if (event.cancelled) break;
+        if (event.cancelled)
+            break;
     }
 }
 
@@ -181,14 +190,13 @@ view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
     }
 
     layout_rect r = item->layout()->render_rect;
-    if ((x > r.x && x < r.x + r.w) &&
-        (y > r.y && y < r.y + r.h)) {
+    if ((x > r.x && x < r.x + r.w) && (y > r.y && y < r.y + r.h)) {
         // within
     } else {
         return 0;
     }
 
-    for(auto v : item->_views) {
+    for (auto v : item->_views) {
         // check child
         view_item_ptr vc = view_find_xy(v, x, y);
         if (vc) {
@@ -203,19 +211,19 @@ view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
     return 0;
 }
 
-view_item_list *_view_list;
-void view_input_events(view_item_list &list, event_list &events)
+view_item_list* _view_list;
+void view_input_events(view_item_list& list, event_list& events)
 {
     view_clicked = 0;
 
     _view_list = &list;
-    for(auto e : events) {
-        
+    for (auto e : events) {
+
         e.source = 0;
         e.target = 0;
         e.cancelled = false;
 
-        switch(e.type) {
+        switch (e.type) {
         case EVT_KEY_UP:
             _keyMods = e.mod;
             break;
@@ -247,7 +255,7 @@ void view_input_events(view_item_list &list, event_list &events)
 
 void view_input_button(int button, int x, int y, int pressed, int clicks, event_t event)
 {
-    view_item *v = 0;
+    view_item* v = 0;
     view_item_ptr _v = view_find_xy((*_view_list).back(), x, y);
     if (_v) {
         v = _v.get();
@@ -277,13 +285,13 @@ void view_input_button(int button, int x, int y, int pressed, int clicks, event_
         if (!dragging) {
             int dx = drag_start_x - x;
             int dy = drag_start_y - y;
-            int drag_distance = dx * dx + dy *dy;
+            int drag_distance = dx * dx + dy * dy;
             if (drag_distance >= 4) {
-                    event.type = EVT_MOUSE_DRAG_START;
-                    event.source = view_pressed;
-                    view_pressed->propagate_event(event);
-                    view_dragged = view_pressed;
-                    dragging = true; 
+                event.type = EVT_MOUSE_DRAG_START;
+                event.source = view_pressed;
+                view_pressed->propagate_event(event);
+                view_dragged = view_pressed;
+                dragging = true;
             }
         } else {
             event.type = EVT_MOUSE_DRAG;
@@ -360,8 +368,7 @@ void view_input_key(int key, event_t event)
 
 void view_input_text(std::string text, event_t event)
 {
-    if ((view_input_key_mods() & K_MOD_CTRL) == K_MOD_CTRL ||
-        (view_input_key_mods() & K_MOD_ALT) == K_MOD_ALT) {
+    if ((view_input_key_mods() & K_MOD_CTRL) == K_MOD_CTRL || (view_input_key_mods() & K_MOD_ALT) == K_MOD_ALT) {
         return;
     }
     if (view_focused) {
@@ -393,7 +400,7 @@ int view_input_key_mods()
     return _keyMods;
 }
 
-void view_set_focused(view_item *item)
+void view_set_focused(view_item* item)
 {
     view_focused = item;
 }
@@ -408,7 +415,7 @@ view_item* view_get_root()
     return view_root;
 }
 
-void view_set_root(view_item *item)
+void view_set_root(view_item* item)
 {
     view_root = item;
 }

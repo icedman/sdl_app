@@ -1,21 +1,21 @@
-#include "layout.h"
-#include "renderer.h"
-#include "render_cache.h"
 #include "events.h"
+#include "layout.h"
+#include "render_cache.h"
+#include "renderer.h"
 #include "tests.h"
 
 #include "app.h"
 #include "backend.h"
+#include "editor.h"
+#include "explorer.h"
+#include "keyinput.h"
+#include "operation.h"
 #include "search.h"
 #include "statusbar.h"
-#include "explorer.h"
-#include "editor.h"
-#include "operation.h"
-#include "keyinput.h"
 #include "util.h"
 
-#include "text.h"
 #include "button.h"
+#include "text.h"
 
 #include "theme.h"
 
@@ -24,11 +24,13 @@
 extern int ren_rendered;
 
 struct sdl_backend_t : backend_t {
-    void setClipboardText(std::string text) override {
+    void setClipboardText(std::string text) override
+    {
         ren_set_clipboard(text);
     };
 
-    std::string getClipboardText() override {
+    std::string getClipboardText() override
+    {
         return ren_get_clipboard();
     };
 };
@@ -60,7 +62,7 @@ static inline void render_item(layout_item_ptr item)
 
     // ren_timer_begin();
 
-    view_item *view = (view_item*)item->view;
+    view_item* view = (view_item*)item->view;
 
     RenRect clip = {
         item->render_rect.x - 1,
@@ -111,11 +113,11 @@ static inline void render_item(layout_item_ptr item)
     // draw_text(fontUI, (char*)text.c_str(), item->render_rect.x + 4, item->render_rect.y + 2, { 255, 255, 0},
     //     false, false, true);
 
-    for(auto child : item->children) {
+    for (auto child : item->children) {
         child->render_rect = child->rect;
         child->render_rect.x += item->render_rect.x + item->scroll_x;
         child->render_rect.y += item->render_rect.y + item->scroll_y;
-    
+
         // RenRect cc = {
         //     child->render_rect.x,
         //     child->render_rect.y,
@@ -131,7 +133,7 @@ static inline void render_item(layout_item_ptr item)
     // printf("%s : %d\n", ((view_item*)(item->view))->type.c_str(), ren_timer_end());
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     sdl_backend_t backend;
     app_t app;
@@ -164,7 +166,7 @@ int main(int argc, char **argv)
     int w, h;
     ren_get_window_size(&w, &h);
     ren_begin_frame();
-    ren_draw_rect({x:0,y:0,width:w,height:h}, { (uint8_t)bg.red,(uint8_t)bg.green,(uint8_t)bg.blue });
+    ren_draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
     ren_end_frame();
     w = 0;
     h = 0;
@@ -184,7 +186,7 @@ int main(int argc, char **argv)
     event_list events;
 
     // RenFont *font = ren_create_font("Monaco 12");
-    RenFont *font = ren_create_font("Fira Code 16", "editor");
+    RenFont* font = ren_create_font("Fira Code 16", "editor");
     // RenFont *font = ren_create_font("Source Code Pro 16");
     // ren_register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
     ren_create_font("Source Code Pro 12", "ui");
@@ -195,7 +197,7 @@ int main(int argc, char **argv)
     rencache_show_debug(true);
 
     int frames = FRAME_RENDER_INTERVAL;
-    while(ren_is_running()) {
+    while (ren_is_running()) {
         // ren_performance_begin();
 
         ren_listen_events(&events);
@@ -215,7 +217,7 @@ int main(int argc, char **argv)
         root_view->update();
         uint32_t update = ren_timer_end();
         if (update > 0)
-        printf("update: %d\n", update);
+            printf("update: %d\n", update);
 
         int pw = w;
         int ph = h;
@@ -241,7 +243,7 @@ int main(int argc, char **argv)
         begin_frame(w, h);
         state_save();
 
-        draw_rect({x:0,y:0,width:w,height:h}, { (uint8_t)bg.red,(uint8_t)bg.green,(uint8_t)bg.blue });
+        draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
 
         render_item(root);
         // root_view->render();

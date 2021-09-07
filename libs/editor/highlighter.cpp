@@ -1,10 +1,10 @@
 #include "highlighter.h"
+#include "app.h"
 #include "document.h"
-#include "parse.h"
-#include "util.h"
 #include "editor.h"
 #include "indexer.h"
-#include "app.h"
+#include "parse.h"
+#include "util.h"
 
 #include <cstring>
 #include <unistd.h>
@@ -45,7 +45,7 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos)
 
 void highlighter_t::highlightBlocks(block_ptr block, int count)
 {
-    while(block && count-- > 0) {
+    while (block && count-- > 0) {
         highlightBlock(block);
         block = block->next();
     }
@@ -155,17 +155,17 @@ void highlighter_t::highlightBlock(block_ptr block)
 
         style_t style = theme->styles_for_scope(scopeName);
         span_info_t span = {
-                    .start = (int)n,
-                    .length = (int)(l - n),
-                    .colorIndex = style.foreground.index,
-                    .bold = style.bold == bool_true,
-                    .italic = style.italic == bool_true,
-                    .state = state,
-                    .scope = scopeName
-                };
-                
+            .start = (int)n,
+            .length = (int)(l - n),
+            .colorIndex = style.foreground.index,
+            .bold = style.bold == bool_true,
+            .italic = style.italic == bool_true,
+            .state = state,
+            .scope = scopeName
+        };
+
         if (blockData->spans.size() > 0) {
-            span_info_t &prevSpan = blockData->spans.front();
+            span_info_t& prevSpan = blockData->spans.front();
             prevSpan.length = n - prevSpan.start;
         }
         blockData->spans.insert(blockData->spans.begin(), 1, span);

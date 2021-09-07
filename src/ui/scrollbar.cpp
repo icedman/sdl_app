@@ -1,6 +1,6 @@
 #include "scrollbar.h"
-#include "renderer.h"
 #include "render_cache.h"
+#include "renderer.h"
 
 scrollbar_view::scrollbar_view()
     : scrollarea_view()
@@ -11,7 +11,7 @@ scrollbar_view::scrollbar_view()
     , count(12)
 {
     type = "scrollbar";
-    
+
     interactive = true;
     layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
 
@@ -49,7 +49,7 @@ bool scrollbar_view::mouse_drag_start(int x, int y)
         drag_offset = 0;
     }
 
-    drag_offset = drag_offset - (th/2);
+    drag_offset = drag_offset - (th / 2);
     dragging = true;
     return true;
 }
@@ -91,9 +91,9 @@ void scrollbar_view::_scroll(int pos)
     }
 
     int newPos = _bar_size() * p;
-    newPos -= th/2;
+    newPos -= th / 2;
     newPos -= drag_offset;
-    
+
     if (lo->is_row()) {
         lo->scroll_x = newPos;
     } else {
@@ -110,7 +110,7 @@ void scrollbar_view::prelayout()
     if (th < 40) {
         th = 40;
     }
-    
+
     if (lo->is_row()) {
         content->layout()->width = th;
         content->layout()->rect.w = th;
@@ -194,23 +194,19 @@ void scrollbar_view::render()
 {
     // background
     layout_item_ptr lo = layout();
-    draw_rect({
-        lo->render_rect.x,
-        lo->render_rect.y,
-        lo->render_rect.w,
-        lo->render_rect.h
-    },
-    { 255,0,255} , false, 1.0f);
+    draw_rect({ lo->render_rect.x,
+                  lo->render_rect.y,
+                  lo->render_rect.w,
+                  lo->render_rect.h },
+        { 255, 0, 255 }, false, 1.0f);
 
     // thumb
     layout_item_ptr lot = content->layout();
-    draw_rect({
-        lot->render_rect.x + 4,
-        lot->render_rect.y + 4,
-        lot->render_rect.w - 8,
-        lot->render_rect.h - 8
-    },
-    { 255,0,255}, false, (content->is_pressed() || is_hovered()) ? 2.0f : 1.0f);
+    draw_rect({ lot->render_rect.x + 4,
+                  lot->render_rect.y + 4,
+                  lot->render_rect.w - 8,
+                  lot->render_rect.h - 8 },
+        { 255, 0, 255 }, false, (content->is_pressed() || is_hovered()) ? 2.0f : 1.0f);
 }
 
 int scrollbar_view::_thumb_size()

@@ -11,7 +11,7 @@ struct extension_t {
     std::string path;
     Json::Value package;
     Json::Value nls;
-    
+
     std::string entryPath;
     bool hasCommands;
 };

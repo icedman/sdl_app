@@ -1,8 +1,8 @@
 #include "document.h"
+#include "app.h"
 #include "cursor.h"
 #include "search.h"
 #include "util.h"
-#include "app.h"
 
 #include "indexer.h"
 
@@ -108,17 +108,18 @@ block_ptr document_t::previousBlock(block_t* block)
     return *it;
 }
 
-std::string _tabsToSpaces(std::string line) {
+std::string _tabsToSpaces(std::string line)
+{
     int tabSize = app_t::instance()->tabSize;
     if (tabSize < 2) {
         return line;
     }
     std::string tab = " ";
-    for (int i=1; i<tabSize; i++) {
+    for (int i = 1; i < tabSize; i++) {
         tab += " ";
     }
     std::string t;
-    for(auto c : line) {
+    for (auto c : line) {
         if (c == '\t') {
             t += tab;
         } else {

@@ -6,10 +6,10 @@
 #include "theme.h"
 #include "util.h"
 
-static bool file_exists(const char *path)
+static bool file_exists(const char* path)
 {
     bool exists = false;
-    FILE *fp = fopen(path, "r");
+    FILE* fp = fopen(path, "r");
     if (fp) {
         exists = true;
         fclose(fp);
@@ -246,46 +246,46 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
 
     if (!resolvedLanguage.empty()) {
         // std::cout << resolvedLanguage << std::endl;
-        for (int j = 0; j<2; j++)
-        for (int i = 0; i < resolvedGrammars.size(); i++) {
-            Json::Value g = resolvedGrammars[i];
-            bool foundGrammar = false;
+        for (int j = 0; j < 2; j++)
+            for (int i = 0; i < resolvedGrammars.size(); i++) {
+                Json::Value g = resolvedGrammars[i];
+                bool foundGrammar = false;
 
-            if (j == 0 && g.isMember("scopeName") && g["scopeName"].asString().compare(scopeName) == 0) {
-                foundGrammar = true;
-            }
-
-            if (j == 1 && g.isMember("language") && g["language"].asString().compare(resolvedLanguage) == 0) {
-                foundGrammar = true;
-            }
-
-            if (foundGrammar) {
-                std::string path = resolvedExtension.path + "/" + g["path"].asString();
-
-                // std::cout << path << std::endl;
-                log("grammar: %s", path.c_str());
-
-                lang->grammar = parse::parse_grammar(parse::loadJson(path));
-                lang->id = resolvedLanguage;
-
-                // language configuration
-                if (!resolvedConfiguration.empty()) {
-                    path = resolvedExtension.path + "/" + resolvedConfiguration.asString();
-                } else {
-                    path = resolvedExtension.path + "/language-configuration.json";
+                if (j == 0 && g.isMember("scopeName") && g["scopeName"].asString().compare(scopeName) == 0) {
+                    foundGrammar = true;
                 }
 
-                load_language_configuration(path, lang);
+                if (j == 1 && g.isMember("language") && g["language"].asString().compare(resolvedLanguage) == 0) {
+                    foundGrammar = true;
+                }
 
-                log("language configuration: %s", path.c_str());
-                // std::cout << "langauge matched" << lang->id << std::endl;
-                // std::cout << path << std::endl;
+                if (foundGrammar) {
+                    std::string path = resolvedExtension.path + "/" + g["path"].asString();
 
-                // don't cache..? causes problem with highlighter thread
-                // cache.emplace(suffix, lang);
-                return lang;
+                    // std::cout << path << std::endl;
+                    log("grammar: %s", path.c_str());
+
+                    lang->grammar = parse::parse_grammar(parse::loadJson(path));
+                    lang->id = resolvedLanguage;
+
+                    // language configuration
+                    if (!resolvedConfiguration.empty()) {
+                        path = resolvedExtension.path + "/" + resolvedConfiguration.asString();
+                    } else {
+                        path = resolvedExtension.path + "/language-configuration.json";
+                    }
+
+                    load_language_configuration(path, lang);
+
+                    log("language configuration: %s", path.c_str());
+                    // std::cout << "langauge matched" << lang->id << std::endl;
+                    // std::cout << path << std::endl;
+
+                    // don't cache..? causes problem with highlighter thread
+                    // cache.emplace(suffix, lang);
+                    return lang;
+                }
             }
-        }
     }
 
     if (!lang->grammar) {
@@ -390,7 +390,6 @@ theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t
     return theme;
 }
 
-
 std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<struct extension_t>& _extensions)
 {
     std::set<char> delims = { '.' };
@@ -477,8 +476,6 @@ std::string icon_for_folder(icon_theme_ptr icons, std::string folder, std::vecto
 {
     return "";
 }
-
-
 
 bool theme_is_dark(theme_ptr theme)
 {

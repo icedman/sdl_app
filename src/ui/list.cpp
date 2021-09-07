@@ -1,13 +1,13 @@
 #include "list.h"
-#include "renderer.h"
 #include "render_cache.h"
+#include "renderer.h"
 
 #include "app.h"
+#include "app_view.h"
+#include "image.h"
 #include "scrollarea.h"
 #include "scrollbar.h"
-#include "image.h"
 #include "text.h"
-#include "app_view.h"
 
 list_item_view::list_item_view()
     : horizontal_container()
@@ -21,19 +21,21 @@ list_item_view::list_item_view()
     });
 }
 
-bool list_item_view::mouse_click(int x, int y, int button) {  
-    container->select_item(this);      
+bool list_item_view::mouse_click(int x, int y, int button)
+{
+    container->select_item(this);
     return true;
 }
 
-void list_item_view::render() {
+void list_item_view::render()
+{
     layout_item_ptr lo = layout();
     layout_rect r = lo->render_rect;
 
     if (data.selected) {
-        draw_rect({ r.x, r.y, r.w, r.h }, { 255,0, 255, 150 }, false, 4);
+        draw_rect({ r.x, r.y, r.w, r.h }, { 255, 0, 255, 150 }, false, 4);
     } else {
-        draw_rect({ r.x, r.y, r.w, r.h }, { 255,0, 255, 150 }, false, 1);
+        draw_rect({ r.x, r.y, r.w, r.h }, { 255, 0, 255, 150 }, false, 1);
     }
 }
 
@@ -64,10 +66,10 @@ void list_view::prelayout()
 }
 
 void list_view::update()
-{   
-    scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
+{
+    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
-    for(auto v : content()->_views) {
+    for (auto v : content()->_views) {
         layout_item_ptr lo = v->layout();
         lo->offscreen = false;
         int y = lo->rect.y + alo->scroll_y;
@@ -81,9 +83,9 @@ void list_view::update()
     bool hasChanges = false;
     if (data.size() == content()->_views.size()) {
         view_item_list::iterator it = content()->_views.begin();
-        for(auto f : data) {
+        for (auto f : data) {
             view_item_ptr iv = *it++;
-            list_item_view *item = view_item::cast<list_item_view>(iv);
+            list_item_view* item = view_item::cast<list_item_view>(iv);
             if (item->data.equals(f)) {
                 continue;
             }
@@ -94,9 +96,10 @@ void list_view::update()
         hasChanges = true;
     }
 
-    if (!hasChanges) return;
+    if (!hasChanges)
+        return;
 
-    while(content()->_views.size() < data.size()) {
+    while (content()->_views.size() < data.size()) {
         view_item_ptr item = std::make_shared<list_item_view>();
         item->layout()->align = LAYOUT_ALIGN_CENTER;
         item->layout()->height = 32;
@@ -115,24 +118,24 @@ void list_view::update()
         view_item::cast<list_item_view>(item)->container = this;
     }
 
-    for(auto _v : content()->_views) {
+    for (auto _v : content()->_views) {
         _v->layout()->visible = false;
     }
-    
+
     bool hasIcons = false;
     view_item_list::iterator it = content()->_views.begin();
-    for(auto d : data) {
+    for (auto d : data) {
         view_item_ptr item = *it++;
         item->layout()->visible = true;
 
         ((list_item_view*)item.get())->data = d;
-        std::string icon_path =icon_for_file(app_t::instance()->icons, d.icon, app_t::instance()->extensions);
+        std::string icon_path = icon_for_file(app_t::instance()->icons, d.icon, app_t::instance()->extensions);
 
         view_item_ptr spacer = item->_views[0];
         spacer->layout()->width = 1 + (d.indent * 24);
 
         view_item_ptr icon = item->_views[1];
-        ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)d.icon.c_str(), 24,24);
+        ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)d.icon.c_str(), 24, 24);
         if (d.icon != "") {
             hasIcons = true;
         }
@@ -146,7 +149,7 @@ void list_view::update()
 
     if (hasIcons) {
         it = content()->_views.begin();
-        for(auto d : data) {
+        for (auto d : data) {
             view_item_ptr item = *it++;
             view_item_ptr icon = item->_views[1];
             icon->layout()->visible = true;
@@ -156,7 +159,7 @@ void list_view::update()
     panel_view::update();
 }
 
-void list_view::select_item(list_item_view *item)
+void list_view::select_item(list_item_view* item)
 {
     if (selected && selected != item) {
         selected->data.selected = false;

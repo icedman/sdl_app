@@ -54,14 +54,14 @@ struct editor_t {
     bracket_info_t cursorBracket1;
     bracket_info_t cursorBracket2;
 
-    indexer_t *indexer;
+    indexer_t* indexer;
 
     bool singleLineEdit;
-    
+
     bool _scrollToCursor;
     int _foldedLines;
 
-    void *view;
+    void* view;
 };
 
 typedef std::shared_ptr<struct editor_t> editor_ptr;

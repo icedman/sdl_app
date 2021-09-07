@@ -1,8 +1,8 @@
 #ifndef APP_VIEW_H
 #define APP_VIEW_H
 
-#include "view.h"
 #include "editor.h"
+#include "view.h"
 
 struct app_view : vertical_container {
     app_view();

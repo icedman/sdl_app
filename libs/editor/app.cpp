@@ -1,12 +1,12 @@
 #include "app.h"
+#include "explorer.h"
 #include "search.h"
 #include "util.h"
-#include "explorer.h"
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <algorithm>
 
 #include "highlighter.h"
 #include "indexer.h"
@@ -121,7 +121,7 @@ void app_t::configure(int argc, char** argv)
     // if (render_t::instance() && render_t::instance()->isTerminal()) {
     //     fullEnv = false;
     // }
-    
+
     const char* argTheme = 0;
     const char* argScript = 0;
     const char* defaultTheme = "Monokai";
@@ -317,7 +317,7 @@ void app_t::setupColors()
     if (!clr.is_blank()) {
         selBg = clr.index;
     }
-    
+
     // color_info_t selBgTrueColor = color_info_t::true_color(bgApp);
     // color_info_t selModified = darker(selBgTrueColor, 30);
     // selBg = selModified.index;
@@ -406,8 +406,8 @@ editor_ptr app_t::openEditor(std::string path, bool check)
 
 editor_ptr app_t::newEditor()
 {
-    return openEditor("", false)
-;}
+    return openEditor("", false);
+}
 
 void app_t::closeEditor(editor_ptr editor)
 {
@@ -425,7 +425,7 @@ void app_t::closeEditor(editor_ptr editor)
 
 void app_t::shutdown()
 {
-    for(auto e : editors) {
+    for (auto e : editors) {
         e->highlighter.cancel();
         if (e->indexer) {
             e->indexer->cancel();

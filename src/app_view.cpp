@@ -13,7 +13,7 @@
 app_view::app_view()
     : vertical_container()
 {
-    app_t *app = app_t::instance();
+    app_t* app = app_t::instance();
     app->view = this;
 
     view_item_ptr content = std::make_shared<horizontal_container>();
@@ -23,9 +23,9 @@ app_view::app_view()
     layout_item_ptr lo = layout();
     lo->margin = 0;
 
-    explorer = std::make_shared<explorer_view>();  
+    explorer = std::make_shared<explorer_view>();
 
-    main = std::make_shared<vertical_container>();    
+    main = std::make_shared<vertical_container>();
     tabbar = std::make_shared<tabbar_view>();
 
     tabcontent = std::make_shared<horizontal_container>();
@@ -59,9 +59,9 @@ bool app_view::input_sequence(std::string keySequence)
 {
     operation_e op = operationFromKeys(keySequence);
 
-    app_t *app = app_t::instance();
+    app_t* app = app_t::instance();
 
-    switch(op) {
+    switch (op) {
     case QUIT:
         ren_quit();
         return true;
@@ -87,8 +87,8 @@ bool app_view::input_sequence(std::string keySequence)
 
 void app_view::update()
 {
-    app_t *app = app_t::instance();
-    for(auto e : app->editors) {
+    app_t* app = app_t::instance();
+    for (auto e : app->editors) {
         if (!e->view) {
             create_editor_view(e);
         }
@@ -99,8 +99,8 @@ void app_view::update()
 
 void app_view::create_editor_view(editor_ptr editor)
 {
-    app_t *app = app_t::instance();
-    view_item_ptr ev = std::make_shared<editor_view>();  
+    app_t* app = app_t::instance();
+    view_item_ptr ev = std::make_shared<editor_view>();
     ((editor_view*)ev.get())->editor = editor;
     editor->view = ev.get();
     tabcontent->add_child(ev);
@@ -115,11 +115,11 @@ void app_view::destroy_editor_view(editor_ptr editor)
         return;
     }
 
-    app_t *app = app_t::instance();
+    app_t* app = app_t::instance();
 
     view_set_focused(0);
-    for(auto tab : tabcontent->_views) {
-        editor_view *ev = ((editor_view*)(tab.get()));
+    for (auto tab : tabcontent->_views) {
+        editor_view* ev = ((editor_view*)(tab.get()));
         if (ev->editor == editor) {
             tabcontent->remove_child(tab);
             break;
@@ -138,15 +138,15 @@ void app_view::destroy_editor_view(editor_ptr editor)
     }
 
     if (!view_get_focused()) {
-        for(auto tab : tabcontent->_views) {
-            editor_view *ev = ((editor_view*)(tab.get()));
+        for (auto tab : tabcontent->_views) {
+            editor_view* ev = ((editor_view*)(tab.get()));
             if (ev->layout()->visible) {
                 view_set_focused(ev);
                 break;
             }
         }
         if (!view_get_focused()) {
-            editor_view *ev = (editor_view*)(app->editors[0]->view);
+            editor_view* ev = (editor_view*)(app->editors[0]->view);
             ev->layout()->visible = true;
             view_set_focused(ev);
         }
@@ -156,8 +156,8 @@ void app_view::destroy_editor_view(editor_ptr editor)
 void app_view::show_editor(editor_ptr editor, bool sole)
 {
     if (sole) {
-        for(auto e : app_t::instance()->editors) {
-            view_item *v = (view_item*)(e->view);
+        for (auto e : app_t::instance()->editors) {
+            view_item* v = (view_item*)(e->view);
             if (v) {
                 v->layout()->visible = false;
             }

@@ -1,8 +1,8 @@
 #ifndef SCROLLBAR_VIEW_H
 #define SCROLLBAR_VIEW_H
 
-#include "view.h"
 #include "scrollarea.h"
+#include "view.h"
 
 struct scrollbar_view : scrollarea_view {
     scrollbar_view();
@@ -10,7 +10,7 @@ struct scrollbar_view : scrollarea_view {
     void prelayout() override;
     void postlayout() override;
     void render() override;
-    
+
     bool mouse_drag_start(int x, int y) override;
     bool mouse_drag_end(int x, int y) override;
     bool mouse_drag(int x, int y) override;
@@ -39,7 +39,8 @@ struct scrollbar_view : scrollarea_view {
 };
 
 struct vscrollbar_view : scrollbar_view {
-    vscrollbar_view() : scrollbar_view()
+    vscrollbar_view()
+        : scrollbar_view()
     {
         layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
         layout()->width = 18;
@@ -49,7 +50,8 @@ struct vscrollbar_view : scrollbar_view {
 };
 
 struct hscrollbar_view : scrollbar_view {
-    hscrollbar_view() : scrollbar_view()
+    hscrollbar_view()
+        : scrollbar_view()
     {
         layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
         layout()->height = 18;

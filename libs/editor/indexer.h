@@ -32,7 +32,7 @@ struct indexer_t {
     void cancel();
     pthread_t threadId;
 
-    editor_t *editor;
+    editor_t* editor;
     bool hasInvalidBlocks;
 };
 

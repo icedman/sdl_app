@@ -98,6 +98,6 @@ void block_t::print()
 
 bool block_t::isValid()
 {
-    block_ptr b = document->blockAtLine(lineNumber+1);
+    block_ptr b = document->blockAtLine(lineNumber + 1);
     return (b.get() == this);
 }
