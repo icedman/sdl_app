@@ -15,12 +15,10 @@ static int _keyMods = 0;
 
 void view_input_list(view_item_list &list, view_item_ptr item)
 {
-    if (!item->_layout || !item->layout()->visible) {
+    if (!item->_layout || item->disabled || !item->layout()->visible || item->layout()->offscreen) {
         return;
     }
-    if (item->disabled) {
-        return;
-    }
+    
     list.insert(list.begin(), 1, item);
     for(auto child : item->_views) {
         view_input_list(list, child);
@@ -33,15 +31,13 @@ view_item::view_item()
 
 view_item::view_item(std::string type)
     : type(type)
-    , _cache(0)
-    , delete_later(0)
+    , cached_image(0)
+    , cache_enabled(false)
 {}
 
 view_item::~view_item()
 {
-    if (_cache) {
-        ren_destroy_image(_cache);
-    }
+    destroy_cache();
 
     if (view_focused == this) view_focused = 0;
     if (view_hovered == this) view_hovered = 0;
@@ -53,18 +49,25 @@ view_item::~view_item()
 
 RenImage* view_item::cache(int w, int h)
 {
-    if (_cache) {
+    if (cached_image) {
         int cw, ch;
-        ren_image_size(_cache, &cw, &ch);
+        ren_image_size(cached_image, &cw, &ch);
         if (cw != w || ch != h) {
-            ren_destroy_image(_cache);
-            _cache = 0;
+            destroy_cache();
         }
     }
-    if (!_cache) {
-        _cache = ren_create_image(w, h);
+    if (!cached_image) {
+        cached_image = ren_create_image(w, h);
     }
-    return _cache;
+    return cached_image;
+}
+
+void view_item::destroy_cache()
+{
+    if (cached_image) {
+        ren_destroy_image(cached_image);
+        cached_image = 0;
+    }
 }
 
 layout_item_ptr view_item::layout()
@@ -173,12 +176,14 @@ void view_item::propagate_event(event_t& event)
 
 view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
 {
+    if (!item->layout()->visible || item->layout()->offscreen) {
+        return 0;
+    }
+
     layout_rect r = item->layout()->render_rect;
     if ((x > r.x && x < r.x + r.w) &&
         (y > r.y && y < r.y + r.h)) {
-        if (!item->layout()->visible) {
-            return 0;
-        }
+        // within
     } else {
         return 0;
     }

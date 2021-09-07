@@ -120,6 +120,7 @@ struct layout_item {
         , fit_children(true)
         , margin(0)
         , visible(true)
+        , offscreen(false)
         , wrap(false)
         , align_self(LAYOUT_ALIGN_UNKNOWN)
         , align_content(LAYOUT_ALIGN_CONTENT_UNKNOWN)
@@ -146,6 +147,7 @@ struct layout_item {
 
     int order;
     bool visible;
+    bool offscreen;
     bool wrap;
     int margin;
     int x, y;

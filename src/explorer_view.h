@@ -3,15 +3,14 @@
 
 #include "view.h"
 #include "panel.h"
+#include "list.h"
 
-struct explorer_view : panel_view {
+struct fileitem_t;
+struct explorer_view : list_view {
     explorer_view();
-    
-    view_item_ptr vscroll;
-    view_item_ptr hscroll;
 
-    void prelayout() override;
     void update() override;
+    void select_item(list_item_view *item) override;
 };
 
 #endif // EXPLORER_VIEW_H

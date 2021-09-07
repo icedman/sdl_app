@@ -13,9 +13,13 @@ SDL_Surface* window_surface;
 RenRect* update_rects = 0;
 int update_rects_count = 0;
 
-static struct {
-    int left, top, right, bottom;
-} clip;
+int ren_rendered = 0;
+
+static inline bool rects_overlap(RenRect a, RenRect b)
+{
+    return b.x + b.width >= a.x && b.x <= a.x + a.width
+        && b.y + b.height >= a.y && b.y <= a.y + a.height;
+}
 
 struct RenImage {
     int width;
@@ -86,13 +90,13 @@ void ren_destroy_image(RenImage *img)
     std::vector<RenImage*>::iterator it = std::find(images.begin(), images.end(), img);
     if (it != images.end()) {
         images.erase(it);
+        cairo_pattern_destroy(img->pattern);
+        cairo_surface_destroy(img->cairo_surface);
+        cairo_destroy(img->cairo_context);
+        free(img->buffer);
+        SDL_FreeSurface(img->sdl_surface);
+        delete img;
     }
-    cairo_pattern_destroy(img->pattern);
-    cairo_surface_destroy(img->cairo_surface);
-    cairo_destroy(img->cairo_context);
-    free(img->buffer);
-    SDL_FreeSurface(img->sdl_surface);
-    delete img;
 }
 
 void ren_destroy_images() {
@@ -166,7 +170,7 @@ void ren_init()
 
     window = SDL_CreateWindow(
                  "", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
-                 SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE);
+                 SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE | SDL_WINDOW_OPENGL);
 
     _create_cairo_context(width, height);
     shouldEnd = false;
@@ -181,8 +185,10 @@ void ren_shutdown()
     printf("shutdown\n");
 }
 
-void ren_begin_frame(RenImage *target)
+std::vector<RenImage*> context_stack;
+void _set_context_from_stack()
 {
+    RenImage *target = context_stack.size() > 0 ? context_stack.back() : 0;
     if (target) {
         target_buffer = target;
         cairo_context = target->cairo_context;
@@ -190,7 +196,45 @@ void ren_begin_frame(RenImage *target)
         target_buffer = window_buffer;
         cairo_context = window_buffer->cairo_context;
     }
-    
+}
+
+uint32_t totalFrameTicks = 0;
+uint32_t totalFrames = 0;
+uint32_t startTicks;
+uint64_t startPerf;
+
+void ren_performance_begin()
+{
+    totalFrames++;
+    startTicks = SDL_GetTicks();
+    startPerf = SDL_GetPerformanceCounter();
+}
+
+void ren_performance_end()
+{
+    uint32_t endTicks = SDL_GetTicks();
+    uint64_t endPerf = SDL_GetPerformanceCounter();
+    uint64_t framePerf = endPerf - startPerf;
+    float frameTime = (endTicks - startTicks) / 1000.0f;
+    totalFrameTicks += endTicks - startTicks;
+
+    std::string fps = "Current FPS: " + std::to_string(1.0f / frameTime);
+    std::string avg = "Average FPS: " + std::to_string(1000.0f / ((float)totalFrameTicks / totalFrames));
+    std::string perf = "Current Perf: " + std::to_string(framePerf);
+
+    // ren_draw_text(NULL, fps.c_str(), 4, 4, { 255,255,255 });
+
+    printf("-----------\n");
+    printf("%s\n", fps.c_str());
+    printf("%s\n", avg.c_str());
+    printf("%s\n", perf.c_str());
+}
+
+void ren_begin_frame(RenImage *target)
+{
+    context_stack.push_back(target);   
+    _set_context_from_stack();
+    ren_rendered = 0;
     // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
 }
 
@@ -209,12 +253,17 @@ void _blit_to_window()
 
 void ren_end_frame()
 {
-    if (_state != 0) {
-        printf("warning: states stack at %d\n", _state);
-    }
+    _set_context_from_stack();
+
     if (target_buffer == window_buffer) {
+        if (_state != 0) {
+            printf("warning: states stack at %d\n", _state);
+        }
         _blit_to_window();
     }
+
+    context_stack.pop_back();
+    _set_context_from_stack();
 }
 
 void ren_quit()
@@ -229,11 +278,13 @@ bool ren_is_running()
 
 void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
 {
+    ren_rendered++;
     cairo_save(cairo_context);
     cairo_translate(cairo_context, rect.x, rect.y);
     cairo_scale(cairo_context,
         (double)rect.width / image->width,
         (double)rect.height / image->height);
+
     if (clr.a == 0) {
         cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, 1.0f);
         cairo_mask(cairo_context, image->pattern);
@@ -253,6 +304,7 @@ void ren_draw_image(RenImage *image, RenRect rect, RenColor clr)
 
 void ren_draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
 {
+    ren_rendered++;
     double border = (double)stroke / 2;
     if (clr.a > 0) {
         cairo_set_source_rgba(cairo_context, clr.r/255.0f, clr.g/255.0f, clr.b/255.0f, clr.a/255.0f);
@@ -304,11 +356,6 @@ void ren_update_rects(RenRect* rects, int count)
 
 void ren_set_clip_rect(RenRect rect)
 {
-    clip.left = rect.x;
-    clip.top = rect.y;
-    clip.right = rect.x + rect.width;
-    clip.bottom = rect.y + rect.height;
-
     cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
     cairo_clip(cairo_context);
 }
@@ -391,7 +438,7 @@ void ren_listen_events(event_list* events)
         });
         return;
 
-    case SDL_MOUSEWHEEL:
+    case SDL_MOUSEWHEEL: 
         events->push_back({
             type: EVT_MOUSE_WHEEL,
             x: e.wheel.x,
@@ -481,6 +528,12 @@ void ren_listen_events(event_list* events)
             mod += "alt";
             _mod = K_MOD_ALT | _mod;
         }
+        if (keyMods & KMOD_GUI) {
+            if (mod.length())
+                mod += "+";
+            mod += "cmd";
+            _mod = K_MOD_GUI | _mod;
+        }
         if (keySequence.length() && mod.length()) {
             keySequence = mod + "+" + keySequence;
         }
@@ -547,3 +600,18 @@ void ren_set_clipboard(std::string text)
 {
     SDL_SetClipboardText(text.c_str());
 }
+
+std::vector<uint32_t> timer_begins;
+void ren_timer_begin()
+{
+    timer_begins.push_back(SDL_GetTicks());
+}
+
+uint32_t ren_timer_end()
+{
+    uint32_t timer_end = SDL_GetTicks();
+    uint32_t timer_begin = timer_begins.back();
+    timer_begins.pop_back();
+    return timer_end - timer_begin;
+}
+

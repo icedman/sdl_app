@@ -9,13 +9,14 @@
 #include "scrollbar.h"
 #include "panel.h"
 #include "tabbar.h"
+#include "list.h"
 #include "inputtext.h"
 
 #include "render_cache.h"
 
 view_item_ptr test_root()
 {
-    return test4();
+    return test5();
 }
 
 view_item_ptr test6() {
@@ -25,6 +26,20 @@ view_item_ptr test6() {
     panel_view *panel = view_item::cast<panel_view>(root);
     panel->content()->add_child(std::make_shared<inputtext_view>());
     panel->content()->add_child(std::make_shared<inputtext_view>());
+
+    std::vector<list_item_data_t> data;
+    for(int i=0; i<20; i++) {
+        std::string text = "item ";
+        text += 'a' + i;
+        list_item_data_t item = {
+            text: text
+        };
+        data.push_back(item);
+    }
+    view_item_ptr list = std::make_shared<list_view>(data);
+    list->layout()->width = 200;
+    list->layout()->height = 300;
+    panel->content()->add_child(list);
     return root;
 }
 
@@ -33,18 +48,6 @@ view_item_ptr test5() {
 }
 
 struct my_root : view_item {
-    // bool on_scroll() {
-    //     int v = ((scrollbar_view*)v_scroll.get())->index;
-    //     int h = ((scrollbar_view*)h_scroll.get())->index;
-
-    //     layout_item_ptr lo = scrollarea->layout();
-    //     lo->scroll_x = -h * 20;
-    //     lo->scroll_y = -v * 20;
-
-    //     rencache_invalidate();
-    //     return true;
-    // }
-
     void update() override {
         ((scrollbar_view*)v_scroll.get())->set_size(100, 10);
         ((scrollbar_view*)h_scroll.get())->set_size(100, 10);

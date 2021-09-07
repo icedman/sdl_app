@@ -32,6 +32,7 @@ struct view_item : layout_view, event_object_t {
     bool is_clicked() override;
 
     RenImage* cache(int w, int h);
+    void destroy_cache();
 
     virtual bool mouse_down(int x, int y, int button, int clicks) { return false; };
     virtual bool mouse_up(int x, int y, int button) { return false; };
@@ -52,8 +53,8 @@ struct view_item : layout_view, event_object_t {
     view_item_list _views;
     event_callback_list callbacks;
 
-    RenImage *_cache;
-    bool delete_later;
+    RenImage *cached_image;
+    bool cache_enabled;
 
     template <class T>
     static T* cast (view_item_ptr v) { return (T*)(v.get()); };

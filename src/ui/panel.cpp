@@ -5,6 +5,7 @@
 
 panel_view::panel_view()
 {
+    type = "panel";
     int scrollbar_size = 18;
     
     v_scroll = std::make_shared<vscrollbar_view>();
@@ -27,6 +28,8 @@ panel_view::panel_view()
     container->add_child(h_scroll);
     container->add_child(resizer);
     add_child(container);
+
+    bottom = container;
 
     _hscrollbar_container = container;
 
@@ -123,11 +126,11 @@ bool panel_view::mouse_wheel(int x, int y)
 void panel_view::update()
 {
     scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
-    vs->layout()->visible = vs->disabled ? false : vs->window < vs->count;
     scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
-    hs->layout()->visible = hs->disabled ? false : hs->window < hs->count;
 
-    // printf(">%d %d\n", vs->window, vs->count);
+    vs->layout()->visible = vs->disabled ? false : vs->window < vs->count;
+    hs->layout()->visible = hs->disabled ? false : hs->window < hs->count;
+    bottom->layout()->visible = hs->layout()->visible;
 
     view_item::update();
 }

@@ -8,11 +8,14 @@
 
 extern std::map<int, color_info_t> colorMap;
 
+// TODO move highlight out of render
 void editor_view::render()
 {
     if (!editor) {
         return;
     }
+
+    RenFont *_font = ren_font((char*)font.c_str());
 
     state_save();
 
@@ -21,7 +24,7 @@ void editor_view::render()
     layout_item_ptr lo = content()->layout();
 
     int fw, fh;
-    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+    ren_get_font_extents(_font, &fw, &fh, NULL, 1, true);
     cols = (area->layout()->render_rect.w / fw);
     rows = (area->layout()->render_rect.h / fh) + 1;
 
@@ -71,7 +74,7 @@ void editor_view::render()
     color_info_t sel = colorMap[app_t::instance()->selBg];
 
     bool has_focus = is_focused();
-    
+
     int l=0;
     while(it != doc->blocks.end() && l<hl_length) {
         block_ptr block = *it++;
@@ -152,6 +155,7 @@ void editor_view::render()
 
             s.x = alo->render_rect.x + (s.start * fw);
             s.y = alo->render_rect.y + (l*fh);
+            
             draw_rect({
                 s.x,
                 s.y,
@@ -159,8 +163,7 @@ void editor_view::render()
                 fh
             }, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
     
-
-            draw_text(NULL, (char*)span_text.c_str(), 
+            draw_text(_font, (char*)span_text.c_str(), 
                 s.x,
                 s.y, 
                 { (uint8_t)clr.red,(uint8_t)clr.green,(uint8_t)clr.blue },
@@ -178,6 +181,8 @@ editor_view::editor_view()
         : panel_view()
         , start_row(0)
 {
+    type = "editor";
+    font = "editor";
     interactive = true;
     focusable = true;
     view_set_focused(this);
@@ -249,11 +254,11 @@ void editor_view::update()
 void editor_view::prelayout()
 {
     scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
-    scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
-    scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
+    // scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
+    // scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
 
     int fw, fh;
-    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
     
     int count = editor->document.blocks.size();
 
@@ -282,7 +287,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
     it += start_row;
 
     int fw, fh;
-    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
 
     int l = 0;
     while (it != editor->document.blocks.end()) {
@@ -295,6 +300,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         std::string text = block->text() + "\n";
         const char *line = text.c_str();
 
+        bool hitLine = false;
         bool hitSpan = false;
         int hitPos = 0;
         for(auto &s : blockData->spans) {
@@ -304,24 +310,21 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
                 s.length * fw,
                 fh
             };
-            if ((x > r.x && x <= r.x + r.w) &&
-                (y > r.y && y <= r.y + r.h)) {
-
+            if (y > r.y && y <= r.y + r.h) {
+                hitLine = true;
                 int pos = (x - s.x) / fw;
-
-                std::string span_text = text.substr(s.start, s.length);
-
-                hitSpan = true;
                 hitPos = pos + s.start;
-                break;
+                if (x > r.x && x <= r.x + r.w) {
+                    // std::string span_text = text.substr(s.start, s.length);
+                    break;
+                } else {
+                    hitPos = pos + s.start + s.length;
+                }
             }
         }
 
-        if (!hitSpan) {
-            if (y >= l * fh && y < (l + 1) * fh) {
-                hitSpan = true;
-                hitPos = text.length()-1;
-            }
+        if (!hitSpan && hitLine) {
+            hitSpan = true;
         }
 
         if (hitSpan) {
@@ -406,7 +409,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool animate, bool centered)
     }
 
     int fw, fh;
-    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
 
     scrollarea_view *area = view_item::cast<scrollarea_view>(scrollarea);
     area->layout()->scroll_y = -start_row * fh;
@@ -422,7 +425,7 @@ void editor_view::ensure_visible_cursor(bool animate)
     document_t *doc = &editor->document;
 
     int fw, fh;
-    ren_get_font_extents(NULL, &fw, &fh, NULL, 1, true);
+    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
 
     int cols = lo->render_rect.w / fw;
     int rows = lo->render_rect.h / fh;

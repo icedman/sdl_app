@@ -10,6 +10,7 @@ struct panel_view : vertical_container {
     view_item_ptr h_scroll;
     view_item_ptr scrollarea;
     view_item_ptr resizer;
+    view_item_ptr bottom;
 
     view_item_ptr content();
 

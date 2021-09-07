@@ -21,6 +21,8 @@
 
 #define FRAME_RENDER_INTERVAL 16
 
+extern int ren_rendered;
+
 struct sdl_backend_t : backend_t {
     void setClipboardText(std::string text) override {
         ren_set_clipboard(text);
@@ -50,21 +52,28 @@ void updateColors()
     }
 }
 
-void render_item(layout_item_ptr item)
+static inline void render_item(layout_item_ptr item)
 {
-    if (!item->visible) {
+    if (!item->visible || item->offscreen) {
         return;
     }
 
+    // ren_timer_begin();
+
     view_item *view = (view_item*)item->view;
 
-    state_save();
-    set_clip_rect({
+    RenRect clip = {
         item->render_rect.x - 1,
         item->render_rect.y - 1,
         item->render_rect.w + 2,
         item->render_rect.h + 2
-    });
+    };
+
+    state_save();
+
+    if (view->_views.size()) {
+        set_clip_rect(clip);
+    }
 
     bool fill = false;
     int stroke = 1;
@@ -86,13 +95,13 @@ void render_item(layout_item_ptr item)
     }
 
     // printf("%l %d %d %d %d\n", ct, item->render_rect.x, item->render_rect.y, item->render_rect.w, item->render_rect.h);
-    draw_rect({
-        item->render_rect.x,
-        item->render_rect.y,
-        item->render_rect.w,
-        item->render_rect.h
-    },
-    clr, fill, stroke, 0);
+    // draw_rect({
+    //     item->render_rect.x,
+    //     item->render_rect.y,
+    //     item->render_rect.w,
+    //     item->render_rect.h
+    // },
+    // clr, fill, stroke, 0);
 
     // std::string text = item->view ? ((view_item*)item->view)->name : item->name;
     // if (item->view && ((view_item*)item->view)->type == "text") {
@@ -106,10 +115,20 @@ void render_item(layout_item_ptr item)
         child->render_rect = child->rect;
         child->render_rect.x += item->render_rect.x + item->scroll_x;
         child->render_rect.y += item->render_rect.y + item->scroll_y;
+    
+        // RenRect cc = {
+        //     child->render_rect.x,
+        //     child->render_rect.y,
+        //     child->render_rect.w,
+        //     child->render_rect.h
+        // };
+
         render_item(child);
     }
 
     state_restore();
+
+    // printf("%s : %d\n", ((view_item*)(item->view))->type.c_str(), ren_timer_end());
 }
 
 int main(int argc, char **argv)
@@ -165,11 +184,11 @@ int main(int argc, char **argv)
     event_list events;
 
     // RenFont *font = ren_create_font("Monaco 12");
-    RenFont *font = ren_create_font("Fira Code 16");
+    RenFont *font = ren_create_font("Fira Code 16", "editor");
     // RenFont *font = ren_create_font("Source Code Pro 16");
-    ren_register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
-    ren_create_font("monospace 16", "ui");
-    ren_create_font("monospace 14", "ui-small");
+    // ren_register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
+    ren_create_font("Source Code Pro 12", "ui");
+    ren_create_font("Source Code Pro 10", "ui-small");
 
     ren_set_default_font(font);
 
@@ -177,6 +196,8 @@ int main(int argc, char **argv)
 
     int frames = FRAME_RENDER_INTERVAL;
     while(ren_is_running()) {
+        // ren_performance_begin();
+
         ren_listen_events(&events);
 
         view_list.clear();
@@ -189,35 +210,49 @@ int main(int argc, char **argv)
         if (statusbar_t::instance()) {
             statusbar_t::instance()->update(10);
         }
+
+        ren_timer_begin();
         root_view->update();
+        uint32_t update = ren_timer_end();
+        if (update > 0)
+        printf("update: %d\n", update);
 
         int pw = w;
         int ph = h;
         ren_get_window_size(&w, &h);
         if (layout_should_run() || pw != w || ph != h) {
+            // ren_timer_begin();
             layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
             frames = FRAME_RENDER_INTERVAL - 4;
+            // printf("layout: %d\n", ren_timer_end());
         }
 
-        // todo implement frame rate limit
-        if (frames++ < FRAME_RENDER_INTERVAL) {
-            continue;
+        // todo implement frame rate throttling
+        if (ren_listen_is_quick()) {
+            if (frames++ < FRAME_RENDER_INTERVAL) {
+                continue;
+            }
+            frames = 0;
         }
-        frames = 0;
 
+        ren_timer_begin();
         begin_frame(w, h);
         state_save();
 
         draw_rect({x:0,y:0,width:w,height:h}, { (uint8_t)bg.red,(uint8_t)bg.green,(uint8_t)bg.blue });
 
         render_item(root);
+        // root_view->render();
 
         // draw_image(tmp,{0,0,80,80});
 
         state_restore();
         end_frame();
+        printf("rendered:%d time:%d\n", ren_rendered, ren_timer_end());
+
+        // ren_performance_end();
     }
 
     rencache_shutdown();

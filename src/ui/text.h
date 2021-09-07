@@ -10,6 +10,7 @@ struct text_view : view_item {
     void render() override;
     
     std::string text;
+    std::string cached_text;
     int text_width;
     int text_height;
 };

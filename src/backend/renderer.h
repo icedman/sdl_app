@@ -7,6 +7,7 @@
 #define K_MOD_SHIFT 1<<1
 #define K_MOD_CTRL  1<<2
 #define K_MOD_ALT   1<<3
+#define K_MOD_GUI   1<<4
 
 typedef struct RenImage RenImage;
 typedef struct RenFont RenFont;
@@ -57,6 +58,11 @@ void ren_get_font_extents(RenFont* font, int *w, int *h, const char *text = 0, i
 void ren_draw_image(RenImage *image, RenRect rect, RenColor clr = { 255,255,255,255 });
 void ren_draw_rect(RenRect rect, RenColor clr = { 255, 255, 255 }, bool fill = true, int stroke = 1, int radius = 0);
 int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold = false, bool italic = false, bool fixed = false);
+
+void ren_performance_begin();
+void ren_performance_end();
+void ren_timer_begin();
+uint32_t ren_timer_end();
 
 std::string ren_get_clipboard();
 void ren_set_clipboard(std::string text);

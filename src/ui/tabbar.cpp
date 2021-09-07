@@ -57,6 +57,7 @@ struct tab_item_view : horizontal_container {
 tabbar_view::tabbar_view()
     : horizontal_container()
 {
+    type = "tabbar";
     interactive = true;
 
     layout()->margin = 8;

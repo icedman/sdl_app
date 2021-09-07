@@ -6,10 +6,13 @@
 #include <pango/pangocairo.h>
 #include <fontconfig/fontconfig.h>
 
+#include <map>
 #include <vector>
 #include <algorithm>
 
 #define MAX_GLYPHSET 256
+
+extern int ren_rendered;
 
 typedef struct {
     char t[3];
@@ -43,6 +46,7 @@ struct RenFont {
 };
 
 std::vector<RenFont*> fonts;
+std::map<std::string, RenFont*> font_alias;
 
 cairo_t*  ren_context();
 cairo_t*  ren_image_context(RenImage* image);
@@ -86,6 +90,9 @@ void _ren_get_font_extents(PangoLayout *layout, int *w, int *h, const char *text
 RenFont* ren_create_font(char *fdsc, char *alias)
 {
     for(auto fnt : fonts) {
+        if (fnt->alias == alias) {
+            return fnt;
+        }
         if (fnt->desc == fdsc) {
             return fnt;
         }
@@ -194,6 +201,9 @@ RenFont* ren_create_font(char *fdsc, char *alias)
 
 	// fnt->font_width -= 1;
     fonts.push_back(fnt);
+    if (alias[0] != 0) {
+        font_alias[alias] = fnt;
+    }
 
     if (!ren_get_default_font()) {
     	ren_set_default_font(fnt);
@@ -203,10 +213,9 @@ RenFont* ren_create_font(char *fdsc, char *alias)
 
 RenFont* ren_font(char* alias)
 {
-    for(auto f : fonts) {
-        if (f->alias == alias) {
-            return f;
-        }
+    RenFont *fnt = font_alias[alias];
+    if (fnt) {
+        return fnt;
     }
     return ren_get_default_font();
 }
@@ -216,8 +225,8 @@ void ren_destroy_font(RenFont *font)
     std::vector<RenFont*>::iterator it = std::find(fonts.begin(), fonts.end(), font);
     if (it != fonts.end()) {
         fonts.erase(it);
+        delete font;
     }
-    delete font;
 }
 
 void ren_destroy_fonts()
@@ -240,6 +249,8 @@ void ren_get_font_extents(RenFont *font, int *w, int *h, const char *text, int l
 
 int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool fixed_width)
 {
+    ren_rendered++;
+
     if (!font) {
         font = ren_get_default_font();
     }

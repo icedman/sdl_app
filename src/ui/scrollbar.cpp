@@ -10,10 +10,11 @@ scrollbar_view::scrollbar_view()
     , window(4)
     , count(12)
 {
+    type = "scrollbar";
+    
     interactive = true;
     layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
 
-    type = "scrollbar";
     content->type = "thumb";
     content->layout()->rgb = { 255, 255, 0 };
 

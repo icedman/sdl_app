@@ -6,6 +6,8 @@
 statusbar_view::statusbar_view()
     : horizontal_container()
 {
+    type = "statusbar";
+    
     layout()->height = 24;
     layout()->fit_children = false;
     layout()->justify = LAYOUT_JUSTIFY_SPACE_AROUND;

@@ -39,6 +39,8 @@ struct editor_view : panel_view {
     view_item_ptr gutter;
     view_item_ptr minimap;
 
+    std::string font;
+    int fw, fh;
 };
 
 
