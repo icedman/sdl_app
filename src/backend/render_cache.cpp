@@ -29,7 +29,7 @@ typedef struct {
     RenRect rect;
     RenColor color;
     void* font; // image / radius
-    int bold; // fill
+    int bold;   // fill
     int italic; // stroke
     char text[0];
 } Command;
