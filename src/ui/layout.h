@@ -73,7 +73,7 @@ struct layout_view {
         : disabled(false)
         , focusable(false)
         , interactive(false)
-        , color({ 255, 255, 255 })
+        , color({ 255, 0, 255, 50 })
         , background({ 150, 150, 150 })
         , border_color({ 150, 150, 150 })
         , border_width(0)
@@ -158,8 +158,8 @@ struct layout_item {
     int scroll_x, scroll_y;
     int width, height;
     bool fit_children;
-    int grow; // flex-grow
-    int shrink; // not yet implemented
+    float grow; // flex-grow
+    float shrink; // not yet implemented
     int flex_basis; // not yet implemented
     layout_align_items align;
     layout_align_content align_content; // not yet implemented

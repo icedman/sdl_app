@@ -31,7 +31,9 @@ void explorer_view::update()
         return;
     }
 
-    printf("repopulate explorer\n");
+    if (!layout()->visible) return;
+
+    // printf("repopulate explorer\n");
 
     std::string folder_icon_path = icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);
     std::string folder_close_icon_path = icon_for_file(app_t::instance()->icons, ".folder", app_t::instance()->extensions);

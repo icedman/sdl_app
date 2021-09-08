@@ -75,6 +75,10 @@ void editor_view::render()
 
     bool has_focus = is_focused();
 
+    if (longest_block && !longest_block->isValid()) {
+        longest_block = 0;
+    }
+    
     int l = 0;
     while (it != doc->blocks.end() && l < hl_length) {
         block_ptr block = *it++;
@@ -93,6 +97,13 @@ void editor_view::render()
             // l++;
             // continue;
             return;
+        }
+
+        if (!longest_block) {
+            longest_block = block;
+        }
+        if (longest_block->length() < block->length()) {
+            longest_block = block;
         }
 
         std::string text = block->text() + "\n";
@@ -175,6 +186,14 @@ void editor_view::render()
     state_restore();
 
     view_item::cast<gutter_view>(gutter)->editor = editor;
+
+    block_ptr prev_longest = longest_block;
+    int ww = area->layout()->render_rect.w;
+    if (longest_block) {
+        ww = longest_block->length() * fw;
+    }
+    
+    content()->layout()->width = ww;
 }
 
 editor_view::editor_view()
@@ -187,7 +206,7 @@ editor_view::editor_view()
     focusable = true;
     view_set_focused(this);
 
-    scrollarea->disabled = true;
+    // scrollarea->disabled = true;
 
     view_item* container = (view_item*)scrollarea->parent;
 
@@ -239,6 +258,7 @@ void editor_view::update()
     }
 
     if (editor->document.columns != cols || editor->document.rows != rows) {
+        // todo
         editor->document.setColumns(cols);
         editor->document.setRows(rows);
         layout_request();
@@ -248,7 +268,7 @@ void editor_view::update()
         app_t::instance()->currentEditor = editor;
     }
 
-    view_item::update();
+    panel_view::update();
 }
 
 void editor_view::prelayout()
@@ -260,10 +280,15 @@ void editor_view::prelayout()
     int fw, fh;
     ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
 
-    int count = editor->document.blocks.size();
+    int lines = editor->document.blocks.size();
 
-    content()->layout()->width = area->layout()->render_rect.w;
-    content()->layout()->height = (count + rows / 4) * fh;
+    int ww = area->layout()->render_rect.w;
+    if (longest_block) {
+        ww = longest_block->length() * fw;
+    }
+
+    content()->layout()->width = ww;
+    content()->layout()->height = (lines + rows / 4) * fh;
 }
 
 bool editor_view::mouse_down(int x, int y, int button, int clicks)
@@ -433,6 +458,8 @@ void editor_view::ensure_visible_cursor(bool animate)
 
     int cols = lo->render_rect.w / fw;
     int rows = lo->render_rect.h / fh;
+
+    // todo 
     doc->setColumns(cols);
     doc->setRows(rows);
 

@@ -36,6 +36,7 @@ struct editor_view : panel_view {
     int cols;
 
     editor_ptr editor;
+    block_ptr longest_block;
     view_item_ptr gutter;
     view_item_ptr minimap;
 

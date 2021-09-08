@@ -178,11 +178,14 @@ void view_item::update()
 void view_item::render()
 {
     layout_item_ptr lo = layout();
+
+    if (!lo->visible) return;
+    
     draw_rect({ lo->render_rect.x,
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },
-        { 255, 0, 255, 50 }, false, 1, 0);
+        { color.r, color.g, color.b, color.a }, false, 1, 0);
 }
 
 int view_item::on(event_type_e event_type, event_callback_t callback)

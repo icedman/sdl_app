@@ -898,7 +898,7 @@ void editor_t::highlight(int startingLine, int count)
         idx = 0;
     }
     it += idx;
-
+    
     int c = 0;
     while (it != document.blocks.end()) {
         block_ptr b = *it++;

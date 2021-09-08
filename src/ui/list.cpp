@@ -52,8 +52,6 @@ list_view::list_view()
 
     layout()->width = 300;
     content()->layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
-    content()->layout()->wrap = false;
-    content()->layout()->fit_children = true;
 }
 
 void list_view::prelayout()

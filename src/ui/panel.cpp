@@ -6,7 +6,7 @@
 panel_view::panel_view()
 {
     type = "panel";
-    int scrollbar_size = 18;
+    int scrollbar_size = 12;
 
     v_scroll = std::make_shared<vscrollbar_view>();
     v_scroll->layout()->width = scrollbar_size;
@@ -41,6 +41,10 @@ panel_view::panel_view()
         evt.cancelled = true;
         return this->scrollbar_move();
     });
+
+    content()->layout()->wrap = false;
+    content()->layout()->fit_children = true;
+    
     on(EVT_MOUSE_WHEEL, [this](event_t& evt) {
         evt.cancelled = true;
         return this->mouse_wheel(evt.x, evt.y);
@@ -127,17 +131,15 @@ void panel_view::update()
     scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
     scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
 
-    vs->layout()->visible = vs->disabled ? false : vs->window < vs->count;
-    hs->layout()->visible = hs->disabled ? false : hs->window < hs->count;
-    bottom->layout()->visible = hs->layout()->visible;
-
+    // vs->layout()->visible = vs->disabled ? false : content()->layout()->rect.h < scrollarea->layout()->rect.h;
+    // hs->layout()->visible = hs->disabled ? false : content()->layout()->rect.w < scrollarea->layout()->rect.w;
+    // bottom->layout()->visible = hs->layout()->visible;
+    
     view_item::update();
 }
 
 void panel_view::postlayout()
 {
-    // printf("%d %d\n", content()->layout()->rect.w, content()->layout()->rect.h);
-    // printf("%d %d\n", content()->layout()->rect.w, scrollarea->layout()->rect.w);
     ((scrollbar_view*)v_scroll.get())->set_size(content()->layout()->rect.h, scrollarea->layout()->rect.h);
     ((scrollbar_view*)h_scroll.get())->set_size(content()->layout()->rect.w, scrollarea->layout()->rect.w);
 }
