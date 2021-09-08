@@ -75,10 +75,11 @@ void editor_view::render()
 
     bool has_focus = is_focused();
 
+    block_ptr prev_longest = longest_block;
     if (longest_block && !longest_block->isValid()) {
         longest_block = 0;
     }
-    
+
     int l = 0;
     while (it != doc->blocks.end() && l < hl_length) {
         block_ptr block = *it++;
@@ -155,6 +156,7 @@ void editor_view::render()
                         cr.height += cursor_pad * 2;
                         cur = clr;
                     }
+                    cr.x += alo->scroll_x;
                     draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
                     if (ul) {
                         cr.y += fh - 2;
@@ -165,6 +167,7 @@ void editor_view::render()
             }
 
             s.x = alo->render_rect.x + (s.start * fw);
+            s.x += alo->scroll_x;
             s.y = alo->render_rect.y + (l * fh);
 
             // draw_rect({ s.x,
@@ -187,13 +190,16 @@ void editor_view::render()
 
     view_item::cast<gutter_view>(gutter)->editor = editor;
 
-    block_ptr prev_longest = longest_block;
     int ww = area->layout()->render_rect.w;
     if (longest_block) {
         ww = longest_block->length() * fw;
     }
     
     content()->layout()->width = ww;
+
+    if (prev_longest != longest_block) {
+        layout_request();
+    }
 }
 
 editor_view::editor_view()
@@ -224,6 +230,8 @@ editor_view::editor_view()
     scrollarea->layout()->order = 2;
     v_scroll->layout()->order = 4;
     layout_sort(container->layout());
+
+    content()->layout()->stack = true;
 
     on(EVT_MOUSE_DOWN, [this](event_t& evt) {
         evt.cancelled = true;
