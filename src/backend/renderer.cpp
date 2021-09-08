@@ -68,6 +68,11 @@ cairo_t* ren_image_context(RenImage* image)
     return image->cairo_context;
 }
 
+cairo_pattern_t* ren_image_pattern(RenImage* image)
+{
+    return image->pattern;
+}
+
 RenImage* ren_create_image_from_svg(char* filename, int w, int h)
 {
     for (auto img : images) {
@@ -280,23 +285,15 @@ bool ren_is_running()
     return !shouldEnd;
 }
 
-void ren_draw_image(RenImage* image, RenRect rect, RenColor clr, bool shear)
+void ren_draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
     ren_rendered++;
     cairo_save(cairo_context);
-    cairo_translate(cairo_context, rect.x + (shear ? rect.width/4 : 0), rect.y);
+    cairo_translate(cairo_context, rect.x, rect.y);
     cairo_scale(cairo_context,
         (double)rect.width / image->width,
         (double)rect.height / image->height);
 
-    if (shear) {
-        cairo_matrix_t matrix;
-        cairo_matrix_init(&matrix,
-            1.0, 0.0,
-            -0.2, 1.0,
-            0.0, 0.0);
-        cairo_transform(cairo_context, &matrix);
-    }
 
     if (clr.a == 0) {
         cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, 1.0f);

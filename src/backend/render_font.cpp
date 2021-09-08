@@ -14,6 +14,8 @@
 
 extern int ren_rendered;
 
+cairo_pattern_t* ren_image_pattern(RenImage* image);
+
 typedef struct {
     char t[3];
     int index;
@@ -248,6 +250,36 @@ void ren_get_font_extents(RenFont* font, int* w, int* h, const char* text, int l
     *h = font->font_height;
 }
 
+static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor clr, bool italic)
+{
+    ren_rendered++;
+
+    cairo_t* cairo_context = ren_context();
+
+    int w, h;
+    ren_image_size(image, &w, &h);
+
+    cairo_save(cairo_context);
+    cairo_translate(cairo_context, rect.x + (italic ? rect.width/2 : 0), rect.y);
+    cairo_scale(cairo_context,
+        (double)rect.width / w,
+        (double)rect.height / h);
+
+    if (italic) {
+        cairo_matrix_t matrix;
+        cairo_matrix_init(&matrix,
+            0.9, 0.0,
+            -0.25, 1.0,
+            0.0, 0.0);
+        cairo_transform(cairo_context, &matrix);
+    }
+
+    cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, 1.0f);
+    cairo_mask(cairo_context, ren_image_pattern(image));
+
+    cairo_restore(cairo_context);
+}
+
 int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool fixed_width)
 {
     ren_rendered++;
@@ -261,10 +293,9 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     cairo_t* cairo_context = ren_context();
 
     GlyphSet* set = font->regular;
-    if (italic) {
-        shear = true;
-        // set = font->italic;
-    }
+    // if (italic) {
+    //     set = font->italic;
+    // }
     // if (bold) {
     //     set = font->bold;
     // }
@@ -297,7 +328,7 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
         clr.a = 0;
 
         GlyphSet* glyph = &set[cp];
-        ren_draw_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr, shear);
+        ren_draw_char_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr, italic);
 
         i += adv;
     }

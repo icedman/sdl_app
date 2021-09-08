@@ -1,10 +1,12 @@
 #include "editor_view.h"
-#include "scrollbar.h"
+#include "gutter_view.h"
 
 #include "app.h"
 #include "render_cache.h"
 #include "renderer.h"
 #include "view.h"
+
+#include "scrollbar.h"
 
 extern std::map<int, color_info_t> colorMap;
 
@@ -171,6 +173,8 @@ void editor_view::render()
     }
 
     state_restore();
+
+    view_item::cast<gutter_view>(gutter)->editor = editor;
 }
 
 editor_view::editor_view()
@@ -185,21 +189,21 @@ editor_view::editor_view()
 
     scrollarea->disabled = true;
 
-    gutter = std::make_shared<view_item>("gutter");
-    gutter->layout()->width = 40;
-    minimap = std::make_shared<view_item>("minimap");
-    minimap->layout()->width = 80;
-
     view_item* container = (view_item*)scrollarea->parent;
 
+    gutter = std::make_shared<gutter_view>();
+    gutter->layout()->width = 40;
+    gutter->layout()->order = 1;
     container->add_child(gutter);
+
+    minimap = std::make_shared<view_item>("minimap");
+    minimap->layout()->width = 80;
+    minimap->layout()->order = 3;
+    minimap->layout()->visible = false;
     container->add_child(minimap);
 
     scrollarea->layout()->order = 2;
     v_scroll->layout()->order = 4;
-    gutter->layout()->order = 1;
-    minimap->layout()->order = 3;
-
     layout_sort(container->layout());
 
     on(EVT_MOUSE_DOWN, [this](event_t& evt) {

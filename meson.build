@@ -100,6 +100,7 @@ ui_files = [
     'src/app_view.cpp',
     'src/editor_view.cpp',
     'src/explorer_view.cpp',
+    'src/gutter_view.cpp',
     'src/statusbar_view.cpp',
     'src/tests.cpp'
 ]

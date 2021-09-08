@@ -55,7 +55,7 @@ RenFont* ren_get_default_font();
 void ren_set_default_font(RenFont* font);
 void ren_get_font_extents(RenFont* font, int* w, int* h, const char* text = 0, int len = 0, bool fixed = false);
 
-void ren_draw_image(RenImage* image, RenRect rect, RenColor clr = { 255, 255, 255, 255 }, bool shear = false);
+void ren_draw_image(RenImage* image, RenRect rect, RenColor clr = { 255, 255, 255, 255 });
 void ren_draw_rect(RenRect rect, RenColor clr = { 255, 255, 255 }, bool fill = true, int stroke = 1, int radius = 0);
 int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold = false, bool italic = false, bool fixed = false);
 
