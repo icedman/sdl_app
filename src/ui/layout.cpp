@@ -183,9 +183,6 @@ void layout_stack_run(layout_item_ptr item, layout_constraint constraint)
     };
     item->rect = rect;
     item->render_rect = rect;
-
-    constraint.max_width -= item->margin * 2;
-    constraint.max_height -= item->margin * 2;
     item->constraint = constraint;
 
     if (!item->visible) {
@@ -389,6 +386,9 @@ void _layout_run(layout_item_ptr item, layout_constraint constraint)
     // apply margin
     for (auto child : item->children) {
         if (!child->visible) {
+            continue;
+        }
+        if (child->stack) {
             continue;
         }
         child->rect.x += item->margin;

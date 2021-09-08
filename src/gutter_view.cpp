@@ -15,10 +15,6 @@ void gutter_view::prelayout()
 {
     if (!editor) return;
 
-    app_t* app = app_t::instance();
-    theme_ptr theme = app->theme;
-    style_t comment = theme->styles_for_scope("comment");
-
     editor_view *ev = (editor_view*)(parent->parent);
 
     int fw, fh;
@@ -27,13 +23,16 @@ void gutter_view::prelayout()
     block_ptr block = editor->document.lastBlock();
     std::string lineNo = std::to_string(1 + block->lineNumber);
     layout()->width = (lineNo.length() + 3) * fw;
-
-    fg_index = comment.foreground.index;
 }
 
 void gutter_view::render()
 {
     if (!editor) return;
+
+    app_t* app = app_t::instance();
+    theme_ptr theme = app->theme;
+    style_t comment = theme->styles_for_scope("comment");
+    fg_index = comment.foreground.index;
 
     view_item::render();
 

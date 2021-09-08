@@ -1,5 +1,5 @@
-#ifndef IMAGE_VIEW
-#define IMAGE_VIEW
+#ifndef IMAGE_VIEW_H
+#define IMAGE_VIEW_H
 
 #include "renderer.h"
 #include "text.h"
@@ -13,4 +13,4 @@ struct icon_view : view_item {
     RenImage* icon;
 };
 
-#endif // IMAGE_VIEW
+#endif // IMAGE_VIEW_H

@@ -52,7 +52,8 @@ void explorer_view::update()
             icon : icon,
             text : f->name,
             indent : f->depth,
-            data : f
+            data : f,
+            value : f->fullPath
         };
         data.push_back(item);
     }
@@ -62,6 +63,8 @@ void explorer_view::update()
 
 void explorer_view::select_item(list_item_view* item)
 {
+    list_view::select_item(item);
+
     fileitem_t* file = (fileitem_t*)item->data.data;
 
     app_t* app = app_t::instance();

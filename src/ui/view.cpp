@@ -284,10 +284,13 @@ void view_input_button(int button, int x, int y, int pressed, int clicks, event_
 
     if (popups.size()) {
         _v = view_find_xy(popups.back(), x, y);
-        if (!_v && pressed) {
+        if (!_v && pressed && !dragging) {
             popup_view* pop = view_item::cast<popup_view>(popups.back());
             popup_manager *pm = (popup_manager*)(pop->pm);
             pm->pop();
+            if (!popups.size()) {
+                _v = view_find_xy((*_view_list).back(), x, y);
+            }
         }
     } else {
         _v = view_find_xy((*_view_list).back(), x, y);

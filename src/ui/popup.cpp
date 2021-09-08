@@ -15,12 +15,27 @@ popup_manager::popup_manager()
     layout()->stack = true;
 }
 
-void popup_manager::push_at(view_item_ptr popup, int x, int y, int w, int h, int direction)
+void popup_manager::push_at(view_item_ptr popup, layout_rect attach, int direction)
 {
     push(popup);
-    popup->layout()->x = x;
-    popup->layout()->y = y;
-    view_item::cast<popup_view>(popup)->direction = POPUP_DIRECTION_DOWN;
+
+    layout_item_ptr lo = popup->layout();
+    lo->x = attach.x;
+    lo->y = attach.y;
+    if (direction & POPUP_DIRECTION_DOWN) {
+        lo->y += attach.h;
+    }
+    if (direction & POPUP_DIRECTION_RIGHT) {
+        lo->x += attach.w;
+    }
+    if (direction & POPUP_DIRECTION_UP) {
+        lo->y -= lo->height;
+    }
+    if (direction & POPUP_DIRECTION_LEFT) {
+        lo->x -= lo->width;
+    }
+    view_item::cast<popup_view>(popup)->direction = direction;
+    view_item::cast<popup_view>(popup)->attach_to = attach;
 }
 
 void popup_manager::push(view_item_ptr popup)

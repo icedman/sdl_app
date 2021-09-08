@@ -17,7 +17,7 @@
 
 view_item_ptr test_root()
 {
-    return test6();
+    return test5();
 }
 
 view_item_ptr test6()
@@ -34,7 +34,8 @@ view_item_ptr test6()
         std::string text = "item ";
         text += 'a' + i;
         list_item_data_t item = {
-            text : text
+            text : text,
+            value: text
         };
         data.push_back(item);
     }
@@ -46,7 +47,7 @@ view_item_ptr test6()
     view_item_ptr popups = std::make_shared<popup_manager>();
     popup_manager *pm = view_item::cast<popup_manager>(popups);
 
-    panel->content()->add_child(popups);
+    root->add_child(popups);
 
     view_item_ptr pop;
     {
@@ -58,7 +59,8 @@ view_item_ptr test6()
             std::string text = "popup ";
             text += 'a' + i;
             list_item_data_t item = {
-                text : text
+                text : text,
+                value: text
             };
             data.push_back(item);
         }
@@ -77,13 +79,15 @@ view_item_ptr test6()
 
     list->on(EVT_ITEM_SELECT, [pm,pop](event_t& evt) {
         evt.cancelled = true;
-        // printf("here! %s\n", pop->type.c_str());
-        // pm->push(pop);
-
         view_item *item = (view_item*)evt.target;
+
+        // printf("%s\n", pop->type.c_str());
+
         layout_item_ptr lo = item->layout();
 
-        pm->push_at(pop, lo->render_rect.x, lo->render_rect.y);
+        pm->push_at(pop,
+            { lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h },
+            POPUP_DIRECTION_RIGHT);
         return true;
     });
 

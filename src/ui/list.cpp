@@ -32,7 +32,7 @@ void list_item_view::render()
     layout_item_ptr lo = layout();
     layout_rect r = lo->render_rect;
 
-    if (data.selected) {
+    if (container->is_selected(this)) {
         draw_rect({ r.x, r.y, r.w, r.h }, { 255, 0, 255, 150 }, false, 4);
     } else {
         draw_rect({ r.x, r.y, r.w, r.h }, { 255, 0, 255, 150 }, false, 1);
@@ -47,7 +47,6 @@ list_view::list_view(std::vector<list_item_data_t> items)
 
 list_view::list_view()
     : panel_view()
-    , selected(0)
 {
     interactive = true;
 
@@ -161,19 +160,21 @@ void list_view::update()
 
 void list_view::select_item(list_item_view* item)
 {
-    if (selected && selected != item) {
-        selected->data.selected = false;
-    }
-    item->data.selected = !item->data.selected;
-    if (item->data.selected) {
-        selected = item;
-    }
+    if (item->data.value != value) {
+        value = item->data.value;
 
-    // propagate this event
-    event_t event;
-    event.type = EVT_ITEM_SELECT;
-    event.source = this;
-    event.target = item;
-    event.cancelled = false;
-    propagate_event(event);
+        // propagate this event
+        event_t event;
+        event.type = EVT_ITEM_SELECT;
+        event.source = this;
+        event.target = item;
+        event.cancelled = false;
+        propagate_event(event);
+    }
+}
+
+bool list_view::is_selected(list_item_view* item)
+{
+    // printf(">%s -- %s\n", value.c_str(), item->data.value.c_str());
+    return value == item->data.value && value.length();
 }

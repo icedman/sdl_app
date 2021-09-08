@@ -9,7 +9,7 @@ struct list_item_data_t {
     std::string text;
     int indent;
     void* data;
-    bool selected;
+    std::string value;
 
     bool equals(list_item_data_t d)
     {
@@ -36,9 +36,10 @@ struct list_view : panel_view {
     virtual void update() override;
 
     virtual void select_item(list_item_view* item);
+    bool is_selected(list_item_view* item);
 
     std::vector<list_item_data_t> data;
-    list_item_view* selected;
+    std::string value;
 };
 
 #endif // LIST_VIEW_H
