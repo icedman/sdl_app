@@ -294,7 +294,6 @@ void ren_draw_image(RenImage* image, RenRect rect, RenColor clr)
         (double)rect.width / image->width,
         (double)rect.height / image->height);
 
-
     if (clr.a == 0) {
         cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, 1.0f);
         cairo_mask(cairo_context, image->pattern);

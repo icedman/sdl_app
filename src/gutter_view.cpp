@@ -1,6 +1,6 @@
 #include "gutter_view.h"
-#include "renderer.h"
 #include "render_cache.h"
+#include "renderer.h"
 
 #include "app.h"
 #include "editor_view.h"
@@ -9,13 +9,15 @@ extern std::map<int, color_info_t> colorMap;
 
 gutter_view::gutter_view()
     : view_item("gutter")
-{}
+{
+}
 
 void gutter_view::prelayout()
 {
-    if (!editor) return;
+    if (!editor)
+        return;
 
-    editor_view *ev = (editor_view*)(parent->parent);
+    editor_view* ev = (editor_view*)(parent->parent);
 
     int fw, fh;
     ren_get_font_extents(ren_font((char*)ev->font.c_str()), &fw, &fh, NULL, 1, true);
@@ -27,7 +29,8 @@ void gutter_view::prelayout()
 
 void gutter_view::render()
 {
-    if (!editor) return;
+    if (!editor)
+        return;
 
     app_t* app = app_t::instance();
     theme_ptr theme = app->theme;
@@ -37,7 +40,7 @@ void gutter_view::render()
     view_item::render();
 
     layout_item_ptr lo = layout();
-    editor_view *ev = (editor_view*)(parent->parent);
+    editor_view* ev = (editor_view*)(parent->parent);
 
     int fw, fh;
     ren_get_font_extents(ren_font((char*)(ev->font.c_str())), &fw, &fh, NULL, 1, true);
@@ -77,7 +80,7 @@ void gutter_view::render()
         span_info_t s = blockData->spans[0];
 
         std::string ln = std::to_string(block->lineNumber + 1);
-        ren_draw_text(ren_font("editor"), ln.c_str(), 
+        ren_draw_text(ren_font("editor"), ln.c_str(),
             lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw),
             s.y, { (uint8_t)fg.red, (uint8_t)fg.green, (uint8_t)fg.blue, 125 });
 

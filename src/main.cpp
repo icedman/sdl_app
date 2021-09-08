@@ -180,7 +180,7 @@ int main(int argc, char** argv)
 
     // RenFont *font = ren_create_font("Monaco 12");
     // RenFont* font = ren_create_font("Fira Code 16", "editor");
-    RenFont *font = ren_create_font("Source Code Pro 12", "editor");
+    RenFont* font = ren_create_font("Source Code Pro 12", "editor");
     // ren_register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
     ren_create_font("Source Code Pro 12", "ui");
     ren_create_font("Source Code Pro 10", "ui-small");

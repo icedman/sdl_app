@@ -178,13 +178,11 @@ void view_item::update()
 void view_item::render()
 {
     layout_item_ptr lo = layout();
-    draw_rect({
-        lo->render_rect.x,
-        lo->render_rect.y,
-        lo->render_rect.w,
-        lo->render_rect.h
-    },
-    { 255, 0, 255, 50 }, false, 1, 0);
+    draw_rect({ lo->render_rect.x,
+                  lo->render_rect.y,
+                  lo->render_rect.w,
+                  lo->render_rect.h },
+        { 255, 0, 255, 50 }, false, 1, 0);
 }
 
 int view_item::on(event_type_e event_type, event_callback_t callback)
@@ -286,7 +284,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks, event_
         _v = view_find_xy(popups.back(), x, y);
         if (!_v && pressed && !dragging) {
             popup_view* pop = view_item::cast<popup_view>(popups.back());
-            popup_manager *pm = (popup_manager*)(pop->pm);
+            popup_manager* pm = (popup_manager*)(pop->pm);
             pm->pop();
             if (!popups.size()) {
                 _v = view_find_xy((*_view_list).back(), x, y);

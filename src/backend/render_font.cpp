@@ -260,7 +260,7 @@ static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor c
     ren_image_size(image, &w, &h);
 
     cairo_save(cairo_context);
-    cairo_translate(cairo_context, rect.x + (italic ? rect.width/2 : 0), rect.y);
+    cairo_translate(cairo_context, rect.x + (italic ? rect.width / 2 : 0), rect.y);
     cairo_scale(cairo_context,
         (double)rect.width / w,
         (double)rect.height / h);
