@@ -137,8 +137,8 @@ void panel_view::update()
 void panel_view::postlayout()
 {
     // printf("%d %d\n", content()->layout()->rect.w, content()->layout()->rect.h);
+    // printf("%d %d\n", content()->layout()->rect.w, scrollarea->layout()->rect.w);
     ((scrollbar_view*)v_scroll.get())->set_size(content()->layout()->rect.h, scrollarea->layout()->rect.h);
-
     ((scrollbar_view*)h_scroll.get())->set_size(content()->layout()->rect.w, scrollarea->layout()->rect.w);
 }
 

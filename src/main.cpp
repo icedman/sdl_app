@@ -197,7 +197,7 @@ int main(int argc, char** argv)
         view_input_list(view_list, root_view);
         view_input_events(view_list, events);
 
-        printf(">%d\n", view_list.size());
+        // printf(">%d\n", view_list.size());
 
         if (app_t::instance()->currentEditor) {
             app_t::instance()->currentEditor->runAllOps();

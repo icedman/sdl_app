@@ -26,12 +26,18 @@ void layout_reverse_items(layout_item_ptr item, int constraint)
             if (!child->visible) {
                 continue;
             }
+            if (child->stack) {
+                continue;
+            }
             child->rect.x = constraint - (child->rect.x + child->rect.w);
         }
     }
     if (item->direction == LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE) {
         for (auto child : item->children) {
             if (!child->visible) {
+                continue;
+            }
+            if (child->stack) {
                 continue;
             }
             child->rect.y = constraint - (child->rect.y + child->rect.h);
@@ -58,6 +64,9 @@ void layout_position_items(layout_item_ptr item)
     int consumed = 0;
     for (auto child : item->children) {
         if (!child->visible) {
+            continue;
+        }
+        if (child->stack) {
             continue;
         }
         child->rect.x = 0;
@@ -143,7 +152,9 @@ void layout_position_items(layout_item_ptr item)
         if (!child->visible) {
             continue;
         }
-
+        if (child->stack) {
+            continue;
+        }
         int alignOffset = (item->constraint.max_width - child->rect.w) * hd;
         alignOffset += (item->constraint.max_height - child->rect.h) * wd;
 
@@ -159,6 +170,35 @@ void layout_position_items(layout_item_ptr item)
 
         child->rect.x += alignOffset * hd;
         child->rect.y += alignOffset * wd;
+    }
+}
+
+void layout_stack_run(layout_item_ptr item, layout_constraint constraint)
+{
+    layout_rect rect = {
+        x : item->x,
+        y : item->y,
+        w : item->width ? item->width : constraint.max_width,
+        h : item->height ? item->height : constraint.max_height
+    };
+    item->rect = rect;
+    item->render_rect = rect;
+
+    constraint.max_width -= item->margin * 2;
+    constraint.max_height -= item->margin * 2;
+    item->constraint = constraint;
+
+    if (!item->visible) {
+        item->rect = { 0, 0, 0, 0 };
+        return;
+    }
+
+    if (!item->children.size()) {
+        return;
+    }
+
+    for (auto child : item->children) {
+        layout_run(child, constraint);
     }
 }
 
@@ -188,6 +228,7 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
 
     layout_item_list fixedItems;
     layout_item_list flexItems;
+    layout_item_list stackedItems;
 
     int visibleItems = 0;
     int totalFlex = 0;
@@ -195,6 +236,10 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
     int totalFixed = 0;
     for (auto child : item->children) {
         if (!child->visible) {
+            continue;
+        }
+        if (child->stack) {
+            stackedItems.push_back(child);
             continue;
         }
         visibleItems++;
@@ -223,6 +268,10 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
     for (auto child : flexItems) {
         int ww = spaceRemaining * child->grow / totalFlex;
         layout_run(child, { 0, 0, ww, constraint.max_height });
+    }
+
+    for (auto child : stackedItems) {
+        layout_run(child, constraint);
     }
 
     layout_position_items(item);
@@ -255,6 +304,7 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
 
     layout_item_list fixedItems;
     layout_item_list flexItems;
+    layout_item_list stackedItems;
 
     int visibleItems = 0;
     int totalFlex = 0;
@@ -262,6 +312,10 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     int totalFixed = 0;
     for (auto child : item->children) {
         if (!child->visible) {
+            continue;
+        }
+        if (child->stack) {
+            stackedItems.push_back(child);
             continue;
         }
         visibleItems++;
@@ -292,6 +346,10 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
         layout_run(child, { 0, 0, constraint.max_width, hh });
     }
 
+    for (auto child : stackedItems) {
+        layout_run(child, constraint);
+    }
+
     layout_position_items(item);
     layout_reverse_items(item, constraint.max_height);
 }
@@ -320,7 +378,9 @@ void _layout_run(layout_item_ptr item, layout_constraint constraint)
 {
     _prelayout(item);
 
-    if (item->direction == LAYOUT_FLEX_DIRECTION_ROW || item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
+    if (item->stack) {
+        layout_stack_run(item, constraint);
+    } else if (item->direction == LAYOUT_FLEX_DIRECTION_ROW || item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
         layout_horizontal_run(item, constraint);
     } else {
         layout_vertical_run(item, constraint);

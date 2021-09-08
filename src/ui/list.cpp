@@ -168,4 +168,12 @@ void list_view::select_item(list_item_view* item)
     if (item->data.selected) {
         selected = item;
     }
+
+    // propagate this event
+    event_t event;
+    event.type = EVT_ITEM_SELECT;
+    event.source = this;
+    event.target = item;
+    event.cancelled = false;
+    propagate_event(event);
 }

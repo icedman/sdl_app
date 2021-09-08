@@ -1,4 +1,5 @@
 #include "view.h"
+#include "popup.h"
 #include "render_cache.h"
 
 static view_item* view_root = 0;
@@ -13,6 +14,7 @@ static int drag_start_y = 0;
 static bool dragging = false;
 static int _keyMods = 0;
 
+view_item_list popups;
 void view_input_list(view_item_list& list, view_item_ptr item)
 {
     if (!item->_layout || item->disabled || !item->layout()->visible || item->layout()->offscreen) {
@@ -22,10 +24,14 @@ void view_input_list(view_item_list& list, view_item_ptr item)
     if (item->interactive) {
         list.insert(list.begin(), 1, item);
     }
+    if (!list.size() && popups.size()) {
+        popups.clear();
+    } else {
+        if (item->type == "popup") {
+            popups.push_back(item);
+        }
+    }
     for (auto child : item->_views) {
-        // if (!child->interactive && !child->_views.size()) {
-        //     continue;
-        // }
         view_input_list(list, child);
     }
 }
@@ -222,6 +228,7 @@ view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
     }
 
     if (!item->disabled && item->interactive) {
+        // printf(">%s\n", item->type.c_str());
         return item;
     }
 
@@ -273,7 +280,19 @@ void view_input_events(view_item_list& list, event_list& events)
 void view_input_button(int button, int x, int y, int pressed, int clicks, event_t event)
 {
     view_item* v = 0;
-    view_item_ptr _v = view_find_xy((*_view_list).back(), x, y);
+    view_item_ptr _v;
+
+    if (popups.size()) {
+        _v = view_find_xy(popups.back(), x, y);
+        if (!_v && pressed) {
+            popup_view* pop = view_item::cast<popup_view>(popups.back());
+            popup_manager *pm = (popup_manager*)(pop->pm);
+            pm->pop();
+        }
+    } else {
+        _v = view_find_xy((*_view_list).back(), x, y);
+    }
+
     if (_v) {
         v = _v.get();
     }

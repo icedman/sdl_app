@@ -94,6 +94,7 @@ ui_files = [
     'src/ui/button.cpp',
     'src/ui/list.cpp',
     'src/ui/image.cpp',
+    'src/ui/popup.cpp',
     'src/ui/scrollarea.cpp',
     'src/ui/scrollbar.cpp',
     'src/ui/panel.cpp',

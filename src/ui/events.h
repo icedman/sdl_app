@@ -24,7 +24,8 @@ enum event_type_e {
     EVT_MOUSE_DRAG_START,
     EVT_MOUSE_DRAG,
     EVT_MOUSE_DRAG_END,
-    EVT_SCROLLBAR_MOVE
+    EVT_SCROLLBAR_MOVE,
+    EVT_ITEM_SELECT
 };
 
 struct event_object_t {

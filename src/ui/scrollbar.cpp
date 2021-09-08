@@ -7,7 +7,7 @@ scrollbar_view::scrollbar_view()
     , drag_offset(0)
     , dragging(false)
     , index(0)
-    , window(4)
+    , window(12)
     , count(12)
 {
     type = "scrollbar";

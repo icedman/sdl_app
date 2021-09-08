@@ -11,12 +11,13 @@
 #include "scrollbar.h"
 #include "tabbar.h"
 #include "text.h"
+#include "popup.h"
 
 #include "render_cache.h"
 
 view_item_ptr test_root()
 {
-    return test5();
+    return test6();
 }
 
 view_item_ptr test6()
@@ -41,6 +42,51 @@ view_item_ptr test6()
     list->layout()->width = 200;
     list->layout()->height = 300;
     panel->content()->add_child(list);
+
+    view_item_ptr popups = std::make_shared<popup_manager>();
+    popup_manager *pm = view_item::cast<popup_manager>(popups);
+
+    panel->content()->add_child(popups);
+
+    view_item_ptr pop;
+    {
+        pop = std::make_shared<popup_view>();
+        panel_view* pop_panel = view_item::cast<panel_view>(pop);
+
+        std::vector<list_item_data_t> data;
+        for (int i = 0; i < 20; i++) {
+            std::string text = "popup ";
+            text += 'a' + i;
+            list_item_data_t item = {
+                text : text
+            };
+            data.push_back(item);
+        }
+        view_item_ptr list = std::make_shared<list_view>(data);
+        list->layout()->width = 200;
+        list->layout()->height = 300;
+        pop->layout()->width = 200;
+        pop->layout()->height = 300;
+        pop_panel->content()->add_child(list);
+        
+        pop->layout()->x = 300;
+        pop->layout()->y = 300;
+
+        // popups->add_child(pop);
+    }
+
+    list->on(EVT_ITEM_SELECT, [pm,pop](event_t& evt) {
+        evt.cancelled = true;
+        // printf("here! %s\n", pop->type.c_str());
+        // pm->push(pop);
+
+        view_item *item = (view_item*)evt.target;
+        layout_item_ptr lo = item->layout();
+
+        pm->push_at(pop, lo->render_rect.x, lo->render_rect.y);
+        return true;
+    });
+
     return root;
 }
 

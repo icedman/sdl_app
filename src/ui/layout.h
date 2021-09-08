@@ -108,7 +108,8 @@ struct layout_view {
 
 struct layout_item {
     layout_item()
-        : order(0)
+        : stack(false)
+        , order(0)
         , grow(1)
         , shrink(0)
         , flex_basis(0)
@@ -147,6 +148,8 @@ struct layout_item {
     layout_rect render_rect; // final computed
 
     int order;
+    bool stack;
+    bool floating;
     bool visible;
     bool offscreen;
     bool wrap;
