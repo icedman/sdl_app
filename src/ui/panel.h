@@ -21,8 +21,8 @@ struct panel_view : vertical_container {
     virtual void postlayout() override;
     virtual void update() override;
     virtual bool mouse_wheel(int x, int y) override;
-    virtual bool scrollbar_move() override;
-
+    
+    bool scrollbar_move(view_item *source);
     void update_scrollbars();
 };
 

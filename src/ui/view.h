@@ -46,7 +46,6 @@ struct view_item : layout_view, event_object_t {
     virtual bool input_key(int k) { return false; };
     virtual bool input_text(std::string text) { return false; };
     virtual bool input_sequence(std::string text) { return false; };
-    virtual bool scrollbar_move() { return false; };
 
     int on(event_type_e event_type, event_callback_t callback);
     void propagate_event(event_t& event);

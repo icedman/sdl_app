@@ -1,3 +1,5 @@
+// test ensure visible cursor printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);// printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
+
 #include "editor_view.h"
 #include "gutter_view.h"
 
@@ -212,7 +214,8 @@ editor_view::editor_view()
     focusable = true;
     view_set_focused(this);
 
-    // scrollarea->disabled = true;
+    // disable, otherwise dragging will not work
+    scrollarea->disabled = true;
 
     view_item* container = (view_item*)scrollarea->parent;
 
@@ -436,7 +439,13 @@ void editor_view::scroll_to_cursor(cursor_t c, bool animate, bool centered)
     block_ptr block = c.block();
     int l = block->lineNumber - 1;
 
-    int cols = block->document->columns;
+    int fw, fh;
+    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+
+    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+    layout_item_ptr alo = area->layout();
+
+    int cols = alo->render_rect.w / fw;
     int rows = block->document->rows;
     if (start_row > l) {
         start_row = l;
@@ -445,10 +454,20 @@ void editor_view::scroll_to_cursor(cursor_t c, bool animate, bool centered)
         start_row = l - (rows - 4);
     }
 
-    int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    int start_col = c.position();
+    int scroll_x_col = alo->scroll_x / fw;
+    if (start_col + scroll_x_col > cols - 4) {
+        scroll_x_col = start_col - cols + 4;
+        area->layout()->scroll_x = -scroll_x_col * fw;
+    }
+    
+    if (start_col + scroll_x_col - 4 < 0) {
+        scroll_x_col = -start_col + 4;
+        if (scroll_x_col <= 0) {
+            area->layout()->scroll_x = scroll_x_col * fw;
+        }
+    }
 
-    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     area->layout()->scroll_y = -start_row * fh;
 
     update_scrollbars();
@@ -457,6 +476,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool animate, bool centered)
 void editor_view::ensure_visible_cursor(bool animate)
 {
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+    layout_item_ptr alo = area->layout();
     layout_item_ptr lo = area->layout();
 
     document_t* doc = &editor->document;
@@ -466,8 +486,6 @@ void editor_view::ensure_visible_cursor(bool animate)
 
     int cols = lo->render_rect.w / fw;
     int rows = lo->render_rect.h / fh;
-
-    // todo 
     doc->setColumns(cols);
     doc->setRows(rows);
 

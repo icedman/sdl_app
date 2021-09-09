@@ -35,11 +35,11 @@ panel_view::panel_view()
 
     v_scroll->on(EVT_SCROLLBAR_MOVE, [this](event_t& evt) {
         evt.cancelled = true;
-        return this->scrollbar_move();
+        return this->scrollbar_move((view_item*)evt.source);
     });
     h_scroll->on(EVT_SCROLLBAR_MOVE, [this](event_t& evt) {
         evt.cancelled = true;
-        return this->scrollbar_move();
+        return this->scrollbar_move((view_item*)evt.source);
     });
 
     content()->layout()->wrap = false;
@@ -80,17 +80,17 @@ void panel_view::_validate()
     }
 }
 
-bool panel_view::scrollbar_move()
+bool panel_view::scrollbar_move(view_item *source)
 {
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
     scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
 
-    if (vs->window < vs->count) {
+    if (vs->window < vs->count && source == vs) {
         int vp = ((vs->count + (area->overscroll * vs->count) - vs->window) * vs->index / vs->count);
         area->layout()->scroll_y = -vp;
     }
-    if (hs->window < hs->count) {
+    if (hs->window < hs->count && source == hs) {
         int hp = ((hs->count + (area->overscroll * hs->count) - hs->window) * hs->index / hs->count);
         area->layout()->scroll_x = -hs->index + hs->window;
     }
