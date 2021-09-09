@@ -207,6 +207,8 @@ void app_view::setup_style()
     view_style_t vs = vs_default;
     view_style_register(vs_default, "default");
 
-    vs.bg = darker(colorMap[app->bgApp], 5);
     view_style_register(vs, "gutter");
+
+    vs.bg = darker(colorMap[app->bgApp], 5);
+    view_style_register(vs, "explorer");    
 }

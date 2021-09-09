@@ -12,6 +12,6 @@ icon_view::icon_view()
 void icon_view::render()
 {
     if (icon) {
-        draw_image(icon, { 4 + layout()->render_rect.x, layout()->render_rect.y, 18, 18 });
+        draw_image(icon, { 8 + layout()->render_rect.x, 4 + layout()->render_rect.y, 18, 18 });
     }
 }

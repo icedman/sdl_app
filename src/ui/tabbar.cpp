@@ -37,7 +37,7 @@ struct tab_item_view : horizontal_container {
     void render() override
     {
         app_t* app = app_t::instance();
-        view_style_t vs = view_style_get("gutter");
+        view_style_t vs = view_style_get("explorer");
 
         layout_item_ptr lo = layout();
         layout_rect r = lo->render_rect;
@@ -180,7 +180,7 @@ view_item_ptr tabbar_view::content()
 
 void tabbar_view::render() {
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("gutter");
+    view_style_t vs = view_style_get("explorer");
 
     layout_item_ptr lo = layout();
 

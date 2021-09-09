@@ -603,8 +603,7 @@ void editor_view::show_completer()
             continue;
         }
         int score = levenshtein_distance((char*)prefix.c_str(), (char*)(w.c_str()));
-        // completerView->items.push_back({ w, "", "", score, 0, "" });
-        printf("%s\n", w.c_str());
+
         if (completerItemsWidth < w.length()) {
             completerItemsWidth = w.length();
         }
@@ -624,6 +623,16 @@ void editor_view::show_completer()
 
         span_info_t s = spanAtBlock(completer_cursor.block()->data.get(), completer_cursor.position());
         scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+
+        int list_size = list->data.size();
+        if (list_size > 4) list_size = 4;
+        completer->layout()->width = completerItemsWidth * fw;
+        completer->layout()->height = list_size * fh + 14;
+
+        // todo fix scrolling sizes
+        list->layout()->width = completer->layout()->width;
+        list->layout()->height = completer->layout()->height;
+
         pm->push_at(completer, {
                 (completer_cursor.position() * fw)
                     + scrollarea->layout()->render_rect.x
@@ -632,10 +641,7 @@ void editor_view::show_completer()
                 s.y - scrollarea->layout()->render_rect.y, 
                 fw * prefix.length(),
                 fh
-            });
-
-        completer->layout()->width = completerItemsWidth * fw;
-        completer->layout()->height = list->data.size() * fh + 14;
+            }, s.y > area->layout()->render_rect.h/3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN );
         layout_request();
     }
 }

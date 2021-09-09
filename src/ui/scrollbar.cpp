@@ -205,7 +205,7 @@ void scrollbar_view::render()
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },
-        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 10 }, true);
+        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 5 }, true);
 
     // thumb
     layout_item_ptr lot = content->layout();
@@ -214,7 +214,7 @@ void scrollbar_view::render()
                   lot->render_rect.w - 8,
                   lot->render_rect.h - 8 },
         { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, (content->is_pressed() || is_hovered()) ? 150 : 50 },
-        true, 0, 2);
+        true, 0, 4);
 }
 
 int scrollbar_view::_thumb_size()

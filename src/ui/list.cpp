@@ -31,7 +31,7 @@ bool list_item_view::mouse_click(int x, int y, int button)
 void list_item_view::render()
 {
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("gutter");
+    view_style_t vs = view_style_get("explorer");
 
     layout_item_ptr lo = layout();
     layout_rect r = lo->render_rect;
@@ -107,7 +107,7 @@ void list_view::update()
     while (content()->_views.size() < data.size()) {
         view_item_ptr item = std::make_shared<list_item_view>();
         item->layout()->align = LAYOUT_ALIGN_CENTER;
-        item->layout()->height = 32;
+        item->layout()->height = 24;
         view_item_ptr icon = std::make_shared<icon_view>();
         icon->layout()->width = 32;
         icon->layout()->height = 24;
@@ -187,7 +187,7 @@ bool list_view::is_selected(list_item_view* item)
 
 void list_view::render() {
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("gutter");
+    view_style_t vs = view_style_get("explorer");
 
     layout_item_ptr lo = layout();
 
@@ -197,6 +197,9 @@ void list_view::render() {
         lo->render_rect.w,
         lo->render_rect.h
     } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+
+    // layout_rect r = lo->render_rect;
+    // draw_rect({ r.x, r.y, r.w - 20, r.h - 4 }, { 255,0,255,150 }, false, 1);
 }
 
 int focused_index(std::vector<list_item_data_t> &data, std::string value)

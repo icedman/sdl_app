@@ -59,7 +59,7 @@ void statusbar_view::update()
 
 void statusbar_view::render() {
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("editor");
+    view_style_t vs = view_style_get("explorer");
 
     layout_item_ptr lo = layout();
 

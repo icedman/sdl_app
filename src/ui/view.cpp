@@ -395,8 +395,9 @@ void view_input_button(int button, int x, int y, int pressed, int clicks, event_
 void view_input_wheel(int x, int y, event_t event)
 {
     if (popups.size()) {
-        view_item_ptr _v = view_find_xy(popups.back(), x, y);
+        view_item_ptr _v = popups.back();
         view_hovered = _v.get();
+        printf("%s\n", view_hovered->type.c_str());
     }
     if (view_hovered) {
         event.type = EVT_MOUSE_WHEEL;
