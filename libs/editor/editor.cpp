@@ -809,20 +809,20 @@ void editor_t::undo()
         // printf("%s %d %d\n", name.c_str(), op.cursor_count, op.cursor_selection);
     // }
 
-    // if (items.size()) {
-    //     operation_t op = items.back();
-    //     if (op.op == INSERT && op.cursor_count == 1 && !op.cursor_selection) {
-    //         std::string name = nameFromOperation(op.op);
-    //         pushOp(BACKSPACE);
-    //         runAllOps();        
-    //         items.pop_back();
-    //         snapshot.history = items;
-    //         if (snapshots.size() > 1 && items.size() == 0) {
-    //             snapshots.pop_back();
-    //         }
-    //         return;
-    //     }
-    // }
+    if (items.size()) {
+        operation_t op = items.back();
+        if (op.op == INSERT && op.cursor_count == 1 && !op.cursor_selection) {
+            std::string name = nameFromOperation(op.op);
+            pushOp(BACKSPACE);
+            runAllOps();        
+            items.pop_back();
+            snapshot.history = items;
+            if (snapshots.size() > 1 && items.size() == 0) {
+                snapshots.pop_back();
+            }
+            return;
+        }
+    }
 
     snapshot.restore(document.blocks);
     document.clearCursors();
