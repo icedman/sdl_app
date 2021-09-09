@@ -229,7 +229,7 @@ editor_view::editor_view()
     view_item* container = (view_item*)scrollarea->parent;
 
     gutter = std::make_shared<gutter_view>();
-    gutter->layout()->width = 40;
+    gutter->layout()->width = 60;
     gutter->layout()->order = 1;
     container->add_child(gutter);
 
@@ -309,6 +309,11 @@ void editor_view::prelayout()
 
     content()->layout()->width = ww;
     content()->layout()->height = (lines + rows / 4) * fh;
+
+    // gutter
+    block_ptr block = editor->document.lastBlock();
+    std::string lineNo = std::to_string(1 + block->lineNumber);
+    gutter->layout()->width = (lineNo.length() + 3) * fw;
 }
 
 bool editor_view::mouse_down(int x, int y, int button, int clicks)

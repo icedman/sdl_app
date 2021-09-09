@@ -7,7 +7,6 @@
 struct gutter_view : view_item {
     gutter_view();
 
-    void prelayout() override;
     void render() override;
 
     editor_ptr editor;

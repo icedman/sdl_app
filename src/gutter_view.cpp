@@ -12,21 +12,6 @@ gutter_view::gutter_view()
 {
 }
 
-void gutter_view::prelayout()
-{
-    if (!editor)
-        return;
-
-    editor_view* ev = (editor_view*)(parent->parent);
-
-    int fw, fh;
-    ren_get_font_extents(ren_font((char*)ev->font.c_str()), &fw, &fh, NULL, 1, true);
-
-    block_ptr block = editor->document.lastBlock();
-    std::string lineNo = std::to_string(1 + block->lineNumber);
-    layout()->width = (lineNo.length() + 3) * fw;
-}
-
 void gutter_view::render()
 {
     if (!editor)
