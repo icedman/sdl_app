@@ -39,8 +39,12 @@ struct list_view : panel_view {
     virtual void select_item(list_item_view* item);
     bool is_selected(list_item_view* item);
 
+    void focus_previous();
+    void focus_next();
+
     std::vector<list_item_data_t> data;
     std::string value;
+    std::string focused_value;
 };
 
 #endif // LIST_VIEW_H

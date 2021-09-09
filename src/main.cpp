@@ -1,3 +1,5 @@
+// printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue); // printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
+
 #include "events.h"
 #include "layout.h"
 #include "render_cache.h"

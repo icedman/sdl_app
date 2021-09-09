@@ -41,7 +41,9 @@ void list_item_view::render()
     if (container->is_selected(this) || is_hovered()) {
         draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
     } else {
-        // draw_rect({ r.x, r.y, r.w, r.h }, clr, false, 1);
+        if (container->focused_value == data.value) {
+            draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
+        }
     }
 }
 
@@ -195,4 +197,46 @@ void list_view::render() {
         lo->render_rect.w,
         lo->render_rect.h
     } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+}
+
+int focused_index(std::vector<list_item_data_t> &data, std::string value)
+{
+    int idx = 0;
+    for(auto d : data) {
+        if (d.value == value) {
+            return idx;
+        }
+        idx++;
+    }
+    return -1;
+}
+
+void list_view::focus_previous()
+{
+    if (!data.size()) return;
+
+    if (focused_value == "") {
+        focused_value = data[0].value;
+        return;
+    }
+
+    int idx = focused_index(data, focused_value);
+    if (idx > 0) {
+        focused_value = data[idx - 1].value;
+    }
+}
+
+void list_view::focus_next()
+{
+    if (!data.size()) return;
+
+    if (focused_value == "") {
+        focused_value = data[0].value;
+        return;
+    }
+
+    int idx = focused_index(data, focused_value);
+    if (idx >= 0 && ++idx < data.size()) {
+        focused_value = data[idx].value;
+    }
 }

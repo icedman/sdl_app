@@ -92,7 +92,7 @@ bool panel_view::scrollbar_move(view_item *source)
     }
     if (hs->window < hs->count && source == hs) {
         int hp = ((hs->count + (area->overscroll * hs->count) - hs->window) * hs->index / hs->count);
-        area->layout()->scroll_x = -hs->index + hs->window;
+        area->layout()->scroll_x = -hp;
     }
 
     _validate();

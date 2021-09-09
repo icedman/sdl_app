@@ -315,7 +315,7 @@ void editor_view::prelayout()
 
     int lines = editor->document.blocks.size();
 
-    int ww = area->layout()->render_rect.w;
+    int ww = area->layout()->render_rect.w - gutter->layout()->render_rect.w;
     if (longest_block) {
         ww = longest_block->length() * fw;
     }
@@ -438,10 +438,9 @@ bool editor_view::input_key(int k)
     return true;
 }
 
+/*
 static inline struct span_info_t span_at_cursor(cursor_t c)
 {
-    return spanAtBlock(c.block()->data.get(), c.position());
-    /*
     span_info_t res;
     block_ptr block = c.block();
     if (!block->data) {
@@ -453,9 +452,9 @@ static inline struct span_info_t span_at_cursor(cursor_t c)
             return s;
         }
     }
-    return res;   
-    */
+    return res;
 }
+*/
 
 bool editor_view::input_text(std::string text)
 {
@@ -473,11 +472,19 @@ bool editor_view::input_text(std::string text)
 bool editor_view::input_sequence(std::string text)
 {
     popup_manager* pm = view_item::cast<popup_manager>(popups);
+    completer_view* cv = view_item::cast<completer_view>(completer);
+    list_view* list = view_item::cast<list_view>(cv->list);
     if (pm->_views.size()) {
         operation_e op = operationFromKeys(text);
         switch(op) {
         case MOVE_CURSOR_UP:
+            list->focus_previous();
+            return true;
         case MOVE_CURSOR_DOWN:
+            list->focus_next();
+            return true;
+        case ENTER:
+        
             return true;
         case CANCEL:
         case BACKSPACE:
@@ -607,13 +614,15 @@ void editor_view::show_completer()
             value : w
         };
         list->data.push_back(item);
+        list->value = "";
+        list->focused_value = "";
     }
 
     if (!pm->_views.size() && list->data.size()) {
         int fw, fh;
         ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
 
-        span_info_t s = span_at_cursor(completer_cursor);
+        span_info_t s = spanAtBlock(completer_cursor.block()->data.get(), completer_cursor.position());
         scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
         pm->push_at(completer, {
                 (completer_cursor.position() * fw)
@@ -629,7 +638,6 @@ void editor_view::show_completer()
         completer->layout()->height = list->data.size() * fh + 14;
         layout_request();
     }
-    // -------------------
 }
 
 bool editor_view::commit_completer(std::string text)
