@@ -24,6 +24,7 @@ struct popup_manager : view_item {
     void push_at(view_item_ptr popup, layout_rect attach = { 0, 0, 0, 0 }, int direction = POPUP_DIRECTION_DOWN);
     void push(view_item_ptr popup);
     void pop();
+    void clear();
 };
 
 #endif // POPUP_VIEW_H

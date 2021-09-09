@@ -49,5 +49,14 @@ void popup_manager::push(view_item_ptr popup)
 
 void popup_manager::pop()
 {
-    remove_child(_views.back());
+    if (_views.size()) {
+        remove_child(_views.back());
+    }
+}
+
+void popup_manager::clear()
+{
+    while(_views.size()) {
+        pop();
+    }
 }

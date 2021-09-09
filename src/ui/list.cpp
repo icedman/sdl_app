@@ -32,7 +32,7 @@ void list_item_view::render()
     layout_item_ptr lo = layout();
     layout_rect r = lo->render_rect;
 
-    if (container->is_selected(this)) {
+    if (container->is_selected(this) || is_hovered()) {
         draw_rect({ r.x, r.y, r.w, r.h }, { 255, 0, 255, 150 }, false, 4);
     } else {
         draw_rect({ r.x, r.y, r.w, r.h }, { 255, 0, 255, 150 }, false, 1);

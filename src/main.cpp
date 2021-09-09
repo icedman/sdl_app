@@ -87,9 +87,10 @@ static inline void render_item(layout_item_ptr item)
         // clr = { 255, 0, 0 };
         // fill = true;
         stroke = 1.5f;
+        printf(">>press %s\n", view->type.c_str());
     }
     if (view && view->is_clicked()) {
-        printf(">>click\n");
+        printf(">>click %s\n", view->type.c_str());
     }
 
     if (view) {

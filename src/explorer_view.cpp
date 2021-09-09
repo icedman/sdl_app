@@ -33,6 +33,10 @@ void explorer_view::update()
 
     if (!layout()->visible) return;
 
+    if (((list_view*)this)->value == "") {
+        ((list_view*)this)->value = app_t::instance()->currentEditor->document.fullPath;
+    }
+
     // printf("repopulate explorer\n");
 
     std::string folder_icon_path = icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);

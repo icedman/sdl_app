@@ -1,18 +1,18 @@
-// test ensure visible cursor printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);// printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
-
 #include "editor_view.h"
 #include "gutter_view.h"
+#include "completer_view.h"
 
 #include "app.h"
 #include "render_cache.h"
 #include "renderer.h"
 #include "view.h"
+#include "search.h"
+#include "indexer.h"
 
 #include "scrollbar.h"
 
 extern std::map<int, color_info_t> colorMap;
 
-// TODO move highlight out of render
 void editor_view::render()
 {
     if (!editor) {
@@ -214,6 +214,15 @@ editor_view::editor_view()
     focusable = true;
     view_set_focused(this);
 
+    popups = std::make_shared<popup_manager>();
+    completer = std::make_shared<completer_view>();
+    completer->on(EVT_ITEM_SELECT, [this](event_t &e) {
+        e.cancelled = true;
+        list_item_view *item = (list_item_view*)e.target;
+        return commit_completer(item->data.value);
+    });
+    add_child(popups);
+
     // disable, otherwise dragging will not work
     scrollarea->disabled = true;
 
@@ -304,7 +313,7 @@ void editor_view::prelayout()
 
 bool editor_view::mouse_down(int x, int y, int button, int clicks)
 {
-    if (!editor) {
+    if (!editor || popups->_views.size()) {
         return false;
     }
 
@@ -411,6 +420,22 @@ bool editor_view::input_key(int k)
     return true;
 }
 
+static inline struct span_info_t span_at_cursor(cursor_t c)
+{
+    span_info_t res;
+    block_ptr block = c.block();
+    if (!block->data) {
+        return res;
+    }   
+    blockdata_t *blockData = block->data.get();
+    for(auto s : blockData->spans) {
+        if (s.start <= c.position() && c.position() < s.start + s.length) {
+            return s;
+        }
+    }
+    return res;   
+}
+
 bool editor_view::input_text(std::string text)
 {
     if (!editor) {
@@ -419,11 +444,29 @@ bool editor_view::input_text(std::string text)
     editor->pushOp(INSERT, text);
     editor->runAllOps();
     ensure_visible_cursor();
+
+    show_completer();
     return true;
 }
 
 bool editor_view::input_sequence(std::string text)
 {
+    popup_manager* pm = view_item::cast<popup_manager>(popups);
+    if (pm->_views.size()) {
+        operation_e op = operationFromKeys(text);
+        switch(op) {
+        case MOVE_CURSOR_UP:
+        case MOVE_CURSOR_DOWN:
+            return true;
+        case CANCEL:
+        case BACKSPACE:
+        case MOVE_CURSOR_LEFT:
+        case MOVE_CURSOR_RIGHT:
+            pm->clear();
+            break;
+        }
+    }
+
     if (!editor) {
         return false;
     }
@@ -492,3 +535,101 @@ void editor_view::ensure_visible_cursor(bool animate)
     cursor_t mainCursor = doc->cursor();
     scroll_to_cursor(mainCursor);
 }
+
+void editor_view::show_completer()
+{
+    popup_manager* pm = view_item::cast<popup_manager>(popups);
+    pm->clear();
+
+    struct document_t* doc = &editor->document;
+    if (doc->cursors.size() > 1) {
+        return;
+    }
+
+    std::string prefix;
+
+    cursor_t cursor = doc->cursor();
+    struct block_t& block = *cursor.block();
+    if (cursor.position() < 3)
+        return;
+
+    if (cursor.moveLeft(1)) {
+        cursor.selectWord();
+        prefix = cursor.selectedText();
+        cursor.cursor = cursor.anchor;
+        completer_cursor = cursor;
+    }
+
+    if (prefix.length() < 2) {
+        return;
+    }
+
+    completer_view* cm = view_item::cast<completer_view>(completer);
+    list_view* list = view_item::cast<list_view>(cm->list);
+    list->data.clear();
+
+    int completerItemsWidth = 0;
+    std::vector<std::string> words = editor->indexer->findWords(prefix);
+    for(auto w : words) {
+        if (w.length() <= prefix.length()) {
+            continue;
+        }
+        int score = levenshtein_distance((char*)prefix.c_str(), (char*)(w.c_str()));
+        // completerView->items.push_back({ w, "", "", score, 0, "" });
+        printf("%s\n", w.c_str());
+        if (completerItemsWidth < w.length()) {
+            completerItemsWidth = w.length();
+        }
+
+        list_item_data_t item = {
+            text : w,
+            value : w
+        };
+        list->data.push_back(item);
+    }
+
+    if (!pm->_views.size() && list->data.size()) {
+        int fw, fh;
+        ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+
+        span_info_t s = span_at_cursor(completer_cursor);
+        scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+        pm->push_at(completer, {
+                (completer_cursor.position() * fw)
+                    + scrollarea->layout()->render_rect.x
+                    + scrollarea->layout()->scroll_x
+                    - pm->layout()->render_rect.x,
+                s.y - scrollarea->layout()->render_rect.y, 
+                fw * prefix.length(),
+                fh
+            });
+
+        completer->layout()->width = completerItemsWidth * fw;
+        completer->layout()->height = list->data.size() * fh + 14;
+        layout_request();
+    }
+    // -------------------
+}
+
+bool editor_view::commit_completer(std::string text)
+{
+    cursor_t cur = editor->document.cursor();
+    std::ostringstream ss;
+    ss << (completer_cursor.block()->lineNumber + 1);
+    ss << ":";
+    ss << completer_cursor.position();
+    editor->pushOp(MOVE_CURSOR, ss.str());
+    ss.str("");
+    ss.clear();
+    ss << (cur.block()->lineNumber + 1);
+    ss << ":";
+    ss << cur.position();
+    editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
+    editor->pushOp(INSERT, text);
+    editor->runAllOps();
+    popup_manager* pm = view_item::cast<popup_manager>(popups);
+    pm->clear();
+
+    return true;
+}
+

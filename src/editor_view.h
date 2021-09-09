@@ -27,6 +27,9 @@ struct editor_view : panel_view {
     void ensure_visible_cursor(bool animate = false);
     void scroll_to_cursor(cursor_t c, bool animate = false, bool centered = false);
 
+    void show_completer();
+    bool commit_completer(std::string text);
+
     int start_row;
     int v_scroll_index;
 
@@ -39,6 +42,10 @@ struct editor_view : panel_view {
     block_ptr longest_block;
     view_item_ptr gutter;
     view_item_ptr minimap;
+    view_item_ptr completer;
+    view_item_ptr popups;
+
+    cursor_t completer_cursor;
 
     std::string font;
     int fw, fh;

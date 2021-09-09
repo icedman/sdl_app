@@ -21,16 +21,18 @@ void view_input_list(view_item_list& list, view_item_ptr item)
         return;
     }
 
-    if (item->interactive) {
-        list.insert(list.begin(), 1, item);
-    }
-    if (!list.size() && popups.size()) {
+    if (!list.size()) {
         popups.clear();
     } else {
         if (item->type == "popup") {
             popups.push_back(item);
         }
     }
+
+    if (item->interactive) {
+        list.insert(list.begin(), 1, item);
+    }
+    
     for (auto child : item->_views) {
         view_input_list(list, child);
     }
@@ -390,6 +392,10 @@ void view_input_button(int button, int x, int y, int pressed, int clicks, event_
 
 void view_input_wheel(int x, int y, event_t event)
 {
+    if (popups.size()) {
+        view_item_ptr _v = view_find_xy(popups.back(), x, y);
+        view_hovered = _v.get();
+    }
     if (view_hovered) {
         event.type = EVT_MOUSE_WHEEL;
         event.source = view_hovered;
