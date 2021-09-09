@@ -107,7 +107,7 @@ ui_files = [
     'src/tests.cpp'
 ]
 
-tmparser_lib = library('tmparser',
+tmparser_lib = static_library('tmparser',
     textmate_files, 
     include_directories: [ textmate_inc ],
     dependencies: [ jsoncpp_dep, onigmo_dep ]
@@ -115,7 +115,7 @@ tmparser_lib = library('tmparser',
 
 tmparser_dep = declare_dependency(link_with: tmparser_lib, include_directories: [ textmate_inc ])
 
-editor_lib = library('editor',
+editor_lib = static_library('editor',
     editor_files, 
     include_directories: [ editor_inc ],
     dependencies: [ tmparser_dep, jsoncpp_dep, onigmo_dep, pthread_dep ]

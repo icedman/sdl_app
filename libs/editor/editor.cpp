@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 // 20K
 // beyond this threshold, paste will use an additional file buffer
@@ -68,6 +69,8 @@ void editor_t::runOp(operation_t op)
 
     if (snapshots.size()) {
         snapshot_t& snapshot = snapshots.back();
+        op.cursor_count = document.cursors.size();
+        op.cursor_selection = document.hasSelections();
         snapshot.history.push_back(op);
     }
 
@@ -800,6 +803,27 @@ void editor_t::undo()
             break;
     }
 
+    // printf("----\n");
+    // for(auto op : items) {
+        // std::string name = nameFromOperation(op.op);
+        // printf("%s %d %d\n", name.c_str(), op.cursor_count, op.cursor_selection);
+    // }
+
+    // if (items.size()) {
+    //     operation_t op = items.back();
+    //     if (op.op == INSERT && op.cursor_count == 1 && !op.cursor_selection) {
+    //         std::string name = nameFromOperation(op.op);
+    //         pushOp(BACKSPACE);
+    //         runAllOps();        
+    //         items.pop_back();
+    //         snapshot.history = items;
+    //         if (snapshots.size() > 1 && items.size() == 0) {
+    //             snapshots.pop_back();
+    //         }
+    //         return;
+    //     }
+    // }
+
     snapshot.restore(document.blocks);
     document.clearCursors();
 
@@ -821,7 +845,6 @@ void editor_t::undo()
     }
 
     snapshot.history = items;
-
     if (snapshots.size() > 1 && items.size() == 0) {
         snapshots.pop_back();
     }

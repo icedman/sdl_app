@@ -105,6 +105,10 @@ struct operation_t {
     std::string params;
     std::string name;
     std::string keys;
+    
+    // history hint
+    int cursor_count;
+    int cursor_selection;
 };
 
 typedef std::vector<operation_t> operation_list;
