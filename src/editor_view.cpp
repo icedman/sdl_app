@@ -484,7 +484,7 @@ bool editor_view::input_sequence(std::string text)
             list->focus_next();
             return true;
         case ENTER:
-        
+            list->select_focused();
             return true;
         case CANCEL:
         case BACKSPACE:

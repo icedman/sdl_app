@@ -240,3 +240,18 @@ void list_view::focus_next()
         focused_value = data[idx].value;
     }
 }
+
+void list_view::select_focused()
+{
+    if (!data.size()) return;
+    int idx = focused_index(data, focused_value);
+    if (idx == -1) return;
+
+    for(auto v : content()->_views) {
+        list_item_view *item = view_item::cast<list_item_view>(v);
+        if (item->data.value == focused_value) {
+            select_item(item);
+            return;
+        }
+    }
+}

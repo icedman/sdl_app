@@ -39,6 +39,7 @@ struct list_view : panel_view {
     virtual void select_item(list_item_view* item);
     bool is_selected(list_item_view* item);
 
+    void select_focused();
     void focus_previous();
     void focus_next();
 
