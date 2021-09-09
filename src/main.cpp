@@ -233,7 +233,7 @@ int main(int argc, char** argv)
         begin_frame(w, h);
         state_save();
 
-        draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
+        // draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
 
         render_item(root);
 

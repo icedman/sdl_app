@@ -2,6 +2,9 @@
 #include "render_cache.h"
 #include "renderer.h"
 
+#include "app.h"
+#include "style.h"
+
 scrollbar_view::scrollbar_view()
     : scrollarea_view()
     , drag_offset(0)
@@ -192,13 +195,17 @@ void scrollbar_view::set_size(int c, int w)
 
 void scrollbar_view::render()
 {
-    // background
+    app_t* app = app_t::instance();
+    view_style_t vs = view_style_get("default");
+
     layout_item_ptr lo = layout();
+
+    // background
     draw_rect({ lo->render_rect.x,
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },
-        { 255, 0, 255 }, false, 1.0f);
+        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 10 }, true);
 
     // thumb
     layout_item_ptr lot = content->layout();
@@ -206,7 +213,8 @@ void scrollbar_view::render()
                   lot->render_rect.y + 4,
                   lot->render_rect.w - 8,
                   lot->render_rect.h - 8 },
-        { 255, 0, 255 }, false, (content->is_pressed() || is_hovered()) ? 2.0f : 1.0f);
+        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, (content->is_pressed() || is_hovered()) ? 150 : 50 },
+        true, 0, 2);
 }
 
 int scrollbar_view::_thumb_size()

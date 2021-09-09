@@ -73,7 +73,7 @@ struct layout_view {
         : disabled(false)
         , focusable(false)
         , interactive(false)
-        , color({ 255, 0, 255, 50 })
+        , color({ 150, 150, 150, 50 })
         , background({ 150, 150, 150 })
         , border_color({ 150, 150, 150 })
         , border_width(0)

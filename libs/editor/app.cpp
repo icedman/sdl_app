@@ -31,7 +31,7 @@ static color_info_t color(int r, int g, int b)
     return c;
 }
 
-static color_info_t lighter(color_info_t p, int x)
+color_info_t lighter(color_info_t p, int x)
 {
     color_info_t c;
     c.red = p.red + x;
@@ -56,7 +56,7 @@ static color_info_t lighter(color_info_t p, int x)
     return c;
 }
 
-static color_info_t darker(color_info_t c, int x)
+color_info_t darker(color_info_t c, int x)
 {
     return lighter(c, -x);
 }

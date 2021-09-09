@@ -1,7 +1,10 @@
 #include "statusbar_view.h"
 #include "renderer.h"
+#include "render_cache.h"
 
+#include "app.h"
 #include "statusbar.h"
+#include "style.h"
 
 statusbar_view::statusbar_view()
     : horizontal_container()
@@ -52,4 +55,19 @@ void statusbar_view::update()
     }
 
     view_item::update();
+}
+
+void statusbar_view::render() {
+    app_t* app = app_t::instance();
+    view_style_t vs = view_style_get("editor");
+
+    layout_item_ptr lo = layout();
+
+    draw_rect({
+        lo->render_rect.x,
+        lo->render_rect.y,
+        lo->render_rect.w,
+        lo->render_rect.h
+    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+
 }

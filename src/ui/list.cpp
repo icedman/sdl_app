@@ -8,6 +8,7 @@
 #include "scrollarea.h"
 #include "scrollbar.h"
 #include "text.h"
+#include "style.h"
 
 list_item_view::list_item_view()
     : horizontal_container()
@@ -29,13 +30,18 @@ bool list_item_view::mouse_click(int x, int y, int button)
 
 void list_item_view::render()
 {
+    app_t* app = app_t::instance();
+    view_style_t vs = view_style_get("gutter");
+
     layout_item_ptr lo = layout();
     layout_rect r = lo->render_rect;
 
+    RenColor clr = { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 20 };
+
     if (container->is_selected(this) || is_hovered()) {
-        draw_rect({ r.x, r.y, r.w, r.h }, { 255, 0, 255, 150 }, false, 4);
+        draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
     } else {
-        draw_rect({ r.x, r.y, r.w, r.h }, { 255, 0, 255, 150 }, false, 1);
+        // draw_rect({ r.x, r.y, r.w, r.h }, clr, false, 1);
     }
 }
 
@@ -175,4 +181,18 @@ bool list_view::is_selected(list_item_view* item)
 {
     // printf(">%s -- %s\n", value.c_str(), item->data.value.c_str());
     return value == item->data.value && value.length();
+}
+
+void list_view::render() {
+    app_t* app = app_t::instance();
+    view_style_t vs = view_style_get("gutter");
+
+    layout_item_ptr lo = layout();
+
+    draw_rect({
+        lo->render_rect.x,
+        lo->render_rect.y,
+        lo->render_rect.w,
+        lo->render_rect.h
+    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 }

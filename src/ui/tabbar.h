@@ -10,6 +10,7 @@ struct tabbar_view : horizontal_container {
 
     void prelayout() override;
     void update() override;
+    void render() override;
 
     view_item_ptr scrollarea;
 

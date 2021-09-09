@@ -20,6 +20,8 @@ struct app_view : vertical_container {
     void destroy_editor_view(editor_ptr editor);
 
     void show_editor(editor_ptr editor, bool sole = true);
+
+    void setup_style();
 };
 
 #endif // APP_VIEW_H

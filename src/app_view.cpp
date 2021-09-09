@@ -10,6 +10,11 @@
 #include "statusbar_view.h"
 #include "tabbar.h"
 
+#include "style.h"
+
+extern std::map<int, color_info_t> colorMap;
+extern color_info_t darker(color_info_t c, int x);
+
 app_view::app_view()
     : vertical_container()
 {
@@ -41,7 +46,7 @@ app_view::app_view()
 
     statusbar = std::make_shared<statusbar_view>();
 
-    add_child(menu);
+    // add_child(menu);
     add_child(content);
     add_child(statusbar);
 
@@ -53,6 +58,8 @@ app_view::app_view()
         }
         return true;
     });
+
+    setup_style();
 }
 
 bool app_view::input_sequence(std::string keySequence)
@@ -169,4 +176,37 @@ void app_view::show_editor(editor_ptr editor, bool sole)
         ((view_item*)(editor->view))->layout()->visible = true;
         layout_request();
     }
+}
+
+void app_view::setup_style()
+{
+    app_t* app = app_t::instance();
+    theme_ptr theme = app->theme;
+    style_t comment = theme->styles_for_scope("comment");
+
+    // std::string font;
+    // bool italic;
+    // bool bold;
+    // color_info_t fg;
+    // color_info_t bg;
+    // bool filled;
+    // int border;
+    // int border_radius;
+
+    view_style_t vs_default = {
+        font: "editor",
+        italic: false,
+        bold: false,
+        fg: colorMap[comment.foreground.index],
+        bg: colorMap[app->bgApp],
+        filled: false,
+        border: 0,
+        border_radius: 0,
+
+    };
+    view_style_t vs = vs_default;
+    view_style_register(vs_default, "default");
+
+    vs.bg = darker(colorMap[app->bgApp], 5);
+    view_style_register(vs, "gutter");
 }

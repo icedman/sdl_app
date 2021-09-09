@@ -1,6 +1,6 @@
 #include "tabbar.h"
-#include "render_cache.h"
 #include "renderer.h"
+#include "render_cache.h"
 
 #include "app.h"
 #include "app_view.h"
@@ -9,6 +9,7 @@
 
 #include "app.h"
 #include "app_view.h"
+#include "style.h"
 
 struct tab_item_view : horizontal_container {
 
@@ -35,23 +36,29 @@ struct tab_item_view : horizontal_container {
 
     void render() override
     {
+        app_t* app = app_t::instance();
+        view_style_t vs = view_style_get("gutter");
+
         layout_item_ptr lo = layout();
         layout_rect r = lo->render_rect;
         // printf("%s %d %d %d %d\n", file->name.c_str(), r.x, r.y, r.w, r.h);
 
         bool focused = view_get_focused() == editor->view;
 
-        RenColor clr = {
-            255,
-            0,
-            255,
-            focused ? 250 : 50
-        };
+        // RenColor clr = {
+        //     255,
+        //     0,
+        //     255,
+        //     focused ? 250 : 50
+        // };
+
+        RenColor clr = { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, focused ? 20 : 5 };
+
         draw_rect({ lo->render_rect.x,
                       lo->render_rect.y,
                       lo->render_rect.w,
                       lo->render_rect.h },
-            clr, false, 1);
+            clr, true);
     }
 };
 
@@ -169,4 +176,18 @@ void tabbar_view::update()
 view_item_ptr tabbar_view::content()
 {
     return ((scrollarea_view*)scrollarea.get())->content;
+}
+
+void tabbar_view::render() {
+    app_t* app = app_t::instance();
+    view_style_t vs = view_style_get("gutter");
+
+    layout_item_ptr lo = layout();
+
+    draw_rect({
+        lo->render_rect.x,
+        lo->render_rect.y,
+        lo->render_rect.w,
+        lo->render_rect.h
+    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 }

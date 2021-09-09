@@ -8,6 +8,7 @@ struct statusbar_view : horizontal_container {
     statusbar_view();
 
     void update() override;
+    void render() override;
 
     view_item_ptr status;
     view_item_ptr items;

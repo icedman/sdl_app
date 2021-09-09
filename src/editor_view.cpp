@@ -8,6 +8,7 @@
 #include "view.h"
 #include "search.h"
 #include "indexer.h"
+#include "style.h"
 
 #include "scrollbar.h"
 
@@ -20,6 +21,19 @@ void editor_view::render()
     }
 
     RenFont* _font = ren_font((char*)font.c_str());
+
+    app_t* app = app_t::instance();
+    view_style_t vs = view_style_get("editor");
+
+    layout_item_ptr plo = layout();
+
+    draw_rect({
+        plo->render_rect.x,
+        plo->render_rect.y,
+        plo->render_rect.w,
+        plo->render_rect.h
+    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+
 
     state_save();
 
@@ -69,7 +83,6 @@ void editor_view::render()
     int hl_length = view_height + hl_prior;
     editor->highlight(hl_start, hl_length);
 
-    app_t* app = app_t::instance();
     theme_ptr theme = app->theme;
 
     color_info_t fg = colorMap[app_t::instance()->fg];
@@ -427,6 +440,8 @@ bool editor_view::input_key(int k)
 
 static inline struct span_info_t span_at_cursor(cursor_t c)
 {
+    return spanAtBlock(c.block()->data.get(), c.position());
+    /*
     span_info_t res;
     block_ptr block = c.block();
     if (!block->data) {
@@ -439,6 +454,7 @@ static inline struct span_info_t span_at_cursor(cursor_t c)
         }
     }
     return res;   
+    */
 }
 
 bool editor_view::input_text(std::string text)

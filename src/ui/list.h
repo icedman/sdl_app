@@ -34,6 +34,7 @@ struct list_view : panel_view {
 
     virtual void prelayout() override;
     virtual void update() override;
+    virtual void render() override;
 
     virtual void select_item(list_item_view* item);
     bool is_selected(list_item_view* item);
