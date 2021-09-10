@@ -46,6 +46,9 @@ panel_view::panel_view()
     content()->layout()->fit_children = true;
     
     on(EVT_MOUSE_WHEEL, [this](event_t& evt) {
+        if (evt.cancelled) {
+            return true;
+        }
         evt.cancelled = true;
         return this->mouse_wheel(evt.x, evt.y);
     });

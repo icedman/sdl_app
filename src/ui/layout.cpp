@@ -194,6 +194,8 @@ void layout_stack_run(layout_item_ptr item, layout_constraint constraint)
         return;
     }
 
+    constraint.max_width = rect.w;
+    constraint.max_height = rect.h;
     for (auto child : item->children) {
         layout_run(child, constraint);
     }

@@ -564,6 +564,7 @@ void editor_view::ensure_visible_cursor(bool animate)
     scroll_to_cursor(mainCursor);
 }
 
+// move to completer object
 void editor_view::show_completer()
 {
     popup_manager* pm = view_item::cast<popup_manager>(popups);
@@ -628,10 +629,6 @@ void editor_view::show_completer()
         if (list_size > 4) list_size = 4;
         completer->layout()->width = completerItemsWidth * fw;
         completer->layout()->height = list_size * fh + 14;
-
-        // todo fix scrolling sizes
-        list->layout()->width = completer->layout()->width;
-        list->layout()->height = completer->layout()->height;
 
         pm->push_at(completer, {
                 (completer_cursor.position() * fw)

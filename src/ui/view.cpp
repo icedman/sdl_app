@@ -396,10 +396,13 @@ void view_input_wheel(int x, int y, event_t event)
 {
     if (popups.size()) {
         view_item_ptr _v = popups.back();
-        view_hovered = _v.get();
-        printf("%s\n", view_hovered->type.c_str());
+        _v = view_find_xy(_v, 4, 4);
+        if (_v) {
+            view_hovered = _v.get();
+        }
     }
     if (view_hovered) {
+        printf("%s\n", view_hovered->type.c_str());
         event.type = EVT_MOUSE_WHEEL;
         event.source = view_hovered;
         view_hovered->propagate_event(event);
