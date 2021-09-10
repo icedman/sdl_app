@@ -68,7 +68,7 @@ tabbar_view::tabbar_view()
     type = "tabbar";
     interactive = true;
 
-    layout()->margin = 8;
+    layout()->margin_top = 8;
     layout()->height = 40;
     layout()->justify = LAYOUT_JUSTIFY_FLEX_START;
     layout()->align = LAYOUT_ALIGN_FLEX_END;
@@ -122,16 +122,23 @@ void tabbar_view::update()
 
     while (content()->_views.size() < app->editors.size()) {
         view_item_ptr btn = std::make_shared<tab_item_view>();
+        btn->layout()->preferred_constraint = {
+            0,0,
+            200,0
+        };
+
         btn->layout()->justify = LAYOUT_JUSTIFY_CENTER;
         btn->layout()->align = LAYOUT_ALIGN_CENTER;
         btn->layout()->height = 32;
-        view_item_ptr icon = std::make_shared<icon_view>();
-        icon->layout()->width = 32;
-        icon->layout()->height = 24;
-        view_item_ptr text = std::make_shared<text_view>("...");
 
-        btn->add_child(icon);
+        // view_item_ptr icon = std::make_shared<icon_view>();
+        // icon->layout()->width = 32;
+        // icon->layout()->height = 24;
+        // btn->add_child(icon);
+
+        view_item_ptr text = std::make_shared<text_view>("...");
         btn->add_child(text);
+
         content()->add_child(btn);
     }
 
@@ -163,7 +170,7 @@ void tabbar_view::update()
         //     ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)icon_path.c_str(), 24,24);
         // }
 
-        view_item_ptr text = btn->_views[1];
+        view_item_ptr text = btn->_views[0];
         ((text_view*)text.get())->text = e->document.fileName.length() ? e->document.fileName : "untitled";
 
         text->prelayout();

@@ -53,12 +53,14 @@ void editor_view::render()
 
     int start = (-area->layout()->scroll_y / fh);
     // printf(">?%d\n", start);
-    if (start < 0) {
-        start = 0;
-    }
+    
     if (start >= editor->document.blocks.size() - (rows / 2)) {
         start = editor->document.blocks.size() - (1 + rows / 2);
     }
+    if (start < 0) {
+        start = 0;
+    }
+
     start_row = start;
 
     document_t* doc = &editor->document;
@@ -209,7 +211,6 @@ void editor_view::render()
     if (longest_block) {
         ww = longest_block->length() * fw;
     }
-    
     content()->layout()->width = ww;
 
     if (prev_longest != longest_block) {

@@ -179,7 +179,7 @@ void view_item::update()
 
 void view_item::render()
 {
-    #if 0
+    #if 1
     layout_item_ptr lo = layout();
 
     if (!lo->visible) return;

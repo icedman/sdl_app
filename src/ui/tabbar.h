@@ -13,10 +13,7 @@ struct tabbar_view : horizontal_container {
     void render() override;
 
     view_item_ptr scrollarea;
-
     view_item_ptr content();
-    view_item_ptr _content;
-    view_item_ptr spacer;
 };
 
 #endif // TABBAR_VIEW_H

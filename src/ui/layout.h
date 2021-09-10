@@ -113,6 +113,7 @@ struct layout_item {
         , grow(1)
         , shrink(0)
         , flex_basis(0)
+        , preferred_constraint({ 0, 0, 0, 0 })
         , x(0)
         , y(0)
         , scroll_x(0)
@@ -121,6 +122,10 @@ struct layout_item {
         , height(0)
         , fit_children(true)
         , margin(0)
+        , margin_left(0)
+        , margin_right(0)
+        , margin_top(0)
+        , margin_bottom(0)
         , visible(true)
         , offscreen(false)
         , wrap(false)
@@ -143,6 +148,8 @@ struct layout_item {
     std::string name;
 
     layout_color rgb;
+
+    // computed
     layout_constraint constraint; // passed down
     layout_rect rect; // relative computed
     layout_rect render_rect; // final computed
@@ -154,12 +161,19 @@ struct layout_item {
     bool offscreen;
     bool wrap;
     int margin;
+    int margin_left;
+    int margin_right;
+    int margin_top;
+    int margin_bottom;
     int x, y;
     int scroll_x, scroll_y;
     int width, height;
+    int _width, _height;
+    layout_constraint preferred_constraint;
     bool fit_children;
     float grow; // flex-grow
     float shrink; // not yet implemented
+    float _flex; // computed grow/shrink
     int flex_basis; // not yet implemented
     layout_align_items align;
     layout_align_content align_content; // not yet implemented

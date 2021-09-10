@@ -26,7 +26,7 @@ app_view::app_view()
     interactive = true;
 
     layout_item_ptr lo = layout();
-    lo->margin = 0;
+    // lo->margin = 0;
 
     explorer = std::make_shared<explorer_view>();
 

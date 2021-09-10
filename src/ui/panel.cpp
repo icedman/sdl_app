@@ -136,15 +136,26 @@ void panel_view::update()
 
     // vs->layout()->visible = vs->disabled ? false : content()->layout()->rect.h < scrollarea->layout()->rect.h;
     // hs->layout()->visible = hs->disabled ? false : content()->layout()->rect.w < scrollarea->layout()->rect.w;
-    // bottom->layout()->visible = hs->layout()->visible;
+    
+    bottom->layout()->visible = hs->layout()->visible;
+    if (hs->window >= hs->count) {
+        bottom->layout()->visible = false;
+    }
     
     view_item::update();
 }
 
 void panel_view::postlayout()
 {
-    ((scrollbar_view*)v_scroll.get())->set_size(content()->layout()->rect.h, scrollarea->layout()->rect.h);
-    ((scrollbar_view*)h_scroll.get())->set_size(content()->layout()->rect.w, scrollarea->layout()->rect.w);
+    int ch = content()->layout()->rect.h;
+    int cw = content()->layout()->rect.w;
+    int sh = scrollarea->layout()->rect.h;
+    int sw = scrollarea->layout()->rect.w;
+
+    // printf("%d %d %d %d\n", cw, ch, sw, sh);
+
+    ((scrollbar_view*)v_scroll.get())->set_size(ch, sh);
+    ((scrollbar_view*)h_scroll.get())->set_size(cw, sw);
 }
 
 void panel_view::update_scrollbars()

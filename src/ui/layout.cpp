@@ -130,14 +130,14 @@ void layout_position_items(layout_item_ptr item)
             child->rect.x = (xx * hd) + ((offsetStart + offset) * wd);
             child->rect.y = (yy * wd) + ((offsetStart + offset) * hd);
 
-            if (item->rect.w < child->rect.x + child->rect.w + item->margin * 2) {
+            if (item->rect.w < child->rect.x + child->rect.w + (item->margin_left + item->margin_right)) {
                 if (item->fit_children) {
-                    item->rect.w = child->rect.x + child->rect.w + item->margin * 2;
+                    item->rect.w = child->rect.x + child->rect.w + (item->margin_left + item->margin_right);
                 }
             }
-            if (item->rect.h < child->rect.y + child->rect.h + item->margin * 2) {
+            if (item->rect.h < child->rect.y + child->rect.h + (item->margin_top + item->margin_bottom)) {
                 if (item->fit_children) {
-                    item->rect.h = child->rect.y + child->rect.h + item->margin * 2;
+                    item->rect.h = child->rect.y + child->rect.h + (item->margin_top + item->margin_bottom);
                 }
             }
 
@@ -212,8 +212,8 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
     item->rect = rect;
     item->render_rect = rect;
 
-    constraint.max_width -= item->margin * 2;
-    constraint.max_height -= item->margin * 2;
+    constraint.max_width -= (item->margin_left + item->margin_right);
+    constraint.max_height -= (item->margin_top + item->margin_bottom);
     item->constraint = constraint;
 
     if (!item->visible) {
@@ -264,8 +264,22 @@ void layout_horizontal_run(layout_item_ptr item, layout_constraint constraint)
     if (spaceRemaining < 0)
         spaceRemaining = 0;
 
+    // first pass : constraints
     for (auto child : flexItems) {
+        child->_flex = child->grow;
         int ww = spaceRemaining * child->grow / totalFlex;
+        if (child->preferred_constraint.max_width && ww > child->preferred_constraint.max_width) {
+            child->_width = child->preferred_constraint.max_width;
+            child->_flex = 0;
+        }
+    }
+
+    // second pass : distribute
+    for (auto child : flexItems) {
+        int ww = spaceRemaining * child->_flex / totalFlex;
+        if (child->_flex == 0 && child->_width) {
+            ww = child->_width;
+        }
         layout_run(child, { 0, 0, ww, constraint.max_height });
     }
 
@@ -288,8 +302,8 @@ void layout_vertical_run(layout_item_ptr item, layout_constraint constraint)
     item->rect = rect;
     item->render_rect = rect;
 
-    constraint.max_width -= item->margin * 2;
-    constraint.max_height -= item->margin * 2;
+    constraint.max_width -= (item->margin_left + item->margin_right);
+    constraint.max_height -= (item->margin_top + item->margin_bottom);
     item->constraint = constraint;
 
     if (!item->visible) {
@@ -377,6 +391,14 @@ void _layout_run(layout_item_ptr item, layout_constraint constraint)
 {
     _prelayout(item);
 
+    // margin
+    if (item->margin) {
+        item->margin_left = item->margin_left ? item->margin_left : item->margin;
+        item->margin_right = item->margin_right ? item->margin_right : item->margin;
+        item->margin_top = item->margin_top ? item->margin_top : item->margin;
+        item->margin_bottom = item->margin_bottom ? item->margin_bottom : item->margin;
+    }
+
     if (item->stack) {
         layout_stack_run(item, constraint);
     } else if (item->direction == LAYOUT_FLEX_DIRECTION_ROW || item->direction == LAYOUT_FLEX_DIRECTION_ROW_REVERSE) {
@@ -393,8 +415,8 @@ void _layout_run(layout_item_ptr item, layout_constraint constraint)
         if (child->stack) {
             continue;
         }
-        child->rect.x += item->margin;
-        child->rect.y += item->margin;
+        child->rect.x += item->margin_left;
+        child->rect.y += item->margin_top;
     }
 
     _postlayout(item);

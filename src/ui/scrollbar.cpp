@@ -11,7 +11,7 @@ scrollbar_view::scrollbar_view()
     , dragging(false)
     , index(0)
     , window(12)
-    , count(12)
+    , count(11)
 {
     type = "scrollbar";
 
