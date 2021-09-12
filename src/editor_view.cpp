@@ -17,7 +17,7 @@
 
 extern std::map<int, color_info_t> colorMap;
 
-std::vector<span_info_t> split_span(span_info_t si, const std::string& str, const std::set<char> delimiters)
+std::vector<span_info_t> split_span(span_info_t si, const std::string& str, const std::set<char>& delimiters)
 {
     std::vector<span_info_t> result;
 
@@ -184,7 +184,13 @@ void editor_view::render()
         // wrap
         blockData->rendered_spans = blockData->spans;
         if (wrap && text.length() > cols) {
-            std::set<char> delims = { '.', ',', '-', ' ', ')', '(', '=', ':', '"' };
+            static std::set<char> delims = { 
+                '.', ',', ';', ':', 
+                '-', '+', '*', '/', '%', '=',
+                '"', ' ', '\'', '\\',
+                '(', ')', '[', ']', '<', '>',
+                '&', '!', '?', '_', '~', '@'
+            };
             blockData->rendered_spans.clear();
             for (auto& s : blockData->spans) {
                 if (s.length == 0) continue;
@@ -220,7 +226,7 @@ void editor_view::render()
         int linc = 0;
         for (auto& s : blockData->rendered_spans) {
             if (s.length == 0) continue;
-            
+
             color_info_t clr = colorMap[s.colorIndex];
 
             std::string span_text = text.substr(s.start, s.length);
