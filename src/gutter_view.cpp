@@ -13,8 +13,6 @@ gutter_view::gutter_view()
 
 void gutter_view::render()
 {
-    return;
-
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
 
@@ -50,17 +48,15 @@ void gutter_view::render()
             blockData = block->data.get();
         }
         if (!blockData) {
-            return;
+            break;
         }
 
-        int linc = 0;
+        int linc = block->lineCount;
         int y = 0;
         for(auto s : blockData->rendered_spans) {
-            if (s.line > linc) {
-                linc = s.line;
-            }
             if (s.line == 0) {
                 y = s.y;
+                break;
             }
         }
 
@@ -72,4 +68,6 @@ void gutter_view::render()
 
         l+=linc;
     }
+
+    // printf(">g %d\n", l);
 }

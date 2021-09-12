@@ -24,8 +24,8 @@ struct editor_view : panel_view {
     void render() override;
     void update() override;
 
-    void ensure_visible_cursor(bool animate = false);
-    void scroll_to_cursor(cursor_t c, bool animate = false, bool centered = false);
+    void ensure_visible_cursor();
+    void scroll_to_cursor(cursor_t c);
 
     void show_completer();
     bool commit_completer(std::string text);

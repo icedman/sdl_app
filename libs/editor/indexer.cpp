@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <unistd.h>
+#include <time.h>
 
 #include <algorithm>
 #include <cctype>
@@ -126,9 +127,20 @@ void* indexerThread(void* arg)
     indexer_t* indexer = (indexer_t*)arg;
     editor_t* editor = indexer->editor;
 
+    static struct timespec time_to_wait = {0, 0};
+
+    // pthread_cond_t dummy_cond;
+    // pthread_cond_init(&dummy_cond, NULL);
+    // pthread_mutex_t dummy_lock;
+    // pthread_mutex_init(&dummy_lock, NULL);
+
+    // time_to_wait.tv_sec = time(NULL) + 2L;
+    // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
     usleep(200000);
 
     while (true) {
+        time_to_wait.tv_sec = time(NULL) + 2L;
+
         for (int i = 0; i < INDEX_REQUEST_SIZE; i++) {
             if (indexer->indexingRequests[i] != 0) {
                 // todo make thread safe
@@ -138,13 +150,17 @@ void* indexerThread(void* arg)
                     continue;
                 }
                 indexer->_updateBlock(block);
-                // log("indexing %d", indexer->indexingRequests[i]);
+                // log("indexing %d", i);
                 indexer->indexingRequests[i] = 0;
+                // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
                 usleep(5000);
             }
         }
 
         usleep(500000);
+        
+        // time_to_wait.tv_sec = time(NULL) + 4L;
+        // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
     }
 
     return NULL;

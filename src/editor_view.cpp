@@ -32,9 +32,8 @@ std::vector<span_info_t> split_span(span_info_t si, const std::string& str, cons
             result.push_back(s);
             start = pch;
 
-            s.start = start - line;
-            s.length = 1;
-            result.push_back(s);
+            // std::string t(line + s.start, s.length);
+            // printf(">%d %d >%s<\n", s.start, s.length, t.c_str());
         }
     }
 
@@ -275,12 +274,12 @@ void editor_view::render()
             }
             s.y += (s.line * fh);
 
-#if 0
+#if 1
             draw_rect({ s.x,
                           s.y,
                           fw * s.length,
                           fh },
-                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
+                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
 #endif 
             
             draw_text(_font, (char*)span_text.c_str(),
@@ -581,7 +580,7 @@ bool editor_view::input_sequence(std::string text)
     return true;
 }
 
-void editor_view::scroll_to_cursor(cursor_t c, bool animate, bool centered)
+void editor_view::scroll_to_cursor(cursor_t c)
 {
     block_ptr block = c.block();
     int l = block->lineNumber - 1;
@@ -620,7 +619,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool animate, bool centered)
     update_scrollbars();
 }
 
-void editor_view::ensure_visible_cursor(bool animate)
+void editor_view::ensure_visible_cursor()
 {
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();

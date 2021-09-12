@@ -24,7 +24,7 @@
 #include <set>
 #include <vector>
 
-#define FRAME_RENDER_INTERVAL 16
+#define FRAME_RENDER_INTERVAL 64
 
 extern int ren_rendered;
 
