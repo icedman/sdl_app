@@ -159,7 +159,7 @@ void editor_view::render()
         // wrap
         blockData->rendered_spans = blockData->spans;
         if (wrap && text.length() > cols) {
-            std::set<char> delims = { '.', ',', '-', ' ', ')', '(', '=', ':', '"' };
+            std::set<char> delims = { '.', ',', '-', ' ', ')', '(', '=', ':', '"', '>', '<', '&' };
             blockData->rendered_spans.clear();
             for (auto& s : blockData->spans) {
                 std::string span_text = text.substr(s.start, s.length);
@@ -270,7 +270,7 @@ void editor_view::render()
                 s.x -= s.start * fw;
                 s.x += s.line_x * fw;
             }
-            
+
             s.y += (s.line * fh);
 
             draw_rect({ s.x,

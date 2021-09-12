@@ -105,7 +105,7 @@ bool app_view::input_sequence(std::string keySequence)
         return true;
     }
 
-    printf("%s\n", keySequence.c_str());
+    // printf("%s\n", keySequence.c_str());
     return false;
 }
 
