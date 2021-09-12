@@ -102,6 +102,10 @@ struct block_t {
     block_ptr previous();
 
     std::shared_ptr<blockdata_t> data;
+
+    // rendered block
+    int x;
+    int y;
 };
 
 #endif // BLOCK_H

@@ -121,10 +121,16 @@ void editor_view::render()
     // printf(">>%d %d\n", start_row, rows);
 
     int view_height = rows;
-    int hl_prior = view_height / 4;
+    int hl_prior = 8;
     int hl_start = start - hl_prior;
-    int hl_length = view_height + hl_prior;
-    editor->highlight(hl_start, hl_length);
+    int hl_length = view_height + hl_prior * 2;
+    for(int i=0; i<hl_length; i+=4) {
+        int lighted = editor->highlight(hl_start+i, 4);
+        if (lighted > 0) {
+            ren_listen_quick();
+            break;
+        }
+    }
 
     theme_ptr theme = app->theme;
 
@@ -139,15 +145,30 @@ void editor_view::render()
     }
 
     int l = 0;
-    while (it != doc->blocks.end() && l < hl_length) {
+    while (it != doc->blocks.end() && l < view_height) {
         block_ptr block = *it++;
 
-        struct blockdata_t* blockData;
+        blockdata_t* blockData = 0;
         if (block->data) {
             blockData = block->data.get();
         }
+        if (!blockData || blockData->dirty) {
+            blockData = &data;
+            span_info_t span = {
+                start: 0,
+                length: block->text().length(),
+                colorIndex: app_t::instance()->fg,
+                bold: false,
+                italic: false,
+                state: BLOCK_STATE_UNKNOWN,
+                scope: ""
+            };
+            blockData->spans.clear();
+            blockData->spans.push_back(span);
+            // break;
+        }
         if (!blockData) {
-            return;
+            break;
         }
 
         if (!longest_block) {
@@ -272,7 +293,13 @@ void editor_view::render()
                 s.x -= s.start * fw;
                 s.x += s.line_x * fw;
             }
+
             s.y += (s.line * fh);
+
+            if (s.line == 0) {
+                block->x = alo->render_rect.x;
+                block->y = s.y;
+            }
 
 #if 1
             draw_rect({ s.x,
@@ -349,6 +376,9 @@ editor_view::editor_view()
     content()->layout()->stack = true;
 
     on(EVT_MOUSE_DOWN, [this](event_t& evt) {
+        if (evt.source != this) {
+            return false;
+        }
         evt.cancelled = true;
         return this->mouse_down(evt.x, evt.y, evt.button, evt.clicks);
     });
@@ -615,6 +645,8 @@ void editor_view::scroll_to_cursor(cursor_t c)
     }
 
     area->layout()->scroll_y = -start_row * fh;
+
+    // printf("scroll: %d %d\n", area->layout()->scroll_y, l);
 
     update_scrollbars();
 }

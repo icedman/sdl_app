@@ -36,7 +36,7 @@ struct editor_t {
     void applyTheme();
     bool input(char ch, std::string keys);
 
-    void highlight(int startingLine, int count);
+    int highlight(int startingLine, int count);
     void enableIndexer();
 
     void toMarkup();

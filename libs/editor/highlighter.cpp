@@ -49,18 +49,21 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rend
     return res;
 }
 
-void highlighter_t::highlightBlocks(block_ptr block, int count)
+int highlighter_t::highlightBlocks(block_ptr block, int count)
 {
+    int lighted = 0;
     while (block && count-- > 0) {
-        highlightBlock(block);
+        lighted += highlightBlock(block);
         block = block->next();
     }
+
+    return lighted;
 }
 
-void highlighter_t::highlightBlock(block_ptr block)
+int highlighter_t::highlightBlock(block_ptr block)
 {
     if (!block)
-        return;
+        return 0;
 
     if (!block->data) {
         block->data = std::make_shared<blockdata_t>();
@@ -68,11 +71,11 @@ void highlighter_t::highlightBlock(block_ptr block)
     }
 
     if (!block->data->dirty) {
-        return;
+        return 0;
     }
 
     if (!lang) {
-        return;
+        return 0;
     }
 
     // log("hl %d", block->lineNumber);
@@ -136,7 +139,7 @@ void highlighter_t::highlightBlock(block_ptr block)
     if (text.length() > LINE_LENGTH_LIMIT) {
         // too long to parse
         blockData->dirty = false;
-        return;
+        return 1;
     } else {
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
     }
@@ -286,6 +289,8 @@ void highlighter_t::highlightBlock(block_ptr block)
     if (editor && editor->indexer) {
         editor->indexer->updateBlock(block);
     }
+
+    return 1;
 }
 
 void highlighter_t::gatherBrackets(block_ptr block, char* first, char* last)

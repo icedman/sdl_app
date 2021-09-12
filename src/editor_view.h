@@ -7,6 +7,7 @@
 
 #include "cursor.h"
 #include "editor.h"
+#include "block.h"
 
 struct editor_view : panel_view {
     editor_view();
@@ -49,6 +50,8 @@ struct editor_view : panel_view {
 
     std::string font;
     int fw, fh;
+
+    blockdata_t data;
 };
 
 #endif // EDITOR_VIEW_H

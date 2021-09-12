@@ -12,7 +12,7 @@ gutter_view::gutter_view()
 }
 
 void gutter_view::render()
-{
+{   
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
 
@@ -43,22 +43,8 @@ void gutter_view::render()
     while (it != doc->blocks.end() && l < view_height) {
         block_ptr block = *it++;
 
-        struct blockdata_t* blockData;
-        if (block->data) {
-            blockData = block->data.get();
-        }
-        if (!blockData) {
-            break;
-        }
-
         int linc = block->lineCount;
-        int y = 0;
-        for(auto s : blockData->rendered_spans) {
-            if (s.line == 0) {
-                y = s.y;
-                break;
-            }
-        }
+        int y = block->y;
 
         std::string ln = std::to_string(block->lineNumber + 1);
         ren_draw_text(ren_font((char*)vs.font.c_str()), ln.c_str(),

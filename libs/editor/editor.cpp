@@ -905,7 +905,7 @@ void editor_t::applyTheme()
     // highlighter.theme = app_t::instance()->theme;
 }
 
-void editor_t::highlight(int startingLine, int count)
+int editor_t::highlight(int startingLine, int count)
 {
     struct cursor_t mainCursor = document.cursor();
     block_ptr mainBlock = mainCursor.block();
@@ -920,22 +920,29 @@ void editor_t::highlight(int startingLine, int count)
     int l = 0;
     block_list::iterator it = document.blocks.begin();
 
-    int preceedingBlocks = count / 2;
-    int trailingBlocks = count / 3;
+    int preceedingBlocks = 0;//count / 2;
+    int trailingBlocks = 0;//count / 3;
     int idx = startingLine - preceedingBlocks;
     if (idx < 0) {
         idx = 0;
     }
+    if (idx >= document.blocks.size()) {
+        return 0;
+    }
     it += idx;
     
+    int lighted = 0;
     int c = 0;
     while (it != document.blocks.end()) {
         block_ptr b = *it++;
-        highlighter.highlightBlock(b);
+        lighted += highlighter.highlightBlock(b);
         // log("%d %d %d", c, mainBlock->lineNumber, preceedingBlocks, count);
-        if (c++ >= mainBlock->lineNumber + preceedingBlocks + trailingBlocks + count)
+        if (c++ >= count) // mainBlock->lineNumber + preceedingBlocks + trailingBlocks + count)
             break;
     }
+
+    // printf("><%d\n", lighted);
+    return lighted;
 }
 
 void editor_t::toMarkup()

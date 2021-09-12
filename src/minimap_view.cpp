@@ -31,7 +31,7 @@ bool minimap_view::mouse_click(int x, int y, int button)
     int ry = y - lo->render_rect.y;
     if (ry > end_y * spacing) return true;
 
-    int line = (end_y + start_y) * (float)ry / render_h;
+    int line = start_y + ((end_y - start_y) * (float)ry / render_h);
 
     editor_view* ev = (editor_view*)(parent->parent);    
     editor_ptr editor = ev->editor;
@@ -81,18 +81,6 @@ void minimap_view::render()
 
     // printf("%f\n", p);
 
-    if (is_hovered()) {
-        ren_draw_rect({
-            lo->render_rect.x,
-            lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
-            lo->render_rect.w,
-            ev->rows * spacing,
-        },
-            { 255, 255, 255, 10 },
-            true, 1, 4
-        );
-    }
-
     int hl = 0;
 
     block_list& snapBlocks = editor->snapshots[0].snapshot;
@@ -106,6 +94,8 @@ void minimap_view::render()
     end_y = 0;
     render_h = 0;
 
+    int render_y = 0;
+
     int l=0;
     while(it != editor->document.blocks.end() && l < lo->render_rect.h) {
         block_ptr block = *it;
@@ -113,58 +103,83 @@ void minimap_view::render()
 
         blockdata_t *blockData = block->data.get();
 
-        // if (!blockData && block->lineNumber < snapBlocks.size()) {
-        //     block_ptr sblock = snapBlocks[block->lineNumber];
-        //     blockData = sblock->data.get();
-        //     if (blockData && blockData->dirty) {
-        //         blockData = 0;
-        //     }
-        // }
-
-        if (!blockData) {
-            editor->highlight(block->lineNumber, 8);
-            if (hl++>2) break;
+        if (!blockData && hl++ < 2) {
+            editor->highlight(block->lineNumber, 4);
             blockData = block->data.get();
             ren_listen_quick();
         }
 
-        if (!blockData) break;
-
-        for(auto s : blockData->spans) {
-
-            color_info_t clr = colorMap[s.colorIndex];
-
-            int start = s.start / 3;
-            int length = s.length / 2;
+        if (!blockData || blockData->dirty) {
             RenRect r = {
-                lo->render_rect.x + start + 2,
-                lo->render_rect.y + l,
-                length,
-                1,
-            };
-
-            if (render_h < l) {
-                render_h = l;
-            }
-
-            if (start + r.width + 2 > lo->render_rect.w) {
-                r.width = lo->render_rect.w - (start + 2);
-            }
-
+                    lo->render_rect.x,
+                    lo->render_rect.y + l,
+                    block->length()/2,
+                    1,
+                };
             if (r.width > 0) {
                 ren_draw_rect(r,
-                    { clr.red, clr.green, clr.blue, 150 },
+                    { 255,255,255, 150 },
                     false, 1
                 );
+            }
+            blockData = 0;
+        }
+
+        if (blockData) {
+            for(auto s : blockData->spans) {
+
+                color_info_t clr = colorMap[s.colorIndex];
+
+                int start = s.start / 3;
+                int length = s.length / 2;
+                RenRect r = {
+                    lo->render_rect.x + start + 2,
+                    lo->render_rect.y + l,
+                    length,
+                    1,
+                };
+
+                if (render_h < l) {
+                    render_h = l;
+                }
+
+                if (start + r.width + 2 > lo->render_rect.w) {
+                    r.width = lo->render_rect.w - (start + 2);
+                }
+
+                if (r.width > 0) {
+                    ren_draw_rect(r,
+                        { clr.red, clr.green, clr.blue, 150 },
+                        false, 1
+                    );
+                }
             }
         }
 
         if (start_y == -1) {
             start_y = block->lineNumber;
         }
+        if (block->lineNumber == start) {
+            render_y = lo->render_rect.y + l;
+        }
+        
         end_y = block->lineNumber;
         
-
         l+=spacing;
     }
+
+
+    if (is_hovered()) {
+        ren_draw_rect({
+            lo->render_rect.x,
+            // lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
+            render_y,
+            lo->render_rect.w,
+            ev->rows * spacing,
+        },
+            { 255, 255, 255, 10 },
+            true, 1, 4
+        );
+    }
+
 }
