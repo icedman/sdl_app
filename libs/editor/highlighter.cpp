@@ -60,6 +60,25 @@ int highlighter_t::highlightBlocks(block_ptr block, int count)
     return lighted;
 }
 
+void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
+{
+    std::vector<span_info_t>::iterator it = spans.begin();
+    while(it != spans.end()) {
+        span_info_t s = *it;
+        if (s.start >= comment.start && s.start + s.length <= comment.start + comment.length) {
+            spans.erase(it);
+            continue;
+        }
+        it++;
+    }
+    // for(auto &s : spans) {
+    //     if (s.start >= comment.start && s.start + s.length <= comment.start + comment.length) {
+    //         s.length = 0;
+    //     }
+    // }
+    spans.insert(spans.begin(), 1, comment);
+}
+
 int highlighter_t::highlightBlock(block_ptr block)
 {
     if (!block)
@@ -214,7 +233,8 @@ int highlighter_t::highlightBlock(block_ptr block)
                 .scope = "comment"
             };
 
-            blockData->spans.insert(blockData->spans.begin(), 1, span);
+            addCommentSpan(blockData->spans, span);
+            // blockData->spans.insert(blockData->spans.begin(), 1, span);
 
         } else if (beginComment != std::string::npos && endComment != std::string::npos) {
             blockData->state = BLOCK_STATE_UNKNOWN;
@@ -231,7 +251,8 @@ int highlighter_t::highlightBlock(block_ptr block)
                 .scope = "comment"
             };
 
-            blockData->spans.insert(blockData->spans.begin(), 1, span);
+            addCommentSpan(blockData->spans, span);
+            // blockData->spans.insert(blockData->spans.begin(), 1, span);
 
         } else {
             blockData->state = BLOCK_STATE_UNKNOWN;
@@ -246,7 +267,8 @@ int highlighter_t::highlightBlock(block_ptr block)
                     .state = BLOCK_STATE_UNKNOWN,
                     .scope = "comment"
                 };
-                blockData->spans.insert(blockData->spans.begin(), 1, span);
+                addCommentSpan(blockData->spans, span);
+                // blockData->spans.insert(blockData->spans.begin(), 1, span);
             }
         }
     }

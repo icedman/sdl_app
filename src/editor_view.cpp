@@ -187,6 +187,7 @@ void editor_view::render()
             std::set<char> delims = { '.', ',', '-', ' ', ')', '(', '=', ':', '"' };
             blockData->rendered_spans.clear();
             for (auto& s : blockData->spans) {
+                if (s.length == 0) continue;
                 std::string span_text = text.substr(s.start, s.length);
                 std::vector<span_info_t> ss = split_span(s, span_text, delims);
                 for(auto _s : ss) {
@@ -218,6 +219,8 @@ void editor_view::render()
         block->lineHeight = fh;
         int linc = 0;
         for (auto& s : blockData->rendered_spans) {
+            if (s.length == 0) continue;
+            
             color_info_t clr = colorMap[s.colorIndex];
 
             std::string span_text = text.substr(s.start, s.length);
