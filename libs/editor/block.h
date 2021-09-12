@@ -29,10 +29,14 @@ struct span_info_t {
     int colorIndex;
     bool bold;
     bool italic;
-    int x;
-    int y;
     block_state_e state;
     std::string scope;
+
+    // for rendered span
+    int x;
+    int y;
+    int line;
+    int line_x;
 };
 
 struct bracket_info_t {
@@ -48,6 +52,7 @@ struct blockdata_t {
     ~blockdata_t();
 
     std::vector<span_info_t> spans;
+    std::vector<span_info_t> rendered_spans;
     std::vector<bracket_info_t> foldingBrackets;
     std::vector<bracket_info_t> brackets;
     parse::stack_ptr parser_state;

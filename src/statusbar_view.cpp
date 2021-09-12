@@ -41,6 +41,29 @@ void statusbar_view::update()
 {
     statusbar_t* statusbar = statusbar_t::instance();
     if (statusbar) {
+        statusbar->update(1);
+        editor_ptr editor = app_t::instance()->currentEditor;
+        document_t* doc = &editor->document;
+        cursor_t cursor = doc->cursor();
+        block_ptr block = cursor.block();
+
+        static char tmp[512];
+        // sprintf(tmp, "History %d/%d", (int)doc->snapShots.size(), (int)doc->snapShots.back().edits.size());
+        // setText(tmp, -5);
+
+        sprintf(tmp, "%s", doc->windowsLineEnd ? "CR/LF" : "LF");
+        statusbar->setText(tmp, -4);
+
+        sprintf(tmp, "Line: %d", 1 + (int)(block->lineNumber));
+        statusbar->setText(tmp, -3);
+        sprintf(tmp, "Col: %d", 1 + (int)(cursor.position()));
+        statusbar->setText(tmp, -2);
+        if (editor->highlighter.lang) {
+            statusbar->setText(editor->highlighter.lang->id, -1);
+        } else {
+            statusbar->setText("", -1);
+        }
+
         text_view* text = view_item::cast<text_view>(status);
         text->text = statusbar->status;
         text->prelayout();
@@ -48,7 +71,7 @@ void statusbar_view::update()
         int i = 0;
         for (auto v : items->_views) {
             text_view* text = view_item::cast<text_view>(v);
-            // text->text = statusbar->text[i++];
+            text->text = " " + statusbar->text[i++] + " ";
             text->prelayout();
             text->layout()->rect.w = text->layout()->width;
         }

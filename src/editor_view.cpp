@@ -11,8 +11,42 @@
 #include "style.h"
 
 #include "scrollbar.h"
+#include <set>
+#include <algorithm>
 
 extern std::map<int, color_info_t> colorMap;
+
+std::vector<span_info_t> split_span(span_info_t si, const std::string& str, const std::set<char> delimiters)
+{
+    std::vector<span_info_t> result;
+
+    char const* line = str.c_str();
+    char const* pch = str.c_str();
+    char const* start = pch;
+    for (; *pch; ++pch) {
+        if (delimiters.find(*pch) != delimiters.end()) {
+            span_info_t s = si;
+            s.start = start - line;
+            s.length = pch - start + 1;
+            start = pch + 1;
+            result.push_back(s);
+        }
+    }
+
+    span_info_t s = si;
+    s.start = start - line;
+    s.length = pch - start;
+    if (start == pch) {
+        s.length = 1;
+    }
+    result.push_back(s);
+
+    return result;
+}
+
+bool compareSpan(span_info_t a, span_info_t b) {
+    return a.start < b.start;
+}
 
 void editor_view::render()
 {
@@ -24,6 +58,9 @@ void editor_view::render()
 
     app_t* app = app_t::instance();
     view_style_t vs = view_style_get("editor");
+
+    bool wrap = app->lineWrap;
+    int tabSize = app->tabSize;
 
     layout_item_ptr plo = layout();
 
@@ -106,14 +143,6 @@ void editor_view::render()
             blockData = block->data.get();
         }
         if (!blockData) {
-            // draw_text(NULL, (char*)block->text().c_str(),
-            //     lo->render_rect.x,
-            //     lo->render_rect.y + (l*fh),
-            //     { (uint8_t)fg.red,(uint8_t)fg.green,(uint8_t)fg.blue },
-            //     false, false, true);
-
-            // l++;
-            // continue;
             return;
         }
 
@@ -127,10 +156,47 @@ void editor_view::render()
         std::string text = block->text() + "\n";
         const char* line = text.c_str();
 
-        for (auto& s : blockData->spans) {
+        // wrap
+        blockData->rendered_spans = blockData->spans;
+        if (wrap && text.length() > cols) {
+            std::set<char> delims = { '.', ',', '-', ' ', ')', '(', '=', ':', '"' };
+            blockData->rendered_spans.clear();
+            for (auto& s : blockData->spans) {
+                std::string span_text = text.substr(s.start, s.length);
+                std::vector<span_info_t> ss = split_span(s, span_text, delims);
+                for(auto _s : ss) {
+                    _s.start += s.start;
+                    blockData->rendered_spans.push_back(_s);
+                }
+            }
+            std::sort(blockData->rendered_spans.begin(), blockData->rendered_spans.end(), compareSpan);
+            int line = 0;
+            int line_x = 0;
+            for(auto &_s : blockData->rendered_spans) {
+                if (_s.start - (line * cols) + _s.length > cols) {
+                    line++;
+                    line_x = 0;
+                }
+                _s.line = line;
+                if (_s.line > 0) {
+                    _s.line_x = tabSize + line_x;
+                    line_x += _s.length;
+                }
+                // printf(">%d %d %d %d\n", _s.start, _s.length, _s.line, _s.line_x);
+            }
+        }
+
+        block->lineCount = 1;
+        int linc = 0;
+        for (auto& s : blockData->rendered_spans) {
             color_info_t clr = colorMap[s.colorIndex];
 
             std::string span_text = text.substr(s.start, s.length);
+
+            if (linc < s.line) {
+                linc = s.line;
+                block->lineCount = 1 + linc;
+            }
 
             // cursors
             for (int pos = s.start; pos < s.start + s.length; pos++) {
@@ -165,6 +231,14 @@ void editor_view::render()
                         alo->render_rect.y + (l * fh),
                         fw, fh
                     };
+
+                    if (s.line > 0) {
+                        cr.x -= pos * fw;
+                        cr.x += s.line_x * fw;
+                        cr.x += (pos - s.start) * fw;
+                    }
+
+                    cr.y += (s.line * fh);
                     color_info_t cur = sel;
                     if (hlMainCursor) {
                         int cursor_pad = 4;
@@ -187,11 +261,17 @@ void editor_view::render()
             s.x += alo->scroll_x;
             s.y = alo->render_rect.y + (l * fh);
 
-            // draw_rect({ s.x,
-            //               s.y,
-            //               fw * s.length,
-            //               fh },
-            //     { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
+            if (s.line > 0) {
+                s.x -= s.start * fw;
+                s.x += s.line_x * fw;
+            }
+            s.y += (s.line * fh);
+
+            draw_rect({ s.x,
+                          s.y,
+                          fw * s.length,
+                          fh },
+                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
 
             draw_text(_font, (char*)span_text.c_str(),
                 s.x,
@@ -201,14 +281,16 @@ void editor_view::render()
         }
 
         l++;
+        l+=linc;
     }
 
     state_restore();
 
     view_item::cast<gutter_view>(gutter)->editor = editor;
 
+    // duplicated from ::prelayout
     int ww = area->layout()->render_rect.w;
-    if (longest_block) {
+    if (!wrap && longest_block) {
         ww = longest_block->length() * fw;
     }
     content()->layout()->width = ww;
@@ -317,7 +399,9 @@ void editor_view::prelayout()
     int lines = editor->document.blocks.size();
 
     int ww = area->layout()->render_rect.w - gutter->layout()->render_rect.w;
-    if (longest_block) {
+
+    bool wrap = app_t::instance()->lineWrap;
+    if (!wrap && longest_block) {
         ww = longest_block->length() * fw;
     }
 
@@ -367,7 +451,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         bool hitLine = false;
         bool hitSpan = false;
         int hitPos = 0;
-        for (auto& s : blockData->spans) {
+        for (auto& s : blockData->rendered_spans) {
             layout_rect r = {
                 s.x,
                 s.y,
@@ -379,7 +463,8 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
                 int pos = (x - s.x) / fw;
                 hitPos = pos + s.start;
                 if (x > r.x && x <= r.x + r.w) {
-                    // std::string span_text = text.substr(s.start, s.length);
+                    std::string span_text = text.substr(s.start, s.length);
+                    printf("%s\n", span_text.c_str());
                     break;
                 } else {
                     hitPos = pos + s.start + s.length;
@@ -438,24 +523,6 @@ bool editor_view::input_key(int k)
     ensure_visible_cursor();
     return true;
 }
-
-/*
-static inline struct span_info_t span_at_cursor(cursor_t c)
-{
-    span_info_t res;
-    block_ptr block = c.block();
-    if (!block->data) {
-        return res;
-    }   
-    blockdata_t *blockData = block->data.get();
-    for(auto s : blockData->spans) {
-        if (s.start <= c.position() && c.position() < s.start + s.length) {
-            return s;
-        }
-    }
-    return res;
-}
-*/
 
 bool editor_view::input_text(std::string text)
 {

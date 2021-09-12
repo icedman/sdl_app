@@ -50,24 +50,26 @@ void gutter_view::render()
             blockData = block->data.get();
         }
         if (!blockData) {
-            // draw_text(NULL, (char*)block->text().c_str(),
-            //     lo->render_rect.x,
-            //     lo->render_rect.y + (l*fh),
-            //     { (uint8_t)fg.red,(uint8_t)fg.green,(uint8_t)fg.blue },
-            //     false, false, true);
-
-            // l++;
-            // continue;
             return;
         }
 
-        span_info_t s = blockData->spans[0];
+        int linc = 0;
+        int y = 0;
+        for(auto s : blockData->rendered_spans) {
+            if (s.line > linc) {
+                linc = s.line;
+            }
+            if (s.line == 0) {
+                y = s.y;
+            }
+        }
 
         std::string ln = std::to_string(block->lineNumber + 1);
         ren_draw_text(ren_font((char*)vs.font.c_str()), ln.c_str(),
             lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw),
-            s.y, { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 125 });
+            y,
+            { (uint8_t)vs.fg.green, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 125 });
 
-        l++;
+        l+=linc;
     }
 }

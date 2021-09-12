@@ -168,6 +168,11 @@ void highlighter_t::highlightBlock(block_ptr block)
             span_info_t& prevSpan = blockData->spans.front();
             prevSpan.length = n - prevSpan.start;
         }
+        
+        span.x = 0;
+        span.y = 0;
+        span.line = 0;
+
         blockData->spans.insert(blockData->spans.begin(), 1, span);
         // blockData->spans.push_back(span);
         it++;

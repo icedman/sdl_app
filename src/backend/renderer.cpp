@@ -398,6 +398,34 @@ bool ren_listen_is_quick()
     return false;
 }
 
+std::string to_mods(int mods) {
+    std::string mod;
+    int _mod = 0;
+    if (mods & KMOD_CTRL) {
+        mod = "ctrl";
+        _mod = K_MOD_CTRL;
+    }
+    if (mods & KMOD_SHIFT) {
+        if (mod.length())
+            mod += "+";
+        mod += "shift";
+        _mod = K_MOD_SHIFT | _mod;
+    }
+    if (mods & KMOD_ALT) {
+        if (mod.length())
+            mod += "+";
+        mod += "alt";
+        _mod = K_MOD_ALT | _mod;
+    }
+    if (mods & KMOD_GUI) {
+        if (mod.length())
+            mod += "+";
+        mod += "cmd";
+        _mod = K_MOD_GUI | _mod;
+    }
+    keyMods = _mod;
+    return mod;
+}
 void ren_listen_events(event_list* events)
 {
     events->clear();
@@ -459,17 +487,18 @@ void ren_listen_events(event_list* events)
         return;
 
     case SDL_KEYUP:
+        to_mods(e.key.keysym.mod);
         events->push_back({
             type : EVT_KEY_UP,
             key : e.key.keysym.sym,
-            mod : e.key.keysym.mod
+            mod : keyMods
         });
+
         return;
 
     case SDL_KEYDOWN: {
         std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
-        std::string mod;
-        keyMods = e.key.keysym.mod;
+        std::string mod = to_mods(e.key.keysym.mod);
 
         // printf("%s : %s\n",
         //      SDL_GetScancodeName(e.key.keysym.scancode),
@@ -478,31 +507,6 @@ void ren_listen_events(event_list* events)
         std::transform(keySequence.begin(), keySequence.end(), keySequence.begin(),
         [](unsigned char c){ return std::tolower(c); });
         
-        int _mod = 0;
-        if (keyMods & KMOD_CTRL) {
-            mod = "ctrl";
-            _mod = K_MOD_CTRL;
-        }
-        if (keyMods & KMOD_SHIFT) {
-            if (mod.length())
-                mod += "+";
-            mod += "shift";
-            _mod = K_MOD_SHIFT | _mod;
-        }
-        if (keyMods & KMOD_ALT) {
-            if (mod.length())
-                mod += "+";
-            mod += "alt";
-            _mod = K_MOD_ALT | _mod;
-        }
-        if (keyMods & KMOD_GUI) {
-            if (mod.length())
-                mod += "+";
-            mod += "cmd";
-            _mod = K_MOD_GUI | _mod;
-        }
-
-        keyMods = _mod;
         if (keySequence.length() && mod.length()) {
             keySequence = mod + "+" + keySequence;
         }
@@ -522,7 +526,7 @@ void ren_listen_events(event_list* events)
         events->push_back({
             type : EVT_KEY_DOWN,
             key : e.key.keysym.sym,
-            mod : _mod
+            mod : keyMods
         });
 
         return;

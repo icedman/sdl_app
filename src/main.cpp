@@ -1,3 +1,5 @@
+// printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);// printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
+
 #include "events.h"
 #include "layout.h"
 #include "render_cache.h"
@@ -12,12 +14,15 @@
 #include "operation.h"
 #include "search.h"
 #include "statusbar.h"
-#include "util.h"
 
 #include "button.h"
 #include "text.h"
 
 #include "theme.h"
+
+#include "block.h"
+#include <set>
+#include <vector>
 
 #define FRAME_RENDER_INTERVAL 16
 

@@ -16,14 +16,19 @@ struct statusbar_t* statusbar_t::instance()
 
 void statusbar_t::setText(std::string s, int pos, int size)
 {
+    if (pos < 0) {
+        pos = 5 + pos;
+    }
     sizes[pos] = size;
     text[pos] = s;
+
+    // printf("%d %s\n", pos, s.c_str());
 }
 
 void statusbar_t::setStatus(std::string s, int f)
 {
     status = s;
-    frames = (f + 500) * 1000;
+    frames = (f + 500);
 }
 
 void statusbar_t::update(int delta)
