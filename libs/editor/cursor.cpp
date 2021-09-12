@@ -299,6 +299,48 @@ bool cursor_t::moveRight(int count, bool keepAnchor)
     return true;
 }
 
+bool _move_cursor(cursor_t& cursor, int dir)
+{
+    block_ptr block = cursor.block();
+    blockdata_t *data = block->data.get();
+    if (!data || !data->rendered_spans.size()) {
+        return false;
+    }
+
+    // find span
+    bool found = false;
+    span_info_t ss;
+    int pos;
+
+    for(auto s : data->rendered_spans) {
+        if (cursor.position() >= s.start && cursor.position() < s.start + s.length) {
+            ss = s;
+            pos = cursor.position();
+            if (s.line > 0) {
+                pos -= s.start;
+                pos += s.line_x;
+            }
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) return false;
+
+    for(auto s : data->rendered_spans) {
+        if (s.line == ss.line + dir) {
+            if (pos >= s.line_x && pos < s.line_x + s.length) {
+                cursor.cursor.position = s.start + pos - s.line_x;
+                // printf(">>>%d\n", cursor.position());
+                return true;
+            }
+        }
+
+    }
+
+    return false;
+}
+
 bool cursor_t::moveUp(int count, bool keepAnchor)
 {
     --count;
@@ -306,14 +348,20 @@ bool cursor_t::moveUp(int count, bool keepAnchor)
     document_t* doc = block()->document;
     bool navigateWrappedLine = false;
     if (block()->lineCount > 1 && app_t::instance()->lineWrap && doc->columns) {
-        int line = 1 + (cursor.position / doc->columns);
-        if (line > 1) {
-            if (cursor.position > doc->columns) {
-                cursor.position -= doc->columns;
-            } else {
-                cursor.position = 0;
-            }
+        cursor_t cur = *this;
+        if (_move_cursor(cur, -1)) {
+            *this = cur;
             navigateWrappedLine = true;
+        } else {
+            int line = 1 + (cursor.position / doc->columns);
+            if (line > 1) {
+                if (cursor.position > doc->columns) {
+                    cursor.position -= doc->columns;
+                } else {
+                    cursor.position = 0;
+                }
+                navigateWrappedLine = true;
+            }
         }
     }
 
@@ -343,13 +391,19 @@ bool cursor_t::moveDown(int count, bool keepAnchor)
     document_t* doc = block()->document;
     bool navigateWrappedLine = false;
     if (block()->lineCount > 1 && app_t::instance()->lineWrap && doc->columns) {
-        int line = 1 + (cursor.position / doc->columns);
-        if (line < block()->lineCount) {
-            cursor.position += doc->columns;
-            if (cursor.position >= block()->length()) {
-                cursor.position = block()->length() - 1;
-            }
+        cursor_t cur = *this;
+        if (_move_cursor(cur, 1)) {
+            *this = cur;
             navigateWrappedLine = true;
+        } else {
+            int line = 1 + (cursor.position / doc->columns);
+            if (line < block()->lineCount) {
+                cursor.position += doc->columns;
+                if (cursor.position >= block()->length()) {
+                    cursor.position = block()->length() - 1;
+                }
+                navigateWrappedLine = true;
+            }
         }
     }
 

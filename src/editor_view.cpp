@@ -27,9 +27,9 @@ std::vector<span_info_t> split_span(span_info_t si, const std::string& str, cons
         if (delimiters.find(*pch) != delimiters.end()) {
             span_info_t s = si;
             s.start = start - line;
-            s.length = pch - start + 1;
-            start = pch + 1;
+            s.length = pch - start;
             result.push_back(s);
+            start = pch;
         }
     }
 
@@ -181,12 +181,17 @@ void editor_view::render()
                 if (_s.line > 0) {
                     _s.line_x = tabSize + line_x;
                     line_x += _s.length;
+                } else {
+                    _s.line_x = _s.start;
                 }
-                // printf(">%d %d %d %d\n", _s.start, _s.length, _s.line, _s.line_x);
+
+                std::string span_text = text.substr(_s.start, _s.length);
+                // printf(">%d %d %d %d %s\n", _s.start, _s.length, _s.line, _s.line_x, span_text.c_str());
             }
         }
 
         block->lineCount = 1;
+        block->lineHeight = fh;
         int linc = 0;
         for (auto& s : blockData->rendered_spans) {
             color_info_t clr = colorMap[s.colorIndex];
@@ -265,6 +270,7 @@ void editor_view::render()
                 s.x -= s.start * fw;
                 s.x += s.line_x * fw;
             }
+            
             s.y += (s.line * fh);
 
             draw_rect({ s.x,

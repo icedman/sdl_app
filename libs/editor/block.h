@@ -84,6 +84,7 @@ struct block_t {
 
     int cachedLength;
     int lineCount;
+    int lineHeight;
 
     std::string content;
     std::ifstream* file;
