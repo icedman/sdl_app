@@ -466,62 +466,17 @@ void ren_listen_events(event_list* events)
         return;
 
     case SDL_KEYDOWN: {
-        std::string keySequence;
+        std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
         std::string mod;
         int keyMods = e.key.keysym.mod;
-        switch (e.key.keysym.sym) {
-        case SDLK_ESCAPE:
-            keySequence = "escape";
-            break;
-        case SDLK_TAB:
-            keySequence = "tab";
-            break;
-        case SDLK_HOME:
-            keySequence = "home";
-            break;
-        case SDLK_END:
-            keySequence = "end";
-            break;
-        case SDLK_PAGEUP:
-            keySequence = "pageup";
-            break;
-        case SDLK_PAGEDOWN:
-            keySequence = "pagedown";
-            break;
-        case SDLK_RETURN:
-            keySequence = "enter";
-            break;
-        case SDLK_BACKSPACE:
-            keySequence = "backspace";
-            break;
-        case SDLK_DELETE:
-            keySequence = "delete";
-            break;
-        case SDLK_LEFT:
-            keySequence = "left";
-            break;
-        case SDLK_RIGHT:
-            keySequence = "right";
-            break;
-        case SDLK_UP:
-            keySequence = "up";
-            break;
-        case SDLK_DOWN:
-            keySequence = "down";
-            break;
-        default:
-            if (e.key.keysym.sym >= SDLK_a && e.key.keysym.sym <= SDLK_z) {
-                keySequence += (char)(e.key.keysym.sym - SDLK_a) + 'a';
-            } else if (e.key.keysym.sym >= SDLK_1 && e.key.keysym.sym <= SDLK_9) {
-                keySequence += (char)(e.key.keysym.sym - SDLK_1) + '1';
-            } else if (e.key.keysym.sym == SDLK_0) {
-                keySequence += (char)'0';
-            } else if (e.key.keysym.sym == '/') {
-                keySequence += (char)'/';
-            }
-            break;
-        }
 
+        // printf("%s : %s\n",
+        //      SDL_GetScancodeName(e.key.keysym.scancode),
+        //      SDL_GetKeyName(e.key.keysym.sym));
+
+        std::transform(keySequence.begin(), keySequence.end(), keySequence.begin(),
+        [](unsigned char c){ return std::tolower(c); });
+        
         int _mod = 0;
         if (keyMods & KMOD_CTRL) {
             mod = "ctrl";

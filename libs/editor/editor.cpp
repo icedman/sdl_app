@@ -165,7 +165,7 @@ void editor_t::runOp(operation_t op)
         break;
 
     case CUT:
-    case COPY:
+    case COPY: {
         if (mainCursor.hasSelection()) {
             app_t::instance()->setClipboard(mainCursor.selectedText());
         }
@@ -173,7 +173,11 @@ void editor_t::runOp(operation_t op)
             return;
         }
         _op = DELETE_SELECTION;
+        if (!mainCursor.hasSelection()) {
+            _op = DELETE_LINE;
+        }
         break;
+    }
 
     // TODO!!
     case ADD_CURSOR_AND_MOVE_UP: {

@@ -121,6 +121,8 @@ void scrollbar_view::prelayout()
         content->layout()->height = th;
         content->layout()->rect.h = th;
     }
+
+    if (disabled) lo->visible = false;
 }
 
 void scrollbar_view::postlayout()

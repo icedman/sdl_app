@@ -105,6 +105,7 @@ ui_files = [
     'src/explorer_view.cpp',
     'src/gutter_view.cpp',
     'src/statusbar_view.cpp',
+    'src/tabbar_view.cpp',
     'src/tests.cpp'
 ]
 

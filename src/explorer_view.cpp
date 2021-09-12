@@ -52,7 +52,9 @@ void explorer_view::update()
                 icon = folder_close_icon_path;
             }
         } else {
-            icon = icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
+            if (app_t::instance()->icons) {
+                icon = icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
+            }
         }
         list_item_data_t item = {
             icon : icon,

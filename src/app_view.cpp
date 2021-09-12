@@ -8,7 +8,7 @@
 #include "editor_view.h"
 #include "explorer_view.h"
 #include "statusbar_view.h"
-#include "tabbar.h"
+#include "tabbar_view.h"
 
 #include "style.h"
 
@@ -31,7 +31,7 @@ app_view::app_view()
     explorer = std::make_shared<explorer_view>();
 
     main = std::make_shared<vertical_container>();
-    tabbar = std::make_shared<tabbar_view>();
+    tabbar = std::make_shared<app_tabbar_view>();
 
     tabcontent = std::make_shared<horizontal_container>();
 
@@ -80,6 +80,7 @@ bool app_view::input_sequence(std::string keySequence)
     case SAVE: {
         if (statusbar_t::instance()) {
             statusbar_t::instance()->setStatus("saved...");
+            app_t::instance()->currentEditor->document.save();
         }
         return true;
     }

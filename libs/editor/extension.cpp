@@ -392,6 +392,9 @@ theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t
 
 std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<struct extension_t>& _extensions)
 {
+    if (!icons) {
+        return "";
+    }
     std::set<char> delims = { '.' };
     std::vector<std::string> spath = split_path(filename, delims);
 

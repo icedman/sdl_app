@@ -137,7 +137,7 @@ void panel_view::update()
     // vs->layout()->visible = vs->disabled ? false : content()->layout()->rect.h < scrollarea->layout()->rect.h;
     // hs->layout()->visible = hs->disabled ? false : content()->layout()->rect.w < scrollarea->layout()->rect.w;
     
-    bottom->layout()->visible = hs->layout()->visible;
+    bottom->layout()->visible = hs->layout()->visible && !hs->disabled;
     if (hs->window >= hs->count) {
         bottom->layout()->visible = false;
     }

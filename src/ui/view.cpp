@@ -14,6 +14,8 @@ static int drag_start_y = 0;
 static bool dragging = false;
 static int _keyMods = 0;
 
+std::string previous_sequence = "";
+
 view_item_list popups;
 void view_input_list(view_item_list& list, view_item_ptr item)
 {
@@ -179,7 +181,7 @@ void view_item::update()
 
 void view_item::render()
 {
-    #if 1
+    #if 0
     layout_item_ptr lo = layout();
 
     if (!lo->visible) return;
@@ -200,9 +202,8 @@ int view_item::on(event_type_e event_type, event_callback_t callback)
 
 void view_item::propagate_event(event_t& event)
 {
-    if (parent) {
+    if (parent && type != "popup") {
         ((view_item*)parent)->propagate_event(event);
-        // if (event.cancelled) return;
     }
     for (auto c : callbacks[event.type]) {
         c(event);
