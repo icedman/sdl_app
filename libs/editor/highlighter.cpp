@@ -17,7 +17,7 @@ highlighter_t::highlighter_t()
 {
 }
 
-struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos)
+struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rendered)
 {
     span_info_t res;
     res.bold = false;
@@ -27,7 +27,13 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos)
     if (!blockData) {
         return res;
     }
-    for (auto span : blockData->spans) {
+
+    std::vector<span_info_t>& spans = blockData->spans;
+    if (rendered) {
+        spans = blockData->rendered_spans;
+    }
+
+    for (auto span : spans) {
         if (span.length == 0) {
             continue;
         }
@@ -394,6 +400,7 @@ void* highlightThread(void* arg)
     tmp.highlighter.theme = threadHl->theme;
 
     block_ptr b = tmp.document.firstBlock();
+    int c = 0;
     while (b) {
         tmp.highlighter.highlightBlock(b);
 
@@ -402,7 +409,11 @@ void* highlightThread(void* arg)
 
         // log("%d", runLine);
         b = b->next();
-        usleep(10);
+
+        if (c++ > 8) {
+            usleep(5000);
+            c = 0;
+        }
     }
 
     usleep(1000);

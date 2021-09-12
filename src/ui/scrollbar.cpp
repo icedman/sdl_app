@@ -190,6 +190,9 @@ void scrollbar_view::set_size(int c, int w)
     if (c != count || w != window) {
         count = c;
         window = w;
+
+        // todo compute rects
+
         layout()->visible = count > window;
         layout_request();
     }
@@ -216,7 +219,7 @@ void scrollbar_view::render()
                   lot->render_rect.w - 8,
                   lot->render_rect.h - 8 },
         { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, (content->is_pressed() || is_hovered()) ? 150 : 50 },
-        true, 0, 4);
+        true, 0, 3);
 }
 
 int scrollbar_view::_thumb_size()

@@ -1,5 +1,6 @@
 #include "editor_view.h"
 #include "gutter_view.h"
+#include "minimap_view.h"
 #include "completer_view.h"
 
 #include "app.h"
@@ -30,6 +31,10 @@ std::vector<span_info_t> split_span(span_info_t si, const std::string& str, cons
             s.length = pch - start;
             result.push_back(s);
             start = pch;
+
+            s.start = start - line;
+            s.length = 1;
+            result.push_back(s);
         }
     }
 
@@ -159,7 +164,7 @@ void editor_view::render()
         // wrap
         blockData->rendered_spans = blockData->spans;
         if (wrap && text.length() > cols) {
-            std::set<char> delims = { '.', ',', '-', ' ', ')', '(', '=', ':', '"', '>', '<', '&' };
+            std::set<char> delims = { '.', ',', '-', ' ', ')', '(', '=', ':', '"' };
             blockData->rendered_spans.clear();
             for (auto& s : blockData->spans) {
                 std::string span_text = text.substr(s.start, s.length);
@@ -181,8 +186,6 @@ void editor_view::render()
                 if (_s.line > 0) {
                     _s.line_x = tabSize + line_x;
                     line_x += _s.length;
-                } else {
-                    _s.line_x = _s.start;
                 }
 
                 std::string span_text = text.substr(_s.start, _s.length);
@@ -270,15 +273,16 @@ void editor_view::render()
                 s.x -= s.start * fw;
                 s.x += s.line_x * fw;
             }
-
             s.y += (s.line * fh);
 
+#if 0
             draw_rect({ s.x,
                           s.y,
                           fw * s.length,
                           fh },
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 125 }, false, 1.0f);
-
+#endif 
+            
             draw_text(_font, (char*)span_text.c_str(),
                 s.x,
                 s.y,
@@ -291,8 +295,6 @@ void editor_view::render()
     }
 
     state_restore();
-
-    view_item::cast<gutter_view>(gutter)->editor = editor;
 
     // duplicated from ::prelayout
     int ww = area->layout()->render_rect.w;
@@ -335,10 +337,10 @@ editor_view::editor_view()
     gutter->layout()->order = 1;
     container->add_child(gutter);
 
-    minimap = std::make_shared<view_item>("minimap");
+    minimap = std::make_shared<minimap_view>();
     minimap->layout()->width = 80;
     minimap->layout()->order = 3;
-    minimap->layout()->visible = false;
+    // minimap->layout()->visible = false;
     container->add_child(minimap);
 
     scrollarea->layout()->order = 2;
@@ -696,7 +698,7 @@ void editor_view::show_completer()
         int fw, fh;
         ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
 
-        span_info_t s = spanAtBlock(completer_cursor.block()->data.get(), completer_cursor.position());
+        span_info_t s = spanAtBlock(completer_cursor.block()->data.get(), completer_cursor.position(), true);
         scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
 
         int list_size = list->data.size();
@@ -713,6 +715,9 @@ void editor_view::show_completer()
                 fw * prefix.length(),
                 fh
             }, s.y > area->layout()->render_rect.h/3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN );
+
+        // printf(">%d %d\n", s.y, scrollarea->layout()->render_rect.y);
+
         layout_request();
     }
 }

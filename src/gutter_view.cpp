@@ -13,8 +13,10 @@ gutter_view::gutter_view()
 
 void gutter_view::render()
 {
-    if (!editor)
-        return;
+    return;
+
+    editor_view* ev = (editor_view*)(parent->parent);
+    editor_ptr editor = ev->editor;
 
     app_t* app = app_t::instance();
     view_style_t vs = view_style_get("gutter");
@@ -25,8 +27,6 @@ void gutter_view::render()
     ren_draw_rect({
         lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h
     } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
-
-    editor_view* ev = (editor_view*)(parent->parent);
 
     int fw, fh;
     ren_get_font_extents(ren_font((char*)vs.font.c_str()), &fw, &fh, NULL, 1, true);

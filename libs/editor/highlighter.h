@@ -28,6 +28,6 @@ struct highlighter_t {
     pthread_t threadId;
 };
 
-span_info_t spanAtBlock(struct blockdata_t* blockData, int pos);
+span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rendered = false);
 
 #endif // HIGHLIGHTER_H

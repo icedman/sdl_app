@@ -122,7 +122,7 @@ void editor_t::runOp(operation_t op)
     case OPEN:
         document.open(strParam, false);
         createSnapshot();
-        // highlighter.run(this);
+        highlighter.run(this);
         return;
     case SAVE: {
         if (document.fileName == "") {
