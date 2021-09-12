@@ -67,4 +67,6 @@ uint32_t ren_timer_end();
 std::string ren_get_clipboard();
 void ren_set_clipboard(std::string text);
 
+int ren_key_mods();
+
 #endif // RENDERER_H

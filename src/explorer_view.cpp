@@ -85,7 +85,7 @@ void explorer_view::select_item(list_item_view* item)
         explorer_t::instance()->regenerateList = true;
         layout_request();
     } else {
-        bool multi = (view_input_key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
+        bool multi = (ren_key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
         ((app_view*)(app->view))->show_editor(app->openEditor(file->fullPath), !multi);
     }
 }

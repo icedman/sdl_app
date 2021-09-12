@@ -396,7 +396,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
             ss << (block->lineNumber + 1);
             ss << ":";
             ss << hitPos;
-            int mods = view_input_key_mods();
+            int mods = ren_key_mods();
             if (clicks == 0 || mods & K_MOD_SHIFT) {
                 editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
             } else if (clicks == 1) {

@@ -6,6 +6,7 @@
 #include <rsvg.h>
 
 int _state = 0;
+int keyMods = 0;
 
 static SDL_Window* window;
 SDL_Surface* window_surface;
@@ -468,7 +469,7 @@ void ren_listen_events(event_list* events)
     case SDL_KEYDOWN: {
         std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
         std::string mod;
-        int keyMods = e.key.keysym.mod;
+        keyMods = e.key.keysym.mod;
 
         // printf("%s : %s\n",
         //      SDL_GetScancodeName(e.key.keysym.scancode),
@@ -500,6 +501,8 @@ void ren_listen_events(event_list* events)
             mod += "cmd";
             _mod = K_MOD_GUI | _mod;
         }
+
+        keyMods = _mod;
         if (keySequence.length() && mod.length()) {
             keySequence = mod + "+" + keySequence;
         }
@@ -579,4 +582,9 @@ uint32_t ren_timer_end()
     uint32_t timer_begin = timer_begins.back();
     timer_begins.pop_back();
     return timer_end - timer_begin;
+}
+
+int ren_key_mods()
+{
+    return keyMods;
 }

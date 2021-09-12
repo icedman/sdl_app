@@ -1,5 +1,6 @@
 #include "view.h"
 #include "popup.h"
+#include "renderer.h"
 #include "render_cache.h"
 
 static view_item* view_root = 0;
@@ -12,7 +13,6 @@ static view_item* view_dragged = 0;
 static int drag_start_x = 0;
 static int drag_start_y = 0;
 static bool dragging = false;
-static int _keyMods = 0;
 
 std::string previous_sequence = "";
 
@@ -255,10 +255,8 @@ void view_input_events(view_item_list& list, event_list& events)
 
         switch (e.type) {
         case EVT_KEY_UP:
-            _keyMods = e.mod;
             break;
         case EVT_KEY_DOWN:
-            _keyMods = e.mod;
             view_input_key(e.key, e);
             break;
         case EVT_KEY_TEXT:
@@ -421,9 +419,10 @@ void view_input_key(int key, event_t event)
 
 void view_input_text(std::string text, event_t event)
 {
-    if ((view_input_key_mods() & K_MOD_CTRL) == K_MOD_CTRL || (view_input_key_mods() & K_MOD_ALT) == K_MOD_ALT) {
-        return;
-    }
+    // if ((ren_key_mods() & K_MOD_CTRL) == K_MOD_CTRL || (ren_key_mods() & K_MOD_ALT) == K_MOD_ALT) {
+    //     return;
+    // }
+    if (ren_key_mods() && ren_key_mods() != K_MOD_SHIFT) return;
     if (view_focused) {
         event.type = EVT_KEY_TEXT;
         event.source = view_focused;
@@ -446,11 +445,6 @@ void view_input_sequence(std::string sequence, event_t event)
         event.source = view_focused;
         view_focused->propagate_event(event);
     }
-}
-
-int view_input_key_mods()
-{
-    return _keyMods;
 }
 
 void view_set_focused(view_item* item)

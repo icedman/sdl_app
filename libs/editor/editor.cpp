@@ -782,6 +782,29 @@ void editor_t::undo()
     if (items.size() == 0)
         return;
 
+    // printf("----\n");
+    // for(auto op : items) {
+    //     std::string name = nameFromOperation(op.op);
+    //     printf("%s %d %d\n", name.c_str(), op.cursor_count, op.cursor_selection);
+    // }
+
+    if (items.size()) {
+        operation_t op = items.back();
+        if (op.op == INSERT && op.params.length() == 1 && op.cursor_count == 1 && !op.cursor_selection) {
+            std::string name = nameFromOperation(op.op);
+            cursor_t cur = document.cursor();
+            cur.moveLeft(1);
+            cur.eraseText(1);   
+            items.pop_back();
+            document.setCursor(cur);
+            snapshot.history = items;
+            if (snapshots.size() > 1 && items.size() == 0) {
+                snapshots.pop_back();
+            }
+            return;
+        }
+    }
+
     while (items.size() > 0) {
         auto lastOp = items.back();
         items.pop_back();
@@ -805,27 +828,6 @@ void editor_t::undo()
 
         if (endPop)
             break;
-    }
-
-    // printf("----\n");
-    // for(auto op : items) {
-        // std::string name = nameFromOperation(op.op);
-        // printf("%s %d %d\n", name.c_str(), op.cursor_count, op.cursor_selection);
-    // }
-
-    if (items.size()) {
-        operation_t op = items.back();
-        if (op.op == INSERT && op.cursor_count == 1 && !op.cursor_selection) {
-            std::string name = nameFromOperation(op.op);
-            pushOp(BACKSPACE);
-            runAllOps();        
-            items.pop_back();
-            snapshot.history = items;
-            if (snapshots.size() > 1 && items.size() == 0) {
-                snapshots.pop_back();
-            }
-            return;
-        }
     }
 
     snapshot.restore(document.blocks);

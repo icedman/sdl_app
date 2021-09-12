@@ -77,6 +77,22 @@ bool app_view::input_sequence(std::string keySequence)
         app->newEditor(); // focus
         return true;
     }
+
+    case TAB_1:
+    case TAB_2:
+    case TAB_3:
+    case TAB_4:
+    case TAB_5:
+    case TAB_6:
+    case TAB_7:
+    case TAB_8:
+    case TAB_9:
+    {
+        int tab = op - TAB_1;
+        printf("%d\n", tab);
+        return true;
+    }
+
     case SAVE: {
         if (statusbar_t::instance()) {
             statusbar_t::instance()->setStatus("saved...");
