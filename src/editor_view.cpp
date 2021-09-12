@@ -194,7 +194,9 @@ void editor_view::render()
                     blockData->rendered_spans.push_back(_s);
                 }
             }
+
             std::sort(blockData->rendered_spans.begin(), blockData->rendered_spans.end(), compareSpan);
+
             int line = 0;
             int line_x = 0;
             for(auto &_s : blockData->rendered_spans) {
@@ -209,7 +211,6 @@ void editor_view::render()
                 }
 
                 std::string span_text = text.substr(_s.start, _s.length);
-                // printf(">%d %d %d %d %s\n", _s.start, _s.length, _s.line, _s.line_x, span_text.c_str());
             }
         }
 

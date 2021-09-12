@@ -213,6 +213,7 @@ int highlighter_t::highlightBlock(block_ptr block)
                 .state = BLOCK_STATE_COMMENT,
                 .scope = "comment"
             };
+
             blockData->spans.insert(blockData->spans.begin(), 1, span);
 
         } else if (beginComment != std::string::npos && endComment != std::string::npos) {
@@ -229,7 +230,9 @@ int highlighter_t::highlightBlock(block_ptr block)
                 .state = BLOCK_STATE_COMMENT,
                 .scope = "comment"
             };
+
             blockData->spans.insert(blockData->spans.begin(), 1, span);
+
         } else {
             blockData->state = BLOCK_STATE_UNKNOWN;
             if (endComment != std::string::npos && previousBlockState == BLOCK_STATE_COMMENT) {
