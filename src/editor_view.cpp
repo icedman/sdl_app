@@ -86,6 +86,11 @@ void editor_view::render()
 
     state_save();
 
+    // for(auto r: previous_cursor_rects) {
+    //     draw_rect(r, { 255,0,0 }, false, 2);
+    // }
+    previous_cursor_rects.clear();
+
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
     layout_item_ptr lo = content()->layout();
@@ -293,6 +298,8 @@ void editor_view::render()
                         cr.height = 1;
                         draw_rect(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue }, true, 1.0f);
                     }
+
+                    previous_cursor_rects.push_back(cr);
                 }
             }
 
@@ -312,7 +319,7 @@ void editor_view::render()
                 block->y = s.y;
             }
 
-#if 1
+#if 0
             draw_rect({ s.x,
                           s.y,
                           fw * s.length,
@@ -595,9 +602,15 @@ bool editor_view::input_sequence(std::string text)
         switch(op) {
         case MOVE_CURSOR_UP:
             list->focus_previous();
+            for(int i=0; i<2; i++) {
+                if (!list->ensure_visible_cursor()) break;
+            }
             return true;
         case MOVE_CURSOR_DOWN:
             list->focus_next();
+            for(int i=0; i<2; i++) {
+                if (!list->ensure_visible_cursor()) break;
+            }
             return true;
         case ENTER:
             list->select_focused();
@@ -621,7 +634,7 @@ bool editor_view::input_sequence(std::string text)
     return true;
 }
 
-void editor_view::scroll_to_cursor(cursor_t c)
+void editor_view::scroll_to_cursor(cursor_t c, bool centered)
 {
     block_ptr block = c.block();
     int l = block->lineNumber - 1;
@@ -634,11 +647,18 @@ void editor_view::scroll_to_cursor(cursor_t c)
 
     int cols = alo->render_rect.w / fw;
     int rows = block->document->rows;
+
     if (start_row > l) {
         start_row = l;
     }
     if (start_row + rows - 4 < l) {
         start_row = l - (rows - 4);
+    }
+
+    if (centered) {
+        l -= rows/2;
+        if (l < 0) l = 0;
+        start_row = l;
     }
 
     int start_col = c.position();
@@ -747,6 +767,10 @@ void editor_view::show_completer()
         if (list_size > 4) list_size = 4;
         completer->layout()->width = completerItemsWidth * fw;
         completer->layout()->height = list_size * fh + 14;
+        list->focus_next();
+        for(int i=0; i<2; i++) {
+            if (!list->ensure_visible_cursor()) break;
+        }
 
         pm->push_at(completer, {
                 (completer_cursor.position() * fw)

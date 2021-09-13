@@ -443,7 +443,9 @@ void ren_listen_events(event_list* events)
         }
     }
 
-    ren_listen_quick(24); // because we'll animate
+    if (e.type != SDL_MOUSEMOTION && e.button.button == 0) {
+        ren_listen_quick(4); // because we'll animate
+    }
 
     switch (e.type) {
     case SDL_QUIT:
@@ -484,6 +486,8 @@ void ren_listen_events(event_list* events)
             x : e.wheel.x,
             y : e.wheel.y
         });
+
+        ren_listen_quick(24);
         return;
 
     case SDL_KEYUP:

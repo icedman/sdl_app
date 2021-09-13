@@ -26,6 +26,10 @@ struct list_item_view : horizontal_container {
 
     list_item_data_t data;
     list_view* container;
+
+    view_item_ptr icon;
+    view_item_ptr text;
+    view_item_ptr depth;
 };
 
 struct list_view : panel_view {
@@ -43,9 +47,17 @@ struct list_view : panel_view {
     void focus_previous();
     void focus_next();
 
+    bool ensure_visible_cursor();
+
+    virtual view_item_ptr create_item();
+
     std::vector<list_item_data_t> data;
     std::string value;
     std::string focused_value;
+
+    std::string prev_value;
+
+    bool autoscroll;
 };
 
 #endif // LIST_VIEW_H

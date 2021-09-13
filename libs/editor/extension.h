@@ -44,7 +44,7 @@ typedef std::shared_ptr<icon_theme_t> icon_theme_ptr;
 void load_settings(const std::string path, Json::Value& settings);
 void load_extensions(const std::string path, std::vector<struct extension_t>& extensions);
 icon_theme_ptr icon_theme_from_name(const std::string path, std::vector<struct extension_t>& extensions);
-theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t>& extensions);
+theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t>& extensions, const std::string uiTheme = "");
 language_info_ptr language_from_file(const std::string path, std::vector<struct extension_t>& extensions);
 
 std::string icon_for_file(icon_theme_ptr icons, std::string file, std::vector<struct extension_t>& extensions);

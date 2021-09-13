@@ -26,7 +26,7 @@ struct editor_view : panel_view {
     void update() override;
 
     void ensure_visible_cursor();
-    void scroll_to_cursor(cursor_t c);
+    void scroll_to_cursor(cursor_t c, bool centered = false);
 
     void show_completer();
     bool commit_completer(std::string text);
@@ -52,6 +52,8 @@ struct editor_view : panel_view {
     int fw, fh;
 
     blockdata_t data;
+
+    std::vector<RenRect> previous_cursor_rects;
 };
 
 #endif // EDITOR_VIEW_H

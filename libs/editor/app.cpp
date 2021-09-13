@@ -161,11 +161,14 @@ void app_t::configure(int argc, char** argv)
         if (exts.isArray()) {
             for (auto path : exts) {
                 log("extension dir: %s", path.asString().c_str());
-                load_extensions(path.asString().c_str(), extensions);
+
+                std::string p = path.asString();
+                p += "/";
+                load_extensions(p.c_str(), extensions);
             }
         }
     }
-    load_extensions("~/.ashlar/extensions/", extensions);
+    // load_extensions("~/.ashlar/extensions/", extensions);
 
     //-------------------
     // theme
@@ -179,7 +182,12 @@ void app_t::configure(int argc, char** argv)
     }
     if (!theme && settings.isMember("theme")) {
         themeName = settings["theme"].asString();
-        theme_ptr tmpTheme = theme_from_name(themeName, extensions);
+
+        std::string uitheme;
+        if (settings.isMember("ui_theme")) {
+            uitheme = settings["ui_theme"].asString();
+        }
+        theme_ptr tmpTheme = theme_from_name(themeName, extensions, uitheme);
         if (tmpTheme && tmpTheme->colorIndices.size()) {
             theme = tmpTheme;
         }

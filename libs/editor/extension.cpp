@@ -26,6 +26,7 @@ void load_extensions(const std::string _path, std::vector<struct extension_t>& e
     free(cpath);
 
     // Json::Value contribs;
+    log("loading extensions in %s %s", _path.c_str(), path.c_str());
 
     std::vector<std::string> filter = { "themes", "iconThemes", "languages" };
 
@@ -358,7 +359,7 @@ icon_theme_ptr icon_theme_from_name(const std::string path, std::vector<struct e
     return icons;
 }
 
-theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t>& extensions)
+theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t>& extensions, const std::string uiTheme)
 {
     std::string theme_path = path;
     bool found = false;
@@ -371,10 +372,24 @@ theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t
         Json::Value themes = contribs["themes"];
         for (int i = 0; i < themes.size(); i++) {
             Json::Value theme = themes[i];
+
+            std::string theme_ui;
+            if (theme.isMember("uiTheme")) {
+                theme_ui = theme["uiTheme"].asString();
+            }
+
+            // log("theme compare %s %s\n", theme_ui.c_str(), theme["label"].asString().c_str());
+            
             if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
                 theme_path = ext.path + "/" + theme["path"].asString();
                 // std::cout << ext.path << "..." << std::endl;
                 // std::cout << theme_path << std::endl;
+
+                if (theme.isMember("uiTheme") && uiTheme != "" && theme["uiTheme"].asString() != uiTheme) {
+                    continue;
+                }
+
+                log("theme:%s %s\n", ext.path.c_str(), theme_path.c_str());
                 found = true;
                 break;
             }

@@ -22,7 +22,7 @@ void gutter_view::render()
     layout_item_ptr lo = layout();
 
     // view_item::render();
-    ren_draw_rect({
+    draw_rect({
         lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h
     } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 
@@ -47,7 +47,7 @@ void gutter_view::render()
         int y = block->y;
 
         std::string ln = std::to_string(block->lineNumber + 1);
-        ren_draw_text(ren_font((char*)vs.font.c_str()), ln.c_str(),
+        draw_text(ren_font((char*)vs.font.c_str()), ln.c_str(),
             lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw),
             y,
             { (uint8_t)vs.fg.green, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 125 });

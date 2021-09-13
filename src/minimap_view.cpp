@@ -5,6 +5,9 @@
 #include "renderer.h"
 #include "events.h"
 
+#include "app.h"
+#include "style.h"
+
 extern std::map<int, color_info_t> colorMap;
 
 minimap_view::minimap_view()
@@ -29,18 +32,18 @@ bool minimap_view::mouse_click(int x, int y, int button)
 {
     layout_item_ptr lo = layout();
     int ry = y - lo->render_rect.y;
-    if (ry > end_y * spacing) return true;
+    if (ry > render_h) return true;
 
     int line = start_y + ((end_y - start_y) * (float)ry / render_h);
 
     editor_view* ev = (editor_view*)(parent->parent);    
     editor_ptr editor = ev->editor;
 
-    if (line > editor->document.blocks.size() / 2) {
-        line += ev->rows/3;
-    } else {
-        line -= ev->rows/3;
-    }
+    // if (line > editor->document.blocks.size() / 2) {
+    //     line += ev->rows/3;
+    // } else {
+    //     line -= ev->rows/3;
+    // }
     if (line < 0) {
         line = 0;
     }
@@ -48,11 +51,9 @@ bool minimap_view::mouse_click(int x, int y, int button)
         line = editor->document.blocks.size()-1;
     }
 
-    // printf(">>%d\n", line);
-
     cursor_t cursor;
     cursor.setPosition(editor->document.blockAtLine(line), 0);
-    ev->scroll_to_cursor(cursor);
+    ev->scroll_to_cursor(cursor, true);
 
     return true;
 }
@@ -60,6 +61,13 @@ bool minimap_view::mouse_click(int x, int y, int button)
 void minimap_view::render()
 {
     layout_item_ptr lo = layout();
+
+    app_t* app = app_t::instance();
+    view_style_t vs = view_style_get("gutter");
+
+    draw_rect({
+        lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h
+    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 
     editor_view* ev = (editor_view*)(parent->parent);    
     editor_ptr editor = ev->editor;
@@ -117,7 +125,7 @@ void minimap_view::render()
                     1,
                 };
             if (r.width > 0) {
-                ren_draw_rect(r,
+                draw_rect(r,
                     { 255,255,255, 150 },
                     false, 1
                 );
@@ -148,7 +156,7 @@ void minimap_view::render()
                 }
 
                 if (r.width > 0) {
-                    ren_draw_rect(r,
+                    draw_rect(r,
                         { clr.red, clr.green, clr.blue, 150 },
                         false, 1
                     );
@@ -170,7 +178,7 @@ void minimap_view::render()
 
 
     if (is_hovered()) {
-        ren_draw_rect({
+        draw_rect({
             lo->render_rect.x,
             // lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
             render_y,
