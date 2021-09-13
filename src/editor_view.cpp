@@ -633,7 +633,7 @@ bool editor_view::input_sequence(std::string text)
     return true;
 }
 
-void editor_view::scroll_to_cursor(cursor_t c)
+void editor_view::scroll_to_cursor(cursor_t c, bool centered)
 {
     block_ptr block = c.block();
     int l = block->lineNumber - 1;
@@ -646,11 +646,18 @@ void editor_view::scroll_to_cursor(cursor_t c)
 
     int cols = alo->render_rect.w / fw;
     int rows = block->document->rows;
+
     if (start_row > l) {
         start_row = l;
     }
     if (start_row + rows - 4 < l) {
         start_row = l - (rows - 4);
+    }
+
+    if (centered) {
+        l -= rows/2;
+        if (l < 0) l = 0;
+        start_row = l;
     }
 
     int start_col = c.position();

@@ -2,6 +2,12 @@
 #include "app_view.h"
 #include "app.h"
 
+app_tabbar_view::app_tabbar_view()
+    : tabbar_view()
+{
+    autoscroll = true;
+}
+
 void app_tabbar_view::update() {
 
     app_t* app = app_t::instance();

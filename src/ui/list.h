@@ -56,6 +56,8 @@ struct list_view : panel_view {
     std::string focused_value;
 
     std::string prev_value;
+
+    bool autoscroll;
 };
 
 #endif // LIST_VIEW_H

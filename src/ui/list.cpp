@@ -56,6 +56,7 @@ list_view::list_view(std::vector<list_item_data_t> items)
 
 list_view::list_view()
     : panel_view()
+    , autoscroll(false)
 {
     interactive = true;
 
@@ -73,9 +74,11 @@ void list_view::prelayout()
 
 void list_view::update()
 {
-    if (prev_value != value) {
+    if (autoscroll && prev_value != value) {
         if (!ensure_visible_cursor()) {
             prev_value = value;
+        } else {
+            ren_listen_quick(0);
         }
     }
 

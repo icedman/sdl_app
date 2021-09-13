@@ -32,7 +32,7 @@ bool minimap_view::mouse_click(int x, int y, int button)
 {
     layout_item_ptr lo = layout();
     int ry = y - lo->render_rect.y;
-    if (ry > end_y * spacing) return true;
+    if (ry > render_h) return true;
 
     int line = start_y + ((end_y - start_y) * (float)ry / render_h);
 
@@ -51,11 +51,9 @@ bool minimap_view::mouse_click(int x, int y, int button)
         line = editor->document.blocks.size()-1;
     }
 
-    // printf(">>%d\n", line);
-
     cursor_t cursor;
     cursor.setPosition(editor->document.blockAtLine(line), 0);
-    ev->scroll_to_cursor(cursor);
+    ev->scroll_to_cursor(cursor, true);
 
     return true;
 }
