@@ -302,12 +302,11 @@ bool list_view::ensure_visible_cursor()
     // list_item_view *iv = view_item::cast<list_item_view>(item);
     // list_view *lv = view_item::cast<list_view>(this);
     // scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
+    bool scrolled = false;
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
     layout_item_ptr lo = item->layout();
-
-    bool scrolled = false;
 
     if (lo->render_rect.x + lo->render_rect.w > alo->render_rect.x + alo->render_rect.w) {
         mouse_wheel(-1, 0);

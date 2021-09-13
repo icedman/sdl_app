@@ -243,7 +243,14 @@ int main(int argc, char** argv)
         render_item(root);
 
         state_restore();
+
+        char tmp[32];
+        sprintf(tmp, "rendered:%d", ren_rendered);
+        statusbar.setStatus(tmp);
+        // draw_text(NULL, tmp, 10, h - 40, {255,255,255});
+
         end_frame();
+
         // printf("rendered:%d time:%d\n", ren_rendered, ren_timer_end());
     }
 
