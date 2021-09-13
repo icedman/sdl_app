@@ -17,8 +17,16 @@
 
 extern std::map<int, color_info_t> colorMap;
 
-std::vector<span_info_t> split_span(span_info_t si, const std::string& str, const std::set<char>& delimiters)
+static inline std::vector<span_info_t> split_span(span_info_t si, const std::string& str)
 {
+    static std::set<char> delimiters = { 
+        '.', ',', ';', ':', 
+        '-', '+', '*', '/', '%', '=',
+        '"', ' ', '\'', '\\',
+        '(', ')', '[', ']', '<', '>',
+        '&', '!', '?', '_', '~', '@'
+    };
+
     std::vector<span_info_t> result;
 
     char const* line = str.c_str();
@@ -184,18 +192,11 @@ void editor_view::render()
         // wrap
         blockData->rendered_spans = blockData->spans;
         if (wrap && text.length() > cols) {
-            static std::set<char> delims = { 
-                '.', ',', ';', ':', 
-                '-', '+', '*', '/', '%', '=',
-                '"', ' ', '\'', '\\',
-                '(', ')', '[', ']', '<', '>',
-                '&', '!', '?', '_', '~', '@'
-            };
             blockData->rendered_spans.clear();
             for (auto& s : blockData->spans) {
                 if (s.length == 0) continue;
                 std::string span_text = text.substr(s.start, s.length);
-                std::vector<span_info_t> ss = split_span(s, span_text, delims);
+                std::vector<span_info_t> ss = split_span(s, span_text);
                 for(auto _s : ss) {
                     _s.start += s.start;
                     blockData->rendered_spans.push_back(_s);
