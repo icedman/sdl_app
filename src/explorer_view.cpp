@@ -21,6 +21,8 @@ explorer_view::explorer_view()
 void explorer_view::update()
 {
     explorer_t* explorer = explorer_t::instance();
+    ((list_view*)this)->value = app_t::instance()->currentEditor->document.fullPath;
+
     bool hasChanges = explorer->regenerateList;
     explorer->update(0); // did change?
 
@@ -32,10 +34,6 @@ void explorer_view::update()
     }
 
     if (!layout()->visible) return;
-
-    if (((list_view*)this)->value == "") {
-        ((list_view*)this)->value = app_t::instance()->currentEditor->document.fullPath;
-    }
 
     // printf("repopulate explorer\n");
 

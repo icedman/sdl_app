@@ -51,6 +51,7 @@ list_view::list_view(std::vector<list_item_data_t> items)
     : list_view()
 {
     data = items;
+    layout()->margin = 8;
 }
 
 list_view::list_view()
@@ -72,6 +73,12 @@ void list_view::prelayout()
 
 void list_view::update()
 {
+    if (prev_value != value) {
+        if (!ensure_visible_cursor()) {
+            prev_value = value;
+        }
+    }
+
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
     for (auto v : content()->_views) {
@@ -105,19 +112,7 @@ void list_view::update()
         return;
 
     while (content()->_views.size() < data.size()) {
-        view_item_ptr item = std::make_shared<list_item_view>();
-        item->layout()->align = LAYOUT_ALIGN_CENTER;
-        item->layout()->height = 24;
-        view_item_ptr icon = std::make_shared<icon_view>();
-        icon->layout()->width = 32;
-        icon->layout()->height = 24;
-        view_item_ptr text = std::make_shared<text_view>("...");
-
-        view_item_ptr depth = std::make_shared<view_item>();
-        depth->layout()->width = 1;
-        item->add_child(depth);
-        item->add_child(icon);
-        item->add_child(text);
+        view_item_ptr item = create_item();
         content()->add_child(item);
 
         view_item::cast<list_item_view>(item)->container = this;
@@ -131,25 +126,29 @@ void list_view::update()
     view_item_list::iterator it = content()->_views.begin();
     for (auto d : data) {
         view_item_ptr item = *it++;
+        list_item_view *iv = view_item::cast<list_item_view>(item);
         item->layout()->visible = true;
 
         ((list_item_view*)item.get())->data = d;
-        std::string icon_path = icon_for_file(app_t::instance()->icons, d.icon, app_t::instance()->extensions);
 
-        view_item_ptr spacer = item->_views[0];
-        spacer->layout()->width = 1 + (d.indent * 24);
-
-        view_item_ptr icon = item->_views[1];
-        ((icon_view*)icon.get())->icon = ren_create_image_from_svg((char*)d.icon.c_str(), 24, 24);
-        if (d.icon != "") {
-            hasIcons = true;
+        if (iv->depth) {
+            iv->depth->layout()->width = 1 + (d.indent * 24);
         }
-        icon->layout()->visible = false; // hide first
-        view_item_ptr text = item->_views[2];
-        ((text_view*)text.get())->text = d.text;
 
-        text->prelayout();
-        text->layout()->rect.w = text->layout()->width;
+        if (iv->icon) {
+            std::string icon_path = icon_for_file(app_t::instance()->icons, d.icon, app_t::instance()->extensions);
+            ((icon_view*)(iv->icon.get()))->icon = ren_create_image_from_svg((char*)d.icon.c_str(), 24, 24);
+            if (d.icon != "") {
+                hasIcons = true;
+            }
+            iv->icon->layout()->visible = false; // hide first
+        }
+
+        if (iv->text) {
+            view_item::cast<text_view>(iv->text)->text = d.text;
+            iv->text->prelayout();
+            iv->text->layout()->rect.w = iv->text->layout()->width;
+        }
     }
 
     if (hasIcons) {
@@ -204,6 +203,8 @@ void list_view::render() {
 
 int focused_index(std::vector<list_item_data_t> &data, std::string value)
 {
+    if (value == "") return -1;
+
     int idx = 0;
     for(auto d : data) {
         if (d.value == value) {
@@ -211,6 +212,7 @@ int focused_index(std::vector<list_item_data_t> &data, std::string value)
         }
         idx++;
     }
+
     return -1;
 }
 
@@ -257,4 +259,73 @@ void list_view::select_focused()
             return;
         }
     }
+}
+
+view_item_ptr list_view::create_item()
+{
+    view_item_ptr item = std::make_shared<list_item_view>();
+    list_item_view *iv = view_item::cast<list_item_view>(item);
+    item->layout()->align = LAYOUT_ALIGN_CENTER;
+    item->layout()->height = 24;
+
+    iv->icon = std::make_shared<icon_view>();
+    iv->icon->layout()->width = 32;
+    iv->icon->layout()->height = 24;
+    
+    iv->text = std::make_shared<text_view>("...");
+
+    iv->depth = std::make_shared<view_item>();
+    iv->depth->layout()->width = 1;
+
+    item->add_child(iv->depth);
+    item->add_child(iv->icon);
+    item->add_child(iv->text);
+
+    return item;
+}
+
+bool list_view::ensure_visible_cursor()
+{
+    int idx = focused_index(data, focused_value);
+    if (idx == -1) {
+        idx = focused_index(data, value);
+    }
+    if (idx == -1) {
+        return true;
+    }
+    if (idx >= content()->_views.size()) {
+        return true;
+    }
+
+    view_item_ptr item = content()->_views[idx];
+
+    // list_item_view *iv = view_item::cast<list_item_view>(item);
+    // list_view *lv = view_item::cast<list_view>(this);
+    // scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
+
+    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+    layout_item_ptr alo = area->layout();
+    layout_item_ptr lo = item->layout();
+
+    bool scrolled = false;
+
+    if (lo->render_rect.x + lo->render_rect.w > alo->render_rect.x + alo->render_rect.w) {
+        mouse_wheel(-1, 0);
+        scrolled = true;
+    }
+    if (lo->render_rect.x < alo->render_rect.x) {
+        mouse_wheel(1, 0);
+        scrolled = true;
+    }
+
+    if (lo->render_rect.y + lo->render_rect.h > alo->render_rect.y + alo->render_rect.h) {
+        mouse_wheel(0, -1);
+        scrolled = true;
+    }
+    if (lo->render_rect.y < alo->render_rect.y) {
+        mouse_wheel(0, 1);
+        scrolled = true;
+    }
+
+    return scrolled;
 }
