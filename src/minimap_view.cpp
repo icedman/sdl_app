@@ -7,8 +7,6 @@
 #include "app.h"
 #include "style.h"
 
-extern std::map<int, color_info_t> colorMap;
-
 minimap_view::minimap_view()
 	: view_item("minimap")
 {
@@ -135,7 +133,7 @@ void minimap_view::render()
         if (blockData) {
             for(auto s : blockData->spans) {
 
-                color_info_t clr = colorMap[s.colorIndex];
+                color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
 
                 int start = s.start / 3;
                 int length = s.length / 2;

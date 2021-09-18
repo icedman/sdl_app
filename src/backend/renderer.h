@@ -2,6 +2,7 @@
 #define RENDERER_H
 
 #include "renderer.h"
+#include "theme.h"
 
 #include "events.h"
 #include <stdint.h>
@@ -74,6 +75,9 @@ struct Renderer {
 	void set_clipboard(std::string text);
 
 	bool is_terminal();
+
+	color_info_t color_for_index(int index);
+	void update_colors();
 };
 
 #endif // RENDERER_H

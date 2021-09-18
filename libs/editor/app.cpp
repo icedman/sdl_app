@@ -15,19 +15,12 @@
 
 static struct app_t* appInstance = 0;
 
-int pairForColor(int colorIdx, bool selected)
-{
-    // if (render_t::instance()) {
-    //     return render_t::instance()->pairForColor(colorIdx, selected);
-    // }
-    return colorIdx;
-}
-
 static color_info_t color(int r, int g, int b)
 {
     color_info_t c(r, g, b);
     // bool trueColor = render_t::instance() && !render_t::instance()->isTerminal();
-    // c.index = color_info_t::nearest_color_index(c.red, c.green, c.blue, trueColor);
+    bool trueColor = false;
+    c.index = color_info_t::nearest_color_index(c.red, c.green, c.blue, trueColor);
     return c;
 }
 
@@ -52,7 +45,8 @@ color_info_t lighter(color_info_t p, int x)
         c.blue = 0;
 
     // bool trueColor = render_t::instance() && !render_t::instance()->isTerminal();
-    // c.index = color_info_t::nearest_color_index(c.red, c.green, c.blue, trueColor);
+    bool trueColor = false;
+    c.index = color_info_t::nearest_color_index(c.red, c.green, c.blue, trueColor);
     return c;
 }
 

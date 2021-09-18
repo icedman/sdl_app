@@ -12,7 +12,6 @@
 
 #include "style.h"
 
-extern std::map<int, color_info_t> colorMap;
 extern color_info_t darker(color_info_t c, int x);
 
 app_view::app_view()
@@ -218,8 +217,8 @@ void app_view::setup_style()
         font: "editor",
         italic: false,
         bold: false,
-        fg: colorMap[comment.foreground.index],
-        bg: colorMap[app->bgApp],
+        fg: Renderer::instance()->color_for_index(comment.foreground.index),
+        bg: Renderer::instance()->color_for_index(app->bgApp),
         filled: false,
         border: 0,
         border_radius: 0,
@@ -230,6 +229,6 @@ void app_view::setup_style()
 
     view_style_register(vs, "gutter");
 
-    vs.bg = darker(colorMap[app->bgApp], 5);
+    vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     view_style_register(vs, "explorer");    
 }

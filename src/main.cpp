@@ -39,25 +39,6 @@ struct sdl_backend_t : backend_t {
     };
 };
 
-std::map<int, color_info_t> colorMap;
-
-void updateColors()
-{
-    app_t* app = app_t::instance();
-    theme_ptr theme = app->theme;
-
-    auto it = theme->colorIndices.begin();
-    while (it != theme->colorIndices.end()) {
-        // printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
-        color_info_t fg = it->second;
-        fg.red = fg.red <= 1 ? fg.red * 255 : fg.red;
-        fg.green = fg.green <= 1 ? fg.green * 255 : fg.green;
-        fg.blue = fg.blue <= 1 ? fg.blue * 255 : fg.blue;
-        colorMap[it->second.index] = fg;
-        it++;
-    }
-}
-
 static inline void render_item(layout_item_ptr item)
 {
     if (!item->visible || item->offscreen) {
@@ -153,7 +134,6 @@ int main(int argc, char** argv)
     if (argc > 1) {
         file = argv[argc - 1];
     }
-    updateColors();
 
     theme_ptr theme = app.theme;
 
@@ -164,7 +144,7 @@ int main(int argc, char** argv)
 
     Renderer::instance()->init();
 
-    color_info_t bg = colorMap[app.bgApp];
+    color_info_t bg = Renderer::instance()->color_for_index(app.bgApp);
 
     // quick draw
     int w, h;
@@ -213,7 +193,7 @@ int main(int argc, char** argv)
         int ph = h;
         Renderer::instance()->get_window_size(&w, &h);
         if (layout_should_run() || pw != w || ph != h) {
-            layout_run(root, { 0, 0, w-1, h-1 });
+            layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
             frames = FRAME_RENDER_INTERVAL - 4;

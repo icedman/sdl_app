@@ -56,7 +56,9 @@ void gutter_view::render()
         Renderer::instance()->draw_text(Renderer::instance()->font((char*)vs.font.c_str()), ln.c_str(),
             lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw),
             y,
-            { (uint8_t)vs.fg.green, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 125 });
+            { (uint8_t)vs.fg.green, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 
+                (uint8_t)(Renderer::instance()->is_terminal() ? vs.fg.index : 125)
+            });
 
         // log(">line:%d %d %d\n", block->lineNumber + 1, lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw), y);
         l+=linc;

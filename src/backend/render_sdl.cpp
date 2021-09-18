@@ -7,6 +7,8 @@
 #include <cairo.h>
 #include <rsvg.h>
 
+#include "app.h"
+
 int _state = 0;
 int keyMods = 0;
 
@@ -44,6 +46,9 @@ bool shouldEnd;
 
 RenFont* default_font = 0;
 int listen_quick_frames = 0;
+
+
+static std::map<int, color_info_t> color_map;
 
 RenImage* ren_create_image(int w, int h)
 {
@@ -610,6 +615,7 @@ void Renderer::init()
 {
     ren_init();
     rencache_init();
+    update_colors();
 }
 
 void Renderer::shutdown()
@@ -768,6 +774,10 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
 void Renderer::begin_frame(RenImage *image, int w, int h, RenCache* cache)
 {
+    if (!color_map.size()) {
+        update_colors();
+    }
+
     ren_begin_frame(image);
 }
 
@@ -804,4 +814,26 @@ void Renderer::set_clipboard(std::string text)
 bool Renderer::is_terminal()
 {
     return false;
+}
+
+color_info_t Renderer::color_for_index(int index)
+{
+    return color_map[index];
+}
+
+void Renderer::update_colors()
+{
+    app_t* app = app_t::instance();
+    theme_ptr theme = app->theme;
+
+    auto it = theme->colorIndices.begin();
+    while (it != theme->colorIndices.end()) {
+        // printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
+        color_info_t fg = it->second;
+        fg.red = fg.red <= 1 ? fg.red * 255 : fg.red;
+        fg.green = fg.green <= 1 ? fg.green * 255 : fg.green;
+        fg.blue = fg.blue <= 1 ? fg.blue * 255 : fg.blue;
+        color_map[it->second.index] = fg;
+        it++;
+    }
 }

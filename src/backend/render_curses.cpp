@@ -75,34 +75,12 @@ static std::vector<state> state_stack;
 int window_cols;
 int window_rows;
 
-static void update_colors()
+int pair_for_color(int colorIdx, bool selected)
 {
-    color_map.clear();
-
-    app_t* app = app_t::instance();
-    theme_ptr theme = app->theme;
-
-    init_pair(color_pair_e::NORMAL, app->fg, app->bg);
-    init_pair(color_pair_e::SELECTED, app->selFg, app->selBg);
-
-    int idx = 32;
-
-    auto it = theme->colorIndices.begin();
-    while (it != theme->colorIndices.end()) {
-        color_map[it->first] = idx;
-        init_pair(idx++, it->first, app->bg);
-        it++;
+    if (selected && colorIdx == color_pair_e::NORMAL) {
+        return color_pair_e::SELECTED;
     }
-
-    it = theme->colorIndices.begin();
-    while (it != theme->colorIndices.end()) {
-        color_map[it->first + SELECTED_OFFSET] = idx;
-        init_pair(idx++, it->first, app->selBg);
-        if (it->first == app->selBg) {
-            color_map[it->first + SELECTED_OFFSET] = idx + 1;
-        }
-        it++;
-    }
+    return color_map[colorIdx + (selected ? SELECTED_OFFSET : 0)];
 }
 
 int kbhit(int timeout = 500)
@@ -442,6 +420,8 @@ void Renderer::init()
 
     curs_set(0);
     clear();
+    
+    update_colors();
 
     _running = true;
 }
@@ -480,13 +460,12 @@ void Renderer::get_window_size(int* w, int* h)
 }
 
 std::string previousKeySequence;
+std::string keySequence;
+std::string expandedSequence;
 
 void Renderer::listen_events(event_list* events)
 {
-    std::string expandedSequence;
-
 	int ch = -1;
-    std::string keySequence;
     while (true) {
         ch = readKey(keySequence);
 
@@ -494,7 +473,7 @@ void Renderer::listen_events(event_list* events)
             expandedSequence = previousKeySequence + "+" + keySequence;
         }
 
-        if (ch != -1 || listen_is_quick()) {
+        if (ch != -1) {
             break;
         }
     }
@@ -511,11 +490,27 @@ void Renderer::listen_events(event_list* events)
         expandedSequence = "";
     }
 
-    // event!
     log("event! %s", keySequence.c_str());
+
     if (keySequence == "ctrl+q") {
         _running = false;
     }
+
+    if (keySequence.length() > 1) {
+        events->push_back({
+            type : EVT_KEY_SEQUENCE,
+            text : keySequence
+        });
+        keySequence = "";
+        return;
+    }
+
+    std::string c = "";
+    c += ch;
+    events->push_back({
+        type : EVT_KEY_TEXT,
+        text : c
+    });
 }
 
 void Renderer::listen_quick(int frames)
@@ -671,9 +666,13 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
         return 0;
     }
 
-    addstr(text);
+    int pair = pair_for_color(clr.a, false);
 
-    // log(">%d %d %s", x, y, text);
+    attron(COLOR_PAIR(pair));
+    addstr(text);
+    attroff(COLOR_PAIR(pair));
+
+    log(">%d %s", pair, text);
     return 0;
 }
 
@@ -720,4 +719,40 @@ void Renderer::set_clipboard(std::string text)
 bool Renderer::is_terminal()
 {
     return true;
+}
+
+color_info_t Renderer::color_for_index(int index)
+{
+    color_info_t res;
+    return res;
+}
+
+void Renderer::update_colors()
+{
+    color_map.clear();
+
+    app_t* app = app_t::instance();
+    theme_ptr theme = app->theme;
+
+    init_pair(color_pair_e::NORMAL, app->fg, app->bg);
+    init_pair(color_pair_e::SELECTED, app->selFg, app->selBg);
+
+    int idx = 32;
+
+    auto it = theme->colorIndices.begin();
+    while (it != theme->colorIndices.end()) {
+        color_map[it->first] = idx;
+        init_pair(idx++, it->first, app->bg);
+        it++;
+    }
+
+    it = theme->colorIndices.begin();
+    while (it != theme->colorIndices.end()) {
+        color_map[it->first + SELECTED_OFFSET] = idx;
+        init_pair(idx++, it->first, app->selBg);
+        if (it->first == app->selBg) {
+            color_map[it->first + SELECTED_OFFSET] = idx + 1;
+        }
+        it++;
+    }
 }

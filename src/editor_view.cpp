@@ -14,8 +14,6 @@
 #include <set>
 #include <algorithm>
 
-extern std::map<int, color_info_t> colorMap;
-
 std::vector<span_info_t> split_span(span_info_t si, const std::string& str, const std::set<char>& delimiters)
 {
     std::vector<span_info_t> result;
@@ -137,8 +135,8 @@ void editor_view::render()
 
     theme_ptr theme = app->theme;
 
-    color_info_t fg = colorMap[app_t::instance()->fg];
-    color_info_t sel = colorMap[app_t::instance()->selBg];
+    color_info_t fg = Renderer::instance()->color_for_index(app_t::instance()->fg);
+    color_info_t sel = Renderer::instance()->color_for_index(app_t::instance()->selBg);
 
     bool has_focus = is_focused();
 
@@ -230,7 +228,7 @@ void editor_view::render()
         for (auto& s : blockData->rendered_spans) {
             if (s.length == 0) continue;
 
-            color_info_t clr = colorMap[s.colorIndex];
+            color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
 
             std::string span_text = text.substr(s.start, s.length);
 
@@ -327,7 +325,9 @@ void editor_view::render()
             Renderer::instance()->draw_text(_font, (char*)span_text.c_str(),
                 s.x,
                 s.y,
-                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue },
+                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
+                    (uint8_t)(Renderer::instance()->is_terminal() ? s.colorIndex : 255)
+                 },
                 s.bold, s.italic);
         }
 

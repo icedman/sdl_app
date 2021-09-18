@@ -3,8 +3,6 @@
 
 #include "renderer.h"
 
-// #define ENABLE_RENDER_CACHE
-
 typedef struct RenCache RenCache;
 
 RenCache* ren_create_cache();
@@ -25,31 +23,5 @@ void rencache_end_frame();
 
 void rencache_state_save();
 void rencache_state_restore();
-
-#if 0
-#ifdef ENABLE_RENDER_CACHE
-#define draw_rect rencache_draw_rect
-#define draw_text rencache_draw_text
-#define draw_image rencache_draw_image
-#define set_clip_rect rencache_set_clip_rect
-#define state_save rencache_state_save
-#define state_restore rencache_state_restore
-#define begin_frame(w, h) \
-    ren_begin_frame();    \
-    rencache_begin_frame(w, h);
-#define end_frame()       \
-    rencache_end_frame(); \
-    ren_end_frame();
-#else
-#define draw_rect ren_draw_rect
-#define draw_text ren_draw_text
-#define draw_image ren_draw_image
-#define set_clip_rect ren_set_clip_rect
-#define state_save ren_state_save
-#define state_restore ren_state_restore
-#define begin_frame(w, h) ren_begin_frame();
-#define end_frame() ren_end_frame();
-#endif
-#endif
 
 #endif // RENDERER_CACHE_H
