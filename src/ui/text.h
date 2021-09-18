@@ -13,6 +13,7 @@ struct text_view : view_item {
     std::string cached_text;
     int text_width;
     int text_height;
+    int pad;
 };
 
 #endif // TEXT_VIEW_H

@@ -390,6 +390,11 @@ editor_view::editor_view()
 
     content()->layout()->stack = true;
 
+    if (Renderer::instance()->is_terminal()) {
+        gutter->layout()->width = 4;
+        minimap->layout()->width = 8;
+    }
+
     on(EVT_MOUSE_DOWN, [this](event_t& evt) {
         if (evt.source != this) {
             return false;

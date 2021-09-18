@@ -7,6 +7,10 @@ panel_view::panel_view()
     type = "panel";
     int scrollbar_size = 14;
 
+    if (Renderer::instance()->is_terminal()) {
+        scrollbar_size = 1;
+    }
+
     v_scroll = std::make_shared<vscrollbar_view>();
     v_scroll->layout()->width = scrollbar_size;
     h_scroll = std::make_shared<hscrollbar_view>();

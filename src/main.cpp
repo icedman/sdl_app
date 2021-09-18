@@ -200,8 +200,6 @@ int main(int argc, char** argv)
         view_input_list(view_list, root_view);
         view_input_events(view_list, events);
 
-        // printf(">%d\n", view_list.size());
-
         if (app_t::instance()->currentEditor) {
             app_t::instance()->currentEditor->runAllOps();
         }
@@ -215,16 +213,19 @@ int main(int argc, char** argv)
         int ph = h;
         Renderer::instance()->get_window_size(&w, &h);
         if (layout_should_run() || pw != w || ph != h) {
-            // Renderer::instance()->timer_begin();
             layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
             frames = FRAME_RENDER_INTERVAL - 4;
-            // printf("layout: %d\n", Renderer::instance()->timer_end());
         }
 
         // todo implement frame rate throttling
         if (Renderer::instance()->listen_is_quick()) {
+
+            if (Renderer::instance()->is_terminal()) {
+                frames += (FRAME_RENDER_INTERVAL>>2);
+            }
+
             if (frames++ < FRAME_RENDER_INTERVAL) {
                 continue;
             }
@@ -241,14 +242,7 @@ int main(int argc, char** argv)
 
         Renderer::instance()->state_restore();
 
-        char tmp[32];
-        sprintf(tmp, "rendered:%d", ren_rendered);
-        statusbar.setStatus(tmp);
-        // draw_text(NULL, tmp, 10, h - 40, {255,255,255});
-
         Renderer::instance()->end_frame();
-
-        // printf("rendered:%d time:%d\n", ren_rendered, ren_timer_end());
     }
 
     Renderer::instance()->shutdown();

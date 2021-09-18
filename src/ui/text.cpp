@@ -6,20 +6,24 @@ text_view::text_view(std::string text)
     , text(text)
 {
     layout()->height = 40;
+    pad = 2;
+
+    if (Renderer::instance()->is_terminal()) {
+        layout()->height = 1;
+        pad = 0;
+    }
     // cache_enabled = true;
 }
 
 void text_view::prelayout()
 {
     Renderer::instance()->get_font_extents(Renderer::instance()->font("ui-small"), &text_width, &text_height, text.c_str(), text.length());
-    int pad = 2;
     layout()->width = text_width + pad * 2;
 }
 
 void text_view::render()
 {
     layout_item_ptr lo = layout();
-    int pad = 2;
 
     if (!cache_enabled) {
         Renderer::instance()->draw_text(Renderer::instance()->font("ui-small"), (char*)text.c_str(),

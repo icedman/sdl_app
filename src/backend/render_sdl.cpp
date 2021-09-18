@@ -786,6 +786,11 @@ void Renderer::state_restore()
     ren_state_restore();
 }
 
+int Renderer::draw_count()
+{
+    return ren_rendered;
+}
+
 std::string Renderer::get_clipboard()
 {
     return ren_get_clipboard();
@@ -794,4 +799,9 @@ std::string Renderer::get_clipboard()
 void Renderer::set_clipboard(std::string text)
 {
     ren_set_clipboard(text);
+}
+
+bool Renderer::is_terminal()
+{
+    return false;
 }

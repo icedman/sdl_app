@@ -44,6 +44,10 @@ app_view::app_view()
     menu = std::make_shared<horizontal_container>();
     menu->layout()->height = 24;
 
+    if (Renderer::instance()->is_terminal()) {
+        menu->layout()->height = 1;
+    }
+
     statusbar = std::make_shared<statusbar_view>();
 
     // add_child(menu);

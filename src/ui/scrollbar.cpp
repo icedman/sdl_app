@@ -109,8 +109,16 @@ void scrollbar_view::prelayout()
 {
     layout_item_ptr lo = layout();
     int th = (float)_bar_size() * window / count;
-    if (th < 40) {
-        th = 40;
+
+
+    if (Renderer::instance()->is_terminal()) {
+        if (th < 4) {
+            th = 4;
+        }
+    } else {
+        if (th < 40) {
+            th = 40;
+        }
     }
 
     if (lo->is_row()) {

@@ -81,10 +81,17 @@ else
     quickjs_dep = declare_dependency(dependencies: [ dl_dep, quickjs_lib ], include_directories: ['/usr/include/quickjs'])
 endif
 
-ui_files = [
+sdl_files = [
     'src/backend/render_cache.cpp',
     'src/backend/render_font.cpp',
-    'src/backend/render_sdl.cpp',
+    'src/backend/render_sdl.cpp'
+]
+
+curses_files = [
+    'src/backend/render_curses.cpp'
+]
+
+ui_files = [
     'src/ui/button.cpp',
     'src/ui/events.cpp',
     'src/ui/image.cpp',
@@ -126,10 +133,20 @@ editor_lib = static_library('editor',
 
 editor_dep = declare_dependency(link_with: editor_lib, include_directories: [ editor_inc ])
 
-executable('app',
+executable('ashlar',
     'src/main.cpp',
+    sdl_files,
     ui_files,
     include_directories: [ './src', './src/ui', './src/backend' ],
     dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep ],
+    install : true
+)
+
+executable('ashlr',
+    'src/main.cpp',
+    curses_files,
+    ui_files,
+    include_directories: [ './src', './src/ui', './src/backend' ],
+    dependencies: [ tmparser_dep, editor_dep, curses_dep ],
     install : true
 )

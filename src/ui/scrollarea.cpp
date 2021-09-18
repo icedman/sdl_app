@@ -25,6 +25,11 @@ scrollarea_view::scrollarea_view()
 
 bool scrollarea_view::mouse_wheel(int x, int y)
 {
+    if (Renderer::instance()->is_terminal()) {
+        move_factor_x = 1;
+        move_factor_y = 1;
+    }
+
     layout()->scroll_x += x * move_factor_x;
     layout()->scroll_y += y * move_factor_y;
     return true;

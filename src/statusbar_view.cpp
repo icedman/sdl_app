@@ -14,6 +14,10 @@ statusbar_view::statusbar_view()
     layout()->fit_children = false;
     layout()->justify = LAYOUT_JUSTIFY_SPACE_AROUND;
 
+    if (Renderer::instance()->is_terminal()) {
+        layout()->height = 1;
+    }
+
     view_item_ptr container = std::make_shared<view_item>();
     container->layout()->height = 24;
     container->layout()->grow = 3;

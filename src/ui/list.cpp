@@ -51,6 +51,9 @@ list_view::list_view(std::vector<list_item_data_t> items)
 {
     data = items;
     layout()->margin = 8;
+    if (Renderer::instance()->is_terminal()) {
+        layout()->margin =0;
+    }
 }
 
 list_view::list_view()
@@ -60,6 +63,9 @@ list_view::list_view()
     interactive = true;
 
     layout()->width = 300;
+    if (Renderer::instance()->is_terminal()) {
+        layout()->width = 20;
+    }
     content()->layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
 }
 

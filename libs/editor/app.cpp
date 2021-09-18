@@ -198,7 +198,6 @@ void app_t::configure(int argc, char** argv)
     }
 
     if (settings["icon_theme"].isString()) {
-        printf("%s\n", settings["icon_theme"].asString().c_str());
         icons = icon_theme_from_name(settings["icon_theme"].asString().c_str(), extensions);
     }
     if (settings["default_icons"].isString()) {

@@ -15,6 +15,11 @@ inputtext_view::inputtext_view()
     int h = 26;
     int m = 4;
 
+    if (Renderer::instance()->is_terminal()) {
+        h = 1;
+        m = 0;
+    }
+
     ev->editor = std::make_shared<editor_t>();
     ev->editor->singleLineEdit = true;
     ev->editor->highlighter.lang = language_from_file("", app->extensions);

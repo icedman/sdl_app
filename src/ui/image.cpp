@@ -7,6 +7,11 @@ icon_view::icon_view()
 {
     layout()->width = 32;
     layout()->height = 24;
+
+    if (Renderer::instance()->is_terminal()) {
+        layout()->width = 1;
+        layout()->height = 1;
+    }
 }
 
 void icon_view::render()

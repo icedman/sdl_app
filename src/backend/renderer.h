@@ -68,8 +68,12 @@ struct Renderer {
 	void state_save();
 	void state_restore();
 
+	int draw_count();
+
 	std::string get_clipboard();
 	void set_clipboard(std::string text);
+
+	bool is_terminal();
 };
 
 #endif // RENDERER_H

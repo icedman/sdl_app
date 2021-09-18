@@ -17,6 +17,11 @@ tabbar_view::tabbar_view()
     layout()->width = 0;
     content()->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
 
+    if (Renderer::instance()->is_terminal()) {
+        layout()->margin_top = 0;
+        layout()->height = 1;        
+    }
+
     scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
     scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
     vs->disabled = true;

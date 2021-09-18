@@ -48,6 +48,15 @@ void app_tabbar_view::update() {
             0,0,
             200,0
         };
+
+        if (Renderer::instance()->is_terminal()) {
+            layout()->height = 1;
+            btn->layout()->preferred_constraint = {
+                0,0,
+                12,0
+            };
+        }
+
         btn->layout()->justify = LAYOUT_JUSTIFY_CENTER;
         btn->layout()->align = LAYOUT_ALIGN_CENTER;
     }
