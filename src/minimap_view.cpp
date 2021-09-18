@@ -1,7 +1,6 @@
 #include "minimap_view.h"
 #include "editor_view.h"
 #include "editor.h"
-#include "render_cache.h"
 #include "renderer.h"
 #include "events.h"
 
@@ -65,7 +64,7 @@ void minimap_view::render()
     app_t* app = app_t::instance();
     view_style_t vs = view_style_get("gutter");
 
-    draw_rect({
+    Renderer::instance()->draw_rect({
         lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h
     } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 
@@ -114,7 +113,7 @@ void minimap_view::render()
         if (!blockData && hl++ < 2) {
             editor->highlight(block->lineNumber, 4);
             blockData = block->data.get();
-            ren_listen_quick();
+            Renderer::instance()->listen_quick();
         }
 
         if (!blockData || blockData->dirty) {
@@ -125,7 +124,7 @@ void minimap_view::render()
                     1,
                 };
             if (r.width > 0) {
-                draw_rect(r,
+                Renderer::instance()->draw_rect(r,
                     { 255,255,255, 150 },
                     false, 1
                 );
@@ -156,7 +155,7 @@ void minimap_view::render()
                 }
 
                 if (r.width > 0) {
-                    draw_rect(r,
+                    Renderer::instance()->draw_rect(r,
                         { clr.red, clr.green, clr.blue, 150 },
                         false, 1
                     );
@@ -178,7 +177,7 @@ void minimap_view::render()
 
 
     if (is_hovered()) {
-        draw_rect({
+        Renderer::instance()->draw_rect({
             lo->render_rect.x,
             // lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
             render_y,

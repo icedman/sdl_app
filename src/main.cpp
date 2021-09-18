@@ -2,7 +2,6 @@
 
 #include "events.h"
 #include "layout.h"
-#include "render_cache.h"
 #include "renderer.h"
 #include "tests.h"
 
@@ -31,12 +30,12 @@ extern int ren_rendered;
 struct sdl_backend_t : backend_t {
     void setClipboardText(std::string text) override
     {
-        ren_set_clipboard(text);
+        Renderer::instance()->set_clipboard(text);
     };
 
     std::string getClipboardText() override
     {
-        return ren_get_clipboard();
+        return Renderer::instance()->get_clipboard();
     };
 };
 
@@ -76,10 +75,10 @@ static inline void render_item(layout_item_ptr item)
         item->render_rect.h + 2
     };
 
-    state_save();
+    Renderer::instance()->state_save();
 
     if (view->_views.size()) {
-        set_clip_rect(clip);
+        Renderer::instance()->set_clip_rect(clip);
     }
 
     bool fill = false;
@@ -134,7 +133,7 @@ static inline void render_item(layout_item_ptr item)
         render_item(child);
     }
 
-    state_restore();
+    Renderer::instance()->state_restore();
 
     // printf("%s : %d\n", ((view_item*)(item->view))->type.c_str(), ren_timer_end());
 }
@@ -163,17 +162,16 @@ int main(int argc, char** argv)
 
     // app.currentEditor->singleLineEdit = true;
 
-    ren_init();
-    rencache_init();
+    Renderer::instance()->init();
 
     color_info_t bg = colorMap[app.bgApp];
 
     // quick draw
     int w, h;
-    ren_get_window_size(&w, &h);
-    ren_begin_frame();
-    ren_draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
-    ren_end_frame();
+    Renderer::instance()->get_window_size(&w, &h);
+    Renderer::instance()->begin_frame();
+    Renderer::instance()->draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
+    Renderer::instance()->end_frame();
     w = 0;
     h = 0;
 
@@ -184,20 +182,19 @@ int main(int argc, char** argv)
     layout_item_list render_list;
     event_list events;
 
-    // RenFont *font = ren_create_font("Monaco 12");
-    RenFont* font = ren_create_font("Fira Code 14", "editor");
-    // RenFont* font = ren_create_font("Source Code Pro 12", "editor");
-    // ren_register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
-    ren_create_font("Source Code Pro 12", "ui");
-    ren_create_font("Source Code Pro 10", "ui-small");
+    // RenFont *font = Renderer::instance()->create_font("Monaco 12");
+    RenFont* font = Renderer::instance()->create_font("Fira Code 14", "editor");
+    // RenFont* font = Renderer::instance()->create_font("Source Code Pro 12", "editor");
+    // Renderer::instance()->register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
+    Renderer::instance()->create_font("Source Code Pro 12", "ui");
+    Renderer::instance()->create_font("Source Code Pro 10", "ui-small");
+    Renderer::instance()->set_default_font(font);
 
-    ren_set_default_font(font);
-
-    rencache_show_debug(true);
+    // Renderer::instance()->show_debug(true);
 
     int frames = FRAME_RENDER_INTERVAL;
-    while (ren_is_running()) {
-        ren_listen_events(&events);
+    while (Renderer::instance()->is_running()) {
+        Renderer::instance()->listen_events(&events);
 
         view_list.clear();
         view_input_list(view_list, root_view);
@@ -216,46 +213,45 @@ int main(int argc, char** argv)
 
         int pw = w;
         int ph = h;
-        ren_get_window_size(&w, &h);
+        Renderer::instance()->get_window_size(&w, &h);
         if (layout_should_run() || pw != w || ph != h) {
-            // ren_timer_begin();
+            // Renderer::instance()->timer_begin();
             layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
             frames = FRAME_RENDER_INTERVAL - 4;
-            // printf("layout: %d\n", ren_timer_end());
+            // printf("layout: %d\n", Renderer::instance()->timer_end());
         }
 
         // todo implement frame rate throttling
-        if (ren_listen_is_quick()) {
+        if (Renderer::instance()->listen_is_quick()) {
             if (frames++ < FRAME_RENDER_INTERVAL) {
                 continue;
             }
             frames = 0;
         }
 
-        // ren_timer_begin();
-        begin_frame(w, h);
-        state_save();
+        // Renderer::instance()->timer_begin();
+        Renderer::instance()->begin_frame(NULL, w, h);
+        Renderer::instance()->state_save();
 
         // draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
 
         render_item(root);
 
-        state_restore();
+        Renderer::instance()->state_restore();
 
         char tmp[32];
         sprintf(tmp, "rendered:%d", ren_rendered);
         statusbar.setStatus(tmp);
         // draw_text(NULL, tmp, 10, h - 40, {255,255,255});
 
-        end_frame();
+        Renderer::instance()->end_frame();
 
         // printf("rendered:%d time:%d\n", ren_rendered, ren_timer_end());
     }
 
-    rencache_shutdown();
-    ren_shutdown();
+    Renderer::instance()->shutdown();
 
     app.shutdown();
 }

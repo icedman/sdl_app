@@ -4,7 +4,6 @@
 #include "completer_view.h"
 
 #include "app.h"
-#include "render_cache.h"
 #include "renderer.h"
 #include "view.h"
 #include "search.h"
@@ -58,7 +57,7 @@ void editor_view::render()
         return;
     }
 
-    RenFont* _font = ren_font((char*)font.c_str());
+    RenFont* _font = Renderer::instance()->font((char*)font.c_str());
 
     app_t* app = app_t::instance();
     view_style_t vs = view_style_get("editor");
@@ -68,18 +67,17 @@ void editor_view::render()
 
     layout_item_ptr plo = layout();
 
-    draw_rect({
+    Renderer::instance()->draw_rect({
         plo->render_rect.x,
         plo->render_rect.y,
         plo->render_rect.w,
         plo->render_rect.h
     } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 
-
-    state_save();
+    Renderer::instance()->state_save();
 
     // for(auto r: previous_cursor_rects) {
-    //     draw_rect(r, { 255,0,0 }, false, 2);
+    //     Renderer::instance()->draw_rect(r, { 255,0,0 }, false, 2);
     // }
     previous_cursor_rects.clear();
 
@@ -88,11 +86,11 @@ void editor_view::render()
     layout_item_ptr lo = content()->layout();
 
     int fw, fh;
-    ren_get_font_extents(_font, &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(_font, &fw, &fh, NULL, 1);
     cols = (area->layout()->render_rect.w / fw);
     rows = (area->layout()->render_rect.h / fh) + 1;
 
-    set_clip_rect({ alo->render_rect.x,
+    Renderer::instance()->set_clip_rect({ alo->render_rect.x,
         alo->render_rect.y,
         alo->render_rect.w,
         alo->render_rect.h });
@@ -132,7 +130,7 @@ void editor_view::render()
     for(int i=0; i<hl_length; i+=4) {
         int lighted = editor->highlight(hl_start+i, 4);
         if (lighted > 0) {
-            ren_listen_quick();
+            Renderer::instance()->listen_quick();
             break;
         }
     }
@@ -291,11 +289,11 @@ void editor_view::render()
                         cur = clr;
                     }
                     cr.x += alo->scroll_x;
-                    draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
+                    Renderer::instance()->draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
                     if (ul) {
                         cr.y += fh - 2;
                         cr.height = 1;
-                        draw_rect(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue }, true, 1.0f);
+                        Renderer::instance()->draw_rect(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue }, true, 1.0f);
                     }
 
                     previous_cursor_rects.push_back(cr);
@@ -319,25 +317,25 @@ void editor_view::render()
             }
 
 #if 0
-            draw_rect({ s.x,
+            Renderer::instance()->draw_rect({ s.x,
                           s.y,
                           fw * s.length,
                           fh },
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
 #endif 
             
-            draw_text(_font, (char*)span_text.c_str(),
+            Renderer::instance()->draw_text(_font, (char*)span_text.c_str(),
                 s.x,
                 s.y,
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue },
-                s.bold, s.italic, true);
+                s.bold, s.italic);
         }
 
         l++;
         l+=linc;
     }
 
-    state_restore();
+    Renderer::instance()->state_restore();
 
     // duplicated from ::prelayout
     int ww = area->layout()->render_rect.w;
@@ -448,7 +446,7 @@ void editor_view::prelayout()
     // scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
 
     int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     int lines = editor->document.blocks.size();
 
@@ -489,7 +487,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
     it += start_row;
 
     int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     int l = 0;
     while (it != editor->document.blocks.end()) {
@@ -535,7 +533,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
             ss << (block->lineNumber + 1);
             ss << ":";
             ss << hitPos;
-            int mods = ren_key_mods();
+            int mods = Renderer::instance()->key_mods();
             if (clicks == 0 || mods & K_MOD_SHIFT) {
                 editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
             } else if (clicks == 1) {
@@ -639,7 +637,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
     int l = block->lineNumber - 1;
 
     int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
@@ -690,7 +688,7 @@ void editor_view::ensure_visible_cursor()
     document_t* doc = &editor->document;
 
     int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     int cols = lo->render_rect.w / fw;
     int rows = lo->render_rect.h / fh;
@@ -757,7 +755,7 @@ void editor_view::show_completer()
 
     if (!pm->_views.size() && list->data.size()) {
         int fw, fh;
-        ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+        Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
         span_info_t s = spanAtBlock(completer_cursor.block()->data.get(), completer_cursor.position(), true);
         scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);

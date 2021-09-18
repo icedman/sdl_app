@@ -1,6 +1,5 @@
 #include "statusbar_view.h"
 #include "renderer.h"
-#include "render_cache.h"
 
 #include "app.h"
 #include "statusbar.h"
@@ -86,7 +85,7 @@ void statusbar_view::render() {
 
     layout_item_ptr lo = layout();
 
-    draw_rect({
+    Renderer::instance()->draw_rect({
         lo->render_rect.x,
         lo->render_rect.y,
         lo->render_rect.w,

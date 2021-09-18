@@ -13,7 +13,7 @@
 #include "tabbar.h"
 #include "text.h"
 
-#include "render_cache.h"
+#include "renderer.h"
 
 view_item_ptr test_root()
 {

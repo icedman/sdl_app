@@ -1,7 +1,6 @@
 #include "view.h"
 #include "popup.h"
 #include "renderer.h"
-#include "render_cache.h"
 
 static view_item* view_root = 0;
 static view_item* view_focused = 0;
@@ -74,13 +73,13 @@ RenImage* view_item::cache(int w, int h)
 {
     if (cached_image) {
         int cw, ch;
-        ren_image_size(cached_image, &cw, &ch);
+        Renderer::instance()->image_size(cached_image, &cw, &ch);
         if (cw != w || ch != h) {
             destroy_cache();
         }
     }
     if (!cached_image) {
-        cached_image = ren_create_image(w, h);
+        cached_image = Renderer::instance()->create_image(w, h);
     }
     return cached_image;
 }
@@ -88,7 +87,7 @@ RenImage* view_item::cache(int w, int h)
 void view_item::destroy_cache()
 {
     if (cached_image) {
-        ren_destroy_image(cached_image);
+        Renderer::instance()->destroy_image(cached_image);
         cached_image = 0;
     }
 }
@@ -186,7 +185,7 @@ void view_item::render()
 
     if (!lo->visible) return;
     
-    draw_rect({ lo->render_rect.x,
+    Renderer::instance()->draw_rect({ lo->render_rect.x,
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },
@@ -419,10 +418,10 @@ void view_input_key(int key, event_t event)
 
 void view_input_text(std::string text, event_t event)
 {
-    // if ((ren_key_mods() & K_MOD_CTRL) == K_MOD_CTRL || (ren_key_mods() & K_MOD_ALT) == K_MOD_ALT) {
+    // if ((Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL || (Renderer::instance()->key_mods() & K_MOD_ALT) == K_MOD_ALT) {
     //     return;
     // }
-    if (ren_key_mods() && ren_key_mods() != K_MOD_SHIFT) return;
+    if (Renderer::instance()->key_mods() && Renderer::instance()->key_mods() != K_MOD_SHIFT) return;
     if (view_focused) {
         event.type = EVT_KEY_TEXT;
         event.source = view_focused;

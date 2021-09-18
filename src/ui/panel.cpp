@@ -1,5 +1,4 @@
 #include "panel.h"
-#include "render_cache.h"
 #include "scrollarea.h"
 #include "scrollbar.h"
 
@@ -101,7 +100,7 @@ bool panel_view::scrollbar_move(view_item *source)
     _validate();
 
     // printf("%d\n", (int)rand());
-    rencache_invalidate();
+    Renderer::instance()->invalidate();
     return true;
 }
 

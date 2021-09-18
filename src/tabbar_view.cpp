@@ -57,6 +57,6 @@ void app_tabbar_view::select_item(list_item_view* item)
 {
     list_view::select_item(item);
     app_t* app = app_t::instance();
-    bool multi = (ren_key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
+    bool multi = (Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
     ((app_view*)(app->view))->show_editor(app->openEditor(item->data.value), !multi);
 }

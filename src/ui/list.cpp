@@ -1,5 +1,4 @@
 #include "list.h"
-#include "render_cache.h"
 #include "renderer.h"
 
 #include "app.h"
@@ -39,10 +38,10 @@ void list_item_view::render()
     RenColor clr = { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 20 };
 
     if (container->is_selected(this) || is_hovered()) {
-        draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
+        Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
     } else {
         if (container->focused_value == data.value) {
-            draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
+            Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
         }
     }
 }
@@ -67,7 +66,7 @@ list_view::list_view()
 void list_view::prelayout()
 {
     int fw, fh;
-    ren_get_font_extents(ren_font("ui-small"), &fw, &fh, "A", 1);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font("ui-small"), &fw, &fh, "A", 1);
     ((scrollarea_view*)(scrollarea.get()))->move_factor_x = fw;
     ((scrollarea_view*)(scrollarea.get()))->move_factor_y = fh;
 }
@@ -78,7 +77,7 @@ void list_view::update()
         if (!ensure_visible_cursor()) {
             prev_value = value;
         } else {
-            ren_listen_quick(0);
+            Renderer::instance()->listen_quick(0);
         }
     }
 
@@ -140,7 +139,7 @@ void list_view::update()
 
         if (iv->icon) {
             std::string icon_path = icon_for_file(app_t::instance()->icons, d.icon, app_t::instance()->extensions);
-            ((icon_view*)(iv->icon.get()))->icon = ren_create_image_from_svg((char*)d.icon.c_str(), 24, 24);
+            ((icon_view*)(iv->icon.get()))->icon = Renderer::instance()->create_image_from_svg((char*)d.icon.c_str(), 24, 24);
             if (d.icon != "") {
                 hasIcons = true;
             }
@@ -193,7 +192,7 @@ void list_view::render() {
 
     layout_item_ptr lo = layout();
 
-    draw_rect({
+    Renderer::instance()->draw_rect({
         lo->render_rect.x,
         lo->render_rect.y,
         lo->render_rect.w,
@@ -201,7 +200,7 @@ void list_view::render() {
     } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 
     // layout_rect r = lo->render_rect;
-    // draw_rect({ r.x, r.y, r.w - 20, r.h - 4 }, { 255,0,255,150 }, false, 1);
+    // Renderer::instance()->draw_rect({ r.x, r.y, r.w - 20, r.h - 4 }, { 255,0,255,150 }, false, 1);
 }
 
 int focused_index(std::vector<list_item_data_t> &data, std::string value)

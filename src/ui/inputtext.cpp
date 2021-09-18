@@ -1,5 +1,4 @@
 #include "inputtext.h"
-#include "render_cache.h"
 #include "renderer.h"
 
 #include "app.h";
@@ -46,7 +45,7 @@ void inputtext_view::render()
 {
     // background
     layout_item_ptr lo = layout();
-    draw_rect({ lo->render_rect.x,
+    Renderer::instance()->draw_rect({ lo->render_rect.x,
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },

@@ -84,7 +84,7 @@ endif
 ui_files = [
     'src/backend/render_cache.cpp',
     'src/backend/render_font.cpp',
-    'src/backend/renderer.cpp',
+    'src/backend/render_sdl.cpp',
     'src/ui/button.cpp',
     'src/ui/events.cpp',
     'src/ui/image.cpp',

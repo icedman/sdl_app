@@ -70,7 +70,7 @@ bool app_view::input_sequence(std::string keySequence)
 
     switch (op) {
     case QUIT:
-        ren_quit();
+        Renderer::instance()->quit();
         return true;
 
     case NEW_TAB: {
@@ -157,7 +157,7 @@ void app_view::destroy_editor_view(editor_ptr editor)
     layout_request();
 
     if (!app->editors.size()) {
-        ren_quit();
+        Renderer::instance()->quit();
         return;
     }
 

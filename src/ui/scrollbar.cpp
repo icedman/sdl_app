@@ -1,5 +1,4 @@
 #include "scrollbar.h"
-#include "render_cache.h"
 #include "renderer.h"
 
 #include "app.h"
@@ -206,7 +205,7 @@ void scrollbar_view::render()
     layout_item_ptr lo = layout();
 
     // background
-    draw_rect({ lo->render_rect.x,
+    Renderer::instance()->draw_rect({ lo->render_rect.x,
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },
@@ -214,7 +213,7 @@ void scrollbar_view::render()
 
     // thumb
     layout_item_ptr lot = content->layout();
-    draw_rect({ lot->render_rect.x + 4,
+    Renderer::instance()->draw_rect({ lot->render_rect.x + 4,
                   lot->render_rect.y + 4,
                   lot->render_rect.w - 8,
                   lot->render_rect.h - 8 },

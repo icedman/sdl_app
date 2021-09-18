@@ -1,6 +1,5 @@
 #include "tabbar.h"
 #include "renderer.h"
-#include "render_cache.h"
 
 #include "app.h"
 #include "app_view.h"
