@@ -141,6 +141,9 @@ void list_view::update()
 
         if (iv->depth) {
             iv->depth->layout()->width = 1 + (d.indent * 24);
+            if (Renderer::instance()->is_terminal()) {
+                iv->depth->layout()->width = 1 + d.indent;
+            }
         }
 
         if (iv->icon) {
@@ -288,6 +291,12 @@ view_item_ptr list_view::create_item()
     item->add_child(iv->depth);
     item->add_child(iv->icon);
     item->add_child(iv->text);
+
+    if (Renderer::instance()->is_terminal()) {
+        item->layout()->height = 1;        
+        iv->icon->layout()->width = 1;
+        iv->icon->layout()->height = 1;
+    }
 
     return item;
 }

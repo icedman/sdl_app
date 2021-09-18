@@ -5,6 +5,8 @@
 #include "statusbar.h"
 #include "style.h"
 
+#include "../libs/editor/util.h"
+
 statusbar_view::statusbar_view()
     : horizontal_container()
 {
@@ -13,10 +15,6 @@ statusbar_view::statusbar_view()
     layout()->height = 24;
     layout()->fit_children = false;
     layout()->justify = LAYOUT_JUSTIFY_SPACE_AROUND;
-
-    if (Renderer::instance()->is_terminal()) {
-        layout()->height = 1;
-    }
 
     view_item_ptr container = std::make_shared<view_item>();
     container->layout()->height = 24;
@@ -27,6 +25,12 @@ statusbar_view::statusbar_view()
     items = std::make_shared<horizontal_container>();
     items->layout()->justify = LAYOUT_JUSTIFY_FLEX_END;
     items->layout()->grow = 2;
+
+    if (Renderer::instance()->is_terminal()) {
+        layout()->height = 1;
+        container->layout()->height = 1;
+        status->layout()->height = 1;
+    }
 
     container->add_child(status);
     add_child(container);
@@ -77,6 +81,7 @@ void statusbar_view::update()
             text->text = " " + statusbar->text[i++] + " ";
             text->prelayout();
             text->layout()->rect.w = text->layout()->width;
+            log(">>%d", text->layout()->width);
         }
     }
 

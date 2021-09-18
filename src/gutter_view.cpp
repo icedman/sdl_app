@@ -5,6 +5,8 @@
 #include "style.h"
 #include "editor_view.h"
 
+#include "../libs/editor/util.h"
+
 gutter_view::gutter_view()
     : view_item("gutter")
 {
@@ -42,6 +44,11 @@ void gutter_view::render()
     while (it != doc->blocks.end() && l < view_height) {
         block_ptr block = *it++;
 
+        if (!block->data || block->y == -1) {
+            Renderer::instance()->listen_quick();
+            return;
+        }
+
         int linc = block->lineCount;
         int y = block->y;
 
@@ -51,8 +58,7 @@ void gutter_view::render()
             y,
             { (uint8_t)vs.fg.green, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 125 });
 
+        // log(">line:%d %d %d\n", block->lineNumber + 1, lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw), y);
         l+=linc;
     }
-
-    // printf(">g %d\n", l);
 }

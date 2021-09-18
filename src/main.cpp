@@ -213,7 +213,7 @@ int main(int argc, char** argv)
         int ph = h;
         Renderer::instance()->get_window_size(&w, &h);
         if (layout_should_run() || pw != w || ph != h) {
-            layout_run(root, { 0, 0, w, h });
+            layout_run(root, { 0, 0, w-1, h-1 });
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
             frames = FRAME_RENDER_INTERVAL - 4;
@@ -221,11 +221,9 @@ int main(int argc, char** argv)
 
         // todo implement frame rate throttling
         if (Renderer::instance()->listen_is_quick()) {
-
             if (Renderer::instance()->is_terminal()) {
-                frames += (FRAME_RENDER_INTERVAL>>2);
+                frames = FRAME_RENDER_INTERVAL;
             }
-
             if (frames++ < FRAME_RENDER_INTERVAL) {
                 continue;
             }
@@ -241,7 +239,6 @@ int main(int argc, char** argv)
         render_item(root);
 
         Renderer::instance()->state_restore();
-
         Renderer::instance()->end_frame();
     }
 

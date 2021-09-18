@@ -63,6 +63,7 @@ enum KEY_ACTION {
 static Renderer theRenderer;
 static bool _running = true;
 static std::map<int, int> color_map;
+static int listen_quick_frames = 0;
 
 struct state {
     RenRect clip;
@@ -70,6 +71,9 @@ struct state {
 RenRect clip_rect;
 
 static std::vector<state> state_stack;
+
+int window_cols;
+int window_rows;
 
 static void update_colors()
 {
@@ -469,6 +473,9 @@ void Renderer::get_window_size(int* w, int* h)
     *w = ws.ws_col;
     *h = ws.ws_row;
 
+    window_cols = ws.ws_col;
+    window_rows = ws.ws_row;
+
     log("window: %d %d", *w, *h);
 }
 
@@ -487,7 +494,7 @@ void Renderer::listen_events(event_list* events)
             expandedSequence = previousKeySequence + "+" + keySequence;
         }
 
-        if (ch != -1) {
+        if (ch != -1 || listen_is_quick()) {
             break;
         }
     }
@@ -513,10 +520,16 @@ void Renderer::listen_events(event_list* events)
 
 void Renderer::listen_quick(int frames)
 {
+    listen_quick_frames = frames;
 }
 
 bool Renderer::listen_is_quick()
 {
+    if (listen_quick_frames > 0) {
+        listen_quick_frames--;
+        // log("quick %d\n", listen_quick_frames);
+        return true;
+    }
     return false;
 }
 
@@ -620,6 +633,17 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int radius)
 {
+    #if 0
+    for(int y=0;y<rect.height;y++) {
+        if (rect.y + y >= clip_rect.y + clip_rect.height) break;
+        move(rect.y + y, rect.x);
+        for(int x=0;x<rect.width;x++) {
+            if (rect.x + x >= clip_rect.x + clip_rect.width) break;
+            if (rect.x + x >= window_cols) break;
+            addch(' ');
+        }
+    }
+    #endif
 }
 
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
@@ -629,11 +653,17 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
     move(y, x);
 
-    if (x >= clip_rect.x + clip_rect.width) return 0;
+    int ww = clip_rect.x + clip_rect.width;
+    if (ww >= window_cols) {
+        ww = window_cols - clip_rect.x;
+        if (ww < 0) return 0;
+    }
+
+    if (x >= clip_rect.x + ww) return 0;
     if (y >= clip_rect.y + clip_rect.height) return 0;
 
-    if (x + l >= clip_rect.x + clip_rect.width) {
-        l = clip_rect.width - x - 1;
+    if (x + l >= clip_rect.x + ww) {
+        l = ww - x - 1;
         if (l < 0) return 0;
         std::string t = text;
         t.substr(0, l);
@@ -643,7 +673,7 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
     addstr(text);
 
-    log(">%d %d %s", x, y, text);
+    // log(">%d %d %s", x, y, text);
     return 0;
 }
 
@@ -652,6 +682,11 @@ void Renderer::begin_frame(RenImage *image, int w, int h, RenCache* cache)
 	if (!color_map.size()) {
 		update_colors();
 	}
+
+    for(int i=0;i<window_rows;i++) {
+        move(i,0);
+        clrtoeol();
+    }
 }
 
 void Renderer::end_frame()

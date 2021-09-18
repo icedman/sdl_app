@@ -381,7 +381,11 @@ editor_view::editor_view()
     minimap = std::make_shared<minimap_view>();
     minimap->layout()->width = 80;
     minimap->layout()->order = 3;
-    // minimap->layout()->visible = false;
+
+    if (Renderer::instance()->is_terminal()) {
+        minimap->layout()->visible = false;
+    }
+    
     container->add_child(minimap);
 
     scrollarea->layout()->order = 2;
