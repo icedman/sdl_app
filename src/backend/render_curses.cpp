@@ -660,9 +660,30 @@ void Renderer::update_rects(RenRect* rects, int count)
 {
 }
 
+static inline int min(int a, int b) { return a < b ? a : b; }
+static inline int max(int a, int b) { return a > b ? a : b; }
+
+static RenRect intersect_rects(RenRect a, RenRect b)
+{
+    int x1 = max(a.x, b.x);
+    int y1 = max(a.y, b.y);
+    int x2 = min(a.x + a.width, b.x + b.width);
+    int y2 = min(a.y + a.height, b.y + b.height);
+    return (RenRect){ x1, y1, max(0, x2 - x1), max(0, y2 - y1) };
+}
+
+static RenRect merge_rects(RenRect a, RenRect b)
+{
+    int x1 = min(a.x, b.x);
+    int y1 = min(a.y, b.y);
+    int x2 = max(a.x + a.width, b.x + b.width);
+    int y2 = max(a.y + a.height, b.y + b.height);
+    return (RenRect){ x1, y1, x2 - x1, y2 - y1 };
+}
+
 void Renderer::set_clip_rect(RenRect rect)
 {
-    clip_rect = rect;
+    clip_rect = intersect_rects(rect, clip_rect);
 }
 
 void Renderer::invalidate_rect(RenRect rect)
@@ -679,12 +700,11 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
 }
 
-static bool is_clipped(int x, int y) {
-    for(auto s : state_stack) {
-        RenRect cr = s.clip;
-        if (!(x >= cr.x && x < cr.x + cr.width)) return true;
-        if (!(y >= cr.y && y < cr.y + cr.height)) return true;
-    }
+static bool is_clipped(int x, int y)
+{
+    RenRect cr = clip_rect;
+    if (!(x >= cr.x && x < cr.x + cr.width)) return true;
+    if (!(y >= cr.y && y < cr.y + cr.height)) return true;
     return false;
 }
 
@@ -695,11 +715,10 @@ void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int 
     #if 1
     for(int y=0;y<rect.height;y++) {
 
-        move(rect.y + y, rect.x);
         for(int x=0;x<rect.width;x++) {
-
             if (is_clipped(rect.x + x, rect.y + y)) continue;
 
+            move(rect.y + y, rect.x + x);
             int pair = pair_for_colors(-1, clr_index);
             attron(COLOR_PAIR(pair));
             addch(' ');
@@ -717,17 +736,15 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
     int clr_index = clr.a ? clr.a : -1;
 
-    move(y, x);
-
     if (bold) {
         attron(A_BOLD);
     }
 
     int pair = 0;
     for(int i=0;i<l;i++) {
-
         if (is_clipped(x + i, y)) continue;
 
+        move(y, x + i);
         int bg = background_colors[x + i + y * bg_w];
         pair = pair_for_colors(clr_index, bg ? bg : -1);
         attron(COLOR_PAIR(pair));

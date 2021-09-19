@@ -682,11 +682,10 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
         area->layout()->scroll_x = -scroll_x_col * fw;
     }
     
-    if (start_col + scroll_x_col - 4 < 0) {
-        scroll_x_col = -start_col + 4;
-        if (scroll_x_col <= 0) {
-            area->layout()->scroll_x = scroll_x_col * fw;
-        }
+    int lead = 4;
+    if (start_col + scroll_x_col - lead < 0) {
+        scroll_x_col = -start_col + lead;
+        area->layout()->scroll_x = scroll_x_col * fw;
     }
 
     area->layout()->scroll_y = -start_row * fh;
