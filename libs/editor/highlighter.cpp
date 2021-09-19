@@ -60,7 +60,7 @@ int highlighter_t::highlightBlocks(block_ptr block, int count)
     return lighted;
 }
 
-void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
+static void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
 {
     std::vector<span_info_t>::iterator it = spans.begin();
     while(it != spans.end()) {
