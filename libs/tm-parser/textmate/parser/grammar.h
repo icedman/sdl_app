@@ -18,6 +18,22 @@ struct stack_t;
 typedef std::shared_ptr<rule_t> rule_ptr;
 typedef std::shared_ptr<stack_t> stack_ptr;
 
+struct stack_serialized_t {
+    int rule_id;
+
+    std::string scope;
+
+    std::string scope_string;
+    std::string content_scope_string = NULL_STR;
+
+    std::string while_pattern;
+    std::string end_pattern;
+
+    size_t anchor;
+    bool zw_begin_match;
+    bool apply_end_last;
+};
+
 struct grammar_t {
 
     grammar_t(Json::Value const& json);
@@ -26,6 +42,9 @@ struct grammar_t {
     stack_ptr seed() const;
     std::mutex& mutex() { return _mutex; }
     Json::Value document() { return doc; }
+
+    stack_serialized_t serialize_state(stack_ptr stack);
+    stack_ptr unserialize_state(stack_serialized_t stack);
 
 private:
     struct rule_stack_t {
@@ -52,6 +71,8 @@ private:
     std::mutex _mutex;
 
     Json::Value doc;
+
+    rule_ptr find_rule(grammar_t *grammar, int id);
 };
 
 typedef std::shared_ptr<grammar_t> grammar_ptr;

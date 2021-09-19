@@ -161,6 +161,10 @@ int highlighter_t::highlightBlock(block_ptr block)
         return 1;
     } else {
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+
+        // test state serializationn
+        // parse::stack_serialized_t ss = lang->grammar->serialize_state(parser_state);
+        // parser_state = lang->grammar->unserialize_state(ss);
     }
 
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
