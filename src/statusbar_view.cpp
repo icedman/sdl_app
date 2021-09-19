@@ -81,7 +81,6 @@ void statusbar_view::update()
             text->text = " " + statusbar->text[i++] + " ";
             text->prelayout();
             text->layout()->rect.w = text->layout()->width;
-            log(">>%d", text->layout()->width);
         }
     }
 
@@ -101,4 +100,5 @@ void statusbar_view::render() {
         lo->render_rect.h
     } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 
+    // view_item::render();
 }

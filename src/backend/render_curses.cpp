@@ -62,8 +62,20 @@ enum KEY_ACTION {
 
 static Renderer theRenderer;
 static bool _running = true;
-static std::map<int, int> color_map;
+static std::map<int, color_info_t> color_map;
 static int listen_quick_frames = 0;
+
+typedef struct _color_pair {
+    int idx;
+    int fg;
+    int bg;
+};
+
+static std::map<int, _color_pair> color_pairs;
+
+char *background_colors = 0;
+int bg_w = 0;
+int bg_h = 0;
 
 struct state {
     RenRect clip;
@@ -75,15 +87,41 @@ static std::vector<state> state_stack;
 int window_cols;
 int window_rows;
 
-int pair_for_color(int colorIdx, bool selected)
+static inline int min(int a, int b) { return a < b ? a : b; }
+static inline int max(int a, int b) { return a > b ? a : b; }
+
+static RenRect intersect_rects(RenRect a, RenRect b)
 {
-    if (selected && colorIdx == color_pair_e::NORMAL) {
-        return color_pair_e::SELECTED;
-    }
-    return color_map[colorIdx + (selected ? SELECTED_OFFSET : 0)];
+    int x1 = max(a.x, b.x);
+    int y1 = max(a.y, b.y);
+    int x2 = min(a.x + a.width, b.x + b.width);
+    int y2 = min(a.y + a.height, b.y + b.height);
+    return (RenRect){ x1, y1, max(0, x2 - x1), max(0, y2 - y1) };
 }
 
-int kbhit(int timeout = 500)
+static RenRect merge_rects(RenRect a, RenRect b)
+{
+    int x1 = min(a.x, b.x);
+    int y1 = min(a.y, b.y);
+    int x2 = max(a.x + a.width, b.x + b.width);
+    int y2 = max(a.y + a.height, b.y + b.height);
+    return (RenRect){ x1, y1, x2 - x1, y2 - y1 };
+}
+
+static int pair_for_colors(int fg, int bg)
+{
+    for(auto p : color_pairs) {
+        if (p.second.fg == fg && p.second.bg == bg) {
+            return p.second.idx;
+        }
+    }
+    int idx = color_pairs.size();
+    init_pair(idx, fg, bg);
+    color_pairs[idx] = { idx,fg,bg };
+    return idx;
+}
+
+static int kbhit(int timeout = 500)
 {
     struct timeval tv;
     fd_set fds;
@@ -345,7 +383,7 @@ static int readEscapeSequence(std::string& keySequence)
     return K_ESC;
 }
 
-int readKey(std::string& keySequence)
+static int readKey(std::string& keySequence)
 {
     if (kbhit(100) != 0) {
         char c;
@@ -460,11 +498,14 @@ void Renderer::get_window_size(int* w, int* h)
 }
 
 std::string previousKeySequence;
-std::string keySequence;
-std::string expandedSequence;
 
 void Renderer::listen_events(event_list* events)
 {
+    events->clear();
+
+    std::string expandedSequence;
+    std::string keySequence;
+
 	int ch = -1;
     while (true) {
         ch = readKey(keySequence);
@@ -490,23 +531,36 @@ void Renderer::listen_events(event_list* events)
         expandedSequence = "";
     }
 
-    log("event! %s", keySequence.c_str());
-
     if (keySequence == "ctrl+q") {
         _running = false;
     }
 
     if (keySequence.length() > 1) {
+        log("keySequence %s", keySequence.c_str());
         events->push_back({
             type : EVT_KEY_SEQUENCE,
             text : keySequence
         });
-        keySequence = "";
         return;
     }
 
-    std::string c = "";
+    if (!isprint(ch)) {
+        switch(ch) {
+        case K_ESC:
+            events->push_back({
+                type : EVT_KEY_SEQUENCE,
+                text : "escape"
+            });
+        break;
+        }
+        return;
+    }
+
+    std::string c;
     c += ch;
+
+    log("text %s", c.c_str());
+
     events->push_back({
         type : EVT_KEY_TEXT,
         text : c
@@ -609,7 +663,7 @@ void Renderer::update_rects(RenRect* rects, int count)
 
 void Renderer::set_clip_rect(RenRect rect)
 {
-    clip_rect = rect;
+    clip_rect = intersect_rects(rect, clip_rect);
 }
 
 void Renderer::invalidate_rect(RenRect rect)
@@ -628,14 +682,25 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int radius)
 {
-    #if 0
+    int clr_index = clr.a;
+
+    #if 1
     for(int y=0;y<rect.height;y++) {
-        if (rect.y + y >= clip_rect.y + clip_rect.height) break;
+        // if (rect.y + y >= clip_rect.y + clip_rect.height) break;
+
+        // todo clip rect stack
+        if (!(rect.x >= clip_rect.x && rect.x < clip_rect.x + clip_rect.width)) break;
+        if (!(rect.y + y >= clip_rect.y && rect.y + y < clip_rect.y + clip_rect.height)) break;
+
         move(rect.y + y, rect.x);
         for(int x=0;x<rect.width;x++) {
             if (rect.x + x >= clip_rect.x + clip_rect.width) break;
             if (rect.x + x >= window_cols) break;
+            int pair = pair_for_colors(-1, clr_index);
+            attron(COLOR_PAIR(pair));
             addch(' ');
+            attroff(COLOR_PAIR(pair));
+            background_colors[rect.x + x + (rect.y + y) * bg_w] = clr_index;
         }
     }
     #endif
@@ -646,19 +711,16 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
     int l = strlen(text);
     if (l == 0) return 0;
 
+    int clr_index = clr.a ? clr.a : -1;
+
     move(y, x);
 
-    int ww = clip_rect.x + clip_rect.width;
-    if (ww >= window_cols) {
-        ww = window_cols - clip_rect.x;
-        if (ww < 0) return 0;
-    }
+    // todo clip rect stack
+    if (!(x >= clip_rect.x && x < clip_rect.x + clip_rect.width)) return 0;
+    if (!(y >= clip_rect.y && y < clip_rect.y + clip_rect.height)) return 0;
 
-    if (x >= clip_rect.x + ww) return 0;
-    if (y >= clip_rect.y + clip_rect.height) return 0;
-
-    if (x + l >= clip_rect.x + ww) {
-        l = ww - x - 1;
+    if (x + l >= clip_rect.x + clip_rect.width) {
+        l = clip_rect.x + clip_rect.width - x - 1;
         if (l < 0) return 0;
         std::string t = text;
         t.substr(0, l);
@@ -666,13 +728,23 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
         return 0;
     }
 
-    int pair = pair_for_color(clr.a, false);
+    if (bold) {
+        attron(A_BOLD);
+    }
 
-    attron(COLOR_PAIR(pair));
-    addstr(text);
-    attroff(COLOR_PAIR(pair));
+    int pair = 0;
+    for(int i=0;i<l;i++) {
+        int bg = background_colors[x + i + y * bg_w];
+        pair = pair_for_colors(clr_index, bg ? bg : -1);
+        attron(COLOR_PAIR(pair));
+        addch(text[i]);
+        attroff(COLOR_PAIR(pair));
+    }
 
-    log(">%d %s", pair, text);
+    attroff(A_UNDERLINE);
+    attroff(A_BOLD);
+
+    log(">%d %d %s", clr.a, pair, text);
     return 0;
 }
 
@@ -682,15 +754,30 @@ void Renderer::begin_frame(RenImage *image, int w, int h, RenCache* cache)
 		update_colors();
 	}
 
+    if (background_colors == 0 || bg_w != window_cols || bg_h != window_rows) {
+        if (background_colors) free(background_colors);
+        bg_w = window_cols;
+        bg_h = window_rows;
+        background_colors = (char*)calloc(bg_w * bg_h, sizeof(char));
+    }
+
+    memset(background_colors, 0, bg_w * bg_h * sizeof(char));
+
+    clip_rect = { 0,0,window_cols, window_rows };
+
     for(int i=0;i<window_rows;i++) {
         move(i,0);
         clrtoeol();
     }
+
+    state_save();
 }
 
 void Renderer::end_frame()
 {
 	refresh();
+
+    state_restore();
 }
 
 void Renderer::state_save()
@@ -723,36 +810,28 @@ bool Renderer::is_terminal()
 
 color_info_t Renderer::color_for_index(int index)
 {
-    color_info_t res;
-    return res;
+    return color_map[index];
 }
 
 void Renderer::update_colors()
 {
-    color_map.clear();
-
     app_t* app = app_t::instance();
     theme_ptr theme = app->theme;
 
-    init_pair(color_pair_e::NORMAL, app->fg, app->bg);
-    init_pair(color_pair_e::SELECTED, app->selFg, app->selBg);
-
-    int idx = 32;
+    pair_for_colors(-1, -1);
 
     auto it = theme->colorIndices.begin();
     while (it != theme->colorIndices.end()) {
-        color_map[it->first] = idx;
-        init_pair(idx++, it->first, app->bg);
-        it++;
-    }
+        color_info_t fg = it->second;
+        fg.red = fg.red <= 1 ? fg.red * 255 : fg.red;
+        fg.green = fg.green <= 1 ? fg.green * 255 : fg.green;
+        fg.blue = fg.blue <= 1 ? fg.blue * 255 : fg.blue;
+        fg.index = it->second.index;
+        color_map[it->second.index] = fg;
 
-    it = theme->colorIndices.begin();
-    while (it != theme->colorIndices.end()) {
-        color_map[it->first + SELECTED_OFFSET] = idx;
-        init_pair(idx++, it->first, app->selBg);
-        if (it->first == app->selBg) {
-            color_map[it->first + SELECTED_OFFSET] = idx + 1;
-        }
+        int p = pair_for_colors(fg.index, - 1);
+        app_t::log("%d {%f %f %f} %d\n", fg.index, fg.red, fg.green, fg.blue, p);
+
         it++;
     }
 }

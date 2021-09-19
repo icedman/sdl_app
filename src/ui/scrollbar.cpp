@@ -217,15 +217,25 @@ void scrollbar_view::render()
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },
-        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 5 }, true);
+        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue,
+            Renderer::instance()->is_terminal() ? vs.bg.index : 5
+        }, true);
 
     // thumb
+    int pad = 4;
+    if (Renderer::instance()->is_terminal()) {
+        pad = 0;
+    }
+
     layout_item_ptr lot = content->layout();
-    Renderer::instance()->draw_rect({ lot->render_rect.x + 4,
-                  lot->render_rect.y + 4,
-                  lot->render_rect.w - 8,
-                  lot->render_rect.h - 8 },
-        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, (content->is_pressed() || is_hovered()) ? 150 : 50 },
+    Renderer::instance()->draw_rect({ lot->render_rect.x + pad,
+                  lot->render_rect.y + pad,
+                  lot->render_rect.w - pad * 2,
+                  lot->render_rect.h - pad * 2 },
+        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 
+            Renderer::instance()->is_terminal() ? vs.fg.index :
+            ((content->is_pressed() || is_hovered()) ? 150 : 50)
+        },
         true, 0, 3);
 }
 

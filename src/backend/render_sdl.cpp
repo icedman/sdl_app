@@ -828,7 +828,6 @@ void Renderer::update_colors()
 
     auto it = theme->colorIndices.begin();
     while (it != theme->colorIndices.end()) {
-        // printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
         color_info_t fg = it->second;
         fg.red = fg.red <= 1 ? fg.red * 255 : fg.red;
         fg.green = fg.green <= 1 ? fg.green * 255 : fg.green;

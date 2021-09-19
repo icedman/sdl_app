@@ -127,9 +127,9 @@ int main(int argc, char** argv)
     explorer_t explorer;
     statusbar_t statusbar;
     search_t search;
-
+   
     app.configure(argc, argv);
-    app.setupColors();
+    app.setupColors(!Renderer::instance()->is_terminal());
     std::string file = "./src/main.cpp";
     if (argc > 1) {
         file = argv[argc - 1];
@@ -141,7 +141,6 @@ int main(int argc, char** argv)
     explorer.setRootFromFile(file);
 
     // app.currentEditor->singleLineEdit = true;
-
     Renderer::instance()->init();
 
     color_info_t bg = Renderer::instance()->color_for_index(app.bgApp);
@@ -174,12 +173,6 @@ int main(int argc, char** argv)
 
     int frames = FRAME_RENDER_INTERVAL;
     while (Renderer::instance()->is_running()) {
-        Renderer::instance()->listen_events(&events);
-
-        view_list.clear();
-        view_input_list(view_list, root_view);
-        view_input_events(view_list, events);
-
         if (app_t::instance()->currentEditor) {
             app_t::instance()->currentEditor->runAllOps();
         }
@@ -200,26 +193,33 @@ int main(int argc, char** argv)
         }
 
         // todo implement frame rate throttling
+        bool skip_render = false;
         if (Renderer::instance()->listen_is_quick()) {
             if (Renderer::instance()->is_terminal()) {
                 frames = FRAME_RENDER_INTERVAL;
             }
             if (frames++ < FRAME_RENDER_INTERVAL) {
-                continue;
+                skip_render = true;
             }
             frames = 0;
         }
 
-        // Renderer::instance()->timer_begin();
-        Renderer::instance()->begin_frame(NULL, w, h);
-        Renderer::instance()->state_save();
+        if (!skip_render) {
+            Renderer::instance()->begin_frame(NULL, w, h);
+            Renderer::instance()->state_save();
 
-        // draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
+            render_item(root);
 
-        render_item(root);
+            Renderer::instance()->state_restore();
+            Renderer::instance()->end_frame();
+        }
 
-        Renderer::instance()->state_restore();
-        Renderer::instance()->end_frame();
+        Renderer::instance()->listen_events(&events);
+
+        view_list.clear();
+        view_input_list(view_list, root_view);
+        view_input_events(view_list, events);
+
     }
 
     Renderer::instance()->shutdown();

@@ -65,12 +65,16 @@ void editor_view::render()
 
     layout_item_ptr plo = layout();
 
-    Renderer::instance()->draw_rect({
-        plo->render_rect.x,
-        plo->render_rect.y,
-        plo->render_rect.w,
-        plo->render_rect.h
-    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    if (Renderer::instance()->is_terminal()) {
+        // do something else
+    } else {
+        Renderer::instance()->draw_rect({
+            plo->render_rect.x,
+            plo->render_rect.y,
+            plo->render_rect.w,
+            plo->render_rect.h
+        } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    }
 
     Renderer::instance()->state_save();
 
@@ -179,7 +183,7 @@ void editor_view::render()
             longest_block = block;
         }
 
-        std::string text = block->text() + "\n";
+        std::string text = block->text() + " \n";
         const char* line = text.c_str();
 
         // wrap
@@ -281,14 +285,18 @@ void editor_view::render()
                     color_info_t cur = sel;
                     if (hlMainCursor) {
                         int cursor_pad = 4;
-                        cr.width = 2;
-                        cr.y -= cursor_pad;
-                        cr.height += cursor_pad * 2;
+                        cr.width = 1;
+                        if (!Renderer::instance()->is_terminal()) {
+                            cr.width = 2;
+                            cr.y -= cursor_pad;
+                            cr.height += cursor_pad * 2;
+                        }
                         cur = clr;
                     }
                     cr.x += alo->scroll_x;
+
                     Renderer::instance()->draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
-                    if (ul) {
+                    if (ul && !Renderer::instance()->is_terminal()) {
                         cr.y += fh - 2;
                         cr.height = 1;
                         Renderer::instance()->draw_rect(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue }, true, 1.0f);
@@ -313,7 +321,7 @@ void editor_view::render()
                 block->x = alo->render_rect.x;
                 block->y = s.y;
             }
-
+            
 #if 0
             Renderer::instance()->draw_rect({ s.x,
                           s.y,
@@ -326,7 +334,7 @@ void editor_view::render()
                 s.x,
                 s.y,
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
-                    (uint8_t)(Renderer::instance()->is_terminal() ? s.colorIndex : 255)
+                    (uint8_t)(Renderer::instance()->is_terminal() ? clr.index : 255)
                  },
                 s.bold, s.italic);
         }

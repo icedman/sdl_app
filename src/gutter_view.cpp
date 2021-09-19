@@ -22,10 +22,13 @@ void gutter_view::render()
 
     layout_item_ptr lo = layout();
 
-    // view_item::render();
-    Renderer::instance()->draw_rect({
-        lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h
-    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    if (Renderer::instance()->is_terminal()) {
+        // do something else
+    } else {
+        Renderer::instance()->draw_rect({
+            lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h
+        } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    }
 
     int fw, fh;
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)vs.font.c_str()), &fw, &fh, NULL, 1);

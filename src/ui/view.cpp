@@ -2,6 +2,8 @@
 #include "popup.h"
 #include "renderer.h"
 
+#include "app.h"
+
 static view_item* view_root = 0;
 static view_item* view_focused = 0;
 static view_item* view_hovered = 0;
@@ -180,17 +182,19 @@ void view_item::update()
 
 void view_item::render()
 {
-    #if 0
     layout_item_ptr lo = layout();
 
     if (!lo->visible) return;
-    
+
+    #if 0    
     Renderer::instance()->draw_rect({ lo->render_rect.x,
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },
         { color.r, color.g, color.b, color.a }, false, 1, 0);
     #endif
+
+    // app_t::log("%s %d %d %d %d", type.c_str(), lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h);
 }
 
 int view_item::on(event_type_e event_type, event_callback_t callback)

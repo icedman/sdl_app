@@ -24,7 +24,7 @@ struct app_t {
     std::string clipText;
 
     void configure(int argc, char** argv);
-    void setupColors();
+    void setupColors(bool trueColors);
     void shutdown();
 
     // view
@@ -58,6 +58,7 @@ struct app_t {
     bool debug;
 
     // colors
+    bool trueColors;
     std::string themeName;
     int fg;
     int bg;
@@ -87,6 +88,8 @@ struct app_t {
     int refreshCount;
 
     void* view;
+
+    static void log(const char* format, ...);
 };
 
 int pairForColor(int colorIdx, bool selected);
