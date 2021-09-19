@@ -780,7 +780,14 @@ void editor_view::show_completer()
         int list_size = list->data.size();
         if (list_size > 4) list_size = 4;
         completer->layout()->width = completerItemsWidth * fw;
-        completer->layout()->height = list_size * fh + 14;
+        completer->layout()->height = list_size * fh;
+
+        if (Renderer::instance()->is_terminal()) {
+            completer->layout()->width += 2;
+        } else {
+            completer->layout()->height += 14;
+        }
+
         list->focus_next();
         for(int i=0; i<2; i++) {
             if (!list->ensure_visible_cursor()) break;

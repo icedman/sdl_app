@@ -772,6 +772,11 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
     return ren_draw_text(font, text, x, y, clr, bold, italic);
 }
 
+int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor color, bool bold, bool italic)
+{
+    return 0;
+}
+
 void Renderer::begin_frame(RenImage *image, int w, int h, RenCache* cache)
 {
     if (!color_map.size()) {

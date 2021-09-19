@@ -211,6 +211,55 @@ void scrollbar_view::render()
     view_style_t vs = view_style_get("default");
 
     layout_item_ptr lo = layout();
+    layout_item_ptr lot = content->layout();
+
+    if (Renderer::instance()->is_terminal()) {
+        if (lo->direction == LAYOUT_FLEX_DIRECTION_COLUMN) {
+
+            for(int i=0;i<lo->render_rect.h;i++) {
+                Renderer::instance()->draw_char(NULL, '|', lo->render_rect.x, lo->render_rect.y + i,
+                    { 0,0,0, vs.bg.index }, true, 1
+                );
+            }
+
+            for(int i=0;i<lot->render_rect.h;i++) {
+                Renderer::instance()->draw_char(NULL, '|', lot->render_rect.x, lot->render_rect.y + i,
+                    { 0,0,0, vs.fg.index }, true, 1
+                );
+            }
+
+            // Renderer::instance()->draw_char(NULL, 'u', lo->render_rect.x, lo->render_rect.y,
+            //         { 0,0,0, vs.fg.index }, true, 1
+            //     );
+
+            // Renderer::instance()->draw_char(NULL, 'd', lo->render_rect.x, lo->render_rect.y + lo->render_rect.h,
+            //         { 0,0,0, vs.fg.index }, true, 1
+            //     );
+
+        } else {
+
+            for(int i=0;i<lo->render_rect.w;i++) {
+                Renderer::instance()->draw_char(NULL, '-', lo->render_rect.x + i, lo->render_rect.y,
+                    { 0,0,0, vs.bg.index }, true, 1
+                );
+            }
+
+            for(int i=0;i<lot->render_rect.w;i++) {
+                Renderer::instance()->draw_char(NULL, '-', lot->render_rect.x + i, lot->render_rect.y,
+                    { 0,0,0, vs.fg.index }, true, 1
+                );
+            }
+
+            // Renderer::instance()->draw_char(NULL, 'l', lo->render_rect.x, lo->render_rect.y,
+            //         { 0,0,0, vs.fg.index }, true, 1
+            //     );
+
+            // Renderer::instance()->draw_char(NULL, 'r', lo->render_rect.x + lo->render_rect.w, lo->render_rect.y,
+            //         { 0,0,0, vs.fg.index }, true, 1
+            //     );
+        }
+        return;
+    }
 
     // background
     Renderer::instance()->draw_rect({ lo->render_rect.x,
@@ -223,11 +272,6 @@ void scrollbar_view::render()
 
     // thumb
     int pad = 4;
-    if (Renderer::instance()->is_terminal()) {
-        pad = 0;
-    }
-
-    layout_item_ptr lot = content->layout();
     Renderer::instance()->draw_rect({ lot->render_rect.x + pad,
                   lot->render_rect.y + pad,
                   lot->render_rect.w - pad * 2,

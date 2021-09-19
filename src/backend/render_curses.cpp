@@ -13,7 +13,6 @@
 
 #include "../libs/editor/util.h"
 
-#define SELECTED_OFFSET 500
 #define CTRL_KEY(k) ((k)&0x1f)
 
 enum KEY_ACTION {
@@ -86,27 +85,6 @@ static std::vector<state> state_stack;
 
 int window_cols;
 int window_rows;
-
-static inline int min(int a, int b) { return a < b ? a : b; }
-static inline int max(int a, int b) { return a > b ? a : b; }
-
-static RenRect intersect_rects(RenRect a, RenRect b)
-{
-    int x1 = max(a.x, b.x);
-    int y1 = max(a.y, b.y);
-    int x2 = min(a.x + a.width, b.x + b.width);
-    int y2 = min(a.y + a.height, b.y + b.height);
-    return (RenRect){ x1, y1, max(0, x2 - x1), max(0, y2 - y1) };
-}
-
-static RenRect merge_rects(RenRect a, RenRect b)
-{
-    int x1 = min(a.x, b.x);
-    int y1 = min(a.y, b.y);
-    int x2 = max(a.x + a.width, b.x + b.width);
-    int y2 = max(a.y + a.height, b.y + b.height);
-    return (RenRect){ x1, y1, x2 - x1, y2 - y1 };
-}
 
 static int pair_for_colors(int fg, int bg)
 {
@@ -663,7 +641,7 @@ void Renderer::update_rects(RenRect* rects, int count)
 
 void Renderer::set_clip_rect(RenRect rect)
 {
-    clip_rect = intersect_rects(rect, clip_rect);
+    clip_rect = rect;
 }
 
 void Renderer::invalidate_rect(RenRect rect)
@@ -680,22 +658,27 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
 }
 
+static bool is_clipped(int x, int y) {
+    for(auto s : state_stack) {
+        RenRect cr = s.clip;
+        if (!(x >= cr.x && x < cr.x + cr.width)) return true;
+        if (!(y >= cr.y && y < cr.y + cr.height)) return true;
+    }
+    return false;
+}
+
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int radius)
 {
     int clr_index = clr.a;
 
     #if 1
     for(int y=0;y<rect.height;y++) {
-        // if (rect.y + y >= clip_rect.y + clip_rect.height) break;
-
-        // todo clip rect stack
-        if (!(rect.x >= clip_rect.x && rect.x < clip_rect.x + clip_rect.width)) break;
-        if (!(rect.y + y >= clip_rect.y && rect.y + y < clip_rect.y + clip_rect.height)) break;
 
         move(rect.y + y, rect.x);
         for(int x=0;x<rect.width;x++) {
-            if (rect.x + x >= clip_rect.x + clip_rect.width) break;
-            if (rect.x + x >= window_cols) break;
+
+            if (is_clipped(rect.x + x, rect.y + y)) continue;
+
             int pair = pair_for_colors(-1, clr_index);
             attron(COLOR_PAIR(pair));
             addch(' ');
@@ -715,25 +698,15 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
     move(y, x);
 
-    // todo clip rect stack
-    if (!(x >= clip_rect.x && x < clip_rect.x + clip_rect.width)) return 0;
-    if (!(y >= clip_rect.y && y < clip_rect.y + clip_rect.height)) return 0;
-
-    if (x + l >= clip_rect.x + clip_rect.width) {
-        l = clip_rect.x + clip_rect.width - x - 1;
-        if (l < 0) return 0;
-        std::string t = text;
-        t.substr(0, l);
-        addstr(t.c_str());
-        return 0;
-    }
-
     if (bold) {
         attron(A_BOLD);
     }
 
     int pair = 0;
     for(int i=0;i<l;i++) {
+
+        if (is_clipped(x + i, y)) continue;
+
         int bg = background_colors[x + i + y * bg_w];
         pair = pair_for_colors(clr_index, bg ? bg : -1);
         attron(COLOR_PAIR(pair));
@@ -746,6 +719,71 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
     log(">%d %d %s", clr.a, pair, text);
     return 0;
+}
+
+int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool bold, bool italic)
+{
+    int clr_index = clr.a ? clr.a : -1;
+
+    int _ch = ch;
+    switch(ch) {
+    case '#':
+        _ch = ACS_CKBOARD;
+        break;
+    case 'x':
+        _ch = ACS_DIAMOND;
+        break;
+    case '|':
+        _ch = ACS_VLINE;
+        break;
+    case '-':
+        _ch = ACS_HLINE;
+        break;
+    // case 'u':
+    //     _ch = ACS_TTEE;
+    //     break;
+    // case 'd':
+    //     _ch = ACS_BTEE;
+    //     break;
+    // case 'l':
+    //     _ch = ACS_LTEE;
+    //     break;
+    // case 'r':
+    //     _ch = ACS_RTEE;
+        break;
+    case 'u':
+        _ch = ACS_UARROW;
+        break;
+    case 'd':
+        _ch = ACS_DARROW;
+        break;
+    case 'l':
+        _ch = ACS_LARROW;
+        break;
+    case 'r':
+        _ch = ACS_RARROW;
+        break;
+    }
+
+    move(y, x);
+
+    if (bold) {
+        attron(A_BOLD);
+    }
+
+    int pair = 0;
+    if (is_clipped(x, y)) return 0;
+
+    int bg = background_colors[x + y * bg_w];
+    pair = pair_for_colors(clr_index, bg ? bg : -1);
+    attron(COLOR_PAIR(pair));
+    addch(_ch);
+    attroff(COLOR_PAIR(pair));
+
+    attroff(A_UNDERLINE);
+    attroff(A_BOLD);
+
+    return 1;
 }
 
 void Renderer::begin_frame(RenImage *image, int w, int h, RenCache* cache)

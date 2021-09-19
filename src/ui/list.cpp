@@ -203,12 +203,15 @@ void list_view::render() {
 
     layout_item_ptr lo = layout();
 
-    Renderer::instance()->draw_rect({
-        lo->render_rect.x,
-        lo->render_rect.y,
-        lo->render_rect.w,
-        lo->render_rect.h
-    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    if (Renderer::instance()->is_terminal()) {
+    } else {
+        Renderer::instance()->draw_rect({
+            lo->render_rect.x,
+            lo->render_rect.y,
+            lo->render_rect.w,
+            lo->render_rect.h
+        } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    }
 
     // layout_rect r = lo->render_rect;
     // Renderer::instance()->draw_rect({ r.x, r.y, r.w - 20, r.h - 4 }, { 255,0,255,150 }, false, 1);
