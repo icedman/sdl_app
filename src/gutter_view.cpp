@@ -5,8 +5,6 @@
 #include "style.h"
 #include "editor_view.h"
 
-#include "../libs/editor/util.h"
-
 gutter_view::gutter_view()
     : view_item("gutter")
 {

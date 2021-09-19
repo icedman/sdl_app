@@ -6,12 +6,11 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "app.h"
 #include "theme.h"
 #include "operation.h"
-
-#include "../libs/editor/util.h"
 
 #define CTRL_KEY(k) ((k)&0x1f)
 
@@ -135,7 +134,7 @@ static int readMoreEscapeSequence(int c, std::string& keySequence)
         return K_CTRL_ALT_;
     }
 
-    log("escape+%d a:%d A:%d 0:%d 9:%d\n", c, 'a', 'A', '0', '9');
+    app_t::log("escape+%d a:%d A:%d 0:%d 9:%d\n", c, 'a', 'A', '0', '9');
 
     return K_ESC;
 }
@@ -152,6 +151,7 @@ static int readEscapeSequence(std::string& keySequence)
         return K_ESC;
     }
     read(STDIN_FILENO, &seq[0], 1);
+    // seq[0] = getch();
 
     if (!kbhit(wait)) {
         return readMoreEscapeSequence(seq[0], keySequence);
@@ -194,7 +194,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "shift+";
                 if (seq[0] == '2') {
-                    // log("shift+%d\n", seq[1]);
+                    // app_t::log("shift+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -219,7 +219,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "ctrl+";
                 if (seq[0] == '5') {
-                    // log("ctrl+%d\n", seq[1]);
+                    // app_t::log("ctrl+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -244,7 +244,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "ctrl+shift+";
                 if (seq[0] == '6') {
-                    // log("ctrl+shift+%d\n", seq[1]);
+                    // app_t::log("ctrl+shift+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -269,7 +269,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "ctrl+alt+";
                 if (seq[0] == '7') {
-                    // log("ctrl+alt+%d\n", seq[1]);
+                    // app_t::log("ctrl+alt+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -294,7 +294,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "ctrl+shift+alt+";
                 if (seq[0] == '8') {
-                    // log("ctrl+shift+alt+%d\n", seq[1]);
+                    // app_t::log("ctrl+shift+alt+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -344,7 +344,7 @@ static int readEscapeSequence(std::string& keySequence)
             keySequence = "end";
             return K_END_KEY;
         }
-        log("escape+%c+%c\n", seq[0], seq[1]);
+        app_t::log("escape+%c+%c\n", seq[0], seq[1]);
     }
 
     /* ESC O sequences. */
@@ -398,7 +398,7 @@ static int readKey(std::string& keySequence)
                     keySequence += '?';
                 }
 
-                log("ctrl+%d\n", c);
+                app_t::log("ctrl+%d\n", c);
                 return c;
             }
 
@@ -413,13 +413,26 @@ Renderer* Renderer::instance()
     return &theRenderer;
 }
 
+static void sig_handler(int num) {
+    endwin();
+    refresh();
+}
+
 void Renderer::init()
 {
-    log("init\n");
+    app_t::log("init\n");
 
     setlocale(LC_ALL, "");
 
     initscr();
+
+    struct sigaction old_action;
+    struct sigaction new_action;
+    new_action.sa_handler = sig_handler;
+    new_action.sa_flags = 0;
+    sigemptyset(&new_action.sa_mask);
+    sigaction(SIGWINCH, &new_action, &old_action);
+
     raw();
     keypad(stdscr, true);
     noecho();
@@ -445,8 +458,7 @@ void Renderer::init()
 void Renderer::shutdown()
 {
 	endwin();
-
-	log("shutdown\n");
+	app_t::log("shutdown\n");
 }
 
 void Renderer::show_debug(bool enable)
@@ -472,7 +484,7 @@ void Renderer::get_window_size(int* w, int* h)
     window_cols = ws.ws_col;
     window_rows = ws.ws_row;
 
-    log("window: %d %d", *w, *h);
+    // app_t::log("window: %d %d", *w, *h);
 }
 
 std::string previousKeySequence;
@@ -492,7 +504,12 @@ void Renderer::listen_events(event_list* events)
             expandedSequence = previousKeySequence + "+" + keySequence;
         }
 
-        if (ch != -1) {
+        if (keySequence == "resize") {
+            listen_quick(240);
+            break;     
+        }
+
+        if (ch != -1 || listen_is_quick()) {
             break;
         }
     }
@@ -509,12 +526,16 @@ void Renderer::listen_events(event_list* events)
         expandedSequence = "";
     }
 
+    if (keySequence == "resize") {
+        _running = false;
+    }
+
     if (keySequence == "ctrl+q") {
         _running = false;
     }
 
     if (keySequence.length() > 1) {
-        log("keySequence %s", keySequence.c_str());
+        app_t::log("keySequence %s", keySequence.c_str());
         events->push_back({
             type : EVT_KEY_SEQUENCE,
             text : keySequence
@@ -537,7 +558,7 @@ void Renderer::listen_events(event_list* events)
     std::string c;
     c += ch;
 
-    log("text %s", c.c_str());
+    app_t::log("text %s", c.c_str());
 
     events->push_back({
         type : EVT_KEY_TEXT,
@@ -554,7 +575,7 @@ bool Renderer::listen_is_quick()
 {
     if (listen_quick_frames > 0) {
         listen_quick_frames--;
-        // log("quick %d\n", listen_quick_frames);
+        // app_t::log("quick %d\n", listen_quick_frames);
         return true;
     }
     return false;
@@ -717,7 +738,7 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
     attroff(A_UNDERLINE);
     attroff(A_BOLD);
 
-    log(">%d %d %s", clr.a, pair, text);
+    // app_t::log(">%d %d %s", clr.a, pair, text);
     return 0;
 }
 
@@ -734,7 +755,7 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
         _ch = ACS_DIAMOND;
         break;
     case '|':
-        _ch = ACS_VLINE;
+        _ch = ACS_CKBOARD;
         break;
     case '-':
         _ch = ACS_HLINE;

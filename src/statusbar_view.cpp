@@ -5,8 +5,6 @@
 #include "statusbar.h"
 #include "style.h"
 
-#include "../libs/editor/util.h"
-
 statusbar_view::statusbar_view()
     : horizontal_container()
 {
