@@ -4,6 +4,35 @@
 
 static size_t blocksCreated = 0;
 
+static const char* utf8_to_codepoint(const char* p, unsigned* dst)
+{
+    unsigned res, n;
+    switch (*p & 0xf0) {
+    case 0xf0:
+        res = *p & 0x07;
+        n = 3;
+        break;
+    case 0xe0:
+        res = *p & 0x0f;
+        n = 2;
+        break;
+    case 0xd0:
+    case 0xc0:
+        res = *p & 0x1f;
+        n = 1;
+        break;
+    default:
+        res = *p;
+        n = 0;
+        break;
+    }
+    while (n--) {
+        res = (res << 6) | (*(++p) & 0x3f);
+    }
+    *dst = res;
+    return p + 1;
+}
+
 blockdata_t::blockdata_t()
     : dirty(true)
     , folded(false)
@@ -63,6 +92,8 @@ std::string block_t::text()
 
 void block_t::setText(std::string t)
 {
+    if (content.length() && hasUnicode) return; // not yet supported
+
     dirty = true;
     content = t;
     if (data) {
@@ -78,6 +109,17 @@ size_t block_t::length()
 {
     if (cachedLength == 0) {
         cachedLength = text().length() + 1;
+        int l = 1;
+        std::string tmp = text();
+        char *p = (char*)(tmp.c_str());
+        while(*p) {
+            unsigned cp;
+            char *_p = (char*)utf8_to_codepoint(p, &cp);
+            l ++;
+            p = _p;
+        }
+
+        hasUnicode = (l != cachedLength);
     }
     return cachedLength;
 }

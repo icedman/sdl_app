@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <map>
 #include <vector>
+#include <iostream>
 
 #define MAX_GLYPHSET 256
 
@@ -293,6 +294,7 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     cairo_t* cairo_context = ren_context();
 
     GlyphSet* set = font->regular;
+
     // if (italic) {
     //     set = font->italic;
     // }
@@ -300,14 +302,19 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     //     set = font->bold;
     // }
 
+    char *p = (char*)text;
+
+
     int xx = 0;
-    for (int i = 0; i < length;) {
-        char _p[] = { (char)text[i], 0 };
-        unsigned cp = 0;
-        utf8_to_codepoint(_p, &cp);
+
+    int i = 0;
+    while(*p) {
+        unsigned cp;
+        p = (char*)utf8_to_codepoint(p, &cp);
 
         int adv = 1;
 
+        /*
         if (i + 1 < length) {
             char _p[] = { (char)text[i], (char)text[i + 1], 0 };
             for (int j = 0; j < 32; j++) {
@@ -324,11 +331,14 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
                 }
             }
         }
+        */
 
         clr.a = 0;
 
-        GlyphSet* glyph = &set[cp];
-        ren_draw_char_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr, italic);
+        GlyphSet* glyph = &set[cp & 0xff];
+        if (glyph && glyph->image) {
+            ren_draw_char_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr, italic);
+        }
 
         i += adv;
     }

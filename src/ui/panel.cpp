@@ -2,8 +2,6 @@
 #include "scrollarea.h"
 #include "scrollbar.h"
 
-#include "app.h"
-
 panel_view::panel_view()
 {
     type = "panel";

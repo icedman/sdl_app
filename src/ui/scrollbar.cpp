@@ -111,8 +111,8 @@ void scrollbar_view::prelayout()
     int th = (float)bar_size() * window / count;
 
     if (Renderer::instance()->is_terminal()) {
-        if (th < 1) {
-            th = 1;
+        if (th < 2) {
+            th = 2;
         }
     } else {
         if (th < 40) {

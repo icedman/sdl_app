@@ -329,6 +329,7 @@ void editor_view::render()
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
                     (uint8_t)(Renderer::instance()->is_terminal() ? clr.index : 255) },
                 s.bold, s.italic);
+
         }
 
         l++;

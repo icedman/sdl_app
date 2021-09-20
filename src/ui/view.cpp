@@ -195,7 +195,6 @@ void view_item::render()
         { color.r, color.g, color.b, color.a }, false, 1, 0);
 #endif
 
-    // app_t::log("%s %d %d %d %d", type.c_str(), lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h);
 }
 
 int view_item::on(event_type_e event_type, event_callback_t callback)

@@ -76,8 +76,6 @@ struct block_t {
     block_t();
     ~block_t();
 
-    // size_t uid;
-
     struct document_t* document;
     size_t lineNumber;
     size_t originalLineNumber;
@@ -90,6 +88,7 @@ struct block_t {
     std::ifstream* file;
     size_t filePosition;
     bool dirty;
+    bool hasUnicode;
 
     std::string text();
     void setText(std::string text);
@@ -103,7 +102,7 @@ struct block_t {
 
     std::shared_ptr<blockdata_t> data;
 
-    // rendered block
+    // rendered block position
     int x;
     int y;
 };

@@ -8,6 +8,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include <codecvt>
+
 #include "app.h"
 #include "operation.h"
 #include "theme.h"
@@ -715,7 +717,6 @@ void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int 
 {
     int clr_index = clr.a;
 
-#if 1
     for (int y = 0; y < rect.height; y++) {
 
         for (int x = 0; x < rect.width; x++) {
@@ -730,32 +731,69 @@ void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int 
             background_colors[rect.x + x + (rect.y + y) * bg_w] = clr_index;
         }
     }
-#endif
+}
+
+static const char* utf8_to_codepoint(const char* p, unsigned* dst)
+{
+    unsigned res, n;
+    switch (*p & 0xf0) {
+    case 0xf0:
+        res = *p & 0x07;
+        n = 3;
+        break;
+    case 0xe0:
+        res = *p & 0x0f;
+        n = 2;
+        break;
+    case 0xd0:
+    case 0xc0:
+        res = *p & 0x1f;
+        n = 1;
+        break;
+    default:
+        res = *p;
+        n = 0;
+        break;
+    }
+    while (n--) {
+        res = (res << 6) | (*(++p) & 0x3f);
+    }
+    *dst = res;
+    return p + 1;
 }
 
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
 {
-    int l = strlen(text);
-    if (l == 0)
-        return 0;
-
     int clr_index = clr.a ? clr.a : -1;
 
     if (bold) {
         attron(A_BOLD);
     }
 
+    char *p = (char*)text;
+
     int pair = 0;
-    for (int i = 0; i < l; i++) {
-        if (is_clipped(x + i, y))
+    int i = 0;
+    while(*p) {
+        unsigned cp;
+        p = (char*)utf8_to_codepoint(p, &cp);
+
+        if (is_clipped(x + i, y)) {
+            i++;
             continue;
+        }
 
         move(y, x + i);
         int bg = background_colors[x + i + y * bg_w];
         pair = pair_for_colors(clr_index, bg ? bg : -1);
         attron(COLOR_PAIR(pair));
-        addch(text[i]);
+        
+        // addch(text[i]);
+        wchar_t s[2] = { cp, 0 };
+        addwstr(s);
+
         attroff(COLOR_PAIR(pair));
+        i++;
     }
 
     attroff(A_UNDERLINE);
