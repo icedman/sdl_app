@@ -10,6 +10,8 @@
 
 extern std::map<int, color_info_t> colorMap;
 
+const float scale = 0.75f;
+
 minimap_view::minimap_view()
 	: view_item("minimap")
 {
@@ -121,7 +123,7 @@ void minimap_view::render()
             RenRect r = {
                     lo->render_rect.x,
                     lo->render_rect.y + l,
-                    block->length()/2,
+                    block->length() * scale,
                     1,
                 };
             if (r.width > 0) {
@@ -139,7 +141,7 @@ void minimap_view::render()
                 color_info_t clr = colorMap[s.colorIndex];
 
                 int start = s.start / 3;
-                int length = s.length / 2;
+                int length = s.length * scale;
                 RenRect r = {
                     lo->render_rect.x + start + 2,
                     lo->render_rect.y + l,
