@@ -19,5 +19,5 @@ parser = executable(
     )
 
 parser_dep = declare_dependency(
-  include_directories : [ onigmo_inc, parser_inc, scopes_inc ],
+  include_directories : [ parser_inc, scopes_inc ],
   link_with : parser_lib)

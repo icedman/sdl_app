@@ -376,7 +376,7 @@ static int readKey(std::string& keySequence)
                 keySequence = "tab";
                 return K_TAB;
             case K_ENTER:
-                keySequence = "enter";
+                keySequence = "return";
                 return c;
             case K_BACKSPACE:
             case KEY_BACKSPACE:

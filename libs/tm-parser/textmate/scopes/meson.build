@@ -19,5 +19,5 @@ scopes = executable(
     )
 
 scopes_dep = declare_dependency(
-  include_directories : [ onigmo_inc, scopes_inc ],
+  include_directories : [ scopes_inc ],
   link_with : scopes_lib)
