@@ -212,12 +212,12 @@ int main(int argc, char** argv)
 
             Renderer::instance()->state_restore();
             Renderer::instance()->end_frame();
+
+            view_list.clear();
+            view_input_list(view_list, root_view);
         }
 
         Renderer::instance()->listen_events(&events);
-
-        view_list.clear();
-        view_input_list(view_list, root_view);
         view_input_events(view_list, events);
     }
 

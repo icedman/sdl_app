@@ -426,12 +426,12 @@ void Renderer::init()
 
     initscr();
 
-    struct sigaction old_action;
-    struct sigaction new_action;
-    new_action.sa_handler = sig_handler;
-    new_action.sa_flags = 0;
-    sigemptyset(&new_action.sa_mask);
-    sigaction(SIGWINCH, &new_action, &old_action);
+    // struct sigaction old_action;
+    // struct sigaction new_action;
+    // new_action.sa_handler = sig_handler;
+    // new_action.sa_flags = 0;
+    // sigemptyset(&new_action.sa_mask);
+    // sigaction(SIGWINCH, &new_action, &old_action);
 
     raw();
     keypad(stdscr, true);

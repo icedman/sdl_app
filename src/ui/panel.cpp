@@ -2,6 +2,8 @@
 #include "scrollarea.h"
 #include "scrollbar.h"
 
+#include "app.h"
+
 panel_view::panel_view()
 {
     type = "panel";
@@ -59,7 +61,6 @@ panel_view::panel_view()
 
 view_item_ptr panel_view::content()
 {
-    // return ((scrollarea_view*)scrollarea.get())->content;
     return (view_item::cast<scrollarea_view>(scrollarea))->content;
 }
 
@@ -69,11 +70,12 @@ void panel_view::_validate()
     scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
     scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
 
-    int hp = ((hs->count + (area->overscroll * hs->count) - hs->window));
+    int hp = ((hs->count - hs->window));
     if (area->layout()->scroll_x < -hp) {
         area->layout()->scroll_x = -hp;
     }
-    int vp = ((vs->count + (area->overscroll * vs->count) - vs->window));
+
+    int vp = ((vs->count - vs->window));
     if (area->layout()->scroll_y < -vp) {
         area->layout()->scroll_y = -vp;
     }
@@ -93,11 +95,11 @@ bool panel_view::scrollbar_move(view_item* source)
     scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
 
     if (vs->window < vs->count && source == vs) {
-        int vp = ((vs->count + (area->overscroll * vs->count) - vs->window) * vs->index / vs->count);
+        int vp = ((vs->count - vs->window) * vs->index / vs->count);
         area->layout()->scroll_y = -vp;
     }
     if (hs->window < hs->count && source == hs) {
-        int hp = ((hs->count + (area->overscroll * hs->count) - hs->window) * hs->index / hs->count);
+        int hp = ((hs->count - hs->window) * hs->index / hs->count);
         area->layout()->scroll_x = -hp;
     }
 
@@ -119,12 +121,12 @@ bool panel_view::mouse_wheel(int x, int y)
 
     _validate();
 
-    int hi = (-area->layout()->scroll_x * hs->count) / (hs->count + (area->overscroll * hs->count) - hs->window);
+    int hi = 1.1f*-area->layout()->scroll_x;
     if (hi < 0)
         hi = 0;
     hs->set_index(hi);
 
-    int vi = (-area->layout()->scroll_y * vs->count) / (vs->count + (area->overscroll * vs->count) - vs->window);
+    int vi = 1.1f*-area->layout()->scroll_y;
     if (vi < 0)
         vi = 0;
     vs->set_index(vi);

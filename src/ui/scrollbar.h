@@ -21,15 +21,16 @@ struct scrollbar_view : scrollarea_view {
     void set_index(int idx);
     void set_size(int c, int w);
 
+    // internal data update
     void _scroll(int pos);
-
     void _validate();
-    int _thumb_size();
-    int _bar_size();
-    int _scroll_pos();
 
-    float percentage();
+    // visual
+    int thumb_size();
+    int bar_size();
+    int scroll_pos();
 
+    // data
     int index;
     int window;
     int count;

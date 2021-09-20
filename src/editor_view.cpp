@@ -634,10 +634,11 @@ bool editor_view::input_sequence(std::string text)
         case ENTER:
             list->select_focused();
             return true;
-        case CANCEL:
-        case BACKSPACE:
-        case MOVE_CURSOR_LEFT:
-        case MOVE_CURSOR_RIGHT:
+        // case CANCEL:
+        // case BACKSPACE:
+        // case MOVE_CURSOR_LEFT:
+        // case MOVE_CURSOR_RIGHT:
+        default:
             pm->clear();
             break;
         }

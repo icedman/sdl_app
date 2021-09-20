@@ -11,7 +11,6 @@ struct scrollarea_view : view_item {
     view_item_ptr content;
     float move_factor_x;
     float move_factor_y;
-    float overscroll;
 };
 
 #endif // SCROLLAREA_VIEW_H

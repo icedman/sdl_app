@@ -46,7 +46,7 @@ bool scrollbar_view::mouse_drag_start(int x, int y)
     if (lo->is_row()) {
         drag_offset = x - (lo->render_rect.x + lo->scroll_x);
     }
-    float th = _thumb_size();
+    float th = thumb_size();
     if (drag_offset < 0 || drag_offset > th) {
         drag_offset = 0;
     }
@@ -81,9 +81,9 @@ void scrollbar_view::_scroll(int pos)
 {
     layout_item_ptr lo = layout();
 
-    float th = _thumb_size();
+    float th = thumb_size();
     float pp = pos - (lo->is_row() ? lo->render_rect.x : lo->render_rect.y);
-    float p = pp / _bar_size();
+    float p = pp / bar_size();
 
     if (p < 0) {
         p = 0;
@@ -92,7 +92,7 @@ void scrollbar_view::_scroll(int pos)
         p = 1;
     }
 
-    int newPos = _bar_size() * p;
+    int newPos = bar_size() * p;
     newPos -= th / 2;
     newPos -= drag_offset;
 
@@ -108,11 +108,11 @@ void scrollbar_view::_scroll(int pos)
 void scrollbar_view::prelayout()
 {
     layout_item_ptr lo = layout();
-    int th = (float)_bar_size() * window / count;
+    int th = (float)bar_size() * window / count;
 
     if (Renderer::instance()->is_terminal()) {
-        if (th < 4) {
-            th = 4;
+        if (th < 1) {
+            th = 1;
         }
     } else {
         if (th < 40) {
@@ -120,6 +120,7 @@ void scrollbar_view::prelayout()
         }
     }
 
+    // set the thumb visual size
     if (lo->is_row()) {
         content->layout()->width = th;
         content->layout()->rect.w = th;
@@ -128,8 +129,9 @@ void scrollbar_view::prelayout()
         content->layout()->rect.h = th;
     }
 
-    if (disabled)
+    if (disabled) {
         lo->visible = false;
+    }
 }
 
 void scrollbar_view::postlayout()
@@ -154,8 +156,8 @@ void scrollbar_view::_validate()
         lo->scroll_x = lo->render_rect.w - content->layout()->width;
     }
 
-    float th = _thumb_size();
-    float p = (float)_scroll_pos() / (_bar_size() - th);
+    float th = thumb_size();
+    float p = (float)scroll_pos() / (bar_size() - th);
     int idx = count * p;
 
     index = idx;
@@ -182,14 +184,12 @@ void scrollbar_view::set_index(int idx)
     layout_item_ptr lo = layout();
 
     if (lo->is_row()) {
-        lo->scroll_x = p * _bar_size();
+        lo->scroll_x = p * bar_size();
     } else {
-        lo->scroll_y = p * _bar_size();
+        lo->scroll_y = p * bar_size();
     }
 
     _validate();
-
-    // printf("index %d %f\n", idx, p);
 }
 
 void scrollbar_view::set_size(int c, int w)
@@ -277,7 +277,7 @@ void scrollbar_view::render()
         true, 0, 3);
 }
 
-int scrollbar_view::_thumb_size()
+int scrollbar_view::thumb_size()
 {
     if (layout()->is_row()) {
         return content->layout()->width;
@@ -285,7 +285,7 @@ int scrollbar_view::_thumb_size()
     return content->layout()->height;
 }
 
-int scrollbar_view::_bar_size()
+int scrollbar_view::bar_size()
 {
     if (layout()->is_row()) {
         return layout()->render_rect.w;
@@ -293,7 +293,7 @@ int scrollbar_view::_bar_size()
     return layout()->render_rect.h;
 }
 
-int scrollbar_view::_scroll_pos()
+int scrollbar_view::scroll_pos()
 {
     if (layout()->is_row()) {
         return layout()->scroll_x;
