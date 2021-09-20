@@ -44,7 +44,7 @@ void gutter_view::render()
         block_ptr block = *it++;
 
         if (!block->data || block->y == -1) {
-            Renderer::instance()->listen_quick();
+            Renderer::instance()->throttle_up();
             return;
         }
 

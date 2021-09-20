@@ -35,8 +35,8 @@ struct Renderer {
     void get_window_size(int* w, int* h);
 
     void listen_events(event_list* events);
-    void listen_quick(int frames = 120);
-    bool listen_is_quick();
+    void throttle_up(int frames = 120);
+    bool is_throttle_up();
 
     int key_mods();
 

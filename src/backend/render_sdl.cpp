@@ -45,7 +45,7 @@ cairo_t* cairo_context = 0;
 bool shouldEnd;
 
 RenFont* default_font = 0;
-int listen_quick_frames = 0;
+int throttle_up_frames = 0;
 
 static std::map<int, color_info_t> color_map;
 
@@ -390,15 +390,15 @@ void ren_state_restore()
     _state--;
 }
 
-void ren_listen_quick(int frames)
+void ren_throttle_up(int frames)
 {
-    listen_quick_frames = frames;
+    throttle_up_frames = frames;
 }
 
-bool ren_listen_is_quick()
+bool ren_is_throttle_up()
 {
-    if (listen_quick_frames > 0) {
-        listen_quick_frames--;
+    if (throttle_up_frames > 0) {
+        throttle_up_frames--;
         return true;
     }
     return false;
@@ -439,7 +439,7 @@ void ren_listen_events(event_list* events)
 
     SDL_Event e;
 
-    if (ren_listen_is_quick()) {
+    if (ren_is_throttle_up()) {
         if (!SDL_PollEvent(&e)) {
             return;
         }
@@ -451,7 +451,7 @@ void ren_listen_events(event_list* events)
     }
 
     if (e.type != SDL_MOUSEMOTION && e.button.button == 0) {
-        ren_listen_quick(4); // because we'll animate
+        ren_throttle_up(4); // because we'll animate
     }
 
     switch (e.type) {
@@ -494,7 +494,7 @@ void ren_listen_events(event_list* events)
             y : e.wheel.y
         });
 
-        ren_listen_quick(24);
+        ren_throttle_up(24);
         return;
 
     case SDL_KEYUP:
@@ -648,14 +648,14 @@ void Renderer::listen_events(event_list* events)
     ren_listen_events(events);
 }
 
-void Renderer::listen_quick(int frames)
+void Renderer::throttle_up(int frames)
 {
-    ren_listen_quick(frames);
+    ren_throttle_up(frames);
 }
 
-bool Renderer::listen_is_quick()
+bool Renderer::is_throttle_up()
 {
-    return ren_listen_is_quick();
+    return ren_is_throttle_up();
 }
 
 int Renderer::key_mods()

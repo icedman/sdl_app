@@ -84,7 +84,7 @@ void list_view::update()
         if (!ensure_visible_cursor()) {
             prev_value = value;
         } else {
-            Renderer::instance()->listen_quick(0);
+            Renderer::instance()->throttle_up(0);
         }
     }
 
@@ -94,7 +94,7 @@ void list_view::update()
         layout_item_ptr lo = v->layout();
         lo->offscreen = false;
         int y = lo->rect.y + alo->scroll_y;
-        if (y + lo->rect.h < 0 || y > alo->rect.h) {
+        if (y + lo->rect.h < 1 || y > alo->rect.h) {
             lo->offscreen = true;
             // printf(">\n");
         }

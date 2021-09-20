@@ -134,16 +134,6 @@ void editor_view::render()
     // printf(">>%d %d\n", start_row, rows);
 
     int view_height = rows;
-    int hl_prior = 8;
-    int hl_start = start - hl_prior;
-    int hl_length = view_height + hl_prior * 2;
-    for (int i = 0; i < hl_length; i += 4) {
-        int lighted = editor->highlight(hl_start + i, 4);
-        if (lighted > 0) {
-            Renderer::instance()->listen_quick();
-            break;
-        }
-    }
 
     theme_ptr theme = app->theme;
 
@@ -456,6 +446,17 @@ void editor_view::update()
     }
 
     panel_view::update();
+
+    int view_height = rows;
+    int hl_prior = 8;
+    int hl_start = start_row - hl_prior;
+    int hl_length = view_height + hl_prior * 2;
+    for (int i = 0; i < hl_length; i += 4) {
+        int lighted = editor->highlight(hl_start + i, 4);
+        if (lighted > 0) {
+            break;
+        }
+    }
 }
 
 void editor_view::prelayout()
@@ -804,6 +805,7 @@ void editor_view::show_completer()
         // printf(">%d %d\n", s.y, scrollarea->layout()->render_rect.y);
 
         layout_request();
+        Renderer::instance()->throttle_up();
     }
 }
 

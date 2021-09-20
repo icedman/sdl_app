@@ -61,7 +61,7 @@ enum KEY_ACTION {
 static Renderer theRenderer;
 static bool _running = true;
 static std::map<int, color_info_t> color_map;
-static int listen_quick_frames = 0;
+static int throttle_up_frames = 0;
 
 typedef struct _color_pair {
     int idx;
@@ -506,11 +506,11 @@ void Renderer::listen_events(event_list* events)
         }
 
         if (keySequence == "resize") {
-            listen_quick(240);
+            throttle_up(240);
             break;
         }
 
-        if (ch != -1 || listen_is_quick()) {
+        if (ch != -1 || is_throttle_up()) {
             break;
         }
     }
@@ -567,16 +567,16 @@ void Renderer::listen_events(event_list* events)
     });
 }
 
-void Renderer::listen_quick(int frames)
+void Renderer::throttle_up(int frames)
 {
-    listen_quick_frames = frames;
+    throttle_up_frames = frames;
 }
 
-bool Renderer::listen_is_quick()
+bool Renderer::is_throttle_up()
 {
-    if (listen_quick_frames > 0) {
-        listen_quick_frames--;
-        // app_t::log("quick %d\n", listen_quick_frames);
+    if (throttle_up_frames > 0) {
+        throttle_up_frames--;
+        // app_t::log("quick %d\n", throttle_up_frames);
         return true;
     }
     return false;
@@ -778,7 +778,7 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
         _ch = ACS_DIAMOND;
         break;
     case '|':
-        _ch = ACS_CKBOARD;
+        _ch = ACS_VLINE;
         break;
     case '-':
         _ch = ACS_HLINE;

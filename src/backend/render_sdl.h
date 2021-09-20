@@ -18,8 +18,8 @@ void ren_update_rects(RenRect* rects, int count);
 void ren_set_clip_rect(RenRect rect);
 
 void ren_listen_events(event_list* events);
-void ren_listen_quick(int frames = 120);
-bool ren_listen_is_quick();
+void ren_throttle_up(int frames = 120);
+bool ren_is_throttle_up();
 
 RenImage* ren_create_image(int w, int h);
 RenImage* ren_create_image_from_svg(char* filename, int w, int h);

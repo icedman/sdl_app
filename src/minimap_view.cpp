@@ -113,7 +113,7 @@ void minimap_view::render()
         if (!blockData && hl++ < 2) {
             editor->highlight(block->lineNumber, 4);
             blockData = block->data.get();
-            Renderer::instance()->listen_quick();
+            Renderer::instance()->throttle_up();
         }
 
         if (!blockData || blockData->dirty) {
