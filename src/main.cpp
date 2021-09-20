@@ -2,7 +2,6 @@
 
 #include "events.h"
 #include "layout.h"
-#include "render_cache.h"
 #include "renderer.h"
 #include "tests.h"
 
@@ -31,33 +30,14 @@ extern int ren_rendered;
 struct sdl_backend_t : backend_t {
     void setClipboardText(std::string text) override
     {
-        ren_set_clipboard(text);
+        Renderer::instance()->set_clipboard(text);
     };
 
     std::string getClipboardText() override
     {
-        return ren_get_clipboard();
+        return Renderer::instance()->get_clipboard();
     };
 };
-
-std::map<int, color_info_t> colorMap;
-
-void updateColors()
-{
-    app_t* app = app_t::instance();
-    theme_ptr theme = app->theme;
-
-    auto it = theme->colorIndices.begin();
-    while (it != theme->colorIndices.end()) {
-        // printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
-        color_info_t fg = it->second;
-        fg.red = fg.red <= 1 ? fg.red * 255 : fg.red;
-        fg.green = fg.green <= 1 ? fg.green * 255 : fg.green;
-        fg.blue = fg.blue <= 1 ? fg.blue * 255 : fg.blue;
-        colorMap[it->second.index] = fg;
-        it++;
-    }
-}
 
 static inline void render_item(layout_item_ptr item)
 {
@@ -76,10 +56,10 @@ static inline void render_item(layout_item_ptr item)
         item->render_rect.h + 2
     };
 
-    state_save();
+    Renderer::instance()->state_save();
 
     if (view->_views.size()) {
-        set_clip_rect(clip);
+        Renderer::instance()->set_clip_rect(clip);
     }
 
     bool fill = false;
@@ -134,7 +114,7 @@ static inline void render_item(layout_item_ptr item)
         render_item(child);
     }
 
-    state_restore();
+    Renderer::instance()->state_restore();
 
     // printf("%s : %d\n", ((view_item*)(item->view))->type.c_str(), ren_timer_end());
 }
@@ -149,12 +129,11 @@ int main(int argc, char** argv)
     search_t search;
 
     app.configure(argc, argv);
-    app.setupColors();
+    app.setupColors(!Renderer::instance()->is_terminal());
     std::string file = "./src/main.cpp";
     if (argc > 1) {
         file = argv[argc - 1];
     }
-    updateColors();
 
     theme_ptr theme = app.theme;
 
@@ -162,18 +141,16 @@ int main(int argc, char** argv)
     explorer.setRootFromFile(file);
 
     // app.currentEditor->singleLineEdit = true;
+    Renderer::instance()->init();
 
-    ren_init();
-    rencache_init();
-
-    color_info_t bg = colorMap[app.bgApp];
+    color_info_t bg = Renderer::instance()->color_for_index(app.bgApp);
 
     // quick draw
     int w, h;
-    ren_get_window_size(&w, &h);
-    ren_begin_frame();
-    ren_draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
-    ren_end_frame();
+    Renderer::instance()->get_window_size(&w, &h);
+    Renderer::instance()->begin_frame();
+    Renderer::instance()->draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
+    Renderer::instance()->end_frame();
     w = 0;
     h = 0;
 
@@ -184,27 +161,18 @@ int main(int argc, char** argv)
     layout_item_list render_list;
     event_list events;
 
-    // RenFont *font = ren_create_font("Monaco 12");
-    RenFont* font = ren_create_font("Fira Code 12", "editor");
-    // RenFont* font = ren_create_font("Source Code Pro 12", "editor");
-    // ren_register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
-    // ren_create_font("Source Code Pro 12", "ui");
-    // ren_create_font("Source Code Pro 10", "ui-small");
+    // RenFont *font = Renderer::instance()->create_font("Monaco 12");
+    RenFont* font = Renderer::instance()->create_font("Fira Code 14", "editor");
+    // RenFont* font = Renderer::instance()->create_font("Source Code Pro 12", "editor");
+    // Renderer::instance()->register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
+    Renderer::instance()->create_font("Source Code Pro 12", "ui");
+    Renderer::instance()->create_font("Source Code Pro 10", "ui-small");
+    Renderer::instance()->set_default_font(font);
 
-    ren_set_default_font(font);
-
-    rencache_show_debug(true);
+    // Renderer::instance()->show_debug(true);
 
     int frames = FRAME_RENDER_INTERVAL;
-    while (ren_is_running()) {
-        ren_listen_events(&events);
-
-        view_list.clear();
-        view_input_list(view_list, root_view);
-        view_input_events(view_list, events);
-
-        // printf(">%d\n", view_list.size());
-
+    while (Renderer::instance()->is_running()) {
         if (app_t::instance()->currentEditor) {
             app_t::instance()->currentEditor->runAllOps();
         }
@@ -216,46 +184,44 @@ int main(int argc, char** argv)
 
         int pw = w;
         int ph = h;
-        ren_get_window_size(&w, &h);
+        Renderer::instance()->get_window_size(&w, &h);
         if (layout_should_run() || pw != w || ph != h) {
-            // ren_timer_begin();
             layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
             frames = FRAME_RENDER_INTERVAL - 4;
-            // printf("layout: %d\n", ren_timer_end());
         }
 
         // todo implement frame rate throttling
-        if (ren_listen_is_quick()) {
+        bool skip_render = false;
+        if (Renderer::instance()->listen_is_quick()) {
+            if (Renderer::instance()->is_terminal()) {
+                frames = FRAME_RENDER_INTERVAL;
+            }
             if (frames++ < FRAME_RENDER_INTERVAL) {
-                continue;
+                skip_render = true;
             }
             frames = 0;
         }
 
-        // ren_timer_begin();
-        begin_frame(w, h);
-        state_save();
+        if (!skip_render) {
+            Renderer::instance()->begin_frame(NULL, w, h);
+            Renderer::instance()->state_save();
 
-        // draw_rect({ x : 0, y : 0, width : w, height : h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
+            render_item(root);
 
-        render_item(root);
+            Renderer::instance()->state_restore();
+            Renderer::instance()->end_frame();
+        }
 
-        state_restore();
+        Renderer::instance()->listen_events(&events);
 
-        char tmp[32];
-        sprintf(tmp, "rendered:%d", ren_rendered);
-        statusbar.setStatus(tmp);
-        // draw_text(NULL, tmp, 10, h - 40, {255,255,255});
-
-        end_frame();
-
-        // printf("rendered:%d time:%d\n", ren_rendered, ren_timer_end());
+        view_list.clear();
+        view_input_list(view_list, root_view);
+        view_input_events(view_list, events);
     }
 
-    rencache_shutdown();
-    ren_shutdown();
+    Renderer::instance()->shutdown();
 
     app.shutdown();
 }

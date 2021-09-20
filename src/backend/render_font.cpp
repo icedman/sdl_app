@@ -1,5 +1,5 @@
 #include "render_font.h"
-#include "renderer.h"
+#include "render_sdl.h"
 
 #include <cairo.h>
 #include <fontconfig/fontconfig.h>
@@ -240,7 +240,7 @@ void ren_destroy_fonts()
     }
 }
 
-void ren_get_font_extents(RenFont* font, int* w, int* h, const char* text, int len, bool fixed)
+void ren_get_font_extents(RenFont* font, int* w, int* h, const char* text, int len)
 {
     if (!font) {
         font = ren_get_default_font();
@@ -280,7 +280,7 @@ static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor c
     cairo_restore(cairo_context);
 }
 
-int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool fixed_width)
+int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
 {
     ren_rendered++;
 

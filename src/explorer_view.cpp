@@ -1,5 +1,4 @@
 #include "explorer_view.h"
-#include "render_cache.h"
 #include "renderer.h"
 
 #include "app_view.h"
@@ -33,7 +32,8 @@ void explorer_view::update()
         return;
     }
 
-    if (!layout()->visible) return;
+    if (!layout()->visible)
+        return;
 
     // printf("repopulate explorer\n");
 
@@ -83,7 +83,7 @@ void explorer_view::select_item(list_item_view* item)
         explorer_t::instance()->regenerateList = true;
         layout_request();
     } else {
-        bool multi = (ren_key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
+        bool multi = (Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
         ((app_view*)(app->view))->show_editor(app->openEditor(file->fullPath), !multi);
     }
 }

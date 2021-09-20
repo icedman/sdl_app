@@ -5,9 +5,9 @@
 #include "text.h"
 #include "view.h"
 
+#include "block.h"
 #include "cursor.h"
 #include "editor.h"
-#include "block.h"
 
 struct editor_view : panel_view {
     editor_view();

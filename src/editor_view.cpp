@@ -1,26 +1,23 @@
 #include "editor_view.h"
+#include "completer_view.h"
 #include "gutter_view.h"
 #include "minimap_view.h"
-#include "completer_view.h"
 
 #include "app.h"
-#include "render_cache.h"
-#include "renderer.h"
-#include "view.h"
-#include "search.h"
 #include "indexer.h"
+#include "renderer.h"
+#include "search.h"
 #include "style.h"
+#include "view.h"
 
 #include "scrollbar.h"
-#include <set>
 #include <algorithm>
+#include <set>
 
-extern std::map<int, color_info_t> colorMap;
-
-static inline std::vector<span_info_t> split_span(span_info_t si, const std::string& str)
+static std::vector<span_info_t> split_span(span_info_t si, const std::string& str)
 {
-    static std::set<char> delimiters = { 
-        '.', ',', ';', ':', 
+    static std::set<char> delimiters = {
+        '.', ',', ';', ':',
         '-', '+', '*', '/', '%', '=',
         '"', ' ', '\'', '\\',
         '(', ')', '[', ']', '<', '>',
@@ -56,7 +53,8 @@ static inline std::vector<span_info_t> split_span(span_info_t si, const std::str
     return result;
 }
 
-bool compareSpan(span_info_t a, span_info_t b) {
+bool compareSpan(span_info_t a, span_info_t b)
+{
     return a.start < b.start;
 }
 
@@ -66,7 +64,7 @@ void editor_view::render()
         return;
     }
 
-    RenFont* _font = ren_font((char*)font.c_str());
+    RenFont* _font = Renderer::instance()->font((char*)font.c_str());
 
     app_t* app = app_t::instance();
     view_style_t vs = view_style_get("editor");
@@ -76,18 +74,20 @@ void editor_view::render()
 
     layout_item_ptr plo = layout();
 
-    draw_rect({
-        plo->render_rect.x,
-        plo->render_rect.y,
-        plo->render_rect.w,
-        plo->render_rect.h
-    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    if (Renderer::instance()->is_terminal()) {
+        // do something else
+    } else {
+        Renderer::instance()->draw_rect({ plo->render_rect.x,
+                                            plo->render_rect.y,
+                                            plo->render_rect.w,
+                                            plo->render_rect.h },
+            { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    }
 
-
-    state_save();
+    Renderer::instance()->state_save();
 
     // for(auto r: previous_cursor_rects) {
-    //     draw_rect(r, { 255,0,0 }, false, 2);
+    //     Renderer::instance()->draw_rect(r, { 255,0,0 }, false, 2);
     // }
     previous_cursor_rects.clear();
 
@@ -96,18 +96,18 @@ void editor_view::render()
     layout_item_ptr lo = content()->layout();
 
     int fw, fh;
-    ren_get_font_extents(_font, &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(_font, &fw, &fh, NULL, 1);
     cols = (area->layout()->render_rect.w / fw);
     rows = (area->layout()->render_rect.h / fh) + 1;
 
-    set_clip_rect({ alo->render_rect.x,
+    Renderer::instance()->set_clip_rect({ alo->render_rect.x,
         alo->render_rect.y,
         alo->render_rect.w,
         alo->render_rect.h });
 
     int start = (-area->layout()->scroll_y / fh);
     // printf(">?%d\n", start);
-    
+
     if (start >= editor->document.blocks.size() - (rows / 2)) {
         start = editor->document.blocks.size() - (1 + rows / 2);
     }
@@ -137,18 +137,18 @@ void editor_view::render()
     int hl_prior = 8;
     int hl_start = start - hl_prior;
     int hl_length = view_height + hl_prior * 2;
-    for(int i=0; i<hl_length; i+=4) {
-        int lighted = editor->highlight(hl_start+i, 4);
+    for (int i = 0; i < hl_length; i += 4) {
+        int lighted = editor->highlight(hl_start + i, 4);
         if (lighted > 0) {
-            ren_listen_quick();
+            Renderer::instance()->listen_quick();
             break;
         }
     }
 
     theme_ptr theme = app->theme;
 
-    color_info_t fg = colorMap[app_t::instance()->fg];
-    color_info_t sel = colorMap[app_t::instance()->selBg];
+    color_info_t fg = Renderer::instance()->color_for_index(app_t::instance()->fg);
+    color_info_t sel = Renderer::instance()->color_for_index(app_t::instance()->selBg);
 
     bool has_focus = is_focused();
 
@@ -168,13 +168,13 @@ void editor_view::render()
         if (!blockData || blockData->dirty) {
             blockData = &data;
             span_info_t span = {
-                start: 0,
-                length: block->text().length(),
-                colorIndex: app_t::instance()->fg,
-                bold: false,
-                italic: false,
-                state: BLOCK_STATE_UNKNOWN,
-                scope: ""
+                start : 0,
+                length : block->text().length(),
+                colorIndex : app_t::instance()->fg,
+                bold : false,
+                italic : false,
+                state : BLOCK_STATE_UNKNOWN,
+                scope : ""
             };
             blockData->spans.clear();
             blockData->spans.push_back(span);
@@ -191,7 +191,7 @@ void editor_view::render()
             longest_block = block;
         }
 
-        std::string text = block->text() + "\n";
+        std::string text = block->text() + " \n";
         const char* line = text.c_str();
 
         // wrap
@@ -199,10 +199,11 @@ void editor_view::render()
         if (wrap && text.length() > cols) {
             blockData->rendered_spans.clear();
             for (auto& s : blockData->spans) {
-                if (s.length == 0) continue;
+                if (s.length == 0)
+                    continue;
                 std::string span_text = text.substr(s.start, s.length);
                 std::vector<span_info_t> ss = split_span(s, span_text);
-                for(auto _s : ss) {
+                for (auto _s : ss) {
                     _s.start += s.start;
                     blockData->rendered_spans.push_back(_s);
                 }
@@ -212,7 +213,7 @@ void editor_view::render()
 
             int line = 0;
             int line_x = 0;
-            for(auto &_s : blockData->rendered_spans) {
+            for (auto& _s : blockData->rendered_spans) {
                 if (_s.start - (line * cols) + _s.length > cols) {
                     line++;
                     line_x = 0;
@@ -231,9 +232,10 @@ void editor_view::render()
         block->lineHeight = fh;
         int linc = 0;
         for (auto& s : blockData->rendered_spans) {
-            if (s.length == 0) continue;
+            if (s.length == 0)
+                continue;
 
-            color_info_t clr = colorMap[s.colorIndex];
+            color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
 
             std::string span_text = text.substr(s.start, s.length);
 
@@ -286,17 +288,21 @@ void editor_view::render()
                     color_info_t cur = sel;
                     if (hlMainCursor) {
                         int cursor_pad = 4;
-                        cr.width = 2;
-                        cr.y -= cursor_pad;
-                        cr.height += cursor_pad * 2;
+                        cr.width = 1;
+                        if (!Renderer::instance()->is_terminal()) {
+                            cr.width = 2;
+                            cr.y -= cursor_pad;
+                            cr.height += cursor_pad * 2;
+                        }
                         cur = clr;
                     }
                     cr.x += alo->scroll_x;
-                    draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
-                    if (ul) {
+
+                    Renderer::instance()->draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
+                    if (ul && !Renderer::instance()->is_terminal()) {
                         cr.y += fh - 2;
                         cr.height = 1;
-                        draw_rect(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue }, true, 1.0f);
+                        Renderer::instance()->draw_rect(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue }, true, 1.0f);
                     }
 
                     previous_cursor_rects.push_back(cr);
@@ -320,25 +326,26 @@ void editor_view::render()
             }
 
 #if 0
-            draw_rect({ s.x,
+            Renderer::instance()->draw_rect({ s.x,
                           s.y,
                           fw * s.length,
                           fh },
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
-#endif 
-            
-            draw_text(_font, (char*)span_text.c_str(),
+#endif
+
+            Renderer::instance()->draw_text(_font, (char*)span_text.c_str(),
                 s.x,
                 s.y,
-                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue },
-                s.bold, s.italic, true);
+                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
+                    (uint8_t)(Renderer::instance()->is_terminal() ? clr.index : 255) },
+                s.bold, s.italic);
         }
 
         l++;
-        l+=linc;
+        l += linc;
     }
 
-    state_restore();
+    Renderer::instance()->state_restore();
 
     // duplicated from ::prelayout
     int ww = area->layout()->render_rect.w;
@@ -364,9 +371,9 @@ editor_view::editor_view()
 
     popups = std::make_shared<popup_manager>();
     completer = std::make_shared<completer_view>();
-    completer->on(EVT_ITEM_SELECT, [this](event_t &e) {
+    completer->on(EVT_ITEM_SELECT, [this](event_t& e) {
         e.cancelled = true;
-        list_item_view *item = (list_item_view*)e.target;
+        list_item_view* item = (list_item_view*)e.target;
         return commit_completer(item->data.value);
     });
     add_child(popups);
@@ -384,7 +391,11 @@ editor_view::editor_view()
     minimap = std::make_shared<minimap_view>();
     minimap->layout()->width = 80;
     minimap->layout()->order = 3;
-    // minimap->layout()->visible = false;
+
+    if (Renderer::instance()->is_terminal()) {
+        minimap->layout()->visible = false;
+    }
+
     container->add_child(minimap);
 
     scrollarea->layout()->order = 2;
@@ -392,6 +403,11 @@ editor_view::editor_view()
     layout_sort(container->layout());
 
     content()->layout()->stack = true;
+
+    if (Renderer::instance()->is_terminal()) {
+        gutter->layout()->width = 4;
+        minimap->layout()->width = 8;
+    }
 
     on(EVT_MOUSE_DOWN, [this](event_t& evt) {
         if (evt.source != this) {
@@ -449,7 +465,7 @@ void editor_view::prelayout()
     // scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
 
     int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     int lines = editor->document.blocks.size();
 
@@ -490,7 +506,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
     it += start_row;
 
     int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     int l = 0;
     while (it != editor->document.blocks.end()) {
@@ -536,7 +552,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
             ss << (block->lineNumber + 1);
             ss << ":";
             ss << hitPos;
-            int mods = ren_key_mods();
+            int mods = Renderer::instance()->key_mods();
             if (clicks == 0 || mods & K_MOD_SHIFT) {
                 editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
             } else if (clicks == 1) {
@@ -599,17 +615,19 @@ bool editor_view::input_sequence(std::string text)
     list_view* list = view_item::cast<list_view>(cv->list);
     if (pm->_views.size()) {
         operation_e op = operationFromKeys(text);
-        switch(op) {
+        switch (op) {
         case MOVE_CURSOR_UP:
             list->focus_previous();
-            for(int i=0; i<2; i++) {
-                if (!list->ensure_visible_cursor()) break;
+            for (int i = 0; i < 2; i++) {
+                if (!list->ensure_visible_cursor())
+                    break;
             }
             return true;
         case MOVE_CURSOR_DOWN:
             list->focus_next();
-            for(int i=0; i<2; i++) {
-                if (!list->ensure_visible_cursor()) break;
+            for (int i = 0; i < 2; i++) {
+                if (!list->ensure_visible_cursor())
+                    break;
             }
             return true;
         case ENTER:
@@ -640,7 +658,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
     int l = block->lineNumber - 1;
 
     int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
@@ -656,8 +674,9 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
     }
 
     if (centered) {
-        l -= rows/2;
-        if (l < 0) l = 0;
+        l -= rows / 2;
+        if (l < 0)
+            l = 0;
         start_row = l;
     }
 
@@ -667,12 +686,11 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
         scroll_x_col = start_col - cols + 4;
         area->layout()->scroll_x = -scroll_x_col * fw;
     }
-    
-    if (start_col + scroll_x_col - 4 < 0) {
-        scroll_x_col = -start_col + 4;
-        if (scroll_x_col <= 0) {
-            area->layout()->scroll_x = scroll_x_col * fw;
-        }
+
+    int lead = 4;
+    if (start_col + scroll_x_col - lead < 0) {
+        scroll_x_col = -start_col + lead;
+        area->layout()->scroll_x = scroll_x_col * fw;
     }
 
     area->layout()->scroll_y = -start_row * fh;
@@ -691,7 +709,7 @@ void editor_view::ensure_visible_cursor()
     document_t* doc = &editor->document;
 
     int fw, fh;
-    ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     int cols = lo->render_rect.w / fw;
     int rows = lo->render_rect.h / fh;
@@ -737,7 +755,7 @@ void editor_view::show_completer()
 
     int completerItemsWidth = 0;
     std::vector<std::string> words = editor->indexer->findWords(prefix);
-    for(auto w : words) {
+    for (auto w : words) {
         if (w.length() <= prefix.length()) {
             continue;
         }
@@ -758,29 +776,30 @@ void editor_view::show_completer()
 
     if (!pm->_views.size() && list->data.size()) {
         int fw, fh;
-        ren_get_font_extents(ren_font((char*)font.c_str()), &fw, &fh, NULL, 1, true);
+        Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
         span_info_t s = spanAtBlock(completer_cursor.block()->data.get(), completer_cursor.position(), true);
         scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
 
         int list_size = list->data.size();
-        if (list_size > 4) list_size = 4;
+        if (list_size > 4)
+            list_size = 4;
         completer->layout()->width = completerItemsWidth * fw;
-        completer->layout()->height = list_size * fh + 14;
-        list->focus_next();
-        for(int i=0; i<2; i++) {
-            if (!list->ensure_visible_cursor()) break;
+        completer->layout()->height = list_size * fh;
+
+        if (Renderer::instance()->is_terminal()) {
+            completer->layout()->width += 2;
+        } else {
+            completer->layout()->height += 14;
         }
 
-        pm->push_at(completer, {
-                (completer_cursor.position() * fw)
-                    + scrollarea->layout()->render_rect.x
-                    + scrollarea->layout()->scroll_x
-                    - pm->layout()->render_rect.x,
-                s.y - scrollarea->layout()->render_rect.y, 
-                fw * prefix.length(),
-                fh
-            }, s.y > area->layout()->render_rect.h/3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN );
+        list->focus_next();
+        for (int i = 0; i < 2; i++) {
+            if (!list->ensure_visible_cursor())
+                break;
+        }
+
+        pm->push_at(completer, { (completer_cursor.position() * fw) + scrollarea->layout()->render_rect.x + scrollarea->layout()->scroll_x - pm->layout()->render_rect.x, s.y - scrollarea->layout()->render_rect.y, fw * prefix.length(), fh }, s.y > area->layout()->render_rect.h / 3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN);
 
         // printf(">%d %d\n", s.y, scrollarea->layout()->render_rect.y);
 
@@ -809,4 +828,3 @@ bool editor_view::commit_completer(std::string text)
 
     return true;
 }
-

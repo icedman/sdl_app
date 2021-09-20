@@ -15,19 +15,12 @@
 
 static struct app_t* appInstance = 0;
 
-int pairForColor(int colorIdx, bool selected)
-{
-    // if (render_t::instance()) {
-    //     return render_t::instance()->pairForColor(colorIdx, selected);
-    // }
-    return colorIdx;
-}
-
 static color_info_t color(int r, int g, int b)
 {
     color_info_t c(r, g, b);
-    // bool trueColor = render_t::instance() && !render_t::instance()->isTerminal();
-    // c.index = color_info_t::nearest_color_index(c.red, c.green, c.blue, trueColor);
+    if (!app_t::instance()->trueColors) {
+        c.index = color_info_t::nearest_color_index(c.red, c.green, c.blue);
+    }
     return c;
 }
 
@@ -38,6 +31,7 @@ color_info_t lighter(color_info_t p, int x)
     c.green = p.green + x;
     c.blue = p.blue + x;
     c.alpha = 255;
+
     if (c.red > 255)
         c.red = 255;
     if (c.green > 255)
@@ -51,8 +45,9 @@ color_info_t lighter(color_info_t p, int x)
     if (c.blue < 0)
         c.blue = 0;
 
-    // bool trueColor = render_t::instance() && !render_t::instance()->isTerminal();
-    // c.index = color_info_t::nearest_color_index(c.red, c.green, c.blue, trueColor);
+    if (!app_t::instance()->trueColors) {
+        c.index = color_info_t::nearest_color_index(c.red, c.green, c.blue);
+    }
     return c;
 }
 
@@ -70,6 +65,7 @@ app_t::app_t()
     : end(false)
     , refreshCount(0)
     , view(0)
+    , trueColors(false)
 {
     appInstance = this;
 }
@@ -198,7 +194,6 @@ void app_t::configure(int argc, char** argv)
     }
 
     if (settings["icon_theme"].isString()) {
-        printf("%s\n", settings["icon_theme"].asString().c_str());
         icons = icon_theme_from_name(settings["icon_theme"].asString().c_str(), extensions);
     }
     if (settings["default_icons"].isString()) {
@@ -282,10 +277,12 @@ void app_t::configure(int argc, char** argv)
     }
 }
 
-void app_t::setupColors()
+void app_t::setupColors(bool colors)
 {
+    trueColors = colors;
     style_t s = theme->styles_for_scope("default");
-    // std::cout << theme->colorIndices.size() << " colors used" << std::endl;
+
+    log("%d theme colors", theme->colorIndices.size());
 
     color_info_t colorFg = color(250, 250, 250);
     color_info_t colorSelBg = color(250, 250, 250);
@@ -302,6 +299,7 @@ void app_t::setupColors()
 
     bg = -1;
     fg = colorFg.index;
+
     selBg = colorSelBg.index;
     selFg = colorSelFg.index;
     color_info_t clr;
@@ -439,4 +437,16 @@ void app_t::shutdown()
             e->indexer->cancel();
         }
     }
+}
+
+void app_t::log(const char* format, ...)
+{
+    static char string[1024] = "";
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(string, 1024, format, args);
+    va_end(args);
+
+    ::log(string);
 }

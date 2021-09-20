@@ -166,6 +166,7 @@ std::vector<std::pair<scope::selector_t, rule_ptr>>
 grammar_t::injection_grammars()
 {
     std::vector<std::pair<scope::selector_t, rule_ptr>> res;
+
     // TODO find grammar in directory
     // for(auto item : bundles::query(bundles::kFieldAny, NULL_STR,
     // scope::wildcard, bundles::kItemTypeGrammar))
@@ -182,6 +183,7 @@ grammar_t::injection_grammars()
     //     }
     //   }
     // }
+
     return res;
 }
 
@@ -191,10 +193,12 @@ rule_ptr grammar_t::find_grammar(std::string const& scope,
     auto it = _grammars.find(scope);
     if (it != _grammars.end())
         return it->second;
+
     // for(auto item : bundles::query(bundles::kFieldGrammarScope, scope,
     // scope::wildcard, bundles::kItemTypeGrammar))
     //   return add_grammar(scope, item->plist(), base);
     // return rule_ptr();
+
     return nullptr;
 }
 
@@ -222,6 +226,129 @@ stack_ptr grammar_t::seed() const
 grammar_ptr parse_grammar(Json::Value const& json)
 {
     return std::make_shared<grammar_t>(json);
+}
+
+
+stack_serialized_t grammar_t::serialize_state(stack_ptr stack)
+{
+    stack_serialized_t s;
+    s.rule_id = stack->rule->rule_id;
+    s.scope = to_s(stack->scope);
+    s.scope_string = stack->scope_string;
+    s.content_scope_string = stack->content_scope_string;
+    s.while_pattern = to_s(stack->while_pattern);
+    s.end_pattern = to_s(stack->end_pattern);
+    s.anchor = stack->anchor;
+    s.zw_begin_match = stack->zw_begin_match;
+    s.apply_end_last = stack->apply_end_last;
+    return s;
+}
+
+rule_ptr rule_find_rule(rule_ptr rule, int rule_id)
+{
+    if (rule->rule_id == rule_id) {
+        return rule;
+    }
+
+    if (rule->captures)
+    {
+        std::map<std::string, rule_ptr>::iterator it = rule->captures->begin();
+        while (it != rule->captures->end()) {
+            rule_ptr res = rule_find_rule(it->second, rule_id);
+            if (res) return res;
+            it++;
+        }
+    }
+
+    if (rule->begin_captures)
+    {
+        std::map<std::string, rule_ptr>::iterator it = rule->begin_captures->begin();
+        while (it != rule->begin_captures->end()) {
+            rule_ptr res = rule_find_rule(it->second, rule_id);
+            if (res) return res;
+            it++;
+        }
+    }
+
+    if (rule->while_captures)
+    {
+        std::map<std::string, rule_ptr>::iterator it = rule->while_captures->begin();
+        while (it != rule->while_captures->end()) {
+            rule_ptr res = rule_find_rule(it->second, rule_id);
+            if (res) return res;
+            it++;
+        }
+    }
+
+    if (rule->end_captures)
+    {
+        std::map<std::string, rule_ptr>::iterator it = rule->end_captures->begin();
+        while (it != rule->end_captures->end()) {
+            rule_ptr res = rule_find_rule(it->second, rule_id);
+            if (res) return res;
+            it++;
+        }
+    }
+
+    if (rule->repository)
+    {
+        std::map<std::string, rule_ptr>::iterator it = rule->repository->begin();
+        while (it != rule->repository->end()) {
+            rule_ptr res = rule_find_rule(it->second, rule_id);
+            if (res) return res;
+            it++;
+        }
+    }
+
+    if (rule->injection_rules)
+    {
+        std::map<std::string, rule_ptr>::iterator it = rule->injection_rules->begin();
+        while (it != rule->injection_rules->end()) {
+            rule_ptr res = rule_find_rule(it->second, rule_id);
+            if (res) return res;
+            it++;
+        }
+    }
+
+    for(auto r : rule->children) {
+        rule_ptr res = rule_find_rule(r, rule_id);
+        if (res) return res;
+    }
+
+    return nullptr;
+}
+
+rule_ptr grammar_t::find_rule(grammar_t *grammar, int rule_id)
+{
+    for(auto r : grammar->_grammars) {
+        rule_ptr res = rule_find_rule(r.second, rule_id);
+        if (res) return res;
+    }
+    return nullptr;
+}
+
+stack_ptr grammar_t::unserialize_state(stack_serialized_t stack)
+{
+    stack_ptr s = seed();
+    s->scope = scope::scope_t(stack.scope);
+    s->scope_string = stack.scope_string;
+    s->content_scope_string = stack.content_scope_string;
+    s->while_pattern = regexp::pattern_t(stack.while_pattern);
+    s->end_pattern = regexp::pattern_t(stack.end_pattern);
+    s->anchor = stack.anchor;
+    s->zw_begin_match = stack.zw_begin_match;
+    s->apply_end_last = stack.apply_end_last;
+
+    rule_ptr rule = find_rule(this, stack.rule_id);
+    if (!rule) {
+        printf("> rule not found %d\n", stack.rule_id);
+    }
+    s->rule = rule.get();
+    s->parent = seed();
+
+    // printf("%s\n", stack.scope.c_str());
+
+    return s;
 }
 
 } // namespace parse

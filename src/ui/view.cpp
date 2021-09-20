@@ -1,7 +1,8 @@
 #include "view.h"
 #include "popup.h"
 #include "renderer.h"
-#include "render_cache.h"
+
+#include "app.h"
 
 static view_item* view_root = 0;
 static view_item* view_focused = 0;
@@ -34,7 +35,7 @@ void view_input_list(view_item_list& list, view_item_ptr item)
     if (item->interactive) {
         list.insert(list.begin(), 1, item);
     }
-    
+
     for (auto child : item->_views) {
         view_input_list(list, child);
     }
@@ -74,13 +75,13 @@ RenImage* view_item::cache(int w, int h)
 {
     if (cached_image) {
         int cw, ch;
-        ren_image_size(cached_image, &cw, &ch);
+        Renderer::instance()->image_size(cached_image, &cw, &ch);
         if (cw != w || ch != h) {
             destroy_cache();
         }
     }
     if (!cached_image) {
-        cached_image = ren_create_image(w, h);
+        cached_image = Renderer::instance()->create_image(w, h);
     }
     return cached_image;
 }
@@ -88,7 +89,7 @@ RenImage* view_item::cache(int w, int h)
 void view_item::destroy_cache()
 {
     if (cached_image) {
-        ren_destroy_image(cached_image);
+        Renderer::instance()->destroy_image(cached_image);
         cached_image = 0;
     }
 }
@@ -181,17 +182,20 @@ void view_item::update()
 
 void view_item::render()
 {
-    #if 0
     layout_item_ptr lo = layout();
 
-    if (!lo->visible) return;
-    
-    draw_rect({ lo->render_rect.x,
+    if (!lo->visible)
+        return;
+
+#if 0    
+    Renderer::instance()->draw_rect({ lo->render_rect.x,
                   lo->render_rect.y,
                   lo->render_rect.w,
                   lo->render_rect.h },
         { color.r, color.g, color.b, color.a }, false, 1, 0);
-    #endif
+#endif
+
+    // app_t::log("%s %d %d %d %d", type.c_str(), lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h);
 }
 
 int view_item::on(event_type_e event_type, event_callback_t callback)
@@ -419,10 +423,11 @@ void view_input_key(int key, event_t event)
 
 void view_input_text(std::string text, event_t event)
 {
-    // if ((ren_key_mods() & K_MOD_CTRL) == K_MOD_CTRL || (ren_key_mods() & K_MOD_ALT) == K_MOD_ALT) {
+    // if ((Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL || (Renderer::instance()->key_mods() & K_MOD_ALT) == K_MOD_ALT) {
     //     return;
     // }
-    if (ren_key_mods() && ren_key_mods() != K_MOD_SHIFT) return;
+    if (Renderer::instance()->key_mods() && Renderer::instance()->key_mods() != K_MOD_SHIFT)
+        return;
     if (view_focused) {
         event.type = EVT_KEY_TEXT;
         event.source = view_focused;

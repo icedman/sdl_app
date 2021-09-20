@@ -866,14 +866,12 @@ void editor_t::createSnapshot()
 bool editor_t::input(char ch, std::string keySequence)
 {
     operation_e op = operationFromKeys(keySequence);
-
     editor_t* editor = this;
 
     if (op == CANCEL) {
         editor->pushOp(CLEAR_CURSORS);
         return true;
     }
-
     if (op == UNDO) {
         editor->undo();
         return true;
@@ -882,7 +880,6 @@ bool editor_t::input(char ch, std::string keySequence)
         editor->pushOp(op);
         return true;
     }
-
     if (keySequence != "") {
         return true;
     }

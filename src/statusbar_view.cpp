@@ -1,6 +1,5 @@
 #include "statusbar_view.h"
 #include "renderer.h"
-#include "render_cache.h"
 
 #include "app.h"
 #include "statusbar.h"
@@ -24,6 +23,12 @@ statusbar_view::statusbar_view()
     items = std::make_shared<horizontal_container>();
     items->layout()->justify = LAYOUT_JUSTIFY_FLEX_END;
     items->layout()->grow = 2;
+
+    if (Renderer::instance()->is_terminal()) {
+        layout()->height = 1;
+        container->layout()->height = 1;
+        status->layout()->height = 1;
+    }
 
     container->add_child(status);
     add_child(container);
@@ -80,17 +85,22 @@ void statusbar_view::update()
     view_item::update();
 }
 
-void statusbar_view::render() {
+void statusbar_view::render()
+{
     app_t* app = app_t::instance();
     view_style_t vs = view_style_get("explorer");
 
     layout_item_ptr lo = layout();
 
-    draw_rect({
-        lo->render_rect.x,
-        lo->render_rect.y,
-        lo->render_rect.w,
-        lo->render_rect.h
-    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    if (Renderer::instance()->is_terminal()) {
+        // do something else
+    } else {
+        Renderer::instance()->draw_rect({ lo->render_rect.x,
+                                            lo->render_rect.y,
+                                            lo->render_rect.w,
+                                            lo->render_rect.h },
+            { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    }
 
+    // view_item::render();
 }

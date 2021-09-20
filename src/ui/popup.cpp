@@ -56,7 +56,7 @@ void popup_manager::pop()
 
 void popup_manager::clear()
 {
-    while(_views.size()) {
+    while (_views.size()) {
         pop();
     }
 }

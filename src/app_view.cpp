@@ -12,7 +12,6 @@
 
 #include "style.h"
 
-extern std::map<int, color_info_t> colorMap;
 extern color_info_t darker(color_info_t c, int x);
 
 app_view::app_view()
@@ -44,6 +43,10 @@ app_view::app_view()
     menu = std::make_shared<horizontal_container>();
     menu->layout()->height = 24;
 
+    if (Renderer::instance()->is_terminal()) {
+        menu->layout()->height = 1;
+    }
+
     statusbar = std::make_shared<statusbar_view>();
 
     // add_child(menu);
@@ -70,7 +73,7 @@ bool app_view::input_sequence(std::string keySequence)
 
     switch (op) {
     case QUIT:
-        ren_quit();
+        Renderer::instance()->quit();
         return true;
 
     case NEW_TAB: {
@@ -86,8 +89,7 @@ bool app_view::input_sequence(std::string keySequence)
     case TAB_6:
     case TAB_7:
     case TAB_8:
-    case TAB_9:
-    {
+    case TAB_9: {
         int tab = op - TAB_1;
         printf("%d\n", tab);
         return true;
@@ -157,7 +159,7 @@ void app_view::destroy_editor_view(editor_ptr editor)
     layout_request();
 
     if (!app->editors.size()) {
-        ren_quit();
+        Renderer::instance()->quit();
         return;
     }
 
@@ -211,14 +213,14 @@ void app_view::setup_style()
     // int border_radius;
 
     view_style_t vs_default = {
-        font: "editor",
-        italic: false,
-        bold: false,
-        fg: colorMap[comment.foreground.index],
-        bg: colorMap[app->bgApp],
-        filled: false,
-        border: 0,
-        border_radius: 0,
+        font : "editor",
+        italic : false,
+        bold : false,
+        fg : Renderer::instance()->color_for_index(comment.foreground.index),
+        bg : Renderer::instance()->color_for_index(app->bgApp),
+        filled : false,
+        border : 0,
+        border_radius : 0,
 
     };
     view_style_t vs = vs_default;
@@ -226,6 +228,6 @@ void app_view::setup_style()
 
     view_style_register(vs, "gutter");
 
-    vs.bg = darker(colorMap[app->bgApp], 5);
-    view_style_register(vs, "explorer");    
+    vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
+    view_style_register(vs, "explorer");
 }

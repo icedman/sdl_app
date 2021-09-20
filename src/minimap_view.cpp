@@ -1,19 +1,16 @@
 #include "minimap_view.h"
-#include "editor_view.h"
 #include "editor.h"
-#include "render_cache.h"
-#include "renderer.h"
+#include "editor_view.h"
 #include "events.h"
+#include "renderer.h"
 
 #include "app.h"
 #include "style.h"
 
-extern std::map<int, color_info_t> colorMap;
-
 const float scale = 0.75f;
 
 minimap_view::minimap_view()
-	: view_item("minimap")
+    : view_item("minimap")
 {
     interactive = true;
 
@@ -34,11 +31,12 @@ bool minimap_view::mouse_click(int x, int y, int button)
 {
     layout_item_ptr lo = layout();
     int ry = y - lo->render_rect.y;
-    if (ry > render_h) return true;
+    if (ry > render_h)
+        return true;
 
     int line = start_y + ((end_y - start_y) * (float)ry / render_h);
 
-    editor_view* ev = (editor_view*)(parent->parent);    
+    editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
 
     // if (line > editor->document.blocks.size() / 2) {
@@ -50,7 +48,7 @@ bool minimap_view::mouse_click(int x, int y, int button)
         line = 0;
     }
     if (line >= editor->document.blocks.size()) {
-        line = editor->document.blocks.size()-1;
+        line = editor->document.blocks.size() - 1;
     }
 
     cursor_t cursor;
@@ -67,16 +65,15 @@ void minimap_view::render()
     app_t* app = app_t::instance();
     view_style_t vs = view_style_get("gutter");
 
-    draw_rect({
-        lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h
-    } , { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    Renderer::instance()->draw_rect({ lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h }, { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 
-    editor_view* ev = (editor_view*)(parent->parent);    
+    editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
 
     int start = ev->start_row;
-    int count = editor->document.blocks.size() + (ev->rows/3);
-    if (count <= 0) return;
+    int count = editor->document.blocks.size() + (ev->rows / 3);
+    if (count <= 0)
+        return;
 
     float p = (float)start / count;
     scroll_y = 0;
@@ -106,39 +103,38 @@ void minimap_view::render()
 
     int render_y = 0;
 
-    int l=0;
-    while(it != editor->document.blocks.end() && l < lo->render_rect.h) {
+    int l = 0;
+    while (it != editor->document.blocks.end() && l < lo->render_rect.h) {
         block_ptr block = *it;
-        it ++;
+        it++;
 
-        blockdata_t *blockData = block->data.get();
+        blockdata_t* blockData = block->data.get();
 
         if (!blockData && hl++ < 2) {
             editor->highlight(block->lineNumber, 4);
             blockData = block->data.get();
-            ren_listen_quick();
+            Renderer::instance()->listen_quick();
         }
 
         if (!blockData || blockData->dirty) {
             RenRect r = {
-                    lo->render_rect.x,
-                    lo->render_rect.y + l,
-                    block->length() * scale,
-                    1,
-                };
+                lo->render_rect.x,
+                lo->render_rect.y + l,
+                block->length() * scale,
+                1,
+            };
             if (r.width > 0) {
-                draw_rect(r,
-                    { 255,255,255, 150 },
-                    false, 1
-                );
+                Renderer::instance()->draw_rect(r,
+                    { 255, 255, 255, 150 },
+                    false, 1);
             }
             blockData = 0;
         }
 
         if (blockData) {
-            for(auto s : blockData->spans) {
+            for (auto s : blockData->spans) {
 
-                color_info_t clr = colorMap[s.colorIndex];
+                color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
 
                 int start = s.start / 3;
                 int length = s.length * scale;
@@ -158,10 +154,9 @@ void minimap_view::render()
                 }
 
                 if (r.width > 0) {
-                    draw_rect(r,
+                    Renderer::instance()->draw_rect(r,
                         { clr.red, clr.green, clr.blue, 150 },
-                        false, 1
-                    );
+                        false, 1);
                 }
             }
         }
@@ -172,24 +167,20 @@ void minimap_view::render()
         if (block->lineNumber == start) {
             render_y = lo->render_rect.y + l;
         }
-        
-        end_y = block->lineNumber;
-        
-        l+=spacing;
-    }
 
+        end_y = block->lineNumber;
+
+        l += spacing;
+    }
 
     if (is_hovered()) {
-        draw_rect({
-            lo->render_rect.x,
-            // lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
-            render_y,
-            lo->render_rect.w,
-            ev->rows * spacing,
-        },
-            { 255, 255, 255, 10 },
-            true, 1, 4
-        );
+        Renderer::instance()->draw_rect({
+                                            lo->render_rect.x,
+                                            // lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
+                                            render_y,
+                                            lo->render_rect.w,
+                                            ev->rows * spacing,
+                                        },
+            { 255, 255, 255, 10 }, true, 1, 4);
     }
-
 }

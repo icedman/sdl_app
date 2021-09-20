@@ -1,5 +1,4 @@
 #include "panel.h"
-#include "render_cache.h"
 #include "scrollarea.h"
 #include "scrollbar.h"
 
@@ -7,6 +6,10 @@ panel_view::panel_view()
 {
     type = "panel";
     int scrollbar_size = 14;
+
+    if (Renderer::instance()->is_terminal()) {
+        scrollbar_size = 1;
+    }
 
     v_scroll = std::make_shared<vscrollbar_view>();
     v_scroll->layout()->width = scrollbar_size;
@@ -44,7 +47,7 @@ panel_view::panel_view()
 
     content()->layout()->wrap = false;
     content()->layout()->fit_children = true;
-    
+
     on(EVT_MOUSE_WHEEL, [this](event_t& evt) {
         if (evt.cancelled) {
             return true;
@@ -83,7 +86,7 @@ void panel_view::_validate()
     }
 }
 
-bool panel_view::scrollbar_move(view_item *source)
+bool panel_view::scrollbar_move(view_item* source)
 {
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
@@ -101,7 +104,7 @@ bool panel_view::scrollbar_move(view_item *source)
     _validate();
 
     // printf("%d\n", (int)rand());
-    rencache_invalidate();
+    Renderer::instance()->invalidate();
     return true;
 }
 
@@ -136,12 +139,12 @@ void panel_view::update()
 
     // vs->layout()->visible = vs->disabled ? false : content()->layout()->rect.h < scrollarea->layout()->rect.h;
     // hs->layout()->visible = hs->disabled ? false : content()->layout()->rect.w < scrollarea->layout()->rect.w;
-    
+
     bottom->layout()->visible = hs->layout()->visible && !hs->disabled;
     if (hs->window >= hs->count) {
         bottom->layout()->visible = false;
     }
-    
+
     view_item::update();
 }
 

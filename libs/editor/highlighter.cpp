@@ -60,7 +60,7 @@ int highlighter_t::highlightBlocks(block_ptr block, int count)
     return lighted;
 }
 
-void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
+static void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
 {
     std::vector<span_info_t>::iterator it = spans.begin();
     while(it != spans.end()) {
@@ -161,6 +161,10 @@ int highlighter_t::highlightBlock(block_ptr block)
         return 1;
     } else {
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+
+        // test state serializationn
+        // parse::stack_serialized_t ss = lang->grammar->serialize_state(parser_state);
+        // parser_state = lang->grammar->unserialize_state(ss);
     }
 
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();

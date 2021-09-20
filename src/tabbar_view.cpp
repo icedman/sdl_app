@@ -1,6 +1,6 @@
 #include "tabbar_view.h"
-#include "app_view.h"
 #include "app.h"
+#include "app_view.h"
 
 app_tabbar_view::app_tabbar_view()
     : tabbar_view()
@@ -8,11 +8,12 @@ app_tabbar_view::app_tabbar_view()
     autoscroll = true;
 }
 
-void app_tabbar_view::update() {
+void app_tabbar_view::update()
+{
 
     app_t* app = app_t::instance();
     ((list_view*)this)->value = app_t::instance()->currentEditor->document.fullPath;
-    
+
     bool hasChanges = false;
 
     hasChanges = hasChanges || app->editors.size() != data.size();
@@ -22,7 +23,8 @@ void app_tabbar_view::update() {
         return;
     }
 
-    if (!layout()->visible || !app_t::instance()->currentEditor) return;
+    if (!layout()->visible || !app_t::instance()->currentEditor)
+        return;
 
     // printf("repopulate explorer\n");
 
@@ -45,9 +47,18 @@ void app_tabbar_view::update() {
 
     for (auto btn : content()->_views) {
         btn->layout()->preferred_constraint = {
-            0,0,
-            200,0
+            0, 0,
+            200, 0
         };
+
+        if (Renderer::instance()->is_terminal()) {
+            layout()->height = 1;
+            btn->layout()->preferred_constraint = {
+                0, 0,
+                12, 0
+            };
+        }
+
         btn->layout()->justify = LAYOUT_JUSTIFY_CENTER;
         btn->layout()->align = LAYOUT_ALIGN_CENTER;
     }
@@ -57,6 +68,6 @@ void app_tabbar_view::select_item(list_item_view* item)
 {
     list_view::select_item(item);
     app_t* app = app_t::instance();
-    bool multi = (ren_key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
+    bool multi = (Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
     ((app_view*)(app->view))->show_editor(app->openEditor(item->data.value), !multi);
 }

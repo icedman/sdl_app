@@ -1,5 +1,4 @@
 #include "inputtext.h"
-#include "render_cache.h"
 #include "renderer.h"
 
 #include "app.h";
@@ -15,6 +14,11 @@ inputtext_view::inputtext_view()
 
     int h = 26;
     int m = 4;
+
+    if (Renderer::instance()->is_terminal()) {
+        h = 1;
+        m = 0;
+    }
 
     ev->editor = std::make_shared<editor_t>();
     ev->editor->singleLineEdit = true;
@@ -46,9 +50,9 @@ void inputtext_view::render()
 {
     // background
     layout_item_ptr lo = layout();
-    draw_rect({ lo->render_rect.x,
-                  lo->render_rect.y,
-                  lo->render_rect.w,
-                  lo->render_rect.h },
+    Renderer::instance()->draw_rect({ lo->render_rect.x,
+                                        lo->render_rect.y,
+                                        lo->render_rect.w,
+                                        lo->render_rect.h },
         { 255, 0, 255 }, false, 1.0f);
 }

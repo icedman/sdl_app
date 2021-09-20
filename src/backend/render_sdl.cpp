@@ -1,9 +1,13 @@
+#include "render_sdl.h"
+#include "render_cache.h"
 #include "renderer.h"
 
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <cairo.h>
-#include <rsvg.h>
+#include <librsvg/rsvg.h>
+
+#include "app.h"
 
 int _state = 0;
 int keyMods = 0;
@@ -42,6 +46,8 @@ bool shouldEnd;
 
 RenFont* default_font = 0;
 int listen_quick_frames = 0;
+
+static std::map<int, color_info_t> color_map;
 
 RenImage* ren_create_image(int w, int h)
 {
@@ -398,7 +404,8 @@ bool ren_listen_is_quick()
     return false;
 }
 
-std::string to_mods(int mods) {
+std::string to_mods(int mods)
+{
     std::string mod;
     int _mod = 0;
     if (mods & KMOD_CTRL) {
@@ -509,8 +516,8 @@ void ren_listen_events(event_list* events)
         //      SDL_GetKeyName(e.key.keysym.sym));
 
         std::transform(keySequence.begin(), keySequence.end(), keySequence.begin(),
-        [](unsigned char c){ return std::tolower(c); });
-        
+            [](unsigned char c) { return std::tolower(c); });
+
         if (keySequence.length() && mod.length()) {
             keySequence = mod + "+" + keySequence;
         }
@@ -595,4 +602,243 @@ uint32_t ren_timer_end()
 int ren_key_mods()
 {
     return keyMods;
+}
+
+static Renderer theRenderer;
+
+Renderer* Renderer::instance()
+{
+    return &theRenderer;
+}
+
+void Renderer::init()
+{
+    ren_init();
+    rencache_init();
+    update_colors();
+}
+
+void Renderer::shutdown()
+{
+    rencache_shutdown();
+    ren_shutdown();
+}
+
+void Renderer::show_debug(bool enable)
+{
+}
+
+void Renderer::quit()
+{
+    ren_quit();
+}
+
+bool Renderer::is_running()
+{
+    return ren_is_running();
+}
+
+void Renderer::get_window_size(int* w, int* h)
+{
+    ren_get_window_size(w, h);
+}
+
+void Renderer::listen_events(event_list* events)
+{
+    ren_listen_events(events);
+}
+
+void Renderer::listen_quick(int frames)
+{
+    ren_listen_quick(frames);
+}
+
+bool Renderer::listen_is_quick()
+{
+    return ren_listen_is_quick();
+}
+
+int Renderer::key_mods()
+{
+    return ren_key_mods();
+}
+
+RenImage* Renderer::create_image(int w, int h)
+{
+    return ren_create_image(w, h);
+}
+
+RenImage* Renderer::create_image_from_svg(char* filename, int w, int h)
+{
+    return ren_create_image_from_svg(filename, w, h);
+}
+
+RenImage* Renderer::create_image_from_png(char* filename, int w, int h)
+{
+    return 0;
+}
+
+void Renderer::destroy_image(RenImage* image)
+{
+    ren_destroy_image(image);
+}
+
+void Renderer::destroy_images()
+{
+    ren_destroy_images();
+}
+
+void Renderer::image_size(RenImage* image, int* w, int* h)
+{
+    ren_image_size(image, w, h);
+}
+
+void Renderer::save_image(RenImage* image, char* filename)
+{
+    ren_save_image(image, filename);
+}
+
+void Renderer::register_font(char* path)
+{
+    ren_register_font(path);
+}
+
+RenFont* Renderer::create_font(char* font_desc, char* alias)
+{
+    return ren_create_font(font_desc, alias);
+}
+
+RenFont* Renderer::font(char* alias)
+{
+    return ren_font(alias);
+}
+
+void Renderer::destroy_font(RenFont* font)
+{
+    ren_destroy_font(font);
+}
+
+void Renderer::destroy_fonts()
+{
+    ren_destroy_fonts();
+}
+
+RenFont* Renderer::get_default_font()
+{
+    return ren_get_default_font();
+}
+
+void Renderer::set_default_font(RenFont* font)
+{
+    ren_set_default_font(font);
+}
+
+void Renderer::get_font_extents(RenFont* font, int* w, int* h, const char* text, int len)
+{
+    ren_get_font_extents(font, w, h, text, len);
+}
+
+void Renderer::update_rects(RenRect* rects, int count)
+{
+    ren_update_rects(rects, count);
+}
+
+void Renderer::set_clip_rect(RenRect rect)
+{
+    ren_set_clip_rect(rect);
+}
+
+void Renderer::invalidate_rect(RenRect rect)
+{
+    // cache
+}
+
+void Renderer::invalidate()
+{
+    // cache
+}
+
+void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
+{
+    ren_draw_image(image, rect, clr);
+}
+
+void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int radius)
+{
+    ren_draw_rect(rect, clr, fill, stroke, radius);
+}
+
+int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
+{
+    return ren_draw_text(font, text, x, y, clr, bold, italic);
+}
+
+int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor color, bool bold, bool italic)
+{
+    return 0;
+}
+
+void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
+{
+    if (!color_map.size()) {
+        update_colors();
+    }
+
+    ren_begin_frame(image);
+}
+
+void Renderer::end_frame()
+{
+    ren_end_frame();
+}
+
+void Renderer::state_save()
+{
+    ren_state_save();
+}
+
+void Renderer::state_restore()
+{
+    ren_state_restore();
+}
+
+int Renderer::draw_count()
+{
+    return ren_rendered;
+}
+
+std::string Renderer::get_clipboard()
+{
+    return ren_get_clipboard();
+}
+
+void Renderer::set_clipboard(std::string text)
+{
+    ren_set_clipboard(text);
+}
+
+bool Renderer::is_terminal()
+{
+    return false;
+}
+
+color_info_t Renderer::color_for_index(int index)
+{
+    return color_map[index];
+}
+
+void Renderer::update_colors()
+{
+    app_t* app = app_t::instance();
+    theme_ptr theme = app->theme;
+
+    auto it = theme->colorIndices.begin();
+    while (it != theme->colorIndices.end()) {
+        color_info_t fg = it->second;
+        fg.red = fg.red <= 1 ? fg.red * 255 : fg.red;
+        fg.green = fg.green <= 1 ? fg.green * 255 : fg.green;
+        fg.blue = fg.blue <= 1 ? fg.blue * 255 : fg.blue;
+        color_map[it->second.index] = fg;
+        it++;
+    }
 }

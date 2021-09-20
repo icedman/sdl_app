@@ -31,6 +31,8 @@ block_t::block_t()
     , data(0)
     , dirty(false)
     , cachedLength(0)
+    , x(-1)
+    , y(-1)
 {
     blocksCreated++;
 }

@@ -1,4 +1,5 @@
 #include "render_cache.h"
+#include "render_sdl.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -203,7 +204,7 @@ void rencache_draw_rect(RenRect rect, RenColor color, bool fill, int stroke, int
     }
 }
 
-int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold, bool italic, bool fixed)
+int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold, bool italic)
 {
     int len = strlen(text);
     if (len == 0) {

@@ -336,7 +336,7 @@ static void collect_children(std::vector<rule_ptr> const& children,
         collect_rule(rule.get(), res, groups);
 }
 
-#if 0
+#if 1
 static void collect_injections(stack_ptr const &stack,
                                scope::context_t const &scope,
                                std::vector<rule_t *> const &groups,
@@ -399,7 +399,7 @@ static void collect_rules(char const* first, char const* last, size_t i,
     std::vector<rule_t*> rules, groups, injectedRulesPre, injectedRulesPost;
     collect_children(stack->rule->children, rules, &groups);
 
-#if 0
+#if 1
   collect_injections(stack, 
     scope::context_t(stack->scope, ""), groups, injectedRulesPre);
   collect_injections(stack, 
