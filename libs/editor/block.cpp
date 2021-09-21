@@ -3,9 +3,6 @@
 #include "util.h"
 #include "utf8.h"
 
-#include <codecvt>
-#include <locale>
-
 static size_t blocksCreated = 0;
 
 blockdata_t::blockdata_t()
@@ -85,8 +82,7 @@ std::wstring block_t::wide_text()
 
 std::string block_t::utf8_text()
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
-    return utf8_conv.to_bytes(wide_text().c_str());
+    return wstring_to_utf8string(wide_text());
 }
 
 void block_t::setText(std::string t)

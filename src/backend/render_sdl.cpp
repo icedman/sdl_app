@@ -57,6 +57,11 @@ cairo_t* ren_image_context(RenImage* image)
     return image->cairo_context;
 }
 
+cairo_surface_t* ren_image_surface(RenImage* image)
+{
+    return image->cairo_surface;
+}
+
 cairo_pattern_t* ren_image_pattern(RenImage* image)
 {
     return image->pattern;

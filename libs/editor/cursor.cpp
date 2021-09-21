@@ -3,10 +3,9 @@
 #include "document.h"
 #include "search.h"
 #include "util.h"
+#include "utf8.h"
 
 #include <algorithm>
-#include <codecvt>
-#include <locale>
 
 static size_t countIndentSize(std::string s)
 {
@@ -176,7 +175,7 @@ cursor_position_t cursor_t::selectionEnd()
 
 std::string cursor_t::selectedText()
 {
-    std::string res;
+    std::wstring res;
 
     cursor_position_t start = selectionStart();
     cursor_position_t end = selectionEnd();
@@ -184,10 +183,10 @@ std::string cursor_t::selectedText()
     block_ptr block = start.block;
 
     while (block) {
-        if (res != "") {
-            res += "\n";
+        if (res != L"") {
+            res += L"\n";
         }
-        std::string t = block->text();
+        std::wstring t = block->wide_text();
         if (block == start.block) {
             t = t.substr(start.position);
         }
@@ -207,7 +206,7 @@ std::string cursor_t::selectedText()
         block = block->next();
     }
 
-    return res;
+    return wstring_to_utf8string(res);
 }
 
 block_list cursor_t::selectedBlocks()

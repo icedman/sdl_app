@@ -17,6 +17,7 @@
 extern int ren_rendered;
 
 cairo_pattern_t* ren_image_pattern(RenImage* image);
+cairo_surface_t* ren_image_surface(RenImage* image);
 
 typedef struct {
     char t[3];
@@ -252,8 +253,13 @@ static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor c
         cairo_transform(cairo_context, &matrix);
     }
 
-    cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, 1.0f);
-    cairo_mask(cairo_context, ren_image_pattern(image));
+    if (clr.r == clr.g != 255 && clr.g == clr.b) {
+        cairo_set_source_surface(cairo_context, ren_image_surface(image), 0, 0);
+        cairo_paint(cairo_context);
+    } else {
+        cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, 1.0f);
+        cairo_mask(cairo_context, ren_image_pattern(image));
+    }
 
     cairo_restore(cairo_context);
 }
