@@ -51,7 +51,6 @@ void gutter_view::render()
         }
 
         if (!blockData && block->lineNumber < snapBlocks.size()) {
-            Renderer::instance()->throttle_up();
             block_ptr sb = snapBlocks[block->lineNumber];
             if (sb->data) {
                 blockData = sb->data.get();
@@ -59,6 +58,7 @@ void gutter_view::render()
         }
 
         if (!blockData || block->y == -1) {
+            Renderer::instance()->throttle_up();
             return;
         }
 

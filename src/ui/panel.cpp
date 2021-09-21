@@ -93,11 +93,11 @@ bool panel_view::scrollbar_move(view_item* source)
     scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
 
     if (vs->window < vs->count && source == vs) {
-        int vp = ((vs->count - vs->window) * vs->index / vs->count);
+        int vp = ((float)(vs->count - vs->window) * vs->index / vs->count);
         area->layout()->scroll_y = -vp;
     }
     if (hs->window < hs->count && source == hs) {
-        int hp = ((hs->count - hs->window) * hs->index / hs->count);
+        int hp = ((float)(hs->count - hs->window) * hs->index / hs->count);
         area->layout()->scroll_x = -hp;
     }
 

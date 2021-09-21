@@ -34,7 +34,7 @@ bool minimap_view::mouse_click(int x, int y, int button)
     if (ry > render_h)
         return true;
 
-    int line = start_y + ((end_y - start_y) * (float)ry / render_h);
+    int line = start_y + ((float)(end_y - start_y) * (float)ry / render_h);
 
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
@@ -50,6 +50,7 @@ bool minimap_view::mouse_click(int x, int y, int button)
     cursor.setPosition(editor->document.blockAtLine(line), 0);
     ev->scroll_to_cursor(cursor, true);
 
+    Renderer::instance()->throttle_up();
     return true;
 }
 
@@ -83,8 +84,6 @@ void minimap_view::render()
 
     // printf("%f\n", p);
 
-    int hl = 0;
-
     block_list& snapBlocks = editor->snapshots[0].snapshot;
 
     block_list::iterator it = editor->document.blocks.begin();
@@ -111,12 +110,6 @@ void minimap_view::render()
                 blockData = sb->data.get();
             }
         }
-
-        // if (!blockData && hl++ < 2) {
-        //     editor->highlight(block->lineNumber, 4);
-        //     blockData = block->data.get();
-        //     Renderer::instance()->throttle_up();
-        // }
 
         if (!blockData || blockData->dirty) {
             RenRect r = {

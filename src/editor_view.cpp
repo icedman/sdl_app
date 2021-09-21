@@ -134,6 +134,16 @@ void editor_view::render()
     // printf(">>%d %d\n", start_row, rows);
 
     int view_height = rows;
+    int hl_prior = 8;
+    int hl_start = start_row - hl_prior;
+    int hl_length = view_height + hl_prior * 2;
+    for (int i = 0; i < hl_length; i += 4) {
+        int lighted = editor->highlight(hl_start + i, 4);
+        if (lighted > 0) {
+            Renderer::instance()->throttle_up();
+            break;
+        }
+    }
 
     theme_ptr theme = app->theme;
 
@@ -472,6 +482,7 @@ void editor_view::update()
             break;
         }
     }
+
 }
 
 void editor_view::prelayout()
@@ -626,11 +637,12 @@ bool editor_view::input_text(std::string text)
 
 bool editor_view::input_sequence(std::string text)
 {
+    operation_e op = operationFromKeys(text);
+
     popup_manager* pm = view_item::cast<popup_manager>(popups);
     completer_view* cv = view_item::cast<completer_view>(completer);
     list_view* list = view_item::cast<list_view>(cv->list);
     if (pm->_views.size()) {
-        operation_e op = operationFromKeys(text);
         switch (op) {
         case MOVE_CURSOR_UP:
             list->focus_previous();
@@ -666,6 +678,14 @@ bool editor_view::input_sequence(std::string text)
     editor->runAllOps();
     ensure_visible_cursor();
     // printf("sequence %s\n", text.c_str());
+
+    switch(op) {
+        case MOVE_CURSOR_NEXT_PAGE:
+        case MOVE_CURSOR_PREVIOUS_PAGE:
+            Renderer::instance()->throttle_up();
+            break;
+    }
+
     return true;
 }
 
