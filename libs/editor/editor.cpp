@@ -502,7 +502,7 @@ void editor_t::runAllOps()
         runOp(op);
     }
 
-    // handle the inputBuffer
+    // handle the inputBuffer (TODO handle UTF8)
     std::string str;
     operation_t op;
 
