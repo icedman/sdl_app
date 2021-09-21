@@ -13,6 +13,7 @@
 #include "app.h"
 #include "operation.h"
 #include "theme.h"
+#include "utf8.h"
 
 #define CTRL_KEY(k) ((k)&0x1f)
 
@@ -733,35 +734,6 @@ void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int 
     }
 }
 
-static const char* utf8_to_codepoint(const char* p, unsigned* dst)
-{
-    unsigned res, n;
-    switch (*p & 0xf0) {
-    case 0xf0:
-        res = *p & 0x07;
-        n = 3;
-        break;
-    case 0xe0:
-        res = *p & 0x0f;
-        n = 2;
-        break;
-    case 0xd0:
-    case 0xc0:
-        res = *p & 0x1f;
-        n = 1;
-        break;
-    default:
-        res = *p;
-        n = 0;
-        break;
-    }
-    while (n--) {
-        res = (res << 6) | (*(++p) & 0x3f);
-    }
-    *dst = res;
-    return p + 1;
-}
-
 int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic)
 {
     int clr_index = clr.a ? clr.a : -1;
@@ -827,10 +799,6 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
         int bg = background_colors[x + i + y * bg_w];
         pair = pair_for_colors(clr_index, bg ? bg : -1);
         attron(COLOR_PAIR(pair));
-
-        // addch(text[i]);
-        wchar_t s[2] = { cp, 0 };
-        // addwstr(s);
 
         addch(cp & 0xff);
 

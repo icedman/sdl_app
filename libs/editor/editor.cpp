@@ -503,50 +503,53 @@ void editor_t::runAllOps()
     }
 
     // handle the inputBuffer (TODO handle UTF8)
-    std::string str;
     operation_t op;
 
     bool snap = inputBuffer.size() > 1000;
+    char* _s = (char*)inputBuffer.c_str();
+    char* _t = _s;
+    char* p = _s;
 
-    while (inputBuffer.size()) {
-        char c = inputBuffer[0];
-
-        inputBuffer.erase(inputBuffer.begin());
-
+    while (*p) {
         op.op = INSERT;
         op.params = "";
 
-        switch (c) {
+        switch (*p) {
         case '\n': {
-            if (str.length()) {
-                op.params = str;
+            if (p - _t > 0) {
+                op.params = std::string(_t, p-_t-1);
                 runOp(op);
-                str = "";
+                _t = p+2;
+                p++;
             }
             op.op = ENTER;
             runOp(op);
             break;
         }
         case '\t': {
-            if (str.length()) {
-                op.params = str;
+            if (p - _t > 0) {
+                op.params = std::string(_t, p-_t-1);
                 runOp(op);
-                str = "";
+                _t = p+2;
+                p++;
             }
             op.op = TAB;
+            runOp(op);
             break;
         }
         default:
-            str += c;
             break;
         }
+
+        p++;
     }
 
-    if (str.length()) {
-        op.params = str;
+    if (p - _t > 0) {
+        op.op = INSERT;
+        op.params = std::string(_t, p-_t);
         runOp(op);
-        str = "";
     }
+    inputBuffer = "";
 
     // todo
     // if single line editor

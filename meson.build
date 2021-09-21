@@ -47,6 +47,7 @@ editor_files = [
     'libs/editor/search.cpp',
     'libs/editor/snapshot.cpp',
     'libs/editor/statusbar.cpp',
+    'libs/editor/utf8.cpp',
     'libs/editor/util.cpp'
 ]
 

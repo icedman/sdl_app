@@ -5,6 +5,8 @@
 #include "util.h"
 
 #include <algorithm>
+#include <codecvt>
+#include <locale>
 
 static size_t countIndentSize(std::string s)
 {

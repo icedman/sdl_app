@@ -1,40 +1,12 @@
 #include "block.h"
 #include "document.h"
 #include "util.h"
+#include "utf8.h"
 
 #include <codecvt>
 #include <locale>
 
 static size_t blocksCreated = 0;
-
-static const char* utf8_to_codepoint(const char* p, unsigned* dst)
-{
-    unsigned res, n;
-    switch (*p & 0xf0) {
-    case 0xf0:
-        res = *p & 0x07;
-        n = 3;
-        break;
-    case 0xe0:
-        res = *p & 0x0f;
-        n = 2;
-        break;
-    case 0xd0:
-    case 0xc0:
-        res = *p & 0x1f;
-        n = 1;
-        break;
-    default:
-        res = *p;
-        n = 0;
-        break;
-    }
-    while (n--) {
-        res = (res << 6) | (*(++p) & 0x3f);
-    }
-    *dst = res;
-    return p + 1;
-}
 
 blockdata_t::blockdata_t()
     : dirty(true)
