@@ -1,5 +1,3 @@
-#include "render_sdl.h"
-#include "render_cache.h"
 #include "renderer.h"
 
 #include <SDL2/SDL.h>
@@ -49,22 +47,6 @@ int throttle_up_frames = 0;
 
 static std::map<int, color_info_t> color_map;
 
-RenImage* ren_create_image(int w, int h)
-{
-    RenImage* img = new RenImage();
-    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, w);
-    img->buffer = (uint8_t*)malloc(stride * h);
-    memset(img->buffer, 0, stride * h);
-    img->width = w;
-    img->height = h;
-    img->sdl_surface = SDL_CreateRGBSurfaceFrom(img->buffer, w, h, 32, stride, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
-    img->cairo_surface = cairo_image_surface_create_for_data(img->buffer, CAIRO_FORMAT_ARGB32, w, h, stride);
-    img->cairo_context = cairo_create(img->cairo_surface);
-    img->pattern = cairo_pattern_create_for_surface(img->cairo_surface);
-    images.push_back(img);
-    return img;
-}
-
 cairo_t* ren_context()
 {
     return cairo_context;
@@ -80,65 +62,13 @@ cairo_pattern_t* ren_image_pattern(RenImage* image)
     return image->pattern;
 }
 
-RenImage* ren_create_image_from_svg(char* filename, int w, int h)
-{
-    for (auto img : images) {
-        if (img->path == filename) {
-            return img;
-        }
-    }
-
-    RenImage* img = ren_create_image(w, h);
-    img->path = filename;
-
-    RsvgHandle* svg = rsvg_handle_new_from_file(filename, 0);
-    if (svg) {
-        rsvg_handle_render_cairo(svg, img->cairo_context);
-        rsvg_handle_free(svg);
-    }
-    return img;
-}
-
-void ren_destroy_image(RenImage* img)
-{
-    std::vector<RenImage*>::iterator it = std::find(images.begin(), images.end(), img);
-    if (it != images.end()) {
-        images.erase(it);
-        cairo_pattern_destroy(img->pattern);
-        cairo_surface_destroy(img->cairo_surface);
-        cairo_destroy(img->cairo_context);
-        free(img->buffer);
-        SDL_FreeSurface(img->sdl_surface);
-        delete img;
-    }
-}
-
-void ren_destroy_images()
-{
-    std::vector<RenImage*> _images = images;
-    for (auto img : _images) {
-        ren_destroy_image(img);
-    }
-}
-
-void ren_image_size(RenImage* image, int* w, int* h)
-{
-    *w = image->width;
-    *h = image->height;
-}
-
-void ren_save_image(RenImage* image, char* filename)
-{
-    cairo_surface_write_to_png(image->cairo_surface, filename);
-}
-
 void _destroy_cairo_context()
 {
     if (!window_buffer) {
         return;
     }
 
-    ren_destroy_image(window_buffer);
+    Renderer::instance()->destroy_image(window_buffer);
     window_buffer = 0;
 }
 
@@ -147,27 +77,84 @@ cairo_t* _create_cairo_context(int width, int height)
     if (window_buffer) {
         _destroy_cairo_context();
     }
-    window_buffer = ren_create_image(width, height);
+    window_buffer = Renderer::instance()->create_image(width, height);
     return window_buffer->cairo_context;
 }
 
-void ren_set_default_font(RenFont* font)
+std::vector<RenImage*> context_stack;
+void _set_context_from_stack()
 {
-    default_font = font;
+    RenImage* target = context_stack.size() > 0 ? context_stack.back() : 0;
+    if (target) {
+        target_buffer = target;
+        cairo_context = target->cairo_context;
+    } else {
+        target_buffer = window_buffer;
+        cairo_context = window_buffer->cairo_context;
+    }
 }
 
-RenFont* ren_get_default_font()
+void _blit_to_window()
 {
-    return default_font;
+    SDL_Surface* window_surface = SDL_GetWindowSurface(window);
+    SDL_BlitSurface(target_buffer->sdl_surface, nullptr, window_surface, nullptr);
+
+    if (update_rects_count) {
+        SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)update_rects, update_rects_count);
+        update_rects_count = 0;
+    }
+
+    SDL_UpdateWindowSurface(window);
 }
 
-void ren_get_window_size(int* w, int* h)
+static bool is_firable(char c)
 {
-    *w = window_buffer->width;
-    *h = window_buffer->height;
+    const char firs[] = "<>-=!:+|_&";
+    for (int i = 0; firs[i] != 0; i++) {
+        if (firs[i] == c)
+            return true;
+    }
+    return false;
 }
 
-void ren_init()
+std::string to_mods(int mods)
+{
+    std::string mod;
+    int _mod = 0;
+    if (mods & KMOD_CTRL) {
+        mod = "ctrl";
+        _mod = K_MOD_CTRL;
+    }
+    if (mods & KMOD_SHIFT) {
+        if (mod.length())
+            mod += "+";
+        mod += "shift";
+        _mod = K_MOD_SHIFT | _mod;
+    }
+    if (mods & KMOD_ALT) {
+        if (mod.length())
+            mod += "+";
+        mod += "alt";
+        _mod = K_MOD_ALT | _mod;
+    }
+    if (mods & KMOD_GUI) {
+        if (mod.length())
+            mod += "+";
+        mod += "cmd";
+        _mod = K_MOD_GUI | _mod;
+    }
+    keyMods = _mod;
+    return mod;
+}
+
+static Renderer theRenderer;
+
+Renderer* Renderer::instance()
+{
+    return &theRenderer;
+}
+
+void Renderer::init()
 {
     printf("initialize\n");
 
@@ -190,109 +177,306 @@ void ren_init()
 
     _create_cairo_context(width, height);
     shouldEnd = false;
+
+    // rencache_init();
+    update_colors();
 }
 
-void ren_shutdown()
+void Renderer::shutdown()
 {
-    ren_destroy_images();
-    ren_destroy_fonts();
+    // rencache_shutdown();
+
+    destroy_images();
+    destroy_fonts();
 
     SDL_Quit();
     printf("shutdown\n");
 }
 
-std::vector<RenImage*> context_stack;
-void _set_context_from_stack()
+void Renderer::show_debug(bool enable)
 {
-    RenImage* target = context_stack.size() > 0 ? context_stack.back() : 0;
-    if (target) {
-        target_buffer = target;
-        cairo_context = target->cairo_context;
-    } else {
-        target_buffer = window_buffer;
-        cairo_context = window_buffer->cairo_context;
-    }
 }
 
-uint32_t totalFrameTicks = 0;
-uint32_t totalFrames = 0;
-uint32_t startTicks;
-uint64_t startPerf;
-
-void ren_performance_begin()
-{
-    totalFrames++;
-    startTicks = SDL_GetTicks();
-    startPerf = SDL_GetPerformanceCounter();
-}
-
-void ren_performance_end()
-{
-    uint32_t endTicks = SDL_GetTicks();
-    uint64_t endPerf = SDL_GetPerformanceCounter();
-    uint64_t framePerf = endPerf - startPerf;
-    float frameTime = (endTicks - startTicks) / 1000.0f;
-    totalFrameTicks += endTicks - startTicks;
-
-    std::string fps = "Current FPS: " + std::to_string(1.0f / frameTime);
-    std::string avg = "Average FPS: " + std::to_string(1000.0f / ((float)totalFrameTicks / totalFrames));
-    std::string perf = "Current Perf: " + std::to_string(framePerf);
-
-    // ren_draw_text(NULL, fps.c_str(), 4, 4, { 255,255,255 });
-
-    printf("-----------\n");
-    printf("%s\n", fps.c_str());
-    printf("%s\n", avg.c_str());
-    printf("%s\n", perf.c_str());
-}
-
-void ren_begin_frame(RenImage* target)
-{
-    context_stack.push_back(target);
-    _set_context_from_stack();
-    ren_rendered = 0;
-    // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
-}
-
-void _blit_to_window()
-{
-    SDL_Surface* window_surface = SDL_GetWindowSurface(window);
-    SDL_BlitSurface(target_buffer->sdl_surface, nullptr, window_surface, nullptr);
-
-    if (update_rects_count) {
-        SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)update_rects, update_rects_count);
-        update_rects_count = 0;
-    }
-
-    SDL_UpdateWindowSurface(window);
-}
-
-void ren_end_frame()
-{
-    _set_context_from_stack();
-
-    if (target_buffer == window_buffer) {
-        if (_state != 0) {
-            printf("warning: states stack at %d\n", _state);
-        }
-        _blit_to_window();
-    }
-
-    context_stack.pop_back();
-    _set_context_from_stack();
-}
-
-void ren_quit()
+void Renderer::quit()
 {
     shouldEnd = true;
 }
 
-bool ren_is_running()
+bool Renderer::is_running()
 {
     return !shouldEnd;
 }
 
-void ren_draw_image(RenImage* image, RenRect rect, RenColor clr)
+void Renderer::get_window_size(int* w, int* h)
+{
+    *w = window_buffer->width;
+    *h = window_buffer->height;
+}
+
+void Renderer::listen_events(event_list* events)
+{
+    {
+        events->clear();
+
+        SDL_Event e;
+
+        if (is_throttle_up()) {
+            if (!SDL_PollEvent(&e)) {
+                return;
+            }
+        } else {
+            if (!SDL_WaitEvent(&e)) {
+                SDL_Delay(50);
+                return;
+            }
+        }
+
+        if (e.type != SDL_MOUSEMOTION && e.button.button == 0) {
+            throttle_up(4); // because we'll animate
+        }
+
+        switch (e.type) {
+        case SDL_QUIT:
+            shouldEnd = true;
+            return;
+
+        case SDL_MOUSEBUTTONDOWN:
+            events->push_back({
+                type : EVT_MOUSE_DOWN,
+                x : e.button.x,
+                y : e.button.y,
+                button : e.button.button,
+                clicks : e.button.clicks
+            });
+            return;
+
+        case SDL_MOUSEBUTTONUP:
+            events->push_back({
+                type : EVT_MOUSE_UP,
+                x : e.button.x,
+                y : e.button.y,
+                button : e.button.button
+            });
+            return;
+
+        case SDL_MOUSEMOTION:
+            events->push_back({
+                type : EVT_MOUSE_MOTION,
+                x : e.motion.x,
+                y : e.motion.y,
+                button : e.button.button
+            });
+            return;
+
+        case SDL_MOUSEWHEEL:
+            events->push_back({
+                type : EVT_MOUSE_WHEEL,
+                x : e.wheel.x,
+                y : e.wheel.y
+            });
+
+            throttle_up(24);
+            return;
+
+        case SDL_KEYUP:
+            to_mods(e.key.keysym.mod);
+            events->push_back({
+                type : EVT_KEY_UP,
+                key : e.key.keysym.sym,
+                mod : keyMods
+            });
+
+            return;
+
+        case SDL_KEYDOWN: {
+            std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
+            std::string mod = to_mods(e.key.keysym.mod);
+
+            // printf("%s : %s\n",
+            //      SDL_GetScancodeName(e.key.keysym.scancode),
+            //      SDL_GetKeyName(e.key.keysym.sym));
+
+            std::transform(keySequence.begin(), keySequence.end(), keySequence.begin(),
+                [](unsigned char c) { return std::tolower(c); });
+
+            if (keySequence.length() && mod.length()) {
+                keySequence = mod + "+" + keySequence;
+            }
+
+            if (keySequence.length() > 1) {
+                events->push_back({
+                    type : EVT_KEY_SEQUENCE,
+                    text : keySequence
+                });
+
+                if (keySequence == "ctrl+q") {
+                    quit();
+                }
+                return;
+            }
+
+            events->push_back({
+                type : EVT_KEY_DOWN,
+                key : e.key.keysym.sym,
+                mod : keyMods
+            });
+
+            return;
+        }
+        case SDL_TEXTINPUT:
+            events->push_back({
+                type : EVT_KEY_TEXT,
+                text : e.text.text
+            });
+            return;
+
+        case SDL_WINDOWEVENT:
+            if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                if (e.window.data1 && e.window.data2) {
+                    event_t evt = {
+                        type : EVT_WINDOW_RESIZE,
+                        w : e.window.data1,
+                        h : e.window.data2
+                    };
+                    window_buffer->width = evt.w;
+                    window_buffer->height = evt.h;
+                    _create_cairo_context(evt.w, evt.h);
+                    events->push_back(evt);
+                }
+            }
+            if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                SDL_FlushEvent(SDL_KEYDOWN);
+            }
+            return;
+        }
+    }
+}
+
+void Renderer::throttle_up(int frames)
+{
+    throttle_up_frames = frames;
+}
+
+bool Renderer::is_throttle_up()
+{
+    if (throttle_up_frames > 0) {
+        throttle_up_frames--;
+        return true;
+    }
+    return false;
+}
+
+int Renderer::key_mods()
+{
+    return keyMods;
+}
+
+RenImage* Renderer::create_image(int w, int h)
+{
+    RenImage* img = new RenImage();
+    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, w);
+    img->buffer = (uint8_t*)malloc(stride * h);
+    memset(img->buffer, 0, stride * h);
+    img->width = w;
+    img->height = h;
+    img->sdl_surface = SDL_CreateRGBSurfaceFrom(img->buffer, w, h, 32, stride, 0xFF0000, 0xFF00, 0xFF, 0xFF000000);
+    img->cairo_surface = cairo_image_surface_create_for_data(img->buffer, CAIRO_FORMAT_ARGB32, w, h, stride);
+    img->cairo_context = cairo_create(img->cairo_surface);
+    img->pattern = cairo_pattern_create_for_surface(img->cairo_surface);
+    images.push_back(img);
+    return img;
+}
+
+RenImage* Renderer::create_image_from_svg(char* filename, int w, int h)
+{
+    for (auto img : images) {
+        if (img->path == filename) {
+            return img;
+        }
+    }
+
+    RenImage* img = create_image(w, h);
+    img->path = filename;
+
+    RsvgHandle* svg = rsvg_handle_new_from_file(filename, 0);
+    if (svg) {
+        rsvg_handle_render_cairo(svg, img->cairo_context);
+        rsvg_handle_free(svg);
+    }
+    return img;
+}
+
+RenImage* Renderer::create_image_from_png(char* filename, int w, int h)
+{
+    return 0;
+}
+
+void Renderer::destroy_image(RenImage* img)
+{
+    std::vector<RenImage*>::iterator it = std::find(images.begin(), images.end(), img);
+    if (it != images.end()) {
+        images.erase(it);
+        cairo_pattern_destroy(img->pattern);
+        cairo_surface_destroy(img->cairo_surface);
+        cairo_destroy(img->cairo_context);
+        free(img->buffer);
+        SDL_FreeSurface(img->sdl_surface);
+        delete img;
+    }
+}
+
+void Renderer::destroy_images()
+{
+    std::vector<RenImage*> _images = images;
+    for (auto img : _images) {
+        destroy_image(img);
+    }
+}
+
+void Renderer::image_size(RenImage* image, int* w, int* h)
+{
+    *w = image->width;
+    *h = image->height;
+}
+
+void Renderer::save_image(RenImage* image, char* filename)
+{
+    cairo_surface_write_to_png(image->cairo_surface, filename);
+}
+
+RenFont* Renderer::get_default_font()
+{
+    return default_font;
+}
+
+void Renderer::set_default_font(RenFont* font)
+{
+    default_font = font;
+}
+
+void Renderer::update_rects(RenRect* rects, int count)
+{
+    ::update_rects = rects;
+    update_rects_count = count;
+}
+
+void Renderer::set_clip_rect(RenRect rect)
+{
+    cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
+    cairo_clip(cairo_context);
+}
+
+void Renderer::invalidate_rect(RenRect rect)
+{
+    // cache
+}
+
+void Renderer::invalidate()
+{
+    // cache
+}
+
+void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
     ren_rendered++;
     cairo_save(cairo_context);
@@ -318,7 +502,7 @@ void ren_draw_image(RenImage* image, RenRect rect, RenColor clr)
     cairo_restore(cairo_context);
 }
 
-void ren_draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
+void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
 {
     ren_rendered++;
     double border = (double)stroke / 2;
@@ -356,423 +540,6 @@ void ren_draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
     }
 }
 
-static bool is_firable(char c)
-{
-    const char firs[] = "<>-=!:+|_&";
-    for (int i = 0; firs[i] != 0; i++) {
-        if (firs[i] == c)
-            return true;
-    }
-    return false;
-}
-
-void ren_update_rects(RenRect* rects, int count)
-{
-    update_rects = rects;
-    update_rects_count = count;
-}
-
-void ren_set_clip_rect(RenRect rect)
-{
-    cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
-    cairo_clip(cairo_context);
-}
-
-void ren_state_save()
-{
-    cairo_save(cairo_context);
-    _state++;
-}
-
-void ren_state_restore()
-{
-    cairo_restore(cairo_context);
-    _state--;
-}
-
-void ren_throttle_up(int frames)
-{
-    throttle_up_frames = frames;
-}
-
-bool ren_is_throttle_up()
-{
-    if (throttle_up_frames > 0) {
-        throttle_up_frames--;
-        return true;
-    }
-    return false;
-}
-
-std::string to_mods(int mods)
-{
-    std::string mod;
-    int _mod = 0;
-    if (mods & KMOD_CTRL) {
-        mod = "ctrl";
-        _mod = K_MOD_CTRL;
-    }
-    if (mods & KMOD_SHIFT) {
-        if (mod.length())
-            mod += "+";
-        mod += "shift";
-        _mod = K_MOD_SHIFT | _mod;
-    }
-    if (mods & KMOD_ALT) {
-        if (mod.length())
-            mod += "+";
-        mod += "alt";
-        _mod = K_MOD_ALT | _mod;
-    }
-    if (mods & KMOD_GUI) {
-        if (mod.length())
-            mod += "+";
-        mod += "cmd";
-        _mod = K_MOD_GUI | _mod;
-    }
-    keyMods = _mod;
-    return mod;
-}
-void ren_listen_events(event_list* events)
-{
-    events->clear();
-
-    SDL_Event e;
-
-    if (ren_is_throttle_up()) {
-        if (!SDL_PollEvent(&e)) {
-            return;
-        }
-    } else {
-        if (!SDL_WaitEvent(&e)) {
-            SDL_Delay(50);
-            return;
-        }
-    }
-
-    if (e.type != SDL_MOUSEMOTION && e.button.button == 0) {
-        ren_throttle_up(4); // because we'll animate
-    }
-
-    switch (e.type) {
-    case SDL_QUIT:
-        shouldEnd = true;
-        return;
-
-    case SDL_MOUSEBUTTONDOWN:
-        events->push_back({
-            type : EVT_MOUSE_DOWN,
-            x : e.button.x,
-            y : e.button.y,
-            button : e.button.button,
-            clicks : e.button.clicks
-        });
-        return;
-
-    case SDL_MOUSEBUTTONUP:
-        events->push_back({
-            type : EVT_MOUSE_UP,
-            x : e.button.x,
-            y : e.button.y,
-            button : e.button.button
-        });
-        return;
-
-    case SDL_MOUSEMOTION:
-        events->push_back({
-            type : EVT_MOUSE_MOTION,
-            x : e.motion.x,
-            y : e.motion.y,
-            button : e.button.button
-        });
-        return;
-
-    case SDL_MOUSEWHEEL:
-        events->push_back({
-            type : EVT_MOUSE_WHEEL,
-            x : e.wheel.x,
-            y : e.wheel.y
-        });
-
-        ren_throttle_up(24);
-        return;
-
-    case SDL_KEYUP:
-        to_mods(e.key.keysym.mod);
-        events->push_back({
-            type : EVT_KEY_UP,
-            key : e.key.keysym.sym,
-            mod : keyMods
-        });
-
-        return;
-
-    case SDL_KEYDOWN: {
-        std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
-        std::string mod = to_mods(e.key.keysym.mod);
-
-        // printf("%s : %s\n",
-        //      SDL_GetScancodeName(e.key.keysym.scancode),
-        //      SDL_GetKeyName(e.key.keysym.sym));
-
-        std::transform(keySequence.begin(), keySequence.end(), keySequence.begin(),
-            [](unsigned char c) { return std::tolower(c); });
-
-        if (keySequence.length() && mod.length()) {
-            keySequence = mod + "+" + keySequence;
-        }
-
-        if (keySequence.length() > 1) {
-            events->push_back({
-                type : EVT_KEY_SEQUENCE,
-                text : keySequence
-            });
-
-            if (keySequence == "ctrl+q") {
-                ren_quit();
-            }
-            return;
-        }
-
-        events->push_back({
-            type : EVT_KEY_DOWN,
-            key : e.key.keysym.sym,
-            mod : keyMods
-        });
-
-        return;
-    }
-    case SDL_TEXTINPUT:
-        events->push_back({
-            type : EVT_KEY_TEXT,
-            text : e.text.text
-        });
-        return;
-
-    case SDL_WINDOWEVENT:
-        if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-            if (e.window.data1 && e.window.data2) {
-                event_t evt = {
-                    type : EVT_WINDOW_RESIZE,
-                    w : e.window.data1,
-                    h : e.window.data2
-                };
-                window_buffer->width = evt.w;
-                window_buffer->height = evt.h;
-                _create_cairo_context(evt.w, evt.h);
-                events->push_back(evt);
-            }
-        }
-        if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-            SDL_FlushEvent(SDL_KEYDOWN);
-        }
-        return;
-    }
-}
-
-std::string ren_get_clipboard()
-{
-    if (!SDL_HasClipboardText()) {
-        return "";
-    }
-    std::string res = SDL_GetClipboardText();
-    ;
-    return res;
-}
-
-void ren_set_clipboard(std::string text)
-{
-    SDL_SetClipboardText(text.c_str());
-}
-
-std::vector<uint32_t> timer_begins;
-void ren_timer_begin()
-{
-    timer_begins.push_back(SDL_GetTicks());
-}
-
-uint32_t ren_timer_end()
-{
-    uint32_t timer_end = SDL_GetTicks();
-    uint32_t timer_begin = timer_begins.back();
-    timer_begins.pop_back();
-    return timer_end - timer_begin;
-}
-
-int ren_key_mods()
-{
-    return keyMods;
-}
-
-static Renderer theRenderer;
-
-Renderer* Renderer::instance()
-{
-    return &theRenderer;
-}
-
-void Renderer::init()
-{
-    ren_init();
-    rencache_init();
-    update_colors();
-}
-
-void Renderer::shutdown()
-{
-    rencache_shutdown();
-    ren_shutdown();
-}
-
-void Renderer::show_debug(bool enable)
-{
-}
-
-void Renderer::quit()
-{
-    ren_quit();
-}
-
-bool Renderer::is_running()
-{
-    return ren_is_running();
-}
-
-void Renderer::get_window_size(int* w, int* h)
-{
-    ren_get_window_size(w, h);
-}
-
-void Renderer::listen_events(event_list* events)
-{
-    ren_listen_events(events);
-}
-
-void Renderer::throttle_up(int frames)
-{
-    ren_throttle_up(frames);
-}
-
-bool Renderer::is_throttle_up()
-{
-    return ren_is_throttle_up();
-}
-
-int Renderer::key_mods()
-{
-    return ren_key_mods();
-}
-
-RenImage* Renderer::create_image(int w, int h)
-{
-    return ren_create_image(w, h);
-}
-
-RenImage* Renderer::create_image_from_svg(char* filename, int w, int h)
-{
-    return ren_create_image_from_svg(filename, w, h);
-}
-
-RenImage* Renderer::create_image_from_png(char* filename, int w, int h)
-{
-    return 0;
-}
-
-void Renderer::destroy_image(RenImage* image)
-{
-    ren_destroy_image(image);
-}
-
-void Renderer::destroy_images()
-{
-    ren_destroy_images();
-}
-
-void Renderer::image_size(RenImage* image, int* w, int* h)
-{
-    ren_image_size(image, w, h);
-}
-
-void Renderer::save_image(RenImage* image, char* filename)
-{
-    ren_save_image(image, filename);
-}
-
-void Renderer::register_font(char* path)
-{
-    ren_register_font(path);
-}
-
-RenFont* Renderer::create_font(char* font_desc, char* alias)
-{
-    return ren_create_font(font_desc, alias);
-}
-
-RenFont* Renderer::font(char* alias)
-{
-    return ren_font(alias);
-}
-
-void Renderer::destroy_font(RenFont* font)
-{
-    ren_destroy_font(font);
-}
-
-void Renderer::destroy_fonts()
-{
-    ren_destroy_fonts();
-}
-
-RenFont* Renderer::get_default_font()
-{
-    return ren_get_default_font();
-}
-
-void Renderer::set_default_font(RenFont* font)
-{
-    ren_set_default_font(font);
-}
-
-void Renderer::get_font_extents(RenFont* font, int* w, int* h, const char* text, int len)
-{
-    ren_get_font_extents(font, w, h, text, len);
-}
-
-void Renderer::update_rects(RenRect* rects, int count)
-{
-    ren_update_rects(rects, count);
-}
-
-void Renderer::set_clip_rect(RenRect rect)
-{
-    ren_set_clip_rect(rect);
-}
-
-void Renderer::invalidate_rect(RenRect rect)
-{
-    // cache
-}
-
-void Renderer::invalidate()
-{
-    // cache
-}
-
-void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
-{
-    ren_draw_image(image, rect, clr);
-}
-
-void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int radius)
-{
-    ren_draw_rect(rect, clr, fill, stroke, radius);
-}
-
-int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
-{
-    return ren_draw_text(font, text, x, y, clr, bold, italic);
-}
-
 int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor color, bool bold, bool italic)
 {
     return 0;
@@ -784,22 +551,37 @@ void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
         update_colors();
     }
 
-    ren_begin_frame(image);
+    context_stack.push_back(image);
+    _set_context_from_stack();
+    ren_rendered = 0;
+    // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
 }
 
 void Renderer::end_frame()
 {
-    ren_end_frame();
+    _set_context_from_stack();
+
+    if (target_buffer == window_buffer) {
+        if (_state != 0) {
+            printf("warning: states stack at %d\n", _state);
+        }
+        _blit_to_window();
+    }
+
+    context_stack.pop_back();
+    _set_context_from_stack();
 }
 
 void Renderer::state_save()
 {
-    ren_state_save();
+    cairo_save(cairo_context);
+    _state++;
 }
 
 void Renderer::state_restore()
 {
-    ren_state_restore();
+    cairo_restore(cairo_context);
+    _state--;
 }
 
 int Renderer::draw_count()
@@ -809,12 +591,17 @@ int Renderer::draw_count()
 
 std::string Renderer::get_clipboard()
 {
-    return ren_get_clipboard();
+    if (!SDL_HasClipboardText()) {
+        return "";
+    }
+    std::string res = SDL_GetClipboardText();
+    ;
+    return res;
 }
 
 void Renderer::set_clipboard(std::string text)
 {
-    ren_set_clipboard(text);
+    SDL_SetClipboardText(text.c_str());
 }
 
 bool Renderer::is_terminal()

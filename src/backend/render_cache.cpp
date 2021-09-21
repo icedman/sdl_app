@@ -1,5 +1,4 @@
 #include "render_cache.h"
-#include "render_sdl.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -211,7 +210,7 @@ int rencache_draw_text(RenFont* font, const char* text, int x, int y, RenColor c
         return 0;
     }
     int fw, fh;
-    ren_get_font_extents(font, &fw, &fh, text, strlen(text));
+    Renderer::instance()->get_font_extents(font, &fw, &fh, text, strlen(text));
     RenRect rect;
     rect.x = x;
     rect.y = y;
@@ -257,7 +256,7 @@ void rencache_begin_frame(int w, int h, RenCache* target)
         rencache_invalidate();
     }
 
-    ren_state_save();
+    Renderer::instance()->state_save();
 }
 
 static void update_overlapping_cells(RenRect r, unsigned h)
@@ -338,7 +337,7 @@ void rencache_end_frame(void)
     for (int i = 0; i < rect_count; i++) {
         /* draw */
         RenRect r = cache->rect_buf[i];
-        ren_set_clip_rect(r);
+        Renderer::instance()->set_clip_rect(r);
 
         cmd = NULL;
         while (next_command(&cmd)) {
@@ -347,27 +346,27 @@ void rencache_end_frame(void)
                 has_free_commands = true;
                 break;
             case SET_CLIP:
-                ren_set_clip_rect(intersect_rects(cmd->rect, r));
+                Renderer::instance()->set_clip_rect(intersect_rects(cmd->rect, r));
                 break;
             case DRAW_IMAGE:
-                ren_draw_image((RenImage*)cmd->font, cmd->rect, cmd->color);
+                Renderer::instance()->draw_image((RenImage*)cmd->font, cmd->rect, cmd->color);
             case DRAW_RECT: {
                 bool fill = cmd->bold;
                 int stroke = cmd->italic >> 0xf;
                 int radius = cmd->italic & 0xf;
                 if (cmd->bold || cmd->italic) {
-                    ren_draw_rect(cmd->rect, cmd->color, fill, stroke, radius);
+                    Renderer::instance()->draw_rect(cmd->rect, cmd->color, fill, stroke, radius);
                 }
                 break;
             }
             case DRAW_TEXT:
-                ren_draw_text((RenFont*)cmd->font, cmd->text, cmd->rect.x, cmd->rect.y, cmd->color, cmd->bold, cmd->italic);
+                Renderer::instance()->draw_text((RenFont*)cmd->font, cmd->text, cmd->rect.x, cmd->rect.y, cmd->color, cmd->bold, cmd->italic);
                 break;
             case SAVE_STATE:
-                ren_state_save();
+                Renderer::instance()->state_save();
                 break;
             case RESTORE_STATE:
-                ren_state_restore();
+                Renderer::instance()->state_restore();
                 break;
             }
         }
@@ -375,13 +374,13 @@ void rencache_end_frame(void)
         if (cache->show_debug) {
             // RenColor color = { (uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand(), 50 };
             RenColor color = { 255, 255, 0, 50 };
-            ren_draw_rect(r, color, false, 4.0f);
+            Renderer::instance()->draw_rect(r, color, false, 4.0f);
         }
     }
 
     /* update dirty rects */
     if (rect_count > 0) {
-        ren_update_rects(cache->rect_buf, rect_count);
+        Renderer::instance()->update_rects(cache->rect_buf, rect_count);
     }
 
     /* free fonts */
@@ -389,7 +388,7 @@ void rencache_end_frame(void)
         cmd = NULL;
         while (next_command(&cmd)) {
             if (cmd->type == FREE_FONT) {
-                ren_destroy_font((RenFont*)cmd->font);
+                Renderer::instance()->destroy_font((RenFont*)cmd->font);
             }
         }
     }
@@ -400,7 +399,7 @@ void rencache_end_frame(void)
     cache->cells_prev = tmp;
     cache->command_buf_idx = 0;
 
-    ren_state_restore();
+    Renderer::instance()->state_restore();
 }
 
 void rencache_init()

@@ -110,11 +110,11 @@ void minimap_view::render()
 
         blockdata_t* blockData = block->data.get();
 
-        if (!blockData && hl++ < 2) {
-            editor->highlight(block->lineNumber, 4);
-            blockData = block->data.get();
-            Renderer::instance()->throttle_up();
-        }
+        // if (!blockData && hl++ < 2) {
+        //     editor->highlight(block->lineNumber, 4);
+        //     blockData = block->data.get();
+        //     Renderer::instance()->throttle_up();
+        // }
 
         if (!blockData || blockData->dirty) {
             RenRect r = {

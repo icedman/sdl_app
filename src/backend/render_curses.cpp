@@ -762,6 +762,46 @@ static const char* utf8_to_codepoint(const char* p, unsigned* dst)
     return p + 1;
 }
 
+int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic)
+{
+    int clr_index = clr.a ? clr.a : -1;
+
+    if (bold) {
+        attron(A_BOLD);
+    }
+
+    wchar_t* p = (wchar_t*)text;
+
+    int pair = 0;
+    int i = 0;
+    while (*p) {
+        if (is_clipped(x + i, y)) {
+            p++;
+            i++;
+            continue;
+        }
+
+        move(y, x + i);
+        int bg = background_colors[x + i + y * bg_w];
+        pair = pair_for_colors(clr_index, bg ? bg : -1);
+        attron(COLOR_PAIR(pair));
+
+        wchar_t s[2] = { *p, 0 };
+        addwstr(s);
+
+        attroff(COLOR_PAIR(pair));
+
+        p++;
+        i++;
+    }
+
+    attroff(A_UNDERLINE);
+    attroff(A_BOLD);
+
+    // app_t::log(">%d %d %s", clr.a, pair, text);
+    return 0;
+}
+
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
 {
     int clr_index = clr.a ? clr.a : -1;
@@ -770,11 +810,11 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
         attron(A_BOLD);
     }
 
-    char *p = (char*)text;
+    char* p = (char*)text;
 
     int pair = 0;
     int i = 0;
-    while(*p) {
+    while (*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
 
@@ -787,10 +827,12 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
         int bg = background_colors[x + i + y * bg_w];
         pair = pair_for_colors(clr_index, bg ? bg : -1);
         attron(COLOR_PAIR(pair));
-        
+
         // addch(text[i]);
         wchar_t s[2] = { cp, 0 };
-        addwstr(s);
+        // addwstr(s);
+
+        addch(cp & 0xff);
 
         attroff(COLOR_PAIR(pair));
         i++;

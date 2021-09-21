@@ -63,6 +63,7 @@ struct Renderer {
     void draw_image(RenImage* image, RenRect rect, RenColor clr = { 255, 255, 255, 255 });
     void draw_rect(RenRect rect, RenColor color, bool fill = true, int stroke = 1, int radius = 0);
     int draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold = false, bool italic = false);
+    int draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor color, bool bold = false, bool italic = false);
     int draw_char(RenFont* font, char ch, int x, int y, RenColor color, bool bold = false, bool italic = false);
     void invalidate();
     void begin_frame(RenImage* image = 0, int w = 0, int h = 0, RenCache* cache = 0);

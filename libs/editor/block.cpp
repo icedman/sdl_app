@@ -90,36 +90,76 @@ std::string block_t::text()
     return "";
 }
 
+std::wstring block_t::wide_text()
+{
+    if (dirty) {
+        return wcontent;
+    }
+
+    if (file) {
+        file->seekg(filePosition, file->beg);
+        size_t pos = file->tellg();
+        std::string line;
+        if (std::getline(*file, line)) {
+            return std::wstring(line.begin(), line.end());
+        }
+    }
+
+    return L"";
+}
+
+std::string block_t::utf8_text()
+{
+    if (dirty) {
+        return content;
+    }
+
+    if (file) {
+        file->seekg(filePosition, file->beg);
+        size_t pos = file->tellg();
+        std::string line;
+        if (std::getline(*file, line)) {
+            return line;
+        }
+    }
+
+    return "";
+}
+
 void block_t::setText(std::string t)
 {
-    if (content.length() && hasUnicode) return; // not yet supported
-
     dirty = true;
-    content = t;
+    
+    content = "";
+    wcontent = L"";
+
     if (data) {
         data->dirty = true;
         // if (data->folded && data->foldable) {
         //     document->editor->toggleFold(lineNumber);
         // }
     }
+
+    char *p = (char*)t.c_str();
+    while(*p) {
+        unsigned cp;
+        p = (char*)utf8_to_codepoint(p, &cp);
+
+        char ch = cp < 0xff ? cp : '?';
+        content += ch;
+
+        wchar_t wc[2] = { cp, 0 };
+        wcontent += wc;
+    }
+
+    content += "\n";
     cachedLength = 0;
 }
 
 size_t block_t::length()
 {
     if (cachedLength == 0) {
-        cachedLength = text().length() + 1;
-        int l = 1;
-        std::string tmp = text();
-        char *p = (char*)(tmp.c_str());
-        while(*p) {
-            unsigned cp;
-            char *_p = (char*)utf8_to_codepoint(p, &cp);
-            l ++;
-            p = _p;
-        }
-
-        hasUnicode = (l != cachedLength);
+        cachedLength = wcontent.length() + 1;
     }
     return cachedLength;
 }

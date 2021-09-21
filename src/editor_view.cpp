@@ -184,6 +184,9 @@ void editor_view::render()
         std::string text = block->text() + " \n";
         const char* line = text.c_str();
 
+        std::wstring wtext = block->wide_text() + L" \n";
+        const wchar_t* wline = wtext.c_str();
+
         // wrap
         blockData->rendered_spans = blockData->spans;
         if (wrap && text.length() > cols) {
@@ -228,6 +231,7 @@ void editor_view::render()
             color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
 
             std::string span_text = text.substr(s.start, s.length);
+            std::wstring span_wtext = wtext.substr(s.start, s.length);
 
             if (linc < s.line) {
                 linc = s.line;
@@ -323,13 +327,12 @@ void editor_view::render()
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
 #endif
 
-            Renderer::instance()->draw_text(_font, (char*)span_text.c_str(),
+            Renderer::instance()->draw_wtext(_font, (wchar_t*)span_wtext.c_str(),
                 s.x,
                 s.y,
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
                     (uint8_t)(Renderer::instance()->is_terminal() ? clr.index : 255) },
                 s.bold, s.italic);
-
         }
 
         l++;

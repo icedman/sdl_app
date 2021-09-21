@@ -119,12 +119,12 @@ bool panel_view::mouse_wheel(int x, int y)
 
     _validate();
 
-    int hi = 1.1f*-area->layout()->scroll_x;
+    int hi = 1.1f * -area->layout()->scroll_x;
     if (hi < 0)
         hi = 0;
     hs->set_index(hi);
 
-    int vi = 1.1f*-area->layout()->scroll_y;
+    int vi = 1.1f * -area->layout()->scroll_y;
     if (vi < 0)
         vi = 0;
     vs->set_index(vi);

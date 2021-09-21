@@ -194,7 +194,6 @@ void view_item::render()
                   lo->render_rect.h },
         { color.r, color.g, color.b, color.a }, false, 1, 0);
 #endif
-
 }
 
 int view_item::on(event_type_e event_type, event_callback_t callback)

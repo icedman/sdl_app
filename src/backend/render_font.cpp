@@ -1,5 +1,4 @@
-#include "render_font.h"
-#include "render_sdl.h"
+#include "renderer.h"
 
 #include <cairo.h>
 #include <fontconfig/fontconfig.h>
@@ -7,9 +6,9 @@
 #include <pango/pangocairo.h>
 
 #include <algorithm>
+#include <iostream>
 #include <map>
 #include <vector>
-#include <iostream>
 
 #define MAX_GLYPHSET 256
 
@@ -46,6 +45,10 @@ struct RenFont {
 
     std::string desc;
     std::string alias;
+
+    PangoFontMap* font_map;
+    PangoContext* context;
+    PangoLayout* layout;
 };
 
 std::vector<RenFont*> fonts;
@@ -83,14 +86,14 @@ static const char* utf8_to_codepoint(const char* p, unsigned* dst)
     return p + 1;
 }
 
-void _ren_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
+void ren_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
 {
     pango_layout_set_attributes(layout, nullptr);
     pango_layout_set_text(layout, text, len);
     pango_layout_get_pixel_size(layout, w, h);
 }
 
-RenFont* ren_create_font(char* fdsc, char* alias)
+RenFont* Renderer::create_font(char* fdsc, char* alias)
 {
     for (auto fnt : fonts) {
         if (fnt->alias == alias) {
@@ -102,9 +105,9 @@ RenFont* ren_create_font(char* fdsc, char* alias)
     }
 
     RenFont* fnt = new RenFont();
-    PangoFontMap* font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
-    PangoContext* context = pango_font_map_create_context(font_map);
-    PangoLayout* layout = pango_layout_new(context);
+    fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
+    fnt->context = pango_font_map_create_context(fnt->font_map);
+    fnt->layout = pango_layout_new(fnt->context);
     fnt->desc = fdsc;
     fnt->firable = true;
 
@@ -135,9 +138,9 @@ RenFont* ren_create_font(char* fdsc, char* alias)
         }
 
         PangoFontDescription* font_desc = pango_font_description_from_string(desc.c_str());
-        pango_layout_set_font_description(layout, nullptr);
-        pango_layout_set_font_description(layout, font_desc);
-        pango_font_map_load_font(font_map, context, font_desc);
+        pango_layout_set_font_description(fnt->layout, nullptr);
+        pango_layout_set_font_description(fnt->layout, font_desc);
+        pango_font_map_load_font(fnt->font_map, fnt->context, font_desc);
 
         pango_font_description_free(font_desc);
 
@@ -147,12 +150,12 @@ RenFont* ren_create_font(char* fdsc, char* alias)
         cairo_font_options_set_hint_style(cairo_font_options, CAIRO_HINT_STYLE_DEFAULT); // NONE DEFAULT SLIGHT MEDIUM FULL
         cairo_font_options_set_hint_metrics(cairo_font_options, CAIRO_HINT_METRICS_ON); // ON OFF
 
-        pango_cairo_context_set_font_options(context, cairo_font_options);
+        pango_cairo_context_set_font_options(fnt->context, cairo_font_options);
 
         if (i == 0) {
             const char text[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
             int len = strlen(text);
-            _ren_get_font_extents(layout, &fnt->font_width, &fnt->font_height, text, len);
+            ren_get_font_extents(fnt->layout, &fnt->font_width, &fnt->font_height, text, len);
             fnt->font_width = ((float)fnt->font_width / len);
             // printf(">>%d\n", fnt->font_width);
         }
@@ -185,19 +188,19 @@ RenFont* ren_create_font(char* fdsc, char* alias)
             }
 
             int _pl = strlen(_p);
-            _ren_get_font_extents(layout, &cw, &ch, _p, _pl);
+            ren_get_font_extents(fnt->layout, &cw, &ch, _p, _pl);
 
-            set[cp].image = ren_create_image(cw + 1, ch);
+            set[cp].image = Renderer::instance()->create_image(cw + 1, ch);
             set[cp].cw = cw;
             set[cp].ch = ch;
-            ren_begin_frame(set[cp].image);
+            Renderer::instance()->begin_frame(set[cp].image);
 
-            pango_layout_set_text(layout, _p, _pl);
+            pango_layout_set_text(fnt->layout, _p, _pl);
             cairo_set_source_rgb(ren_image_context(set[cp].image), 1, 1, 1);
             cairo_move_to(ren_image_context(set[cp].image), x, y);
-            pango_cairo_show_layout(ren_image_context(set[cp].image), layout);
+            pango_cairo_show_layout(ren_image_context(set[cp].image), fnt->layout);
 
-            ren_end_frame();
+            Renderer::instance()->end_frame();
         }
 
         break; // no bold/italic glyphs
@@ -209,22 +212,22 @@ RenFont* ren_create_font(char* fdsc, char* alias)
         font_alias[alias] = fnt;
     }
 
-    if (!ren_get_default_font()) {
-        ren_set_default_font(fnt);
+    if (!get_default_font()) {
+        set_default_font(fnt);
     }
     return fnt;
 }
 
-RenFont* ren_font(char* alias)
+RenFont* Renderer::font(char* alias)
 {
     RenFont* fnt = font_alias[alias];
     if (fnt) {
         return fnt;
     }
-    return ren_get_default_font();
+    return Renderer::instance()->get_default_font();
 }
 
-void ren_destroy_font(RenFont* font)
+void Renderer::destroy_font(RenFont* font)
 {
     std::vector<RenFont*>::iterator it = std::find(fonts.begin(), fonts.end(), font);
     if (it != fonts.end()) {
@@ -233,18 +236,18 @@ void ren_destroy_font(RenFont* font)
     }
 }
 
-void ren_destroy_fonts()
+void Renderer::destroy_fonts()
 {
     std::vector<RenFont*> _fonts = fonts;
     for (auto fnt : _fonts) {
-        ren_destroy_font(fnt);
+        destroy_font(fnt);
     }
 }
 
-void ren_get_font_extents(RenFont* font, int* w, int* h, const char* text, int len)
+void Renderer::get_font_extents(RenFont* font, int* w, int* h, const char* text, int len)
 {
     if (!font) {
-        font = ren_get_default_font();
+        font = Renderer::instance()->get_default_font();
     }
 
     *w = font->font_width * len;
@@ -258,7 +261,7 @@ static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor c
     cairo_t* cairo_context = ren_context();
 
     int w, h;
-    ren_image_size(image, &w, &h);
+    Renderer::instance()->image_size(image, &w, &h);
 
     cairo_save(cairo_context);
     cairo_translate(cairo_context, rect.x + (italic ? rect.width / 2 : 0), rect.y);
@@ -281,12 +284,55 @@ static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor c
     cairo_restore(cairo_context);
 }
 
-int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
+int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic)
 {
     ren_rendered++;
 
     if (!font) {
-        font = ren_get_default_font();
+        font = Renderer::instance()->get_default_font();
+    }
+    int length = wcslen(text);
+    bool shear = false;
+
+    cairo_t* cairo_context = ren_context();
+
+    GlyphSet* set = font->regular;
+
+    // if (italic) {
+    //     set = font->italic;
+    // }
+    // if (bold) {
+    //     set = font->bold;
+    // }
+
+    wchar_t* p = (wchar_t*)text;
+
+    int xx = 0;
+
+    int i = 0;
+    while (*p) {
+        int adv = 1;
+
+        clr.a = 0;
+
+        GlyphSet* glyph = &set[*p & 0xff];
+        if (glyph && glyph->image) {
+            ren_draw_char_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr, italic);
+        }
+
+        i += adv;
+        p++;
+    }
+
+    return x;
+}
+
+int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
+{
+    ren_rendered++;
+
+    if (!font) {
+        font = Renderer::instance()->get_default_font();
     }
     int length = strlen(text);
     bool shear = false;
@@ -302,13 +348,12 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     //     set = font->bold;
     // }
 
-    char *p = (char*)text;
-
+    char* p = (char*)text;
 
     int xx = 0;
 
     int i = 0;
-    while(*p) {
+    while (*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
 
@@ -346,7 +391,7 @@ int ren_draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, b
     return x;
 }
 
-void ren_register_font(char* path)
+void Renderer::register_font(char* path)
 {
     std::string fontPath = path;
     const FcChar8* file = (const FcChar8*)fontPath.c_str();

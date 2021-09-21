@@ -85,12 +85,15 @@ struct block_t {
     int lineHeight;
 
     std::string content;
+    std::wstring wcontent;
     std::ifstream* file;
     size_t filePosition;
     bool dirty;
-    bool hasUnicode;
 
     std::string text();
+    std::string utf8_text();
+    std::wstring wide_text();
+    
     void setText(std::string text);
     void print();
     size_t length();
