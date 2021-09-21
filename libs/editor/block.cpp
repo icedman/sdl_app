@@ -67,16 +67,7 @@ std::wstring block_t::wide_text()
     if (dirty) {
         return wcontent;
     }
-
-    if (file) {
-        file->seekg(filePosition, file->beg);
-        size_t pos = file->tellg();
-        std::string line;
-        if (std::getline(*file, line)) {
-            return std::wstring(line.begin(), line.end());
-        }
-    }
-
+    
     return L"";
 }
 

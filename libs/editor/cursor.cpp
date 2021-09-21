@@ -616,7 +616,16 @@ bool cursor_t::moveEndOfDocument(bool keepAnchor)
 
 bool cursor_t::insertText(std::string t)
 {
-    std::wstring wt = std::wstring(t.begin(), t.end());
+    std::wstring wt;
+
+    char *p = (char*)t.c_str();
+    while(*p) {
+        unsigned cp;
+        p = (char*)utf8_to_codepoint(p, &cp);
+        wchar_t wc[2] = { cp, 0 };
+        wt += wc;
+    }
+
     std::wstring blockText = block()->wide_text();
     if (blockText.length() > 0) {
         blockText.insert(cursor.position, wt);

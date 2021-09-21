@@ -510,6 +510,10 @@ void editor_t::runAllOps()
     char* _t = _s;
     char* p = _s;
 
+    if (inputBuffer.size()) {
+        app_t::instance()->setClipboard(inputBuffer);
+    }
+
     while (*p) {
         op.op = INSERT;
         op.params = "";
@@ -517,10 +521,11 @@ void editor_t::runAllOps()
         switch (*p) {
         case '\n': {
             if (p - _t > 0) {
-                op.params = std::string(_t, p-_t-1);
+                op.params = std::string(_t, p-_t);
+                printf("[%s]\n", op.params.c_str());
                 runOp(op);
-                _t = p+2;
                 p++;
+                _t = p;
             }
             op.op = ENTER;
             runOp(op);
@@ -528,10 +533,11 @@ void editor_t::runAllOps()
         }
         case '\t': {
             if (p - _t > 0) {
-                op.params = std::string(_t, p-_t-1);
+                op.params = std::string(_t, p-_t);
+                printf("[%s]\n", op.params.c_str());
                 runOp(op);
-                _t = p+2;
                 p++;
+                _t = p;
             }
             op.op = TAB;
             runOp(op);
@@ -547,6 +553,7 @@ void editor_t::runAllOps()
     if (p - _t > 0) {
         op.op = INSERT;
         op.params = std::string(_t, p-_t);
+        printf("[%s]\n", op.params.c_str());
         runOp(op);
     }
     inputBuffer = "";
