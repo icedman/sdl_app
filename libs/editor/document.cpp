@@ -229,7 +229,7 @@ void document_t::saveAs(const char* path, bool replacePath)
 {
     std::ofstream tmp(path, std::ofstream::out);
     for (auto b : blocks) {
-        std::string text = b->text();
+        std::string text = b->utf8_text();
         tmp << text << std::endl;
     }
 }

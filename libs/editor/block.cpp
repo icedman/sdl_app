@@ -2,6 +2,9 @@
 #include "document.h"
 #include "util.h"
 
+#include <codecvt>
+#include <locale>
+
 static size_t blocksCreated = 0;
 
 static const char* utf8_to_codepoint(const char* p, unsigned* dst)
@@ -110,15 +113,8 @@ std::wstring block_t::wide_text()
 
 std::string block_t::utf8_text()
 {
-    std::string res;
-    for(int i=0;i<cachedLength;i++) {
-        if (content[i] == 0xfe) {
-            res += wcontent[i];
-        } else {
-            res += content[i];
-        }
-    }
-    return res;
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+    return utf8_conv.to_bytes(wide_text().c_str());
 }
 
 void block_t::setText(std::string t)

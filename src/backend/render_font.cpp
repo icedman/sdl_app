@@ -88,46 +88,42 @@ static const char* utf8_to_codepoint(const char* p, unsigned* dst)
     return p + 1;
 }
 
-static int codepoint_to_utf8(uint32_t utf, char *out)
+static int codepoint_to_utf8(uint32_t utf, char* out)
 {
-  if (utf <= 0x7F) {
-    // Plain ASCII
-    out[0] = (char) utf;
-    out[1] = 0;
-    return 1;
-  }
-  else if (utf <= 0x07FF) {
-    // 2-byte unicode
-    out[0] = (char) (((utf >> 6) & 0x1F) | 0xC0);
-    out[1] = (char) (((utf >> 0) & 0x3F) | 0x80);
-    out[2] = 0;
-    return 2;
-  }
-  else if (utf <= 0xFFFF) {
-    // 3-byte unicode
-    out[0] = (char) (((utf >> 12) & 0x0F) | 0xE0);
-    out[1] = (char) (((utf >>  6) & 0x3F) | 0x80);
-    out[2] = (char) (((utf >>  0) & 0x3F) | 0x80);
-    out[3] = 0;
-    return 3;
-  }
-  else if (utf <= 0x10FFFF) {
-    // 4-byte unicode
-    out[0] = (char) (((utf >> 18) & 0x07) | 0xF0);
-    out[1] = (char) (((utf >> 12) & 0x3F) | 0x80);
-    out[2] = (char) (((utf >>  6) & 0x3F) | 0x80);
-    out[3] = (char) (((utf >>  0) & 0x3F) | 0x80);
-    out[4] = 0;
-    return 4;
-  }
-  else { 
-    // error - use replacement character
-    out[0] = (char) 0xEF;  
-    out[1] = (char) 0xBF;
-    out[2] = (char) 0xBD;
-    out[3] = 0;
-    return 0;
-  }
+    if (utf <= 0x7F) {
+        // Plain ASCII
+        out[0] = (char)utf;
+        out[1] = 0;
+        return 1;
+    } else if (utf <= 0x07FF) {
+        // 2-byte unicode
+        out[0] = (char)(((utf >> 6) & 0x1F) | 0xC0);
+        out[1] = (char)(((utf >> 0) & 0x3F) | 0x80);
+        out[2] = 0;
+        return 2;
+    } else if (utf <= 0xFFFF) {
+        // 3-byte unicode
+        out[0] = (char)(((utf >> 12) & 0x0F) | 0xE0);
+        out[1] = (char)(((utf >> 6) & 0x3F) | 0x80);
+        out[2] = (char)(((utf >> 0) & 0x3F) | 0x80);
+        out[3] = 0;
+        return 3;
+    } else if (utf <= 0x10FFFF) {
+        // 4-byte unicode
+        out[0] = (char)(((utf >> 18) & 0x07) | 0xF0);
+        out[1] = (char)(((utf >> 12) & 0x3F) | 0x80);
+        out[2] = (char)(((utf >> 6) & 0x3F) | 0x80);
+        out[3] = (char)(((utf >> 0) & 0x3F) | 0x80);
+        out[4] = 0;
+        return 4;
+    } else {
+        // error - use replacement character
+        out[0] = (char)0xEF;
+        out[1] = (char)0xBF;
+        out[2] = (char)0xBD;
+        out[3] = 0;
+        return 0;
+    }
 }
 
 void pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
@@ -137,12 +133,13 @@ void pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* tex
     pango_layout_get_pixel_size(layout, w, h);
 }
 
-GlyphSet bake_glyph(RenFont* fnt, char *c) {
+GlyphSet bake_glyph(RenFont* fnt, char* c)
+{
     int cw, ch;
     int x = 0;
     int y = 0;
 
-    char *_p = c;
+    char* _p = c;
     unsigned cp = 0;
     utf8_to_codepoint(_p, &cp);
 
@@ -239,7 +236,6 @@ RenFont* Renderer::create_font(char* fdsc, char* alias)
             char str[3] = { (char)i, 0, 0 };
             GlyphSet glyph = bake_glyph(fnt, str);
             set[glyph.cp & 0xff] = glyph;
-
         }
 
         break; // no bold/italic glyphs
@@ -353,18 +349,13 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
             if (glyph.cp != *p) {
                 char u[3];
                 codepoint_to_utf8(*p, u);
-                font->utf8[*p] = bake_glyph(font,u);
+                font->utf8[*p] = bake_glyph(font, u);
                 glyph = set[*p];
-            } 
+            }
         }
 
         if (glyph.cp == *p & 0xff && glyph.image) {
-            ren_draw_char_image(glyph.image, {
-                x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2) ,
-                y + (font->font_height / 2) - (glyph.ch / 2),
-                glyph.cw + 1,
-                glyph.ch
-            }, clr, italic);
+            ren_draw_char_image(glyph.image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2), y + (font->font_height / 2) - (glyph.ch / 2), glyph.cw + 1, glyph.ch }, clr, italic);
         }
 
         i++;
@@ -399,12 +390,7 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
         GlyphSet glyph = set[cp & 0xff];
         if (glyph.cp == cp & 0xff && glyph.image) {
-            ren_draw_char_image(glyph.image, {
-                x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2) ,
-                y + (font->font_height / 2) - (glyph.ch / 2),
-                glyph.cw + 1,
-                glyph.ch
-            }, clr, italic);
+            ren_draw_char_image(glyph.image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2), y + (font->font_height / 2) - (glyph.ch / 2), glyph.cw + 1, glyph.ch }, clr, italic);
         }
 
         i++;
