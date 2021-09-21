@@ -756,7 +756,10 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
         move(y, x + i);
         int bg = background_colors[x + i + y * bg_w];
-        pair = pair_for_colors(clr_index, bg ? bg : -1);
+        pair = pair_for_colors(clr_index, bg && bg!=clr_index ? bg : -1);
+        if (bg == clr_index) {
+            attron(A_REVERSE);
+        }
         attron(COLOR_PAIR(pair));
 
         wchar_t s[2] = { *p, 0 };
@@ -764,6 +767,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
             addwstr(s);
         }
 
+        attroff(A_REVERSE);
         attroff(COLOR_PAIR(pair));
 
         p++;
@@ -800,12 +804,18 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
         move(y, x + i);
         int bg = background_colors[x + i + y * bg_w];
-        pair = pair_for_colors(clr_index, bg ? bg : -1);
+        pair = pair_for_colors(clr_index, bg && bg!=clr_index ? bg : -1);
+        if (bg == clr_index) {
+            attron(A_REVERSE);
+        }
+
         attron(COLOR_PAIR(pair));
 
-        if (isprint(cp & 0xff))
+        if (isprint(cp & 0xff)) {
             addch(cp & 0xff);
+        }
 
+        attroff(A_REVERSE);
         attroff(COLOR_PAIR(pair));
         i++;
     }
@@ -872,11 +882,16 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
         return 0;
 
     int bg = background_colors[x + y * bg_w];
-    pair = pair_for_colors(clr_index, bg ? bg : -1);
+    pair = pair_for_colors(clr_index, bg && bg!=clr_index ? bg : -1);
+    if (bg == clr_index) {
+        attron(A_REVERSE);
+    }
+
     attron(COLOR_PAIR(pair));
     addch(_ch);
     attroff(COLOR_PAIR(pair));
 
+    attroff(A_REVERSE);
     attroff(A_UNDERLINE);
     attroff(A_BOLD);
 

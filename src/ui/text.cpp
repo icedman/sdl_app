@@ -1,7 +1,6 @@
 #include "text.h"
 #include "renderer.h"
-
-#include "../libs/editor/util.h"
+#include "style.h"
 
 text_view::text_view(std::string text)
     : view_item("text")
@@ -30,12 +29,13 @@ void text_view::prelayout()
 void text_view::render()
 {
     layout_item_ptr lo = layout();
+    view_style_t vs = view_style_get("explorer");
 
     if (!cache_enabled) {
         Renderer::instance()->draw_text(Renderer::instance()->font("ui-small"), (char*)text.c_str(),
             lo->render_rect.x + pad,
             lo->render_rect.y + pad + ((lo->render_rect.h - (pad * 2)) / 2) - (text_height / 2),
-            { 255, 255, 255 },
+            { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, vs.fg.index },
             false, false);
         return;
     }
@@ -56,7 +56,7 @@ void text_view::render()
     Renderer::instance()->draw_text(Renderer::instance()->font("ui-small"), (char*)text.c_str(),
         pad,
         pad + ((lo->render_rect.h - (pad * 2)) / 2) - (text_height / 2),
-        { 255, 255, 255 },
+        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue },
         false);
     Renderer::instance()->end_frame();
 

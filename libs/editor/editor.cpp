@@ -522,7 +522,6 @@ void editor_t::runAllOps()
         case '\n': {
             if (p - _t > 0) {
                 op.params = std::string(_t, p-_t);
-                printf("[%s]\n", op.params.c_str());
                 runOp(op);
                 p++;
                 _t = p;
@@ -534,7 +533,6 @@ void editor_t::runAllOps()
         case '\t': {
             if (p - _t > 0) {
                 op.params = std::string(_t, p-_t);
-                printf("[%s]\n", op.params.c_str());
                 runOp(op);
                 p++;
                 _t = p;
@@ -553,7 +551,6 @@ void editor_t::runAllOps()
     if (p - _t > 0) {
         op.op = INSERT;
         op.params = std::string(_t, p-_t);
-        printf("[%s]\n", op.params.c_str());
         runOp(op);
     }
     inputBuffer = "";

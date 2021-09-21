@@ -141,7 +141,6 @@ void editor_view::render()
         int lighted = editor->highlight(hl_start + i, 4);
         if (lighted > 0) {
             Renderer::instance()->throttle_up();
-            break;
         }
     }
 
