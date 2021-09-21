@@ -91,10 +91,11 @@ struct block_t {
     bool dirty;
 
     std::string text();
-    std::string utf8_text();
     std::wstring wide_text();
+    std::string utf8_text();
     
     void setText(std::string text);
+    void setWText(std::wstring text);
     void print();
     size_t length();
 

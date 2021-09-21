@@ -220,7 +220,7 @@ void document_t::save()
     std::string lineEnd = windowsLineEnd ? WINDOWS_LINE_END : LINUX_LINE_END;
     std::ofstream tmp(filePath, std::ofstream::out);
     for (auto b : blocks) {
-        std::string text = b->text();
+        std::string text = b->utf8_text();
         tmp << text << lineEnd;
     }
 }

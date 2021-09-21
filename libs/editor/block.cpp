@@ -110,20 +110,15 @@ std::wstring block_t::wide_text()
 
 std::string block_t::utf8_text()
 {
-    if (dirty) {
-        return content;
-    }
-
-    if (file) {
-        file->seekg(filePosition, file->beg);
-        size_t pos = file->tellg();
-        std::string line;
-        if (std::getline(*file, line)) {
-            return line;
+    std::string res;
+    for(int i=0;i<cachedLength;i++) {
+        if (content[i] == 0xfe) {
+            res += wcontent[i];
+        } else {
+            res += content[i];
         }
     }
-
-    return "";
+    return res;
 }
 
 void block_t::setText(std::string t)
@@ -145,11 +140,40 @@ void block_t::setText(std::string t)
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
 
-        char ch = cp < 0xff ? cp : '?';
+        char ch = cp < 0xff ? cp : 0xfe;
         content += ch;
 
         wchar_t wc[2] = { cp, 0 };
         wcontent += wc;
+    }
+
+    content += "\n";
+    cachedLength = 0;
+}
+
+void block_t::setWText(std::wstring t)
+{
+    dirty = true;
+    
+    content = "";
+    wcontent = L"";
+
+    if (data) {
+        data->dirty = true;
+        // if (data->folded && data->foldable) {
+        //     document->editor->toggleFold(lineNumber);
+        // }
+    }
+
+    wchar_t *p = (wchar_t*)t.c_str();
+    while(*p) {
+        int cp = *p;
+        char ch = cp < 0xff ? cp : 0xfe;
+        content += ch;
+
+        wchar_t wc[2] = { cp, 0 };
+        wcontent += wc;
+        p++;
     }
 
     content += "\n";

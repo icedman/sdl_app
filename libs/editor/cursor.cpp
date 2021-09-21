@@ -233,9 +233,9 @@ bool cursor_t::eraseSelection()
     cursor_position_t start = selectionStart();
     cursor_position_t end = selectionEnd();
 
-    std::string t = start.block->text().substr(0, start.position);
+    std::wstring t = start.block->wide_text().substr(0, start.position);
     if (end.position + 1 < end.block->length()) {
-        t += end.block->text().substr(end.position + 1);
+        t += end.block->wide_text().substr(end.position + 1);
     }
 
     if (isMultiBlockSelection()) {
@@ -243,7 +243,7 @@ bool cursor_t::eraseSelection()
         block()->document->removeBlockAtLine(start.block->lineNumber + 1, count);
     }
 
-    start.block->setText(t);
+    start.block->setWText(t);
     return true;
 }
 
@@ -615,40 +615,40 @@ bool cursor_t::moveEndOfDocument(bool keepAnchor)
 
 bool cursor_t::insertText(std::string t)
 {
-    std::string blockText = block()->text();
+    std::wstring wt = std::wstring(t.begin(), t.end());
+    std::wstring blockText = block()->wide_text();
     if (blockText.length() > 0) {
-        blockText.insert(cursor.position, t);
+        blockText.insert(cursor.position, wt);
     } else {
-        blockText = t;
+        blockText = wt;
     }
-
-    block()->setText(blockText);
+    block()->setWText(blockText);
     return true;
 }
 
 bool cursor_t::eraseText(int count)
 {
-    std::string blockText = block()->text();
+    std::wstring blockText = block()->wide_text();
     if (cursor.position < blockText.length()) {
         blockText.erase(cursor.position, count);
     }
 
-    block()->setText(blockText);
+    block()->setWText(blockText);
     return true;
 }
 
 bool cursor_t::splitLine()
 {
-    std::string blockText = block()->text();
-    std::string nextText;
+    std::wstring blockText = block()->wide_text();
+    std::wstring nextText;
 
     if (position() < blockText.length()) {
         nextText = blockText.substr(position());
     }
 
     blockText = blockText.substr(0, position());
-    block()->setText(blockText);
-    block()->document->addBlockAtLine(block()->lineNumber + 1)->setText(nextText);
+    block()->setWText(blockText);
+    block()->document->addBlockAtLine(block()->lineNumber + 1)->setWText(nextText);
     return true;
 }
 
@@ -657,9 +657,9 @@ bool cursor_t::mergeNextLine()
     if (!block()->next()) {
         return false;
     }
-    std::string blockText = block()->text();
-    std::string nextText = block()->next()->text();
-    block()->setText(blockText + nextText);
+    std::wstring blockText = block()->wide_text();
+    std::wstring nextText = block()->next()->wide_text();
+    block()->setWText(blockText + nextText);
     block()->document->removeBlockAtLine(block()->lineNumber + 1);
     return true;
 }

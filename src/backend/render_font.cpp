@@ -25,6 +25,7 @@ typedef struct {
     RenImage* image;
     int cw;
     int ch;
+    int cp;
 } GlyphSet;
 
 const char _ligatures[][3] = {
@@ -40,6 +41,7 @@ struct RenFont {
     GlyphSet regular[MAX_GLYPHSET];
     GlyphSet italic[MAX_GLYPHSET];
     GlyphSet bold[MAX_GLYPHSET];
+    std::map<int, GlyphSet> utf8;
 
     Ligature ligatures[32];
 
@@ -86,11 +88,83 @@ static const char* utf8_to_codepoint(const char* p, unsigned* dst)
     return p + 1;
 }
 
-void ren_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
+static int codepoint_to_utf8(uint32_t utf, char *out)
+{
+  if (utf <= 0x7F) {
+    // Plain ASCII
+    out[0] = (char) utf;
+    out[1] = 0;
+    return 1;
+  }
+  else if (utf <= 0x07FF) {
+    // 2-byte unicode
+    out[0] = (char) (((utf >> 6) & 0x1F) | 0xC0);
+    out[1] = (char) (((utf >> 0) & 0x3F) | 0x80);
+    out[2] = 0;
+    return 2;
+  }
+  else if (utf <= 0xFFFF) {
+    // 3-byte unicode
+    out[0] = (char) (((utf >> 12) & 0x0F) | 0xE0);
+    out[1] = (char) (((utf >>  6) & 0x3F) | 0x80);
+    out[2] = (char) (((utf >>  0) & 0x3F) | 0x80);
+    out[3] = 0;
+    return 3;
+  }
+  else if (utf <= 0x10FFFF) {
+    // 4-byte unicode
+    out[0] = (char) (((utf >> 18) & 0x07) | 0xF0);
+    out[1] = (char) (((utf >> 12) & 0x3F) | 0x80);
+    out[2] = (char) (((utf >>  6) & 0x3F) | 0x80);
+    out[3] = (char) (((utf >>  0) & 0x3F) | 0x80);
+    out[4] = 0;
+    return 4;
+  }
+  else { 
+    // error - use replacement character
+    out[0] = (char) 0xEF;  
+    out[1] = (char) 0xBF;
+    out[2] = (char) 0xBD;
+    out[3] = 0;
+    return 0;
+  }
+}
+
+void pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
 {
     pango_layout_set_attributes(layout, nullptr);
     pango_layout_set_text(layout, text, len);
     pango_layout_get_pixel_size(layout, w, h);
+}
+
+GlyphSet bake_glyph(RenFont* fnt, char *c) {
+    int cw, ch;
+    int x = 0;
+    int y = 0;
+
+    char *_p = c;
+    unsigned cp = 0;
+    utf8_to_codepoint(_p, &cp);
+
+    int _pl = strlen(_p);
+    pango_get_font_extents(fnt->layout, &cw, &ch, _p, _pl);
+
+    GlyphSet glyph;
+    glyph.image = Renderer::instance()->create_image(cw + 1, ch);
+    glyph.cw = cw;
+    glyph.ch = ch;
+    glyph.cp = cp;
+
+    Renderer::instance()->begin_frame(glyph.image);
+
+    pango_layout_set_text(fnt->layout, _p, _pl);
+    cairo_set_source_rgb(ren_image_context(glyph.image), 1, 1, 1);
+    cairo_move_to(ren_image_context(glyph.image), x, y);
+    pango_cairo_show_layout(ren_image_context(glyph.image), fnt->layout);
+
+    Renderer::instance()->end_frame();
+
+    return glyph;
 }
 
 RenFont* Renderer::create_font(char* fdsc, char* alias)
@@ -141,7 +215,6 @@ RenFont* Renderer::create_font(char* fdsc, char* alias)
         pango_layout_set_font_description(fnt->layout, nullptr);
         pango_layout_set_font_description(fnt->layout, font_desc);
         pango_font_map_load_font(fnt->font_map, fnt->context, font_desc);
-
         pango_font_description_free(font_desc);
 
         cairo_font_options_t* cairo_font_options = cairo_font_options_create();
@@ -155,52 +228,18 @@ RenFont* Renderer::create_font(char* fdsc, char* alias)
         if (i == 0) {
             const char text[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
             int len = strlen(text);
-            ren_get_font_extents(fnt->layout, &fnt->font_width, &fnt->font_height, text, len);
+            pango_get_font_extents(fnt->layout, &fnt->font_width, &fnt->font_height, text, len);
             fnt->font_width = ((float)fnt->font_width / len);
             // printf(">>%d\n", fnt->font_width);
         }
 
         // generate glyphs
         for (int i = 0; i < MAX_GLYPHSET; i++) {
-            int cw, ch;
-            int x = 0;
-            int y = 0;
+            // bake common glyphs
+            char str[3] = { (char)i, 0, 0 };
+            GlyphSet glyph = bake_glyph(fnt, str);
+            set[glyph.cp & 0xff] = glyph;
 
-            char _p[] = { (char)i, 0, 0 };
-            unsigned cp = 0;
-            utf8_to_codepoint(_p, &cp);
-
-            if (i > 127) {
-                int j = i - 128;
-                Ligature* l = &fnt->ligatures[j];
-                if (_ligatures[j][0] == 0) {
-                    break;
-                }
-
-                strcpy(_p, _ligatures[j]);
-                strcpy(l->t, _p);
-
-                l++;
-                l->t[0] = 0;
-                cp = i;
-
-                // printf("%s\n", _p);
-            }
-
-            int _pl = strlen(_p);
-            ren_get_font_extents(fnt->layout, &cw, &ch, _p, _pl);
-
-            set[cp].image = Renderer::instance()->create_image(cw + 1, ch);
-            set[cp].cw = cw;
-            set[cp].ch = ch;
-            Renderer::instance()->begin_frame(set[cp].image);
-
-            pango_layout_set_text(fnt->layout, _p, _pl);
-            cairo_set_source_rgb(ren_image_context(set[cp].image), 1, 1, 1);
-            cairo_move_to(ren_image_context(set[cp].image), x, y);
-            pango_cairo_show_layout(ren_image_context(set[cp].image), fnt->layout);
-
-            Renderer::instance()->end_frame();
         }
 
         break; // no bold/italic glyphs
@@ -298,29 +337,37 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
     GlyphSet* set = font->regular;
 
-    // if (italic) {
-    //     set = font->italic;
-    // }
-    // if (bold) {
-    //     set = font->bold;
-    // }
-
     wchar_t* p = (wchar_t*)text;
 
     int xx = 0;
 
     int i = 0;
     while (*p) {
-        int adv = 1;
-
         clr.a = 0;
 
-        GlyphSet* glyph = &set[*p & 0xff];
-        if (glyph && glyph->image) {
-            ren_draw_char_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr, italic);
+        GlyphSet glyph;
+        if (*p < MAX_GLYPHSET) {
+            glyph = set[*p];
+        } else {
+            glyph = font->utf8[*p];
+            if (glyph.cp != *p) {
+                char u[3];
+                codepoint_to_utf8(*p, u);
+                font->utf8[*p] = bake_glyph(font,u);
+                glyph = set[*p];
+            } 
         }
 
-        i += adv;
+        if (glyph.cp == *p & 0xff && glyph.image) {
+            ren_draw_char_image(glyph.image, {
+                x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2) ,
+                y + (font->font_height / 2) - (glyph.ch / 2),
+                glyph.cw + 1,
+                glyph.ch
+            }, clr, italic);
+        }
+
+        i++;
         p++;
     }
 
@@ -341,51 +388,26 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
     GlyphSet* set = font->regular;
 
-    // if (italic) {
-    //     set = font->italic;
-    // }
-    // if (bold) {
-    //     set = font->bold;
-    // }
-
     char* p = (char*)text;
-
     int xx = 0;
 
     int i = 0;
     while (*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
-
-        int adv = 1;
-
-        /*
-        if (i + 1 < length) {
-            char _p[] = { (char)text[i], (char)text[i + 1], 0 };
-            for (int j = 0; j < 32; j++) {
-                Ligature* l = &font->ligatures[j];
-                if (l->t[0] == 0) {
-                    break;
-                }
-
-                if (strcmp(_p, l->t) == 0) {
-                    adv = 2;
-                    cp = 128 + j;
-                    break;
-                    // printf("%s %s %d\n", _p, l->t, cp);
-                }
-            }
-        }
-        */
-
         clr.a = 0;
 
-        GlyphSet* glyph = &set[cp & 0xff];
-        if (glyph && glyph->image) {
-            ren_draw_char_image(glyph->image, { x + ((i + adv - 1) * font->font_width) + (font->font_width / 2) - (glyph->cw / 2) - (adv == 2 ? (float)glyph->cw / 4 : 0), y + (font->font_height / 2) - (glyph->ch / 2), glyph->cw + 1, glyph->ch }, clr, italic);
+        GlyphSet glyph = set[cp & 0xff];
+        if (glyph.cp == cp & 0xff && glyph.image) {
+            ren_draw_char_image(glyph.image, {
+                x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2) ,
+                y + (font->font_height / 2) - (glyph.ch / 2),
+                glyph.cw + 1,
+                glyph.ch
+            }, clr, italic);
         }
 
-        i += adv;
+        i++;
     }
 
     return x;
