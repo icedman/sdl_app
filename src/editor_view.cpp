@@ -174,7 +174,7 @@ void editor_view::render()
             // break;
         }
 
-        if (!blockData) {
+        if (!blockData && block->lineNumber < snapBlocks.size()) {
             block_ptr sb = snapBlocks[block->lineNumber];
             if (sb->data) {
                 blockData = sb->data.get();
@@ -330,7 +330,7 @@ void editor_view::render()
                 block->y = s.y;
             }
 
-#if 1
+#if 0
             Renderer::instance()->draw_rect({ s.x,
                                                 s.y,
                                                 fw * s.length,
