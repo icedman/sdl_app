@@ -760,7 +760,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
         attron(COLOR_PAIR(pair));
 
         wchar_t s[2] = { *p, 0 };
-        if (s[0] != '\n' && s[0] != '\t') {
+        if (s[0] != L'\n' && s[0] != L'\t') {
             addwstr(s);
         }
 
@@ -931,13 +931,15 @@ void Renderer::state_restore()
     state_stack.pop_back();
 }
 
+std::string _clipText;
 std::string Renderer::get_clipboard()
 {
-    return "";
+    return _clipText;
 }
 
 void Renderer::set_clipboard(std::string text)
 {
+    _clipText = text;
 }
 
 bool Renderer::is_terminal()

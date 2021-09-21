@@ -65,7 +65,8 @@ void gutter_view::render()
         int linc = block->lineCount;
         int y = block->y;
 
-        std::string ln = std::to_string(block->lineNumber + 1);
+        // std::string ln = std::to_string(block->lineNumber + 1);
+        std::string ln = std::to_string(block->length());
 
         Renderer::instance()->draw_text(Renderer::instance()->font((char*)vs.font.c_str()), ln.c_str(),
             lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw),

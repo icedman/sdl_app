@@ -330,11 +330,11 @@ void editor_view::render()
                 block->y = s.y;
             }
 
-#if 0
+#if 1
             Renderer::instance()->draw_rect({ s.x,
-                          s.y,
-                          fw * s.length,
-                          fh },
+                                                s.y,
+                                                fw * s.length,
+                                                fh },
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
 #endif
 

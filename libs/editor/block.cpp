@@ -105,7 +105,7 @@ void block_t::setText(std::string t)
         wcontent += wc;
     }
 
-    content += "\n";
+    // content += "\n";
     cachedLength = 0;
 }
 
@@ -141,7 +141,7 @@ void block_t::setWText(std::wstring t)
 size_t block_t::length()
 {
     if (cachedLength == 0) {
-        cachedLength = wcontent.length() + 1;
+        cachedLength = content.length() + 1;
     }
     return cachedLength;
 }
