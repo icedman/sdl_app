@@ -34,7 +34,6 @@ void load_extensions(const std::string _path, std::vector<struct extension_t>& e
         std::string package = extensionPath + "/package.json";
         std::string packageNLS = extensionPath + "/package.nls.json";
 
-        // qDebug() << package;
         struct extension_t ex = {
             .path = extensionPath
         };
@@ -69,26 +68,11 @@ void load_extensions(const std::string _path, std::vector<struct extension_t>& e
             }
         }
 
-        if (!append) {
-            //if (ex.package.isMember("engines")) {
-            // append = ex.package["engines"].isMember("ashlar");
-            append = ex.package.isMember("ashlar") || ex.name == "ashlar-text";
-            if (append) {
-                if (ex.package.isMember("contributes")) {
-                    ex.hasCommands = ex.package["contributes"].isMember("commands");
-                }
-                // if (ex.package.isMember("main")) {
-                // std::string main = ex.package["main"].asString().c_str();
-                // ex.entryPath = QFileInfo(extensionPath + '/' + main).absoluteFilePath();
-                // }
+        if (append ) {
+            if (ex.package["name"].asString() == "meson") {
+                log(ex.package["name"].asString().c_str());
+                log("extensions path %s", ex.path.c_str());
             }
-            // }
-        }
-
-        if (append) {
-            // std::cout << ex.package["name"].asString() << std::endl;
-            // log(ex.nls["themeLabel"].asString().c_str());
-            // qDebug() << package;
             extensions.emplace_back(ex);
         }
     }
@@ -101,6 +85,7 @@ static bool load_language_configuration(const std::string path, language_info_pt
     Json::Value root = parse::loadJson(path);
 
     if (root.empty()) {
+        log("unable to load configuration file %s", path.c_str());
         return false;
     }
 
@@ -164,17 +149,20 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
     static std::map<std::string, language_info_ptr> cache;
     language_info_ptr lang = std::make_shared<language_info_t>();
 
-    std::set<char> delims = { '.' };
+    std::set<char> delims = { '/' };
     std::vector<std::string> spath = split_path(path, delims);
+    std::string fileName = spath.back();
+
+    std::set<char> delims_file = { '.' };
+    std::vector<std::string> sfile = split_path(fileName, delims_file);
 
     std::string suffix = ".";
-    suffix += spath.back();
+    suffix += sfile.back();
 
-    std::string fileName = "";
+    // log("%s file %s suffix %s", path.c_str(), fileName.c_str(), suffix.c_str());
 
     auto it = cache.find(suffix);
     if (it != cache.end()) {
-        // qDebug() << "langauge matched from cache" << it->second->id.c_str();
         return it->second;
     }
 
@@ -205,14 +193,16 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
                 for (int j = 0; j < fns.size(); j++) {
                     Json::Value fn = fns[j];
                     if (fn.asString() == fileName) {
+                        resolvedExtension = ext;
                         resolvedLanguage = lang["id"].asString();
                         resolvedGrammars = contribs["grammars"];
                         found = true;
+                        break;
                     }
                 }
             }
 
-            if (!found) {
+            if (!found && lang.isMember("extensions")) {
                 Json::Value exts = lang["extensions"];
                 for (int j = 0; j < exts.size(); j++) {
                     Json::Value ex = exts[j];
@@ -222,14 +212,15 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
                         resolvedLanguage = lang["id"].asString();
                         resolvedGrammars = contribs["grammars"];
 
-                        // qDebug() << resolvedLanguage.c_str();
-
+                        // log("resolved %s", resolvedLanguage.c_str());
+                        // log("resolved path %s", ext.path.c_str());
+                        found = true;
                         break;
                     }
                 }
             }
 
-            if (!resolvedLanguage.empty()) {
+            if (found) {
                 if (lang.isMember("configuration")) {
                     resolvedConfiguration = lang["configuration"];
                 }
@@ -246,7 +237,6 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
     log("scopeName: %s", scopeName.c_str());
 
     if (!resolvedLanguage.empty()) {
-        // std::cout << resolvedLanguage << std::endl;
         for (int j = 0; j < 2; j++)
             for (int i = 0; i < resolvedGrammars.size(); i++) {
                 Json::Value g = resolvedGrammars[i];
@@ -265,6 +255,7 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
 
                     // std::cout << path << std::endl;
                     log("grammar: %s", path.c_str());
+                    log("extension: %s", resolvedExtension.path.c_str());
 
                     lang->grammar = parse::parse_grammar(parse::loadJson(path));
                     lang->id = resolvedLanguage;
