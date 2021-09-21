@@ -407,9 +407,9 @@ editor_view::editor_view()
     minimap->layout()->width = 80;
     minimap->layout()->order = 3;
 
-    if (Renderer::instance()->is_terminal()) {
-        minimap->layout()->visible = false;
-    }
+    // if (Renderer::instance()->is_terminal()) {
+    //     minimap->layout()->visible = false;
+    // }
 
     container->add_child(minimap);
 

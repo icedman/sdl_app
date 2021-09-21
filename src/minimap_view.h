@@ -3,12 +3,16 @@
 
 #include "scrollbar.h"
 #include "view.h"
+#include "block.h"
 
 struct minimap_view : view_item {
     minimap_view();
 
     void render() override;
     bool mouse_click(int x, int y, int button) override;
+
+    void buildUpDotsForBlock(block_ptr block, float textCompress, int bufferWidth);
+    void render_terminal();
 
     int scroll_y;
     int spacing;

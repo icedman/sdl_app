@@ -162,7 +162,7 @@ int main(int argc, char** argv)
     event_list events;
 
     // RenFont *font = Renderer::instance()->create_font("Monaco 12");
-    RenFont* font = Renderer::instance()->create_font("Fira Code 14", "editor");
+    RenFont* font = Renderer::instance()->create_font("Fira Code 12", "editor");
     // RenFont* font = Renderer::instance()->create_font("Source Code Pro 12", "editor");
     // Renderer::instance()->register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
     Renderer::instance()->create_font("Source Code Pro 12", "ui");

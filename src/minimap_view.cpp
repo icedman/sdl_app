@@ -5,9 +5,12 @@
 #include "renderer.h"
 
 #include "app.h"
+#include "dots.h"
 #include "style.h"
 
-const float scale = 0.75f;
+#define DRAW_SCALE 0.75f
+#define TEXT_COMPRESS 5
+#define TEXT_BUFFER 25
 
 minimap_view::minimap_view()
     : view_item("minimap")
@@ -56,6 +59,11 @@ bool minimap_view::mouse_click(int x, int y, int button)
 
 void minimap_view::render()
 {
+    if (Renderer::instance()->is_terminal()) {
+        render_terminal();
+        return;
+    }
+
     layout_item_ptr lo = layout();
 
     app_t* app = app_t::instance();
@@ -115,7 +123,7 @@ void minimap_view::render()
             RenRect r = {
                 lo->render_rect.x,
                 lo->render_rect.y + l,
-                block->length() * scale,
+                block->length() * DRAW_SCALE,
                 1,
             };
             if (r.width > 0) {
@@ -132,7 +140,7 @@ void minimap_view::render()
                 color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
 
                 int start = s.start / 3;
-                int length = s.length * scale;
+                int length = s.length * DRAW_SCALE;
                 RenRect r = {
                     lo->render_rect.x + start + 2,
                     lo->render_rect.y + l,
@@ -177,5 +185,121 @@ void minimap_view::render()
                                             ev->rows * spacing,
                                         },
             { 255, 255, 255, 10 }, true, 1, 4);
+    }
+}
+
+void minimap_view::buildUpDotsForBlock(block_ptr block, float textCompress, int bufferWidth)
+{
+    if (!block->data) {
+        block->data = std::make_shared<blockdata_t>();
+        block->data->dirty = true;
+    }
+
+    struct blockdata_t* blockData = block->data.get();
+    if (blockData->dots) {
+        return;
+    }
+
+    // log("minimap %d", block->lineNumber);
+
+    std::string line1;
+    std::string line2;
+    std::string line3;
+    std::string line4;
+
+    block_ptr it = block;
+    line1 = it->text();
+    if (it->next()) {
+        it = it->next();
+        line2 = it->text();
+        if (it->next()) {
+            it = it->next();
+            line3 = it->text();
+            if (it->next()) {
+                it = it->next();
+                line4 = it->text();
+            }
+        }
+    }
+
+    blockData->dots = buildUpDotsForLines(
+        (char*)line1.c_str(),
+        (char*)line2.c_str(),
+        (char*)line3.c_str(),
+        (char*)line4.c_str(),
+        textCompress,
+        bufferWidth);
+}
+
+void minimap_view::render_terminal()
+{
+    layout_item_ptr lo = layout();
+
+    app_t* app = app_t::instance();
+    view_style_t vs = view_style_get("gutter");
+
+    editor_view* ev = (editor_view*)(parent->parent);
+    editor_ptr editor = ev->editor;
+    document_t* doc = &editor->document;
+    cursor_t cursor = doc->cursor();
+    block_t& block = *cursor.block();
+
+    int start = ev->start_row;
+    int count = editor->document.blocks.size() + (ev->rows / 3);
+    if (count <= 0)
+        return;
+
+    int window = ev->rows;
+
+    float p = (float)start / count;
+    scroll_y = 0;
+
+    if (editor->document.blocks.size() * spacing > lo->render_rect.h) {
+        scroll_y = (p * editor->document.blocks.size() * spacing);
+        scroll_y -= (p * lo->render_rect.h * 3 / 4);
+    }
+    if (scroll_y < 0) {
+        scroll_y = 0;
+    }
+
+    int sy = (scroll_y / spacing);
+    int y = 0;
+    for (int idx = sy; idx < doc->blocks.size(); idx += 4) {
+        auto& b = doc->blocks[idx];
+
+        if (y == 0) {
+            start_y = b->lineNumber;
+        }
+        end_y = b->lineNumber;
+
+        buildUpDotsForBlock(b, TEXT_COMPRESS, TEXT_BUFFER);
+
+        int textCompress = TEXT_COMPRESS;
+        block_list& snapBlocks = editor->snapshots[0].snapshot;
+
+        int ci  = vs.bg.index;
+
+        if (b->lineNumber >= start && b->lineNumber < start + window) {
+            ci = vs.fg.index;
+        }
+
+        for (int x = 0; x < TEXT_BUFFER; x++) {
+            if (b->data && b->data->dots) {
+                Renderer::instance()->draw_wtext(NULL, wcharFromDots(b->data->dots[x]), 
+                    lo->render_rect.x + x,
+                    lo->render_rect.y + y,
+                    { 255,255,255,ci }
+                    );
+            }
+
+            if (x >= lo->render_rect.w - 2) {
+                break;
+            }
+        }
+
+        y++;
+        if (y >= lo->render_rect.h) {
+            break;
+        }
     }
 }
