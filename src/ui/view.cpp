@@ -403,7 +403,6 @@ void view_input_wheel(int x, int y, event_t event)
         }
     }
     if (view_hovered) {
-        printf("%s\n", view_hovered->type.c_str());
         event.type = EVT_MOUSE_WHEEL;
         event.source = view_hovered;
         view_hovered->propagate_event(event);

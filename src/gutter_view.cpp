@@ -39,12 +39,26 @@ void gutter_view::render()
     }
     it += start;
 
+    block_list& snapBlocks = editor->snapshots[0].snapshot;
+
     int l = 0;
     while (it != doc->blocks.end() && l < view_height) {
         block_ptr block = *it++;
 
-        if (!block->data || block->y == -1) {
+        blockdata_t* blockData = 0;
+        if (block->data) {
+            blockData = block->data.get();
+        }
+
+        if (!blockData) {
             Renderer::instance()->throttle_up();
+            block_ptr sb = snapBlocks[block->lineNumber];
+            if (sb->data) {
+                blockData = sb->data.get();
+            }
+        }
+
+        if (!blockData || block->y == -1) {
             return;
         }
 

@@ -39,11 +39,6 @@ bool minimap_view::mouse_click(int x, int y, int button)
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
 
-    // if (line > editor->document.blocks.size() / 2) {
-    //     line += ev->rows/3;
-    // } else {
-    //     line -= ev->rows/3;
-    // }
     if (line < 0) {
         line = 0;
     }
@@ -109,6 +104,13 @@ void minimap_view::render()
         it++;
 
         blockdata_t* blockData = block->data.get();
+
+        if (!blockData) {
+            block_ptr sb = snapBlocks[block->lineNumber];
+            if (sb->data) {
+                blockData = sb->data.get();
+            }
+        }
 
         // if (!blockData && hl++ < 2) {
         //     editor->highlight(block->lineNumber, 4);

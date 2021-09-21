@@ -147,6 +147,8 @@ void editor_view::render()
         longest_block = 0;
     }
 
+    block_list& snapBlocks = editor->snapshots[0].snapshot;
+
     int l = 0;
     while (it != doc->blocks.end() && l < view_height) {
         block_ptr block = *it++;
@@ -155,6 +157,7 @@ void editor_view::render()
         if (block->data) {
             blockData = block->data.get();
         }
+
         if (!blockData || blockData->dirty) {
             blockData = &data;
             span_info_t span = {
@@ -170,6 +173,14 @@ void editor_view::render()
             blockData->spans.push_back(span);
             // break;
         }
+
+        if (!blockData) {
+            block_ptr sb = snapBlocks[block->lineNumber];
+            if (sb->data) {
+                blockData = sb->data.get();
+            }
+        }
+
         if (!blockData) {
             break;
         }

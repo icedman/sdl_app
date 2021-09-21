@@ -704,6 +704,7 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
 }
 
+// todo UTF8 is clipped?
 static bool is_clipped(int x, int y)
 {
     RenRect cr = clip_rect;
@@ -759,7 +760,9 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
         attron(COLOR_PAIR(pair));
 
         wchar_t s[2] = { *p, 0 };
-        addwstr(s);
+        if (s[0] != '\n' && s[0] != '\t') {
+            addwstr(s);
+        }
 
         attroff(COLOR_PAIR(pair));
 
@@ -800,7 +803,8 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
         pair = pair_for_colors(clr_index, bg ? bg : -1);
         attron(COLOR_PAIR(pair));
 
-        addch(cp & 0xff);
+        if (isprint(cp & 0xff))
+            addch(cp & 0xff);
 
         attroff(COLOR_PAIR(pair));
         i++;
