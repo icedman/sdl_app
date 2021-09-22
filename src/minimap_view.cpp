@@ -53,7 +53,7 @@ bool minimap_view::mouse_click(int x, int y, int button)
     cursor.setPosition(editor->document.blockAtLine(line), 0);
     ev->scroll_to_cursor(cursor, true);
 
-    Renderer::instance()->throttle_up();
+    Renderer::instance()->throttle_up_events();
     return true;
 }
 
@@ -177,13 +177,14 @@ void minimap_view::render()
     }
 
     if (is_hovered()) {
-        Renderer::instance()->draw_rect({
-                                            lo->render_rect.x,
-                                            // lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
-                                            render_y,
-                                            lo->render_rect.w,
-                                            ev->rows * spacing,
-                                        },
+        Renderer::instance()->draw_rect(
+            {
+                lo->render_rect.x,
+                // lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
+                render_y,
+                lo->render_rect.w,
+                ev->rows * spacing,
+            },
             { 255, 255, 255, 10 }, true, 1, 4);
     }
 }
@@ -277,7 +278,7 @@ void minimap_view::render_terminal()
         int textCompress = TEXT_COMPRESS;
         block_list& snapBlocks = editor->snapshots[0].snapshot;
 
-        int ci  = vs.bg.index;
+        int ci = vs.bg.index;
 
         if (b->lineNumber >= start && b->lineNumber < start + window) {
             ci = vs.fg.index;
@@ -285,11 +286,10 @@ void minimap_view::render_terminal()
 
         for (int x = 0; x < TEXT_BUFFER; x++) {
             if (b->data && b->data->dots) {
-                Renderer::instance()->draw_wtext(NULL, wcharFromDots(b->data->dots[x]), 
+                Renderer::instance()->draw_wtext(NULL, wcharFromDots(b->data->dots[x]),
                     lo->render_rect.x + x,
                     lo->render_rect.y + y,
-                    { 255,255,255,ci }
-                    );
+                    { 255, 255, 255, ci });
             }
 
             if (x >= lo->render_rect.w - 2) {

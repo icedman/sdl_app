@@ -39,7 +39,7 @@ void indexer_t::addEntry(block_ptr block, std::string prefix)
     }
 }
 
-void indexer_t::updateBlock(block_ptr block)
+void indexer_t::requestIndexBlock(block_ptr block)
 {
     // request indexing service
     if (!block->data) {
@@ -129,13 +129,6 @@ void* indexerThread(void* arg)
 
     static struct timespec time_to_wait = {0, 0};
 
-    // pthread_cond_t dummy_cond;
-    // pthread_cond_init(&dummy_cond, NULL);
-    // pthread_mutex_t dummy_lock;
-    // pthread_mutex_init(&dummy_lock, NULL);
-
-    // time_to_wait.tv_sec = time(NULL) + 2L;
-    // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
     usleep(200000);
 
     while (true) {

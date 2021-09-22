@@ -35,8 +35,9 @@ struct Renderer {
     void get_window_size(int* w, int* h);
 
     void listen_events(event_list* events);
-    void throttle_up(int frames = 120);
-    bool is_throttle_up();
+    void throttle_up_events(int frames = 120);
+    bool is_throttle_up_events();
+    void wake();
 
     int key_mods();
 
@@ -72,6 +73,8 @@ struct Renderer {
     void state_restore();
 
     int draw_count();
+    int ticks();
+    void delay(int d);
 
     std::string get_clipboard();
     void set_clipboard(std::string text);

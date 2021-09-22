@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 
         // todo implement frame rate throttling
         bool skip_render = false;
-        if (Renderer::instance()->is_throttle_up()) {
+        if (Renderer::instance()->is_throttle_up_events()) {
             if (Renderer::instance()->is_terminal()) {
                 frames = FRAME_RENDER_INTERVAL;
             }

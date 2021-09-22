@@ -14,7 +14,10 @@
 highlighter_t::highlighter_t()
     : threadId(0)
     , editor(0)
+    , requestIdx(0)
+    , processIdx(0)
 {
+    memset(&highlightRequests, 0, sizeof(size_t) * HIGHLIGHT_REQUEST_SIZE);
 }
 
 struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rendered)
@@ -47,6 +50,15 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rend
     }
 
     return res;
+}
+
+int highlighter_t::requestHighlightBlock(block_ptr block)
+{
+    highlightRequests[requestIdx++] = block->lineNumber;
+    if (requestIdx >= HIGHLIGHT_REQUEST_SIZE)
+        requestIdx = 0;
+
+    return 0;
 }
 
 int highlighter_t::highlightBlocks(block_ptr block, int count)
@@ -316,7 +328,7 @@ int highlighter_t::highlightBlock(block_ptr block)
     }
 
     if (editor && editor->indexer) {
-        editor->indexer->updateBlock(block);
+        editor->indexer->requestIndexBlock(block);
     }
 
     return 1;
@@ -423,6 +435,50 @@ void highlighter_t::gatherBrackets(block_ptr block, char* first, char* last)
 }
 
 void* highlightThread(void* arg)
+{
+    highlighter_t* threadHl = (highlighter_t*)arg;
+    editor_t* editor = threadHl->editor;
+
+    static struct timespec time_to_wait = {0, 0};
+
+    usleep(200000);
+
+    while (true) {
+        time_to_wait.tv_sec = time(NULL) + 2L;
+
+        for (int i = 0; i < HIGHLIGHT_REQUEST_SIZE; i++) {
+            size_t processIdx = threadHl->processIdx;
+            if (threadHl->processIdx == threadHl->requestIdx) break;
+            if (threadHl->highlightRequests[processIdx] != 0) {
+                // todo make thread safe
+                block_ptr block = editor->document.blockAtLine(threadHl->highlightRequests[processIdx]);
+                if (!block) {
+                    threadHl->highlightRequests[processIdx] = 0;
+                    continue;
+                }
+                threadHl->highlightBlock(block);
+                if (threadHl->callback) {
+                    threadHl->callback(block->lineNumber);
+                }
+                // log("indexing %d", i);
+                threadHl->highlightRequests[processIdx] = 0;
+                // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
+                usleep(500);
+            }
+            processIdx++;
+            threadHl->processIdx = processIdx % HIGHLIGHT_REQUEST_SIZE;
+        }
+
+        usleep(50000);
+        
+        // time_to_wait.tv_sec = time(NULL) + 4L;
+        // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
+    }
+
+    return NULL;
+}
+
+void* _highlightThread(void* arg)
 {
     highlighter_t* threadHl = (highlighter_t*)arg;
     editor_t* editor = threadHl->editor;

@@ -89,7 +89,7 @@ void list_view::update()
         if (!ensure_visible_cursor()) {
             prev_value = value;
         } else {
-            Renderer::instance()->throttle_up(0);
+            Renderer::instance()->throttle_up_events(0);
         }
     }
 

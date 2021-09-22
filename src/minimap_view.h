@@ -1,9 +1,9 @@
 #ifndef MINIMAP_VIEW_H
 #define MINIMAP_VIEW_H
 
+#include "block.h"
 #include "scrollbar.h"
 #include "view.h"
-#include "block.h"
 
 struct minimap_view : view_item {
     minimap_view();

@@ -59,7 +59,7 @@ void gutter_view::render()
         }
 
         if (!blockData || block->y == -1) {
-            Renderer::instance()->throttle_up();
+            // Renderer::instance()->throttle_up_events();
             return;
         }
 

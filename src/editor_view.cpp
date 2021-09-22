@@ -133,17 +133,6 @@ void editor_view::render()
 
     // printf(">>%d %d\n", start_row, rows);
 
-    int view_height = rows;
-    int hl_prior = 8;
-    int hl_start = start_row - hl_prior;
-    int hl_length = view_height + hl_prior * 2;
-    for (int i = 0; i < hl_length; i += 4) {
-        int lighted = editor->highlight(hl_start + i, 4);
-        if (lighted > 0) {
-            Renderer::instance()->throttle_up();
-        }
-    }
-
     theme_ptr theme = app->theme;
 
     color_info_t fg = Renderer::instance()->color_for_index(app_t::instance()->fg);
@@ -159,12 +148,23 @@ void editor_view::render()
     block_list& snapBlocks = editor->snapshots[0].snapshot;
 
     int l = 0;
-    while (it != doc->blocks.end() && l < view_height) {
+    while (it != doc->blocks.end() && l < rows) {
         block_ptr block = *it++;
 
         blockdata_t* blockData = 0;
         if (block->data) {
             blockData = block->data.get();
+        }
+
+        if (!blockData) {
+            // editor->highlighter.highlightBlock(block);
+        }
+
+        if (!blockData && block->lineNumber < snapBlocks.size()) {
+            block_ptr sb = snapBlocks[block->lineNumber];
+            if (sb->data && !sb->data->dirty) {
+                blockData = sb->data.get();
+            }
         }
 
         if (!blockData || blockData->dirty) {
@@ -181,13 +181,6 @@ void editor_view::render()
             blockData->spans.clear();
             blockData->spans.push_back(span);
             // break;
-        }
-
-        if (!blockData && block->lineNumber < snapBlocks.size()) {
-            block_ptr sb = snapBlocks[block->lineNumber];
-            if (sb->data && !sb->data->dirty) {
-                blockData = sb->data.get();
-            }
         }
 
         if (!blockData) {
@@ -458,10 +451,20 @@ void editor_view::update()
         return;
     }
 
-    if (editor->document.columns != cols || editor->document.rows != rows) {
+    if (!editor->highlighter.callback) {
+        editor->highlighter.callback = [this](int line) {
+            Renderer::instance()->wake();
+            return true;
+        };
+    }
+
+    editor->runAllOps();
+    document_t* doc = &editor->document;
+
+    if (doc->columns != cols || doc->rows != rows) {
         // todo
-        editor->document.setColumns(cols);
-        editor->document.setRows(rows);
+        doc->setColumns(cols);
+        doc->setRows(rows);
         layout_request();
     }
 
@@ -471,17 +474,20 @@ void editor_view::update()
 
     panel_view::update();
 
+    block_list::iterator it = doc->blocks.begin();
+
     int view_height = rows;
     int hl_prior = 8;
     int hl_start = start_row - hl_prior;
     int hl_length = view_height + hl_prior * 2;
-    for (int i = 0; i < hl_length; i += 4) {
-        int lighted = editor->highlight(hl_start + i, 4);
-        if (lighted > 0) {
-            break;
-        }
-    }
 
+    if (hl_start < 0)
+        hl_start = 0;
+    it += hl_start;
+    for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
+        block_ptr b = *it++;
+        editor->highlighter.requestHighlightBlock(b);
+    }
 }
 
 void editor_view::prelayout()
@@ -626,6 +632,7 @@ bool editor_view::input_text(std::string text)
     if (!editor) {
         return false;
     }
+
     editor->pushOp(INSERT, text);
     editor->runAllOps();
     ensure_visible_cursor();
@@ -675,14 +682,18 @@ bool editor_view::input_sequence(std::string text)
     }
     editor->input(-1, text);
     editor->runAllOps();
-    ensure_visible_cursor();
+
+    if (op != UNKNOWN) {
+        ensure_visible_cursor();
+    }
+
     // printf("sequence %s\n", text.c_str());
 
-    switch(op) {
-        case MOVE_CURSOR_NEXT_PAGE:
-        case MOVE_CURSOR_PREVIOUS_PAGE:
-            Renderer::instance()->throttle_up();
-            break;
+    switch (op) {
+    case MOVE_CURSOR_NEXT_PAGE:
+    case MOVE_CURSOR_PREVIOUS_PAGE:
+        Renderer::instance()->throttle_up_events();
+        break;
     }
 
     return true;
@@ -840,7 +851,7 @@ void editor_view::show_completer()
         // printf(">%d %d\n", s.y, scrollarea->layout()->render_rect.y);
 
         layout_request();
-        Renderer::instance()->throttle_up();
+        Renderer::instance()->throttle_up_events();
     }
 }
 

@@ -15,6 +15,8 @@
 #include "theme.h"
 #include "utf8.h"
 
+static int last_millis = 0;
+
 #define CTRL_KEY(k) ((k)&0x1f)
 
 enum KEY_ACTION {
@@ -64,7 +66,7 @@ enum KEY_ACTION {
 static Renderer theRenderer;
 static bool _running = true;
 static std::map<int, color_info_t> color_map;
-static int throttle_up_frames = 0;
+static int throttle_up_event_counter = 0;
 
 typedef struct _color_pair {
     int idx;
@@ -509,11 +511,11 @@ void Renderer::listen_events(event_list* events)
         }
 
         if (keySequence == "resize") {
-            throttle_up(240);
+            throttle_up_events(240);
             break;
         }
 
-        if (ch != -1 || is_throttle_up()) {
+        if (ch != -1 || is_throttle_up_events()) {
             break;
         }
     }
@@ -570,19 +572,22 @@ void Renderer::listen_events(event_list* events)
     });
 }
 
-void Renderer::throttle_up(int frames)
+void Renderer::throttle_up_events(int frames)
 {
-    throttle_up_frames = frames;
+    throttle_up_event_counter = frames;
 }
 
-bool Renderer::is_throttle_up()
+bool Renderer::is_throttle_up_events()
 {
-    if (throttle_up_frames > 0) {
-        throttle_up_frames--;
-        // app_t::log("quick %d\n", throttle_up_frames);
+    if (throttle_up_event_counter > 0) {
+        throttle_up_event_counter--;
         return true;
     }
     return false;
+}
+
+void Renderer::wake()
+{
 }
 
 int Renderer::key_mods()
@@ -756,7 +761,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
         move(y, x + i);
         int bg = background_colors[x + i + y * bg_w];
-        pair = pair_for_colors(clr_index, bg && bg!=clr_index ? bg : -1);
+        pair = pair_for_colors(clr_index, bg && bg != clr_index ? bg : -1);
         if (bg == clr_index) {
             attron(A_REVERSE);
         }
@@ -804,7 +809,7 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
         move(y, x + i);
         int bg = background_colors[x + i + y * bg_w];
-        pair = pair_for_colors(clr_index, bg && bg!=clr_index ? bg : -1);
+        pair = pair_for_colors(clr_index, bg && bg != clr_index ? bg : -1);
         if (bg == clr_index) {
             attron(A_REVERSE);
         }
@@ -885,7 +890,7 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
         return 0;
 
     int bg = background_colors[x + y * bg_w];
-    pair = pair_for_colors(clr_index, bg && bg!=clr_index ? bg : -1);
+    pair = pair_for_colors(clr_index, bg && bg != clr_index ? bg : -1);
     if (bg == clr_index) {
         attron(A_REVERSE);
     }
@@ -954,6 +959,27 @@ void Renderer::state_restore()
         return;
     clip_rect = state_stack.back().clip;
     state_stack.pop_back();
+}
+
+int Renderer::draw_count()
+{
+    return 0;
+}
+
+int Renderer::ticks()
+{
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    auto elapsed = last_millis > 0 ? millis - last_millis : 1;
+    if (elapsed > 0) {
+        last_millis = millis;
+    }
+    return elapsed;
+}
+
+void Renderer::delay(int d)
+{
 }
 
 std::string _clipText;

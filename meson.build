@@ -83,7 +83,6 @@ else
 endif
 
 sdl_files = [
-    'src/backend/render_cache.cpp',
     'src/backend/render_font.cpp',
     'src/backend/render_sdl.cpp'
 ]

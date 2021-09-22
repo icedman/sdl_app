@@ -14,7 +14,7 @@
 
 #define MAX_GLYPHSET 256
 
-extern int ren_rendered;
+extern int items_drawn;
 
 cairo_pattern_t* ren_image_pattern(RenImage* image);
 cairo_surface_t* ren_image_surface(RenImage* image);
@@ -231,7 +231,7 @@ void Renderer::get_font_extents(RenFont* font, int* w, int* h, const char* text,
 
 static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor clr, bool italic)
 {
-    ren_rendered++;
+    items_drawn++;
 
     cairo_t* cairo_context = ren_context();
 
@@ -266,7 +266,7 @@ static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor c
 
 int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic)
 {
-    ren_rendered++;
+    items_drawn++;
 
     if (!font) {
         font = Renderer::instance()->get_default_font();
@@ -312,7 +312,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
 {
-    ren_rendered++;
+    items_drawn++;
 
     if (!font) {
         font = Renderer::instance()->get_default_font();

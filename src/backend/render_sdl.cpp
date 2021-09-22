@@ -7,16 +7,16 @@
 
 #include "app.h"
 
-int _state = 0;
-int keyMods = 0;
+static int _state = 0;
+static int keyMods = 0;
 
 static SDL_Window* window;
-SDL_Surface* window_surface;
+static SDL_Surface* window_surface;
 
-RenRect* update_rects = 0;
-int update_rects_count = 0;
+static RenRect* update_rects = 0;
+static int update_rects_count = 0;
 
-int ren_rendered = 0;
+int items_drawn = 0;
 
 static inline bool rects_overlap(RenRect a, RenRect b)
 {
@@ -35,15 +35,17 @@ struct RenImage {
     std::string path;
 };
 
-std::vector<RenImage*> images;
+static std::vector<RenImage*> images;
 
-RenImage* window_buffer = 0;
-RenImage* target_buffer = 0;
-cairo_t* cairo_context = 0;
-bool shouldEnd;
+static RenImage* window_buffer = 0;
+static RenImage* target_buffer = 0;
+static cairo_t* cairo_context = 0;
+static bool shouldEnd;
 
-RenFont* default_font = 0;
-int throttle_up_frames = 0;
+static RenFont* default_font = 0;
+static int throttle_up_event_counter = 0;
+
+static int last_millis = 0;
 
 static std::map<int, color_info_t> color_map;
 
@@ -225,7 +227,7 @@ void Renderer::listen_events(event_list* events)
 
         SDL_Event e;
 
-        if (is_throttle_up()) {
+        if (is_throttle_up_events()) {
             if (!SDL_PollEvent(&e)) {
                 return;
             }
@@ -236,9 +238,7 @@ void Renderer::listen_events(event_list* events)
             }
         }
 
-        if (e.type != SDL_MOUSEMOTION && e.button.button == 0) {
-            throttle_up(4); // because we'll animate
-        }
+        throttle_up_events(12);
 
         switch (e.type) {
         case SDL_QUIT:
@@ -280,7 +280,7 @@ void Renderer::listen_events(event_list* events)
                 y : e.wheel.y
             });
 
-            throttle_up(24);
+            throttle_up_events(24);
             return;
 
         case SDL_KEYUP:
@@ -357,18 +357,30 @@ void Renderer::listen_events(event_list* events)
     }
 }
 
-void Renderer::throttle_up(int frames)
+void Renderer::throttle_up_events(int frames)
 {
-    throttle_up_frames = frames;
+    throttle_up_event_counter = frames;
 }
 
-bool Renderer::is_throttle_up()
+bool Renderer::is_throttle_up_events()
 {
-    if (throttle_up_frames > 0) {
-        throttle_up_frames--;
+    if (throttle_up_event_counter > 0) {
+        throttle_up_event_counter--;
         return true;
     }
     return false;
+}
+
+void Renderer::wake()
+{
+    SDL_Event event;
+    event.type = SDL_USEREVENT;
+    event.user.code = 0;
+    event.user.data1 = 0;
+    event.user.data2 = 0;
+    SDL_PushEvent(&event);
+
+    throttle_up_events(12);
 }
 
 int Renderer::key_mods()
@@ -483,7 +495,7 @@ void Renderer::invalidate()
 
 void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
-    ren_rendered++;
+    items_drawn++;
     cairo_save(cairo_context);
     cairo_translate(cairo_context, rect.x, rect.y);
     cairo_scale(cairo_context,
@@ -509,7 +521,7 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
 {
-    ren_rendered++;
+    items_drawn++;
     double border = (double)stroke / 2;
     if (clr.a > 0) {
         cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, clr.a / 255.0f);
@@ -558,7 +570,7 @@ void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
 
     context_stack.push_back(image);
     _set_context_from_stack();
-    ren_rendered = 0;
+    items_drawn = 0;
     // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
 }
 
@@ -591,7 +603,24 @@ void Renderer::state_restore()
 
 int Renderer::draw_count()
 {
-    return ren_rendered;
+    return items_drawn;
+}
+
+int Renderer::ticks()
+{
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    auto elapsed = last_millis > 0 ? millis - last_millis : 1;
+    if (elapsed > 0) {
+        last_millis = millis;
+    }
+    return elapsed;
+}
+
+void Renderer::delay(int d)
+{
+    SDL_Delay(d);
 }
 
 std::string Renderer::get_clipboard()

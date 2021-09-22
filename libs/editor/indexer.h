@@ -17,7 +17,7 @@ struct indexer_t {
     ~indexer_t();
 
     void addEntry(block_ptr block, std::string prefix);
-    void updateBlock(block_ptr block);
+    void requestIndexBlock(block_ptr block);
     void _updateBlock(block_ptr block);
     void clear();
 
