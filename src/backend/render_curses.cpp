@@ -832,6 +832,7 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
     int clr_index = clr.a ? clr.a : -1;
 
     int _ch = ch;
+    int _wch = 0;
     switch (ch) {
     case '#':
         _ch = ACS_CKBOARD;
@@ -840,10 +841,12 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
         _ch = ACS_DIAMOND;
         break;
     case '|':
-        _ch = ACS_VLINE;
+        _ch = '|';
+        _wch = L'▐';
         break;
     case '-':
         _ch = ACS_HLINE;
+        _wch = L'▂';
         break;
         // case 'u':
         //     _ch = ACS_TTEE;
@@ -888,7 +891,14 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
     }
 
     attron(COLOR_PAIR(pair));
-    addch(_ch);
+
+    if (_wch != 0) {
+        wchar_t _ws[2] = { _wch, 0 };
+        addwstr(_ws);
+    } else {
+        addch(_ch);
+    }
+
     attroff(COLOR_PAIR(pair));
 
     attroff(A_REVERSE);

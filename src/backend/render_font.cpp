@@ -291,7 +291,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
             glyph = set[*p];
         } else {
             glyph = font->utf8[*p];
-            if (glyph.cp != *p) {
+            if (glyph.cp != *p && *p < 32768) {
                 char u[3];
                 codepoint_to_utf8(*p, u);
                 font->utf8[*p] = bake_glyph(font, u);

@@ -35,12 +35,17 @@ void list_item_view::render()
     layout_item_ptr lo = layout();
     layout_rect r = lo->render_rect;
 
-    RenColor clr = { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue,
-        (uint8_t)(Renderer::instance()->is_terminal() ? vs.fg.index : 20) };
+    RenColor clr = { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 20 };
 
     if (container->is_selected(this) || is_hovered()) {
+        if (Renderer::instance()->is_terminal()) {
+            clr.a = app->selFg;
+        }
         Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
     } else {
+        if (Renderer::instance()->is_terminal()) {
+            clr.a = -1;
+        }
         if (container->focused_value == data.value) {
             Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
         }

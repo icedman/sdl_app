@@ -114,7 +114,7 @@ void minimap_view::render()
 
         if (!blockData && block->lineNumber < snapBlocks.size()) {
             block_ptr sb = snapBlocks[block->lineNumber];
-            if (sb->data) {
+            if (sb->data && !sb->data->dirty) {
                 blockData = sb->data.get();
             }
         }
