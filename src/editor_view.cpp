@@ -149,16 +149,17 @@ void editor_view::render()
     while (it != doc->blocks.end() && l < rows) {
         block_ptr block = *it++;
 
-        blockdata_t* blockData = 0;
+        blockdata_ptr blockData;
         if (!block->data || block->data->dirty) {
             editor->highlighter.highlightBlock(block);
+            editor->highlighter.resume();
         }
         if (block->data) {
-            blockData = block->data.get();
+            blockData = block->data;
         }
 
         if (!blockData || blockData->dirty) {
-            blockData = &data;
+            blockData = std::make_shared<blockdata_t>();
             span_info_t span = {
                 start : 0,
                 length : block->text().length(),
@@ -549,7 +550,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
             break;
         }
 
-        struct blockdata_t* blockData = block->data.get();
+        blockdata_ptr blockData = block->data;
         std::string text = block->text() + "\n";
         const char* line = text.c_str();
 
@@ -669,10 +670,6 @@ bool editor_view::input_sequence(std::string text)
         case ENTER:
             list->select_focused();
             return true;
-        // case CANCEL:
-        // case BACKSPACE:
-        // case MOVE_CURSOR_LEFT:
-        // case MOVE_CURSOR_RIGHT:
         default:
             pm->clear();
             break;
@@ -694,6 +691,10 @@ bool editor_view::input_sequence(std::string text)
     switch (op) {
     case MOVE_CURSOR_NEXT_PAGE:
     case MOVE_CURSOR_PREVIOUS_PAGE:
+        Renderer::instance()->throttle_up_events();
+        break;
+    case UNDO:
+        Renderer::instance()->wake();
         Renderer::instance()->throttle_up_events();
         break;
     }
@@ -827,7 +828,8 @@ void editor_view::show_completer()
         int fw, fh;
         Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
-        span_info_t s = spanAtBlock(completer_cursor.block()->data.get(), completer_cursor.position(), true);
+        blockdata_ptr blockData = completer_cursor.block()->data;
+        span_info_t s = spanAtBlock(blockData.get(), completer_cursor.position(), true);
         scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
 
         int list_size = list->data.size();

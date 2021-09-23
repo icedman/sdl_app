@@ -17,6 +17,7 @@ highlighter_t::highlighter_t()
     , editor(0)
     , requestIdx(0)
     , processIdx(0)
+    , _paused(false)
 {
     memset(&highlightRequests, 0, sizeof(size_t) * HIGHLIGHT_REQUEST_SIZE);
 }
@@ -53,16 +54,21 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rend
     return res;
 }
 
+void highlighter_t::clearRequests()
+{
+    processIdx = 0;
+    requestIdx = 0;
+    memset(&highlightRequests, 0, sizeof(size_t) * HIGHLIGHT_REQUEST_SIZE);
+}
+
 int highlighter_t::requestHighlightBlock(block_ptr block)
 {
-    // for(int i=0;i<HIGHLIGHT_REQUEST_SIZE;i++) {
-    //     if (highlightRequests[i] == block->lineNumber) {
-    //         return 0;
-    //     }
-    // }
+    if (_paused) return 0;
+
     highlightRequests[requestIdx++] = block->lineNumber;
     if (requestIdx >= HIGHLIGHT_REQUEST_SIZE)
         requestIdx = 0;
+
     return 0;
 }
 
@@ -116,15 +122,15 @@ int highlighter_t::highlightBlock(block_ptr block)
 
     // log("hl %d", block->lineNumber);
 
-    struct blockdata_t* blockData = block->data.get();
+    blockdata_ptr blockData = block->data;
 
     bool previousState = blockData->state;
     block_state_e previousBlockState = BLOCK_STATE_UNKNOWN;
 
     block_ptr prevBlock = block->previous();
-    struct blockdata_t* prevBlockData = NULL;
+    blockdata_ptr prevBlockData = NULL;
     if (prevBlock) {
-        prevBlockData = prevBlock->data.get();
+        prevBlockData = prevBlock->data;
     }
 
     std::string text = block->text();
@@ -321,7 +327,7 @@ int highlighter_t::highlightBlock(block_ptr block)
     if (blockData->lastRule) {
         block_ptr next = block->next();
         if (next && next->isValid()) {
-            struct blockdata_t* nextBlockData = next->data.get();
+            blockdata_ptr nextBlockData = next->data;
             if (nextBlockData && blockData->lastRule != nextBlockData->lastPrevBlockRule) {
                 nextBlockData->dirty = true;
             }
@@ -341,11 +347,11 @@ int highlighter_t::highlightBlock(block_ptr block)
 
 void highlighter_t::gatherBrackets(block_ptr block, char* first, char* last)
 {
-    struct blockdata_t* blockData = block->data.get();
+    blockdata_ptr blockData = block->data;
     if (!block->data) {
         block->data = std::make_shared<blockdata_t>();
         block->data->dirty = true;
-        blockData = block->data.get();
+        blockData = block->data;
     }
 
     if (blockData->brackets.size()) {
@@ -357,7 +363,7 @@ void highlighter_t::gatherBrackets(block_ptr block, char* first, char* last)
         for (char* c = (char*)first; c < last;) {
             bool found = false;
 
-            struct span_info_t span = spanAtBlock(blockData, c - first);
+            struct span_info_t span = spanAtBlock(blockData.get(), c - first);
             if (span.length && (span.state == BLOCK_STATE_COMMENT || span.state == BLOCK_STATE_STRING)) {
                 c++;
                 continue;
@@ -453,6 +459,9 @@ void* highlightThread(void* arg)
 
         int breathe_counter = 0;
         for (int i = 0; i < HIGHLIGHT_REQUEST_SIZE; i++) {
+            if (threadHl->_paused) {
+                break;
+            }
             size_t processIdx = threadHl->processIdx;
             if (threadHl->highlightRequests[processIdx] != 0) {
                 // todo make thread safe
@@ -545,4 +554,15 @@ void highlighter_t::cancel()
         pthread_cancel(_threadId);
         _threadId = 0;
     }
+}
+
+void highlighter_t::pause()
+{
+    _paused = true;
+    clearRequests();
+}
+
+void highlighter_t::resume()
+{
+    _paused = false;
 }

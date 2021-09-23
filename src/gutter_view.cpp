@@ -46,15 +46,12 @@ void gutter_view::render()
     while (it != doc->blocks.end() && l < view_height) {
         block_ptr block = *it++;
 
-        blockdata_t* blockData = 0;
-        if (block->data) {
-            blockData = block->data.get();
-        }
+        blockdata_ptr blockData = block->data;
 
         if (!blockData && block->lineNumber < snapBlocks.size()) {
             block_ptr sb = snapBlocks[block->lineNumber];
             if (sb->data && !sb->data->dirty) {
-                blockData = sb->data.get();
+                blockData = sb->data;
             }
         }
 

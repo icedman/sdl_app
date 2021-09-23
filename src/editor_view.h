@@ -51,8 +51,6 @@ struct editor_view : panel_view {
     std::string font;
     int fw, fh;
 
-    blockdata_t data;
-
     std::vector<RenRect> previous_cursor_rects;
 };
 

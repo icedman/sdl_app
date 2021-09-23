@@ -10,6 +10,8 @@
 #include <sstream>
 #include <algorithm>
 
+#include <unistd.h>
+
 // 20K
 // beyond this threshold, paste will use an additional file buffer
 #define SIMPLE_PASTE_THRESHOLD 20000
@@ -270,8 +272,8 @@ void editor_t::runOp(operation_t op)
         case SELECT_WORD: {
             cur.selectWord();
 
-            //
-            struct span_info_t span = spanAtBlock(cur.block()->data.get(), cur.position());
+            blockdata_ptr data = cur.block()->data;
+            struct span_info_t span = spanAtBlock(data.get(), cur.position());
             log("scope: %s", span.scope.c_str());
             break;
         }
@@ -601,7 +603,7 @@ struct bracket_info_t editor_t::bracketAtCursor(struct cursor_t& cursor)
         return b;
     }
 
-    struct blockdata_t* blockData = block->data.get();
+    blockdata_ptr blockData = block->data;
     if (!blockData) {
         return b;
     }
@@ -643,7 +645,7 @@ cursor_t editor_t::findLastOpenBracketCursor(block_ptr block)
         return cursor_t();
     }
 
-    struct blockdata_t* blockData = block->data.get();
+    blockdata_ptr blockData = block->data;
     if (!blockData) {
         return cursor_t();
     }
@@ -671,7 +673,7 @@ cursor_t editor_t::findBracketMatchCursor(struct bracket_info_t bracket, cursor_
     if (bracket.open) {
 
         while (block) {
-            struct blockdata_t* blockData = block->data.get();
+            blockdata_ptr blockData = block->data;
             if (!blockData) {
                 break;
             }
@@ -707,7 +709,7 @@ cursor_t editor_t::findBracketMatchCursor(struct bracket_info_t bracket, cursor_
 
         // reverse
         while (block) {
-            struct blockdata_t* blockData = block->data.get();
+            blockdata_ptr blockData = block->data;
             if (!blockData) {
                 break;
             }
@@ -767,7 +769,7 @@ void editor_t::toggleFold(size_t line)
     block_ptr block = openBracket.block();
     block_ptr endBlock = endBracket.block();
 
-    blockdata_t* blockData = block->data.get();
+    blockdata_ptr blockData = block->data;
     if (!blockData) {
         return;
     }
@@ -775,7 +777,7 @@ void editor_t::toggleFold(size_t line)
     blockData->folded = !blockData->folded;
     block = block->next();
     while (block) {
-        blockdata_t* targetData = block->data.get();
+        blockdata_ptr targetData = block->data;
         targetData->folded = blockData->folded;
         targetData->foldable = false;
         targetData->foldedBy = blockData->folded ? line : 0;
@@ -854,8 +856,13 @@ void editor_t::undo()
             break;
     }
 
-    snapshot.restore(document.blocks);
-    document.clearCursors();
+    highlighter.clearRequests();
+    highlighter.pause();
+
+    usleep(5000);
+
+    editor_t tmp;
+    snapshot.restore(tmp.document.blocks);
 
     for (auto op : items) {
 
@@ -871,15 +878,22 @@ void editor_t::undo()
         }
 
         for(auto& c : op.cursors) {
-            c.cursor.block = document.blockAtLine(c.cursor.line);
-            c.anchor.block = document.blockAtLine(c.anchor.line);
+            c.cursor.block = tmp.document.blockAtLine(c.cursor.line);
+            c.anchor.block = tmp.document.blockAtLine(c.anchor.line);
         }
 
-        document.cursors = op.cursors;
-
-        pushOp(op);
-        runAllOps();
+        tmp.document.cursors = op.cursors;
+        tmp.pushOp(op);
+        tmp.runAllOps();
     }
+
+    for(auto b : tmp.document.blocks) {
+        b->data = std::make_shared<blockdata_t>();
+        b->data->dirty = true;
+    }
+
+    document.blocks = tmp.document.blocks;
+    document.clearCursors();
 
     snapshot.history = items;
     if (snapshots.size() > 1 && items.size() == 0) {

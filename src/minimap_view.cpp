@@ -134,12 +134,12 @@ void minimap_view::render()
         block_ptr block = *it;
         it++;
 
-        blockdata_t* blockData = block->data.get();
+        blockdata_ptr blockData = block->data;
 
         if (!blockData && block->lineNumber < snapBlocks.size()) {
             block_ptr sb = snapBlocks[block->lineNumber];
             if (sb->data && !sb->data->dirty) {
-                blockData = sb->data.get();
+                blockData = sb->data;
             }
         }
 
@@ -220,8 +220,8 @@ void minimap_view::buildUpDotsForBlock(block_ptr block, float textCompress, int 
         block->data->dirty = true;
     }
 
-    struct blockdata_t* blockData = block->data.get();
-    if (blockData->dots) {
+    blockdata_ptr blockData = block->data;
+    if (!blockData || blockData->dots) {
         return;
     }
 

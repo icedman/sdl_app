@@ -72,6 +72,8 @@ struct blockdata_t {
     bool ifElseHack;
 };
 
+typedef std::shared_ptr<blockdata_t> blockdata_ptr;
+
 struct block_t {
     block_t();
     ~block_t();
@@ -104,7 +106,7 @@ struct block_t {
     block_ptr next();
     block_ptr previous();
 
-    std::shared_ptr<blockdata_t> data;
+    blockdata_ptr data;
 
     // rendered block position
     int x;

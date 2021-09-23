@@ -24,12 +24,15 @@ struct highlighter_t {
     highlighter_t();
 
     void gatherBrackets(block_ptr block, char* first, char* last);
+    void clearRequests();
     int requestHighlightBlock(block_ptr block);
     int highlightBlocks(block_ptr block, int count = 1);
     int highlightBlock(block_ptr block);
     void run(editor_t* editor);
     void cancel();
-
+    void pause();
+    void resume();
+    
     size_t highlightRequests[HIGHLIGHT_REQUEST_SIZE];
     size_t requestIdx;
     size_t processIdx;
@@ -39,6 +42,8 @@ struct highlighter_t {
     pthread_t _threadId;
 
     highlight_callback_t callback;
+
+    bool _paused;
 };
 
 span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rendered = false);

@@ -309,7 +309,7 @@ bool cursor_t::moveRight(int count, bool keepAnchor)
 bool _move_cursor(cursor_t& cursor, int dir)
 {
     block_ptr block = cursor.block();
-    blockdata_t *data = block->data.get();
+    blockdata_ptr data = block->data;
     if (!data || !data->rendered_spans.size()) {
         return false;
     }
