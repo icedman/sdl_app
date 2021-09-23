@@ -15,7 +15,8 @@ explorer_view::explorer_view()
     : list_view()
 {
     type = "explorer";
-
+    autoscroll = true;
+    
     on(EVT_KEY_SEQUENCE, [this](event_t& evt) {
         evt.cancelled = true;
         return this->input_sequence(evt.text);

@@ -821,7 +821,6 @@ void editor_view::show_completer()
         };
         list->data.push_back(item);
         list->value = "";
-        list->focused_value = "";
     }
 
     if (!pm->_views.size() && list->data.size()) {

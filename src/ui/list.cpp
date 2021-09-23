@@ -226,8 +226,8 @@ void list_view::render()
                 lo->render_rect.w,
                 lo->render_rect.h
             },
-            { 255,0,255 } ,
-            false, 2, 4);
+            { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue } ,
+            false, 4, 0);
         }
     }
 
@@ -294,7 +294,6 @@ void list_view::select_focused()
     for (auto v : content()->_views) {
         list_item_view* item = view_item::cast<list_item_view>(v);
         if (item->data.value == focused_value) {
-            value = focused_value;
             select_item(item);
             return;
         }

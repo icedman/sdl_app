@@ -4,6 +4,7 @@
 #include "events.h"
 #include "layout.h"
 #include "renderer.h"
+#include "style.h"
 
 #include <map>
 
