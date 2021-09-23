@@ -516,8 +516,6 @@ void* _highlightThread(void* arg)
         block_ptr sb = editor->snapshots[0].snapshot[b->lineNumber];
         sb->data = b->data;
 
-        log("%d", b->lineNumber);
-
         b = b->next();
 
         if (lighted && breathe_counter++ > 4) {

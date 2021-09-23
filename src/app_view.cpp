@@ -71,6 +71,8 @@ bool app_view::input_sequence(std::string keySequence)
 
     app_t* app = app_t::instance();
 
+    app->log("keySequence %s", keySequence.c_str());
+
     switch (op) {
     case QUIT:
         Renderer::instance()->quit();
@@ -80,6 +82,21 @@ bool app_view::input_sequence(std::string keySequence)
         app->newEditor(); // focus
         return true;
     }
+
+    case MOVE_FOCUS_LEFT:
+        view_set_focused(explorer.get());
+        return true;
+    case MOVE_FOCUS_UP:
+        view_set_focused(tabbar.get());
+        return true;
+    case MOVE_FOCUS_RIGHT:
+    case MOVE_FOCUS_DOWN:
+        show_editor(app_t::instance()->currentEditor);
+        return true;
+
+    case CANCEL:
+        show_editor(app_t::instance()->currentEditor);
+        break;
 
     case TAB_1:
     case TAB_2:
@@ -91,7 +108,9 @@ bool app_view::input_sequence(std::string keySequence)
     case TAB_8:
     case TAB_9: {
         int tab = op - TAB_1;
-        printf("%d\n", tab);
+        if (tab < app->editors.size()) {
+            show_editor(app->editors[tab], true);
+        }
         return true;
     }
 
@@ -141,6 +160,8 @@ void app_view::destroy_editor_view(editor_ptr editor)
         return;
     }
 
+    editor->highlighter.pause();
+
     app_t* app = app_t::instance();
 
     view_set_focused(0);
@@ -167,14 +188,14 @@ void app_view::destroy_editor_view(editor_ptr editor)
         for (auto tab : tabcontent->_views) {
             editor_view* ev = ((editor_view*)(tab.get()));
             if (ev->layout()->visible) {
-                view_set_focused(ev);
+                show_editor(ev->editor);
                 break;
             }
         }
         if (!view_get_focused()) {
             editor_view* ev = (editor_view*)(app->editors[0]->view);
             ev->layout()->visible = true;
-            view_set_focused(ev);
+            show_editor(ev->editor);
         }
     }
 }
@@ -193,6 +214,7 @@ void app_view::show_editor(editor_ptr editor, bool sole)
     if (editor->view) {
         view_set_focused((view_item*)(editor->view));
         ((view_item*)(editor->view))->layout()->visible = true;
+        app_t::instance()->currentEditor = editor;
         layout_request();
     }
 }

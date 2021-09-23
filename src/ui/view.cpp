@@ -243,6 +243,35 @@ view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
     return 0;
 }
 
+view_item* _view_find_xy(view_item* item, int x, int y)
+{
+    if (!item->layout()->visible || item->layout()->offscreen) {
+        return 0;
+    }
+
+    layout_rect r = item->layout()->render_rect;
+    if ((x > r.x && x < r.x + r.w) && (y > r.y && y < r.y + r.h)) {
+        // within
+    } else {
+        return 0;
+    }
+
+    for (auto v : item->_views) {
+        // check child
+        view_item* vc = _view_find_xy(v.get(), x, y);
+        if (vc) {
+            return vc;
+        }
+    }
+
+    if (!item->disabled && (item->interactive || item->focusable)) {
+        // printf(">%s\n", item->type.c_str());
+        return item;
+    }
+
+    return 0;
+}
+
 view_item_list* _view_list;
 void view_input_events(view_item_list& list, event_list& events)
 {
@@ -467,4 +496,39 @@ view_item* view_get_root()
 void view_set_root(view_item* item)
 {
     view_root = item;
+}
+
+static view_item* _view_shift_focus(view_item* view, int x, int y)
+{
+    layout_item_ptr lo = view->layout();
+    int sx = 0; 
+    int sy = 0; 
+    if (x > 0) {
+        sx = lo->render_rect.w;
+    }
+    if (y > 0) {
+        sy = lo->render_rect.h;
+    }
+
+    for(int i=0;i<20; i++) {
+        view_item* next = _view_find_xy(view_root, lo->render_rect.x + sx + (i*x), lo->render_rect.y + sy + (i*y));
+        app_t::log("%d %d", lo->render_rect.x + sx + (i*x), lo->render_rect.y + sy + (i*y));
+        if (next && next->focusable) {
+            app_t::log("?: %s", next->type.c_str());
+            break;
+        }
+    }
+    
+    return NULL;
+}
+
+view_item* view_shift_focus(int x, int y)
+{
+    view_item* view = view_focused;
+    app_t::log("current: %s", view->type.c_str());
+    view_item* next = _view_shift_focus(view, x, y);
+    if (next) {
+        app_t::log("next: %s", next->type.c_str());
+    }
+    return NULL;
 }

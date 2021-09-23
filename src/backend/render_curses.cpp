@@ -538,7 +538,6 @@ void Renderer::listen_events(event_list* events)
     }
 
     if (keySequence.length() > 1) {
-        app_t::log("keySequence %s", keySequence.c_str());
         events->push_back({
             type : EVT_KEY_SEQUENCE,
             text : keySequence

@@ -210,11 +210,25 @@ void list_view::render()
 
     if (Renderer::instance()->is_terminal()) {
     } else {
-        Renderer::instance()->draw_rect({ lo->render_rect.x,
-                                            lo->render_rect.y,
-                                            lo->render_rect.w,
-                                            lo->render_rect.h },
-            { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+        Renderer::instance()->draw_rect(
+            { lo->render_rect.x,
+                lo->render_rect.y,
+                lo->render_rect.w,
+                lo->render_rect.h
+            },
+            { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue },
+            true);
+
+        if (is_focused()) {
+            Renderer::instance()->draw_rect(
+            { lo->render_rect.x,
+                lo->render_rect.y,
+                lo->render_rect.w,
+                lo->render_rect.h
+            },
+            { 255,0,255 } ,
+            false, 2, 4);
+        }
     }
 
     // layout_rect r = lo->render_rect;
@@ -280,6 +294,7 @@ void list_view::select_focused()
     for (auto v : content()->_views) {
         list_item_view* item = view_item::cast<list_item_view>(v);
         if (item->data.value == focused_value) {
+            value = focused_value;
             select_item(item);
             return;
         }
@@ -358,4 +373,33 @@ bool list_view::ensure_visible_cursor()
     }
 
     return scrolled;
+}
+
+list_item_view* list_view::item_from_value(std::string value)
+{
+    for(auto item : content()->_views) {
+        list_item_view* iv = view_item::cast<list_item_view>(item);
+        if (iv->data.value == value) return iv;
+    }
+    return NULL;
+}
+
+
+bool list_view::input_sequence(std::string text)
+{
+    operation_e op = operationFromKeys(text);
+    switch(op) {
+    case MOVE_CURSOR_UP:
+    case MOVE_CURSOR_LEFT:
+        focus_previous();
+        break;
+    case MOVE_CURSOR_DOWN:
+    case MOVE_CURSOR_RIGHT:
+        focus_next();
+        break;
+    case ENTER:
+        select_item(item_from_value(focused_value));
+        break;
+    }
+    return true;
 }

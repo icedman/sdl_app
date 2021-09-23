@@ -6,6 +6,11 @@ app_tabbar_view::app_tabbar_view()
     : tabbar_view()
 {
     autoscroll = true;
+
+    on(EVT_KEY_SEQUENCE, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->input_sequence(evt.text);
+    });
 }
 
 void app_tabbar_view::update()

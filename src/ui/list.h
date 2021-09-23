@@ -39,6 +39,7 @@ struct list_view : panel_view {
     virtual void prelayout() override;
     virtual void update() override;
     virtual void render() override;
+    virtual bool input_sequence(std::string text) override; 
 
     virtual void select_item(list_item_view* item);
     bool is_selected(list_item_view* item);
@@ -50,6 +51,8 @@ struct list_view : panel_view {
     bool ensure_visible_cursor();
 
     virtual view_item_ptr create_item();
+
+    list_item_view* item_from_value(std::string value);
 
     std::vector<list_item_data_t> data;
     std::string value;
