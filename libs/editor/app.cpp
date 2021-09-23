@@ -122,15 +122,25 @@ void app_t::configure(int argc, char** argv)
     const char* argScript = 0;
     const char* defaultTheme = "Monokai";
 
+    std::string lastArg;
     for (int i = 0; i < argc - 1; i++) {
         if (strcmp(argv[i], "-t") == 0) {
             argTheme = argv[i + 1];
+            lastArg = argTheme;
         }
         // if (strcmp(argv[i], "-s") == 0) {
         //     argScript = argv[i + 1];
         // }
         if (strcmp(argv[i], "-f") == 0) {
             fullEnv = true;
+            lastArg = fullEnv;
+        }
+    }
+
+    if (argc > 1) {
+        inputFile = argv[argc-1];
+        if (inputFile == lastArg) {
+            inputFile = "";
         }
     }
 
@@ -375,6 +385,28 @@ void app_t::setupColors(bool colors)
     }
 
     log("%d registered colors", theme->colorIndices.size());
+
+    /*
+        "editor.background": "#1E1E1E",
+        "editor.foreground": "#D4D4D4",
+        "editor.inactiveSelectionBackground": "#3A3D41",
+        "editorIndentGuide.background": "#404040",
+        "editorIndentGuide.activeBackground": "#707070",
+        "editor.selectionHighlightBackground": "#ADD6FF26",
+        "list.dropBackground": "#383B3D",
+        "activityBarBadge.background": "#007ACC",
+        "sideBarTitle.foreground": "#BBBBBB",
+        "input.placeholderForeground": "#A6A6A6",
+        "menu.background": "#252526",
+        "menu.foreground": "#CCCCCC",
+        "statusBarItem.remoteForeground": "#FFF",
+        "statusBarItem.remoteBackground": "#16825D",
+        "ports.iconRunningProcessForeground": "#369432",
+        "sideBarSectionHeader.background": "#0000",
+        "sideBarSectionHeader.border": "#ccc3",
+        "tab.lastPinnedBorder": "#ccc3",
+        "list.activeSelectionIconForeground": "#FFF"
+    */
 }
 
 editor_ptr app_t::openEditor(std::string path, bool check)

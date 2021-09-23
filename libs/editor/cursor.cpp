@@ -106,6 +106,9 @@ void cursor_t::setPosition(block_ptr b, size_t p, bool keepAnchor)
     }
     cursor.block = b;
     cursor.position = p;
+    if (b) {
+        cursor.line = b->lineNumber;
+    }
     if (!keepAnchor) {
         setAnchor(b, p);
     }
@@ -120,6 +123,9 @@ void cursor_t::setAnchor(block_ptr b, size_t p)
 {
     anchor.block = b;
     anchor.position = p;
+    if (b) {
+        anchor.line = b->lineNumber;
+    }
 }
 
 block_ptr cursor_t::block()

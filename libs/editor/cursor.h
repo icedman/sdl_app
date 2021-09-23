@@ -8,6 +8,7 @@ struct cursor_position_t {
 
     block_ptr block;
     size_t position;
+    size_t line;
 };
 
 struct cursor_t {

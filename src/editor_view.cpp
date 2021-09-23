@@ -70,7 +70,7 @@ void editor_view::render()
     view_style_t vs = view_style_get("editor");
 
     bool wrap = app->lineWrap;
-    int tabSize = app->tabSize;
+    int indent = app->tabSize;
 
     layout_item_ptr plo = layout();
 
@@ -216,7 +216,7 @@ void editor_view::render()
                 }
                 _s.line = line;
                 if (_s.line > 0) {
-                    _s.line_x = tabSize + line_x;
+                    _s.line_x = indent + line_x;
                     line_x += _s.length;
                 }
 
