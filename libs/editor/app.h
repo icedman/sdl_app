@@ -53,20 +53,26 @@ struct app_t {
     icon_theme_ptr icons;
     icon_theme_ptr icons_default;
 
-    std::string markup;
+    std::string inputFile;
 
     bool debug;
 
     // colors
     bool trueColors;
     std::string themeName;
+    
     int fg;
     int bg;
     int bgApp;
+
     int selFg;
     int selBg;
+    
     int treeFg;
     int treeBg;
+    int treeHoverFg;
+    int treeHoverBg;
+
     int tabFg;
     int tabBg;
     int tabHoverFg;

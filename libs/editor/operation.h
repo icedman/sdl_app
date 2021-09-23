@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "cursor.h"
+
 enum operation_e {
     UNKNOWN = 0,
     CANCEL,
@@ -107,8 +109,7 @@ struct operation_t {
     std::string keys;
     
     // history hint
-    int cursor_count;
-    int cursor_selection;
+    cursor_list cursors;
 };
 
 typedef std::vector<operation_t> operation_list;

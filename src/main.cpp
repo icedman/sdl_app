@@ -130,9 +130,9 @@ int main(int argc, char** argv)
 
     app.configure(argc, argv);
     app.setupColors(!Renderer::instance()->is_terminal());
-    std::string file = "./src/main.cpp";
-    if (argc > 1) {
-        file = argv[argc - 1];
+    std::string file = app.inputFile;
+    if (file == "") {
+        file = "./src/main.cpp";
     }
 
     theme_ptr theme = app.theme;

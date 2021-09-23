@@ -67,13 +67,6 @@ void editor_t::runOp(operation_t op)
 {
     // app_t* app = app_t::instance();
 
-    if (snapshots.size()) {
-        snapshot_t& snapshot = snapshots.back();
-        op.cursor_count = document.cursors.size();
-        op.cursor_selection = document.hasSelections();
-        snapshot.history.push_back(op);
-    }
-
     int intParam = 0;
     try {
         intParam = std::stoi(op.params);
@@ -82,6 +75,29 @@ void editor_t::runOp(operation_t op)
 
     std::string strParam = op.params;
     operation_e _op = op.op;
+
+    if (snapshots.size()) {
+        snapshot_t& snapshot = snapshots.back();
+
+        switch (_op) {
+        case TAB:
+        case ENTER:
+        case INSERT:
+        case DELETE:
+        case BACKSPACE:
+            // save cursors
+            // and operation
+            op.cursors = document.cursors;
+            for(auto& c : op.cursors) {
+                c.cursor.line = c.cursor.block->lineNumber + 1;
+                c.anchor.line = c.anchor.block->lineNumber + 1;
+            }
+            snapshot.history.push_back(op);
+
+        default:
+            break;
+        }
+    }
 
     //-------------------
     // handle selections
@@ -101,7 +117,6 @@ void editor_t::runOp(operation_t op)
             runOp(d);
             return;
         }
-
         default:
             break;
         }
@@ -795,6 +810,7 @@ void editor_t::undo()
     //     printf("%s %d %d\n", name.c_str(), op.cursor_count, op.cursor_selection);
     // }
 
+    /*
     if (items.size()) {
         operation_t op = items.back();
         if (op.op == INSERT && op.params.length() == 1 && op.cursor_count == 1 && !op.cursor_selection) {
@@ -811,6 +827,7 @@ void editor_t::undo()
             return;
         }
     }
+    */
 
     while (items.size() > 0) {
         auto lastOp = items.back();
@@ -852,6 +869,13 @@ void editor_t::undo()
         default:
             break;
         }
+
+        for(auto& c : op.cursors) {
+            c.cursor.block = document.blockAtLine(c.cursor.line);
+            c.anchor.block = document.blockAtLine(c.anchor.line);
+        }
+
+        document.cursors = op.cursors;
 
         pushOp(op);
         runAllOps();
