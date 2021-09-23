@@ -53,6 +53,7 @@ std::string block_t::text()
                 content += (char)(wc & 0xff);
             }
         }
+        
         return content;
     }
 
@@ -71,9 +72,6 @@ std::string block_t::text()
 std::wstring block_t::wide_text()
 {
     if (dirty) {
-        if (!wcontent.length() && content.length()) {
-            setText(content);
-        }
         return wcontent;
     }
     

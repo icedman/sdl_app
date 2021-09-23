@@ -306,7 +306,7 @@ const wchar_t* wcharFromDots(int idx)
         memset(cache, 0, sizeof(int) * 1024);
     }
 
-    if (cache[idx] != 0) {
+    if (cache[idx] != 0 && cache[idx] < 256) {
         return dots_map[cache[idx]].chars;
     }
 
