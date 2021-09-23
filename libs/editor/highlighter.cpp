@@ -13,6 +13,7 @@
 
 highlighter_t::highlighter_t()
     : threadId(0)
+    , _threadId(0)
     , editor(0)
     , requestIdx(0)
     , processIdx(0)
@@ -54,10 +55,14 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rend
 
 int highlighter_t::requestHighlightBlock(block_ptr block)
 {
+    // for(int i=0;i<HIGHLIGHT_REQUEST_SIZE;i++) {
+    //     if (highlightRequests[i] == block->lineNumber) {
+    //         return 0;
+    //     }
+    // }
     highlightRequests[requestIdx++] = block->lineNumber;
     if (requestIdx >= HIGHLIGHT_REQUEST_SIZE)
         requestIdx = 0;
-
     return 0;
 }
 
@@ -446,9 +451,9 @@ void* highlightThread(void* arg)
     while (true) {
         time_to_wait.tv_sec = time(NULL) + 2L;
 
+        int breathe_counter = 0;
         for (int i = 0; i < HIGHLIGHT_REQUEST_SIZE; i++) {
             size_t processIdx = threadHl->processIdx;
-            if (threadHl->processIdx == threadHl->requestIdx) break;
             if (threadHl->highlightRequests[processIdx] != 0) {
                 // todo make thread safe
                 block_ptr block = editor->document.blockAtLine(threadHl->highlightRequests[processIdx]);
@@ -456,15 +461,19 @@ void* highlightThread(void* arg)
                     threadHl->highlightRequests[processIdx] = 0;
                     continue;
                 }
-                threadHl->highlightBlock(block);
-                if (threadHl->callback) {
+                int lighted = threadHl->highlightBlock(block);
+                if (lighted && threadHl->callback) {
                     threadHl->callback(block->lineNumber);
+                    if (breathe_counter > 32) {
+                        usleep(500);
+                        breathe_counter = 0;
+                    }
                 }
                 // log("indexing %d", i);
                 threadHl->highlightRequests[processIdx] = 0;
                 // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
-                usleep(500);
             }
+            
             processIdx++;
             threadHl->processIdx = processIdx % HIGHLIGHT_REQUEST_SIZE;
         }
@@ -490,23 +499,21 @@ void* _highlightThread(void* arg)
     tmp.highlighter.theme = threadHl->theme;
 
     block_ptr b = tmp.document.firstBlock();
-    int c = 0;
+    int breathe_counter = 0;
     while (b) {
-        tmp.highlighter.highlightBlock(b);
+        int lighted = tmp.highlighter.highlightBlock(b);
 
         block_ptr sb = editor->snapshots[0].snapshot[b->lineNumber];
         sb->data = b->data;
 
-        // log("%d", runLine);
+        log("%d", b->lineNumber);
         b = b->next();
 
-        if (c++ > 8) {
-            usleep(5000);
-            c = 0;
+        if (lighted && breathe_counter++ > 4) {
+            usleep(1000);
+            breathe_counter = 0;
         }
     }
-
-    usleep(1000);
 
     threadHl->threadId = 0;
     return NULL;
@@ -515,7 +522,17 @@ void* _highlightThread(void* arg)
 void highlighter_t::run(editor_t* editor)
 {
     this->editor = editor;
+
+    // highlight first page
+    int c = 0;
+    block_ptr b = editor->document.firstBlock();
+    while (b && c++ < 100) {
+        editor->highlighter.highlightBlock(b);
+        b = b->next();
+    }
+
     pthread_create(&threadId, NULL, &highlightThread, this);
+    pthread_create(&_threadId, NULL, &_highlightThread, this);
 }
 
 void highlighter_t::cancel()
@@ -523,5 +540,9 @@ void highlighter_t::cancel()
     if (threadId) {
         pthread_cancel(threadId);
         threadId = 0;
+    }
+    if (_threadId) {
+        pthread_cancel(_threadId);
+        _threadId = 0;
     }
 }

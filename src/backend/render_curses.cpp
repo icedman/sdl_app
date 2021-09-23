@@ -532,10 +532,6 @@ void Renderer::listen_events(event_list* events)
         expandedSequence = "";
     }
 
-    if (keySequence == "resize") {
-        _running = false;
-    }
-
     if (keySequence == "ctrl+q") {
         _running = false;
     }
@@ -588,6 +584,7 @@ bool Renderer::is_throttle_up_events()
 
 void Renderer::wake()
 {
+    throttle_up_events(4);
 }
 
 int Renderer::key_mods()

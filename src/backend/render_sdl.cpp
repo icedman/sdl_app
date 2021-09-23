@@ -238,7 +238,7 @@ void Renderer::listen_events(event_list* events)
             }
         }
 
-        throttle_up_events(12);
+        // throttle_up_events(12);
 
         switch (e.type) {
         case SDL_QUIT:
@@ -373,6 +373,12 @@ bool Renderer::is_throttle_up_events()
 
 void Renderer::wake()
 {
+    if (throttle_up_event_counter > 0) {
+        return;
+    }
+
+    printf("W\n");
+
     SDL_Event event;
     event.type = SDL_USEREVENT;
     event.user.code = 0;

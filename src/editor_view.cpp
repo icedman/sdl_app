@@ -145,26 +145,16 @@ void editor_view::render()
         longest_block = 0;
     }
 
-    block_list& snapBlocks = editor->snapshots[0].snapshot;
-
     int l = 0;
     while (it != doc->blocks.end() && l < rows) {
         block_ptr block = *it++;
 
         blockdata_t* blockData = 0;
+        if (!block->data || block->data->dirty) {
+            editor->highlighter.highlightBlock(block);
+        }
         if (block->data) {
             blockData = block->data.get();
-        }
-
-        if (!blockData) {
-            // editor->highlighter.highlightBlock(block);
-        }
-
-        if (!blockData && block->lineNumber < snapBlocks.size()) {
-            block_ptr sb = snapBlocks[block->lineNumber];
-            if (sb->data && !sb->data->dirty) {
-                blockData = sb->data.get();
-            }
         }
 
         if (!blockData || blockData->dirty) {
@@ -242,6 +232,14 @@ void editor_view::render()
                 continue;
 
             color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
+
+            if (s.start + s.length >= wtext.length()) {
+                s.length = wtext.length() - s.start;
+                if (s.length <= 0) {
+                    s.length = 0;
+                    continue;
+                }
+            }
 
             std::string span_text = text.substr(s.start, s.length);
             std::wstring span_wtext = wtext.substr(s.start, s.length);
@@ -453,7 +451,9 @@ void editor_view::update()
 
     if (!editor->highlighter.callback) {
         editor->highlighter.callback = [this](int line) {
-            Renderer::instance()->wake();
+            if (line >= this->start_row && line < this->start_row + this->rows) {
+                Renderer::instance()->wake();
+            }
             return true;
         };
     }
@@ -477,7 +477,7 @@ void editor_view::update()
     block_list::iterator it = doc->blocks.begin();
 
     int view_height = rows;
-    int hl_prior = 8;
+    int hl_prior = 16;
     int hl_start = start_row - hl_prior;
     int hl_length = view_height + hl_prior * 2;
 
@@ -486,7 +486,9 @@ void editor_view::update()
     it += hl_start;
     for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
         block_ptr b = *it++;
-        editor->highlighter.requestHighlightBlock(b);
+        if (!b->data || b->data->dirty) {
+            editor->highlighter.requestHighlightBlock(b);
+        }
     }
 }
 

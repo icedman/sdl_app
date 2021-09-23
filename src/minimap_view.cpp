@@ -57,6 +57,29 @@ bool minimap_view::mouse_click(int x, int y, int button)
     return true;
 }
 
+void minimap_view::update()
+{
+    view_item::update();
+
+    editor_view* ev = (editor_view*)(parent->parent);
+    editor_ptr editor = ev->editor;
+    document_t* doc = &editor->document;
+
+    block_list::iterator it = doc->blocks.begin();
+    
+    int hl_length = end_y - start_y;
+    int hl_start = start_y;
+    if (hl_start < 0)
+        hl_start = 0;
+    it += hl_start;
+    for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
+        block_ptr b = *it++;
+        if (!b->data || b->data->dirty) {
+            editor->highlighter.requestHighlightBlock(b);
+        }
+    }
+}
+
 void minimap_view::render()
 {
     if (Renderer::instance()->is_terminal()) {
@@ -73,17 +96,18 @@ void minimap_view::render()
 
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
+    document_t* doc = &editor->document;
 
     int start = ev->start_row;
-    int count = editor->document.blocks.size() + (ev->rows / 3);
+    int count = doc->blocks.size() + (ev->rows / 3);
     if (count <= 0)
         return;
 
     float p = (float)start / count;
     scroll_y = 0;
 
-    if (editor->document.blocks.size() * spacing > lo->render_rect.h) {
-        scroll_y = (p * editor->document.blocks.size() * spacing);
+    if (doc->blocks.size() * spacing > lo->render_rect.h) {
+        scroll_y = (p * doc->blocks.size() * spacing);
         scroll_y -= (p * lo->render_rect.h * 3 / 4);
     }
     if (scroll_y < 0) {
@@ -94,7 +118,7 @@ void minimap_view::render()
 
     block_list& snapBlocks = editor->snapshots[0].snapshot;
 
-    block_list::iterator it = editor->document.blocks.begin();
+    block_list::iterator it = doc->blocks.begin();
     it += (scroll_y / spacing);
 
     // printf(">%f %d\n", p, scroll_y);
@@ -106,7 +130,7 @@ void minimap_view::render()
     int render_y = 0;
 
     int l = 0;
-    while (it != editor->document.blocks.end() && l < lo->render_rect.h) {
+    while (it != doc->blocks.end() && l < lo->render_rect.h) {
         block_ptr block = *it;
         it++;
 
@@ -180,7 +204,7 @@ void minimap_view::render()
         Renderer::instance()->draw_rect(
             {
                 lo->render_rect.x,
-                // lo->render_rect.y + (p * editor->document.blocks.size() * spacing) - scroll_y,
+                // lo->render_rect.y + (p * doc->blocks.size() * spacing) - scroll_y,
                 render_y,
                 lo->render_rect.w,
                 ev->rows * spacing,

@@ -12,7 +12,7 @@
 #include <vector>
 #include <functional>
 
-#define HIGHLIGHT_REQUEST_SIZE 512
+#define HIGHLIGHT_REQUEST_SIZE 1024
 
 typedef std::function<bool(int)> highlight_callback_t;
 
@@ -36,6 +36,7 @@ struct highlighter_t {
 
     editor_t* editor;
     pthread_t threadId;
+    pthread_t _threadId;
 
     highlight_callback_t callback;
 };

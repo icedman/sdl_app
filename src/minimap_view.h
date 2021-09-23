@@ -8,6 +8,7 @@
 struct minimap_view : view_item {
     minimap_view();
 
+    void update() override;
     void render() override;
     bool mouse_click(int x, int y, int button) override;
 

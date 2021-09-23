@@ -23,7 +23,7 @@
 #include <set>
 #include <vector>
 
-#define FRAME_RENDER_INTERVAL 16
+#define FRAME_RENDER_INTERVAL 32
 
 extern int ren_rendered;
 
@@ -189,17 +189,14 @@ int main(int argc, char** argv)
             layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root); // << this positions items on the screen
-            frames = FRAME_RENDER_INTERVAL - 4;
+            frames = FRAME_RENDER_INTERVAL;
         }
 
         // todo implement frame rate throttling
-        bool skip_render = false;
-        if (Renderer::instance()->is_throttle_up_events()) {
-            if (Renderer::instance()->is_terminal()) {
-                frames = FRAME_RENDER_INTERVAL;
-            }
+        bool skip_render = Renderer::instance()->is_throttle_up_events();
+        if (skip_render) {
             if (frames++ < FRAME_RENDER_INTERVAL) {
-                skip_render = true;
+                skip_render = false;
             }
             frames = 0;
         }
