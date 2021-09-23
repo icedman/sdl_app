@@ -48,8 +48,8 @@ void gutter_view::render()
 
         blockdata_ptr blockData = block->data;
 
-        if (!blockData && block->lineNumber < snapBlocks.size()) {
-            block_ptr sb = snapBlocks[block->lineNumber];
+        if (!blockData && block->originalLineNumber < snapBlocks.size()) {
+            block_ptr sb = snapBlocks[block->originalLineNumber];
             if (sb->data && !sb->data->dirty) {
                 blockData = sb->data;
             }

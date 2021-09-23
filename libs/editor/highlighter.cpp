@@ -464,6 +464,7 @@ void* highlightThread(void* arg)
             }
             size_t processIdx = threadHl->processIdx;
             if (threadHl->highlightRequests[processIdx] != 0) {
+
                 // todo make thread safe
                 block_ptr block = editor->document.blockAtLine(threadHl->highlightRequests[processIdx]);
                 if (!block) {
@@ -516,6 +517,7 @@ void* _highlightThread(void* arg)
         sb->data = b->data;
 
         log("%d", b->lineNumber);
+
         b = b->next();
 
         if (lighted && breathe_counter++ > 4) {

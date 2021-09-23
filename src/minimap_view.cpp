@@ -92,11 +92,15 @@ void minimap_view::render()
     app_t* app = app_t::instance();
     view_style_t vs = view_style_get("gutter");
 
-    Renderer::instance()->draw_rect({ lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h }, { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    Renderer::instance()->draw_rect({ lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h },
+        { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
 
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
     document_t* doc = &editor->document;
+    cursor_t cursor = doc->cursor();
+
+    block_ptr current_block = cursor.block();
 
     int start = ev->start_row;
     int count = doc->blocks.size() + (ev->rows / 3);
@@ -128,6 +132,7 @@ void minimap_view::render()
     render_h = 0;
 
     int render_y = 0;
+    int render_current_y = 0;
 
     int l = 0;
     while (it != doc->blocks.end() && l < lo->render_rect.h) {
@@ -136,8 +141,8 @@ void minimap_view::render()
 
         blockdata_ptr blockData = block->data;
 
-        if (!blockData && block->lineNumber < snapBlocks.size()) {
-            block_ptr sb = snapBlocks[block->lineNumber];
+        if (!blockData && block->originalLineNumber < snapBlocks.size()) {
+            block_ptr sb = snapBlocks[block->originalLineNumber];
             if (sb->data && !sb->data->dirty) {
                 blockData = sb->data;
             }
@@ -194,6 +199,9 @@ void minimap_view::render()
         if (block->lineNumber == start) {
             render_y = lo->render_rect.y + l;
         }
+        if (block == current_block) {
+            render_current_y = lo->render_rect.y + l;
+        }
 
         end_y = block->lineNumber;
 
@@ -204,13 +212,21 @@ void minimap_view::render()
         Renderer::instance()->draw_rect(
             {
                 lo->render_rect.x,
-                // lo->render_rect.y + (p * doc->blocks.size() * spacing) - scroll_y,
                 render_y,
                 lo->render_rect.w,
                 ev->rows * spacing,
             },
             { 255, 255, 255, 10 }, true, 1, 4);
     }
+
+    Renderer::instance()->draw_rect(
+            {
+                lo->render_rect.x,
+                render_current_y - spacing,
+                lo->render_rect.w,
+                1,
+            },
+            { 255, 255, 255, 40 }, true, 1, 0);
 }
 
 void minimap_view::buildUpDotsForBlock(block_ptr block, float textCompress, int bufferWidth)

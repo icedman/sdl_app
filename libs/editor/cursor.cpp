@@ -58,15 +58,16 @@ static void cursorAtPreviousUnfoldedBlock(cursor_t& cursor, bool keepAnchor)
 static void cursorAtNextUnfoldedBlock(cursor_t& cursor, bool keepAnchor)
 {
     block_ptr next = cursor.block()->next();
+    int columns = next->document->columns ? next->document->columns : 1000;
+
     while (next) {
-        cursor.setPosition(next, cursor.cursor.position % next->document->columns, keepAnchor);
+        cursor.setPosition(next, cursor.cursor.position % columns, keepAnchor);
         if (next->data && next->data->folded && !next->data->foldable) {
             if (next->next()) {
                 next = next->next();
                 continue;
             }
         }
-
         break;
     }
 }
@@ -350,20 +351,22 @@ bool _move_cursor(cursor_t& cursor, int dir)
 
 bool cursor_t::moveUp(int count, bool keepAnchor)
 {
+    document_t* doc = block()->document;
+    int columns = doc->columns ? doc->columns : 1000;
+
     --count;
 
-    document_t* doc = block()->document;
     bool navigateWrappedLine = false;
-    if (block()->lineCount > 1 && app_t::instance()->lineWrap && doc->columns) {
+    if (block()->lineCount > 1 && app_t::instance()->lineWrap) {
         cursor_t cur = *this;
         if (_move_cursor(cur, -1)) {
             *this = cur;
             navigateWrappedLine = true;
         } else {
-            int line = 1 + (cursor.position / doc->columns);
+            int line = 1 + (cursor.position / columns);
             if (line > 1) {
-                if (cursor.position > doc->columns) {
-                    cursor.position -= doc->columns;
+                if (cursor.position > columns) {
+                    cursor.position -= columns;
                 } else {
                     cursor.position = 0;
                 }
@@ -396,14 +399,16 @@ bool cursor_t::moveDown(int count, bool keepAnchor)
     --count;
 
     document_t* doc = block()->document;
+    int columns = doc->columns ? doc->columns : 1000;
+
     bool navigateWrappedLine = false;
-    if (block()->lineCount > 1 && app_t::instance()->lineWrap && doc->columns) {
+    if (block()->lineCount > 1 && app_t::instance()->lineWrap && columns) {
         cursor_t cur = *this;
         if (_move_cursor(cur, 1)) {
             *this = cur;
             navigateWrappedLine = true;
         } else {
-            int line = 1 + (cursor.position / doc->columns);
+            int line = 1 + (cursor.position / columns);
             if (line < block()->lineCount) {
                 cursor.position += doc->columns;
                 if (cursor.position >= block()->length()) {
