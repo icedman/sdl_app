@@ -47,6 +47,12 @@ block_t::~block_t()
 std::string block_t::text()
 {
     if (dirty) {
+
+        if (!content.length() && wcontent.length()) {
+            for(auto wc : wcontent) {
+                content += (char)(wc & 0xff);
+            }
+        }
         return content;
     }
 
@@ -98,14 +104,10 @@ void block_t::setText(std::string t)
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
 
-        char ch = cp < 0xff ? cp : 0xfe;
-        content += ch;
-
         wchar_t wc[2] = { cp, 0 };
         wcontent += wc;
     }
 
-    // content += "\n";
     cachedLength = 0;
 }
 
@@ -126,22 +128,18 @@ void block_t::setWText(std::wstring t)
     wchar_t *p = (wchar_t*)t.c_str();
     while(*p) {
         int cp = *p;
-        char ch = cp < 0xff ? cp : 0xfe;
-        content += ch;
 
         wchar_t wc[2] = { cp, 0 };
         wcontent += wc;
         p++;
     }
-
-    content += "\n";
     cachedLength = 0;
 }
 
 size_t block_t::length()
 {
     if (cachedLength == 0) {
-        cachedLength = content.length() + 1;
+        cachedLength = wcontent.length() + 1;
     }
     return cachedLength;
 }
