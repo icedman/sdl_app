@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include <codecvt>
+#include <locale>
 
 #include "app.h"
 #include "operation.h"
@@ -707,13 +708,21 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 }
 
 // todo UTF8 is clipped?
-static bool is_clipped(int x, int y)
+static bool _is_clipped(RenRect cr, int x, int y)
 {
-    RenRect cr = clip_rect;
     if (!(x >= cr.x && x < cr.x + cr.width))
         return true;
     if (!(y >= cr.y && y < cr.y + cr.height))
         return true;
+    return false;
+}
+
+static bool is_clipped(int x, int y)
+{
+    if (_is_clipped(clip_rect, x, y)) return true;
+    for(auto s : state_stack) {
+        if (_is_clipped(s.clip, x, y)) return true;
+    }
     return false;
 }
 
@@ -750,7 +759,8 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
     int pair = 0;
     int i = 0;
     while (*p) {
-        if (is_clipped(x + i, y)) {
+        if (is_clipped(x + i, y) || 
+            (*p >= 0xD800 && *p <= 0xD8FF)) {
             p++;
             i++;
             continue;
