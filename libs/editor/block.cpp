@@ -53,7 +53,7 @@ std::string block_t::text()
                 content += (char)(wc & 0xff);
             }
         }
-        
+
         return content;
     }
 
@@ -114,7 +114,7 @@ void block_t::setWText(std::wstring t)
     dirty = true;
     
     content = "";
-    wcontent = L"";
+    wcontent = t;
 
     if (data) {
         data->dirty = true;
@@ -123,14 +123,6 @@ void block_t::setWText(std::wstring t)
         // }
     }
 
-    wchar_t *p = (wchar_t*)t.c_str();
-    while(*p) {
-        int cp = *p;
-
-        wchar_t wc[2] = { cp, 0 };
-        wcontent += wc;
-        p++;
-    }
     cachedLength = 0;
 }
 
