@@ -153,7 +153,7 @@ void minimap_view::render()
             }
         }
 
-        int alpha = 80;
+        uint8_t alpha = 80;
         if (block == current_block) {
             alpha = 250;
         }
@@ -162,7 +162,7 @@ void minimap_view::render()
             RenRect r = {
                 lo->render_rect.x,
                 lo->render_rect.y + l,
-                block->length() * DRAW_SCALE,
+                (int)(block->length() * DRAW_SCALE),
                 1,
             };
             if (r.width > 0) {
@@ -197,7 +197,7 @@ void minimap_view::render()
 
                 if (r.width > 0) {
                     Renderer::instance()->draw_rect(r,
-                        { clr.red, clr.green, clr.blue, alpha },
+                        { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, (uint8_t)alpha },
                         false, 1);
                 }
             }
@@ -339,7 +339,7 @@ void minimap_view::render_terminal()
                 Renderer::instance()->draw_wtext(NULL, wcharFromDots(b->data->dots[x]),
                     lo->render_rect.x + x,
                     lo->render_rect.y + y,
-                    { 255, 255, 255, ci });
+                    { 255, 255, 255, (uint8_t)ci });
             }
 
             if (x >= lo->render_rect.w - 2) {

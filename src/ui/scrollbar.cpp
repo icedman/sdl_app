@@ -218,24 +218,24 @@ void scrollbar_view::render()
 
             for (int i = 0; i < lo->render_rect.h; i++) {
                 Renderer::instance()->draw_char(NULL, '|', lo->render_rect.x, lo->render_rect.y + i,
-                    { 0, 0, 0, vs.bg.index }, true, 1);
+                    { 0, 0, 0, (uint8_t)vs.bg.index }, true, 1);
             }
 
             for (int i = 0; i < lot->render_rect.h; i++) {
                 Renderer::instance()->draw_char(NULL, '|', lot->render_rect.x, lot->render_rect.y + i,
-                    { 0, 0, 0, vs.fg.index }, true, 1);
+                    { 0, 0, 0, (uint8_t)vs.fg.index }, true, 1);
             }
 
         } else {
 
             for (int i = 0; i < lo->render_rect.w; i++) {
                 Renderer::instance()->draw_char(NULL, '-', lo->render_rect.x + i, lo->render_rect.y,
-                    { 0, 0, 0, vs.bg.index }, true, 1);
+                    { 0, 0, 0, (uint8_t)vs.bg.index }, true, 1);
             }
 
             for (int i = 0; i < lot->render_rect.w; i++) {
                 Renderer::instance()->draw_char(NULL, '-', lot->render_rect.x + i, lot->render_rect.y,
-                    { 0, 0, 0, vs.fg.index }, true, 1);
+                    { 0, 0, 0, (uint8_t)vs.fg.index }, true, 1);
             }
         }
         return;
@@ -247,7 +247,7 @@ void scrollbar_view::render()
                                         lo->render_rect.w,
                                         lo->render_rect.h },
         { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue,
-            Renderer::instance()->is_terminal() ? vs.bg.index : 5 },
+            (uint8_t) (Renderer::instance()->is_terminal() ? vs.bg.index : 5) },
         true);
 
     // thumb
@@ -256,8 +256,8 @@ void scrollbar_view::render()
                                         lot->render_rect.y + pad,
                                         lot->render_rect.w - pad * 2,
                                         lot->render_rect.h - pad * 2 },
-        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue,
-            Renderer::instance()->is_terminal() ? vs.fg.index : ((content->is_pressed() || is_hovered()) ? 150 : 50) },
+        { (uint8_t) vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue,
+            (uint8_t) (Renderer::instance()->is_terminal() ? vs.fg.index : ((content->is_pressed() || is_hovered()) ? 150 : 50)) },
         true, 0, 3);
 }
 

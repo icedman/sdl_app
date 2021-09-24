@@ -162,7 +162,7 @@ void editor_view::render()
             blockData = std::make_shared<blockdata_t>();
             span_info_t span = {
                 start : 0,
-                length : block->text().length(),
+                length : (int)block->text().length(),
                 colorIndex : app_t::instance()->fg,
                 bold : false,
                 italic : false,
@@ -832,7 +832,15 @@ void editor_view::show_completer()
                 break;
         }
 
-        pm->push_at(completer, { (completer_cursor.position() * fw) + scrollarea->layout()->render_rect.x + scrollarea->layout()->scroll_x - pm->layout()->render_rect.x, s.y - scrollarea->layout()->render_rect.y, fw * prefix.length(), fh }, s.y > area->layout()->render_rect.h / 3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN);
+        pm->push_at(completer,
+            {
+                (uint8_t) ((completer_cursor.position() * fw) + scrollarea->layout()->render_rect.x + scrollarea->layout()->scroll_x - pm->layout()->render_rect.x),
+                (uint8_t) (s.y - scrollarea->layout()->render_rect.y),
+                (uint8_t) (fw * prefix.length()),
+                (uint8_t) fh
+            },
+                s.y > area->layout()->render_rect.h / 3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN
+            );
 
         // printf(">%d %d\n", s.y, scrollarea->layout()->render_rect.y);
 

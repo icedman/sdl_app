@@ -780,7 +780,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
         wchar_t s[2] = { *p, 0 };
         // const wchar_t s[] = { 128193, L' ', 128194, L' ', 128196, L' ', 0 };
         if (s[0] != L'\n' && s[0] != L'\t') {
-            addwstr(s);
+            addwstr((wchar_t*)s);
         }
 
         attroff(A_REVERSE);
@@ -910,7 +910,7 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
 
     if (_wch != 0) {
         wchar_t _ws[2] = { _wch, 0 };
-        addwstr(_ws);
+        addwstr((wchar_t*)_ws);
     } else {
         addch(_ch);
     }

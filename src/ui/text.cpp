@@ -35,7 +35,7 @@ void text_view::render()
         Renderer::instance()->draw_text(Renderer::instance()->font("ui-small"), (char*)text.c_str(),
             lo->render_rect.x + pad,
             lo->render_rect.y + pad + ((lo->render_rect.h - (pad * 2)) / 2) - (text_height / 2),
-            { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, vs.fg.index },
+            { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, (uint8_t)vs.fg.index },
             false, false);
         return;
     }

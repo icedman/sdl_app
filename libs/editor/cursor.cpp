@@ -635,7 +635,7 @@ bool cursor_t::insertText(std::string t)
     while(*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
-        wchar_t wc[2] = { cp, 0 };
+        wchar_t wc[2] = { (wchar_t)cp, 0 };
         wt += wc;
     }
 

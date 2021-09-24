@@ -4,6 +4,7 @@ project('app', 'cpp',
 )
 
 add_global_arguments('-w', language: 'cpp')
+add_global_arguments('-D_XOPEN_SOURCE_EXTENDED', language: 'cpp')
 
 pwd = meson.current_source_dir()
 cc = meson.get_compiler('cpp')

@@ -102,7 +102,7 @@ void block_t::setText(std::string t)
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
 
-        wchar_t wc[2] = { cp, 0 };
+        wchar_t wc[2] = { (wchar_t)cp, 0 };
         wcontent += wc;
     }
 
