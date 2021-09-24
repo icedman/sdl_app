@@ -27,6 +27,7 @@ enum KEY_ACTION {
     K_ESC = 27,
     K_BACKSPACE = 127,
     K_RESIZE = 150,
+    
     /* The following are just soft codes, not really reported by the terminal directly. */
     K_ALT_ = 1000,
     K_CTRL_,
@@ -55,6 +56,11 @@ enum KEY_ACTION {
     K_CTRL_SHIFT_ALT_RIGHT,
     K_CTRL_SHIFT_ALT_HOME,
     K_CTRL_SHIFT_ALT_END,
+
+    K_ALT_UP,
+    K_ALT_DOWN,
+    K_ALT_LEFT,
+    K_ALT_RIGHT,
 
     K_SHIFT_HOME,
     K_SHIFT_END,
@@ -145,8 +151,6 @@ static int readMoreEscapeSequence(int c, std::string& keySequence)
         return K_CTRL_ALT_;
     }
 
-    app_t::log("escape+%d a:%d A:%d 0:%d 9:%d\n", c, 'a', 'A', '0', '9');
-
     return K_ESC;
 }
 
@@ -198,6 +202,7 @@ static int readEscapeSequence(std::string& keySequence)
                     return K_ESC;
                 }
                 read(STDIN_FILENO, &seq[0], 1);
+
                 if (!kbhit(wait)) {
                     return K_ESC;
                 }
@@ -205,7 +210,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "shift+";
                 if (seq[0] == '2') {
-                    // app_t::log("shift+%d\n", seq[1]);
+                    app_t::log("shift+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -228,9 +233,28 @@ static int readEscapeSequence(std::string& keySequence)
                     }
                 }
 
+                sequence = "alt+";
+                if (seq[0] == '3') {                    
+                    app_t::log("alt+%c\n", seq[1]);
+                    switch (seq[1]) {
+                    case 'A':
+                        keySequence = sequence + "up";
+                        return K_ALT_UP;
+                    case 'B':
+                        keySequence = sequence + "down";
+                        return K_ALT_DOWN;
+                    case 'C':
+                        keySequence = sequence + "right";
+                        return K_ALT_RIGHT;
+                    case 'D':
+                        keySequence = sequence + "left";
+                        return K_ALT_LEFT;
+                    }
+                }
+
                 sequence = "ctrl+";
                 if (seq[0] == '5') {
-                    // app_t::log("ctrl+%d\n", seq[1]);
+                    app_t::log("ctrl+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -255,7 +279,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "ctrl+shift+";
                 if (seq[0] == '6') {
-                    // app_t::log("ctrl+shift+%d\n", seq[1]);
+                    app_t::log("ctrl+shift+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -280,7 +304,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "ctrl+alt+";
                 if (seq[0] == '7') {
-                    // app_t::log("ctrl+alt+%d\n", seq[1]);
+                    app_t::log("ctrl+alt+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -305,7 +329,7 @@ static int readEscapeSequence(std::string& keySequence)
 
                 sequence = "ctrl+shift+alt+";
                 if (seq[0] == '8') {
-                    // app_t::log("ctrl+shift+alt+%d\n", seq[1]);
+                    app_t::log("ctrl+shift+alt+%d\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
                         keySequence = sequence + "up";
@@ -918,11 +942,7 @@ void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
 
     clip_rect = { 0, 0, window_cols, window_rows };
 
-    for (int i = 0; i < window_rows; i++) {
-        move(i, 0);
-        clrtoeol();
-    }
-
+    erase();
     state_save();
 }
 

@@ -9,7 +9,6 @@
 #include "backend.h"
 #include "editor.h"
 #include "explorer.h"
-#include "keyinput.h"
 #include "operation.h"
 #include "search.h"
 #include "statusbar.h"

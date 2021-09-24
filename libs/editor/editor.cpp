@@ -1,6 +1,5 @@
 #include "editor.h"
 #include "indexer.h"
-#include "keyinput.h"
 #include "util.h"
 
 // clipboard
