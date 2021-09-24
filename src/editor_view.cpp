@@ -650,22 +650,9 @@ bool editor_view::input_sequence(std::string text)
     if (pm->_views.size()) {
         switch (op) {
         case MOVE_CURSOR_UP:
-            list->focus_previous();
-            for (int i = 0; i < 2; i++) {
-                if (!list->ensure_visible_cursor())
-                    break;
-            }
-            return true;
         case MOVE_CURSOR_DOWN:
-            list->focus_next();
-            for (int i = 0; i < 2; i++) {
-                if (!list->ensure_visible_cursor())
-                    break;
-            }
-            return true;
         case ENTER:
-            list->select_focused();
-            return true;
+            return list->input_sequence(text);
         default:
             pm->clear();
             break;

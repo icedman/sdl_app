@@ -391,6 +391,18 @@ list_item_view* list_view::item_from_value(std::string value)
 bool list_view::input_sequence(std::string text)
 {
     operation_e op = operationFromKeys(text);
+
+    if (content()->layout()->direction == LAYOUT_FLEX_DIRECTION_ROW) {
+        if (op == MOVE_CURSOR_UP || op == MOVE_CURSOR_DOWN) {
+            op = UNKNOWN;
+        }
+    }
+    if (content()->layout()->direction == LAYOUT_FLEX_DIRECTION_COLUMN) {
+        if (op == MOVE_CURSOR_LEFT || op == MOVE_CURSOR_RIGHT) {
+            op = UNKNOWN;
+        }
+    }
+
     switch(op) {
     case MOVE_CURSOR_UP:
     case MOVE_CURSOR_LEFT:

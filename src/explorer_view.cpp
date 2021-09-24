@@ -25,6 +25,10 @@ explorer_view::explorer_view()
 
 void explorer_view::update()
 {
+    if (!is_focused()) {
+        focused_value = value;
+    }
+    
     explorer_t* explorer = explorer_t::instance();
     ((list_view*)this)->value = app_t::instance()->currentEditor->document.fullPath;
 
