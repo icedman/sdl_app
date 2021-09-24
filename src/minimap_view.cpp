@@ -153,6 +153,11 @@ void minimap_view::render()
             }
         }
 
+        int alpha = 80;
+        if (block == current_block) {
+            alpha = 250;
+        }
+
         if (!blockData || blockData->dirty) {
             RenRect r = {
                 lo->render_rect.x,
@@ -192,7 +197,7 @@ void minimap_view::render()
 
                 if (r.width > 0) {
                     Renderer::instance()->draw_rect(r,
-                        { clr.red, clr.green, clr.blue, 150 },
+                        { clr.red, clr.green, clr.blue, alpha },
                         false, 1);
                 }
             }

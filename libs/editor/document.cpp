@@ -6,6 +6,7 @@
 
 #include "indexer.h"
 
+#include <dirent.h>
 #include <cstring>
 #include <set>
 

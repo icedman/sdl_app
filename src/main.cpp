@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     app.setupColors(!renderer->is_terminal());
     std::string file = app.inputFile;
     if (file == "") {
-        file = "./src/main.cpp";
+        file = "~/";
     }
 
     theme_ptr theme = app.theme;
@@ -62,7 +62,6 @@ int main(int argc, char** argv)
     app.openEditor(file);
     explorer.setRootFromFile(file);
 
-    // app.currentEditor->singleLineEdit = true;
     renderer->init();
 
     color_info_t bg = renderer->color_for_index(app.bgApp);

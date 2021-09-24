@@ -748,6 +748,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
         attron(COLOR_PAIR(pair));
 
         wchar_t s[2] = { *p, 0 };
+        // const wchar_t s[] = { 128193, L' ', 128194, L' ', 128196, L' ', 0 };
         if (s[0] != L'\n' && s[0] != L'\t') {
             addwstr(s);
         }

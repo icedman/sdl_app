@@ -7,6 +7,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <dirent.h>
 
 #include "highlighter.h"
 #include "indexer.h"
@@ -411,6 +412,14 @@ void app_t::setupColors(bool colors)
 
 editor_ptr app_t::openEditor(std::string path, bool check)
 {
+    if (path.length()) {
+        DIR* dir = opendir(path.c_str());
+        if (dir != NULL) {
+            path = ""; 
+            closedir(dir);
+        }
+    }
+
     log("open: %s", path.c_str());
 
     if (check) {
@@ -435,8 +444,8 @@ editor_ptr app_t::openEditor(std::string path, bool check)
 
     currentEditor = editor;
     editor->name = "editor:";
-    editor->name += path;
 
+    editor->name += path;
     editors.emplace_back(editor);
 
     return editor;

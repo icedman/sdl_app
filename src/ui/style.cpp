@@ -13,7 +13,7 @@ void view_style_register(view_style_t style, std::string name)
 
 view_style_t view_style_get(std::string name)
 {
-    app_t::log("style? %s", name.c_str());
+    // app_t::log("style? %s", name.c_str());
     if (styleMap.find(name) == styleMap.end()) {
         name = "default";
     }
