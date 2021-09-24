@@ -14,7 +14,7 @@
 explorer_view::explorer_view()
     : list_view()
 {
-    type = "explorer";
+    class_name = "explorer";
     autoscroll = true;
     
     on(EVT_KEY_SEQUENCE, [this](event_t& evt) {

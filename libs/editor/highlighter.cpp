@@ -508,6 +508,8 @@ void* _highlightThread(void* arg)
     // tmp.highlighter.lang = threadHl->lang;
     tmp.highlighter.theme = threadHl->theme;
 
+    usleep(200000);
+
     block_ptr b = tmp.document.firstBlock();
     int breathe_counter = 0;
     while (b) {

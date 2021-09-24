@@ -23,6 +23,7 @@ typedef struct {
     int x, y, width, height;
 } RenRect;
 
+struct view_item;
 struct Renderer {
     static Renderer* instance();
 
@@ -38,6 +39,8 @@ struct Renderer {
     void throttle_up_events(int frames = 120);
     bool is_throttle_up_events();
     void wake();
+
+    void render_view_tree(view_item *root);
 
     int key_mods();
 

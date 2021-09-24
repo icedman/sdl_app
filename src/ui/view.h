@@ -11,6 +11,7 @@
 struct view_item;
 typedef std::shared_ptr<view_item> view_item_ptr;
 typedef std::vector<view_item_ptr> view_item_list;
+
 struct view_item : layout_view, event_object_t {
     view_item(std::string type);
     view_item();
@@ -21,6 +22,7 @@ struct view_item : layout_view, event_object_t {
 
     layout_item_ptr layout() override;
     void update() override;
+    void prerender() override;
     void render() override;
 
     void add_child(view_item_ptr view);
@@ -56,6 +58,11 @@ struct view_item : layout_view, event_object_t {
 
     RenImage* cached_image;
     bool cache_enabled;
+
+    view_style_t style;
+    std::string class_name;
+
+    std::string computed_class();
 
     template <class T>
     static T* cast(view_item_ptr v) { return (T*)(v.get()); };

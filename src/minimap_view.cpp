@@ -13,8 +13,9 @@
 #define TEXT_BUFFER 25
 
 minimap_view::minimap_view()
-    : view_item("minimap")
+    : view_item()
 {
+    class_name = "minimap";
     interactive = true;
 
     spacing = 2;
@@ -66,17 +67,21 @@ void minimap_view::update()
     document_t* doc = &editor->document;
 
     block_list::iterator it = doc->blocks.begin();
+    if (it == doc->blocks.end()) {
+        return;
+    }
+    block_ptr block = *it;
     
     int hl_length = end_y - start_y;
     int hl_start = start_y;
     if (hl_start < 0)
         hl_start = 0;
     it += hl_start;
-    for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
-        block_ptr b = *it++;
-        if (!b->data || b->data->dirty) {
-            editor->highlighter.requestHighlightBlock(b);
+    for (int i = 0; i < hl_length && block; i++) {
+        if (!block->data || block->data->dirty) {
+            editor->highlighter.requestHighlightBlock(block);
         }
+        block = block->next();
     }
 }
 
@@ -90,7 +95,7 @@ void minimap_view::render()
     layout_item_ptr lo = layout();
 
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("gutter");
+    view_style_t vs = style;
 
     Renderer::instance()->draw_rect({ lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h },
         { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
@@ -277,7 +282,7 @@ void minimap_view::render_terminal()
     layout_item_ptr lo = layout();
 
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("gutter");
+    view_style_t vs = style;
 
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;

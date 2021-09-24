@@ -27,34 +27,34 @@ bool list_item_view::mouse_click(int x, int y, int button)
     return true;
 }
 
+void list_item_view::prerender()
+{
+    std::string mod;
+    if (container->is_item_selected(this)) {
+        mod = ":selected";
+    }
+    if (is_hovered() || container->is_item_focused(this)) {
+        mod = ":hovered";
+    }
+    class_name = "item" + mod;
+    view_item::prerender();
+}
+
 void list_item_view::render()
 {
-    app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("explorer");
+    view_style_t vs = style;
 
     layout_item_ptr lo = layout();
     layout_rect r = lo->render_rect;
 
-    RenColor clr = { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue, 20 };
-
-    if (container->is_selected(this) || is_hovered()) {
-        if (Renderer::instance()->is_terminal()) {
-            clr.a = app->selFg;
-        }
-        Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
-    } else {
-        if (Renderer::instance()->is_terminal()) {
-            clr.a = -1;
-        }
-        if (container->focused_value == data.value) {
-            Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, clr, true);
-        }
-    }
+    RenColor clr = { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue, 255 };
+    Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, clr, vs.filled, 0);
 }
 
 list_view::list_view(std::vector<list_item_data_t> items)
     : list_view()
 {
+    class_name = "list";
     data = items;
     layout()->margin = 8;
     if (Renderer::instance()->is_terminal()) {
@@ -88,9 +88,8 @@ void list_view::update()
     if (autoscroll && prev_value != value) {
         if (!ensure_visible_cursor()) {
             prev_value = value;
-        } else {
-            Renderer::instance()->throttle_up_events(0);
         }
+        Renderer::instance()->throttle_up_events(240);
     }
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
@@ -195,16 +194,20 @@ void list_view::select_item(list_item_view* item)
     }
 }
 
-bool list_view::is_selected(list_item_view* item)
+bool list_view::is_item_selected(list_item_view* item)
 {
-    // printf(">%s -- %s\n", value.c_str(), item->data.value.c_str());
     return value == item->data.value && value.length();
+}
+
+bool list_view::is_item_focused(list_item_view* item)
+{
+    return focused_value == item->data.value && value.length();
 }
 
 void list_view::render()
 {
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("explorer");
+    view_style_t vs = style;
 
     layout_item_ptr lo = layout();
 
@@ -217,18 +220,19 @@ void list_view::render()
                 lo->render_rect.h
             },
             { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue },
-            true);
+            vs.filled,
+            0);
 
-        if (is_focused()) {
-            Renderer::instance()->draw_rect(
-            { lo->render_rect.x,
-                lo->render_rect.y,
-                lo->render_rect.w,
-                lo->render_rect.h
-            },
-            { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue } ,
-            false, 4, 0);
-        }
+        // if (is_focused()) {
+        //     Renderer::instance()->draw_rect(
+        //     { lo->render_rect.x,
+        //         lo->render_rect.y,
+        //         lo->render_rect.w,
+        //         lo->render_rect.h
+        //     },
+        //     { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue } ,
+        //     false, 4, 0);
+        // }
     }
 
     // layout_rect r = lo->render_rect;
@@ -391,10 +395,12 @@ bool list_view::input_sequence(std::string text)
     case MOVE_CURSOR_UP:
     case MOVE_CURSOR_LEFT:
         focus_previous();
+        ensure_visible_cursor();
         break;
     case MOVE_CURSOR_DOWN:
     case MOVE_CURSOR_RIGHT:
         focus_next();
+        ensure_visible_cursor();
         break;
     case ENTER:
         select_item(item_from_value(focused_value));

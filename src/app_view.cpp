@@ -13,6 +13,7 @@
 #include "style.h"
 
 extern color_info_t darker(color_info_t c, int x);
+extern color_info_t lighter(color_info_t c, int x);
 
 app_view::app_view()
     : vertical_container()
@@ -225,31 +226,69 @@ void app_view::setup_style()
     theme_ptr theme = app->theme;
     style_t comment = theme->styles_for_scope("comment");
 
-    // std::string font;
-    // bool italic;
-    // bool bold;
-    // color_info_t fg;
-    // color_info_t bg;
-    // bool filled;
-    // int border;
-    // int border_radius;
-
     view_style_t vs_default = {
         font : "editor",
         italic : false,
         bold : false,
         fg : Renderer::instance()->color_for_index(comment.foreground.index),
         bg : Renderer::instance()->color_for_index(app->bgApp),
+        border_color : Renderer::instance()->color_for_index(app->bgApp),
         filled : false,
-        border : 0,
-        border_radius : 0,
+        border_width: 0,
+        corner_radius : 0
 
     };
     view_style_t vs = vs_default;
+    view_style_t vs_item = vs_default;
     view_style_register(vs_default, "default");
 
+    vs_default;
+    view_style_register(vs_default, "editor");
+
+    vs_default;
+    view_style_register(vs_default, "scrollbar");
+
+    vs_default;    
     view_style_register(vs, "gutter");
 
+    vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
+    vs.filled = Renderer::instance()->is_terminal() ? false : true;
+    view_style_register(vs, "list");
+    vs_item = vs;
+    view_style_register(vs_item, "list.item");
+    vs_item.bg = vs.fg;
+    vs_item.fg = vs.bg;
+    vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
+    view_style_register(vs_item, "list.item:selected");
+    view_style_register(vs_item, "list.item:hovered");
+
+    vs_default;
+    vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
+    vs.filled = Renderer::instance()->is_terminal() ? false : true;
     view_style_register(vs, "explorer");
+    vs_item = vs;
+    view_style_register(vs_item, "explorer.item");
+    vs_item.bg = vs.fg;
+    vs_item.fg = vs.bg;
+    vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
+    view_style_register(vs_item, "explorer.item:selected");
+    view_style_register(vs_item, "explorer.item:hovered");
+
+    vs_default;
+    vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
+    vs.filled = Renderer::instance()->is_terminal() ? false : true;
+    view_style_register(vs, "tabbar");
+    vs_item = vs;
+    view_style_register(vs_item, "tabbar.item");
+    vs_item.bg = vs.fg;
+    vs_item.fg = vs.bg;
+    vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
+    view_style_register(vs_item, "tabbar.item:selected");
+    view_style_register(vs_item, "tabbar.item:hovered");
+
+    vs_default;
+    vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
+    vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
+    view_style_register(vs, "statusbar");
 }

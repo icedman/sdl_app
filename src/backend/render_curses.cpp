@@ -67,7 +67,6 @@ enum KEY_ACTION {
 static Renderer theRenderer;
 static bool _running = true;
 static std::map<int, color_info_t> color_map;
-static int throttle_up_event_counter = 0;
 
 typedef struct _color_pair {
     int idx;
@@ -352,16 +351,7 @@ static int readEscapeSequence(std::string& keySequence)
         app_t::log("escape+%c+%c\n", seq[0], seq[1]);
     }
 
-    /* ESC O sequences. */
-    // else if (seq[0] == 'O') {
-    //     log("escape+O+%d\n", seq[1]);
-    //     switch (seq[1]) {
-    //     case 'H':
-    //         return K_HOME_KEY;
-    //     case 'F':
-    //         return K_END_KEY;
-    //     }
-    // }
+    app_t::log("?+%c+%c\n", seq[0], seq[1]);
 
     return K_ESC;
 }
@@ -459,6 +449,8 @@ void Renderer::init()
     update_colors();
 
     _running = true;
+
+    throttle_up_events();
 }
 
 void Renderer::shutdown()
@@ -506,14 +498,8 @@ void Renderer::listen_events(event_list* events)
     int ch = -1;
     while (true) {
         ch = readKey(keySequence);
-
         if (previousKeySequence.length() && keySequence.length()) {
             expandedSequence = previousKeySequence + "+" + keySequence;
-        }
-
-        if (keySequence == "resize") {
-            throttle_up_events(240);
-            break;
         }
 
         if (ch != -1 || is_throttle_up_events()) {
@@ -566,20 +552,6 @@ void Renderer::listen_events(event_list* events)
         type : EVT_KEY_TEXT,
         text : c
     });
-}
-
-void Renderer::throttle_up_events(int frames)
-{
-    throttle_up_event_counter = frames;
-}
-
-bool Renderer::is_throttle_up_events()
-{
-    if (throttle_up_event_counter > 0) {
-        throttle_up_event_counter--;
-        return true;
-    }
-    return false;
 }
 
 void Renderer::wake()
@@ -727,6 +699,8 @@ static bool is_clipped(int x, int y)
 
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int radius)
 {
+    if (!fill) return;
+    
     int clr_index = clr.a;
 
     for (int y = 0; y < rect.height; y++) {

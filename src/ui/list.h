@@ -23,6 +23,7 @@ struct list_item_view : horizontal_container {
     list_item_view();
     bool mouse_click(int x, int y, int button) override;
     void render() override;
+    void prerender() override;
 
     list_item_data_t data;
     list_view* container;
@@ -42,7 +43,8 @@ struct list_view : panel_view {
     virtual bool input_sequence(std::string text) override; 
 
     virtual void select_item(list_item_view* item);
-    bool is_selected(list_item_view* item);
+    bool is_item_selected(list_item_view* item);
+    bool is_item_focused(list_item_view* item);
 
     void select_focused();
     void focus_previous();

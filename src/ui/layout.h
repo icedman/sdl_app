@@ -103,6 +103,7 @@ struct layout_view {
     virtual void prelayout() {}
     virtual void postlayout() {}
     virtual void update() {}
+    virtual void prerender() {}
     virtual void render() {}
 };
 

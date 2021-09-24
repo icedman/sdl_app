@@ -12,7 +12,7 @@ scrollbar_view::scrollbar_view()
     , window(12)
     , count(11)
 {
-    type = "scrollbar";
+    class_name = "scrollbar";
 
     interactive = true;
     layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
@@ -208,7 +208,7 @@ void scrollbar_view::set_size(int c, int w)
 void scrollbar_view::render()
 {
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("default");
+    view_style_t vs = style;
 
     layout_item_ptr lo = layout();
     layout_item_ptr lot = content->layout();
@@ -226,14 +226,6 @@ void scrollbar_view::render()
                     { 0, 0, 0, vs.fg.index }, true, 1);
             }
 
-            // Renderer::instance()->draw_char(NULL, 'u', lo->render_rect.x, lo->render_rect.y,
-            //         { 0,0,0, vs.fg.index }, true, 1
-            //     );
-
-            // Renderer::instance()->draw_char(NULL, 'd', lo->render_rect.x, lo->render_rect.y + lo->render_rect.h,
-            //         { 0,0,0, vs.fg.index }, true, 1
-            //     );
-
         } else {
 
             for (int i = 0; i < lo->render_rect.w; i++) {
@@ -245,14 +237,6 @@ void scrollbar_view::render()
                 Renderer::instance()->draw_char(NULL, '-', lot->render_rect.x + i, lot->render_rect.y,
                     { 0, 0, 0, vs.fg.index }, true, 1);
             }
-
-            // Renderer::instance()->draw_char(NULL, 'l', lo->render_rect.x, lo->render_rect.y,
-            //         { 0,0,0, vs.fg.index }, true, 1
-            //     );
-
-            // Renderer::instance()->draw_char(NULL, 'r', lo->render_rect.x + lo->render_rect.w, lo->render_rect.y,
-            //         { 0,0,0, vs.fg.index }, true, 1
-            //     );
         }
         return;
     }
@@ -262,7 +246,7 @@ void scrollbar_view::render()
                                         lo->render_rect.y,
                                         lo->render_rect.w,
                                         lo->render_rect.h },
-        { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue,
+        { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue,
             Renderer::instance()->is_terminal() ? vs.bg.index : 5 },
         true);
 

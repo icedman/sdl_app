@@ -13,7 +13,7 @@ tabbar_view::tabbar_view()
     : list_view()
 {
     // layout()->margin_top = 8;
-    layout()->height = 32;
+    layout()->height = 24;
     layout()->width = 0;
     content()->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
 

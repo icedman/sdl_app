@@ -6,17 +6,16 @@
 #include "style.h"
 
 gutter_view::gutter_view()
-    : view_item("gutter")
+    : view_item()
 {
+    class_name = "gutter";
 }
 
 void gutter_view::render()
 {
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
-
-    app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("gutter");
+    view_style_t vs = style;
 
     layout_item_ptr lo = layout();
 

@@ -5,6 +5,7 @@
 app_tabbar_view::app_tabbar_view()
     : tabbar_view()
 {
+    class_name = "tabbar";
     autoscroll = true;
 
     on(EVT_KEY_SEQUENCE, [this](event_t& evt) {

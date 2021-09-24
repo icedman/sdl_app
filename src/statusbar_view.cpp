@@ -8,7 +8,7 @@
 statusbar_view::statusbar_view()
     : horizontal_container()
 {
-    type = "statusbar";
+    class_name = "statusbar";
 
     layout()->height = 24;
     layout()->fit_children = false;
@@ -88,7 +88,7 @@ void statusbar_view::update()
 void statusbar_view::render()
 {
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("explorer");
+    view_style_t vs = style;
 
     layout_item_ptr lo = layout();
 

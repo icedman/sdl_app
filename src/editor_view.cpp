@@ -67,7 +67,7 @@ void editor_view::render()
     RenFont* _font = Renderer::instance()->font((char*)font.c_str());
 
     app_t* app = app_t::instance();
-    view_style_t vs = view_style_get("editor");
+    view_style_t vs = style;
 
     bool wrap = app->lineWrap;
     int indent = app->tabSize;

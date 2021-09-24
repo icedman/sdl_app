@@ -183,7 +183,6 @@ void view_item::update()
 void view_item::render()
 {
     layout_item_ptr lo = layout();
-
     if (!lo->visible)
         return;
 
@@ -194,6 +193,40 @@ void view_item::render()
                   lo->render_rect.h },
         { color.r, color.g, color.b, color.a }, false, 1, 0);
 #endif
+}
+
+void view_item::prerender()
+{
+    std::string computed_class_name = computed_class();
+    if (computed_class_name == "") {
+        computed_class_name = "default";
+    }
+    if (style.class_name == computed_class_name) {
+        return;
+    }
+    style = view_style_get(computed_class_name);
+    style.class_name = computed_class_name;
+}
+
+std::string view_item::computed_class()
+{
+    std::string cls = class_name;
+    view_item *_parent = ((view_item*)parent);
+    while(_parent) {
+        std::string parent_class = _parent->class_name;
+        if (parent_class != "") {
+            if (cls != "") {
+                cls = parent_class + "." + cls;
+            } else {
+                cls = parent_class;
+            }
+            if (parent_class[0] == '#') {
+                // break;
+            }
+        }
+        _parent = (view_item*)(_parent->parent);
+    }
+    return cls;
 }
 
 int view_item::on(event_type_e event_type, event_callback_t callback)

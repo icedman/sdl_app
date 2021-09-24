@@ -244,6 +244,8 @@ bool cursor_t::eraseSelection()
     std::wstring t = start.block->wide_text().substr(0, start.position);
     if (end.position + 1 < end.block->length()) {
         t += end.block->wide_text().substr(end.position + 1);
+    } else {
+        t += end.block->wide_text().substr(end.position);
     }
 
     if (isMultiBlockSelection()) {

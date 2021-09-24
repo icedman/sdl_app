@@ -43,7 +43,6 @@ static cairo_t* cairo_context = 0;
 static bool shouldEnd;
 
 static RenFont* default_font = 0;
-static int throttle_up_event_counter = 0;
 
 static int last_millis = 0;
 
@@ -357,23 +356,9 @@ void Renderer::listen_events(event_list* events)
     }
 }
 
-void Renderer::throttle_up_events(int frames)
-{
-    throttle_up_event_counter = frames;
-}
-
-bool Renderer::is_throttle_up_events()
-{
-    if (throttle_up_event_counter > 0) {
-        throttle_up_event_counter--;
-        return true;
-    }
-    return false;
-}
-
 void Renderer::wake()
 {
-    if (throttle_up_event_counter > 0) {
+    if (is_throttle_up_events()) {
         return;
     }
 

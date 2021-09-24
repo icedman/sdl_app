@@ -92,6 +92,7 @@ curses_files = [
 ]
 
 ui_files = [
+    'src/backend/renderer.cpp',
     'src/ui/button.cpp',
     'src/ui/events.cpp',
     'src/ui/image.cpp',

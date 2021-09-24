@@ -29,7 +29,7 @@ void text_view::prelayout()
 void text_view::render()
 {
     layout_item_ptr lo = layout();
-    view_style_t vs = view_style_get("explorer");
+    view_style_t vs = style;
 
     if (!cache_enabled) {
         Renderer::instance()->draw_text(Renderer::instance()->font("ui-small"), (char*)text.c_str(),
