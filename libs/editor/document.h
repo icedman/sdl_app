@@ -34,6 +34,7 @@ struct document_t {
     std::string filePath;
     std::string fileName;
     std::string fullPath;
+    bool binary;
 
     std::vector<std::string> tmpPaths;
 

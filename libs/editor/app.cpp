@@ -286,6 +286,14 @@ void app_t::configure(int argc, char** argv)
             excludeFolders.push_back(pat);
         }
     }
+
+    Json::Value binary_file_patterns = settings["binary_file_patterns"];
+    if (binary_file_patterns.isArray() && binary_file_patterns.size()) {
+        for (int j = 0; j < binary_file_patterns.size(); j++) {
+            std::string pat = binary_file_patterns[j].asString();
+            binaryFiles.push_back(pat);
+        }
+    }
 }
 
 void app_t::setupColors(bool colors)

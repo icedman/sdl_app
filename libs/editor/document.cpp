@@ -21,6 +21,7 @@ document_t::document_t()
     , blockId(1)
     , columns(0)
     , rows(0)
+    , binary(false)
     , windowsLineEnd(false)
 {
 }
@@ -132,6 +133,16 @@ std::string _tabsToSpaces(std::string line)
 
 bool document_t::open(std::string path, bool enableBuffer)
 {
+    std::set<char> delims_ext = { '.' };
+    std::vector<std::string> spath_ext = split_path(path, delims_ext);
+    std::string suffix = "*." + spath_ext.back();
+    for (auto pat : app_t::instance()->binaryFiles) {
+        if (suffix == pat) {
+            binary = true;
+            break;
+        }
+    }
+
     blocks.clear();
     cursors.clear();
 
@@ -218,6 +229,7 @@ bool document_t::open(std::string path, bool enableBuffer)
 
 void document_t::save()
 {
+    if (binary) return;
     std::string lineEnd = windowsLineEnd ? WINDOWS_LINE_END : LINUX_LINE_END;
     std::ofstream tmp(filePath, std::ofstream::out);
     for (auto b : blocks) {
@@ -228,6 +240,7 @@ void document_t::save()
 
 void document_t::saveAs(const char* path, bool replacePath)
 {
+    if (binary) return;
     std::ofstream tmp(path, std::ofstream::out);
     for (auto b : blocks) {
         std::string text = b->utf8_text();

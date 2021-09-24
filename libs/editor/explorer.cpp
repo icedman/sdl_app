@@ -117,7 +117,6 @@ void fileitem_t::load(std::string p)
                 std::set<char> delims = { '.' };
                 std::vector<std::string> spath = split_path(filePath, delims);
                 std::string suffix = "*." + spath.back();
-                // log("%s", suffix)
                 for (auto pat : excludeFiles) {
                     if (suffix == pat) {
                         exclude = true;

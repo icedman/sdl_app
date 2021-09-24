@@ -81,6 +81,7 @@ struct app_t {
 
     std::vector<std::string> excludeFiles;
     std::vector<std::string> excludeFolders;
+    std::vector<std::string> binaryFiles;
     std::string scriptPath;
 
     editor_ptr openEditor(std::string path, bool check = true);
