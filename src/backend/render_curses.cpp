@@ -127,6 +127,12 @@ static int readMoreEscapeSequence(int c, std::string& keySequence)
         return K_ALT_;
     }
 
+    if (c == '[' || c == ']' || c == '/') {
+        sprintf(tmp, "alt+%c", c);
+        keySequence = tmp;
+        return K_ALT_;
+    }
+
     if (c >= 'A' && c <= 'Z') {
         sprintf(tmp, "alt+shift+%c", (c + 'a' - 'A'));
         keySequence = tmp;

@@ -41,6 +41,8 @@ struct sdl_backend_t : backend_t {
 
 int main(int argc, char** argv)
 {
+    printf("%d %d\n", ']', '[');
+
     sdl_backend_t backend;
     app_t app;
     keybinding_t keybinding;

@@ -14,6 +14,10 @@ struct app_view : vertical_container {
     view_item_ptr menu;
     view_item_ptr statusbar;
 
+    view_item_ptr search;
+    view_item_ptr commands;
+    view_item_ptr popups;
+
     bool input_sequence(std::string sequence) override;
     void update() override;
     void create_editor_view(editor_ptr editor);

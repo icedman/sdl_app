@@ -8,6 +8,7 @@
 #include "editor_view.h"
 #include "explorer_view.h"
 #include "statusbar_view.h"
+#include "search_view.h"
 #include "tabbar_view.h"
 
 #include "style.h"
@@ -54,6 +55,15 @@ app_view::app_view()
     add_child(content);
     add_child(statusbar);
 
+    popups = std::make_shared<popup_manager>();
+    search = std::make_shared<search_view>();
+    search->on(EVT_ITEM_SELECT, [this](event_t& e) {
+        e.cancelled = true;
+        list_item_view* item = (list_item_view*)e.target;
+        return true;
+    });
+    add_child(popups);
+
     view_set_root(this);
 
     on(EVT_KEY_SEQUENCE, [this](event_t& evt) {
@@ -73,6 +83,20 @@ bool app_view::input_sequence(std::string keySequence)
     app_t* app = app_t::instance();
 
     app->log("keySequence %s", keySequence.c_str());
+
+    popup_manager* pm = view_item::cast<popup_manager>(popups);
+    search_view* sv = view_item::cast<search_view>(search);
+    list_view* list = view_item::cast<list_view>(sv->list);
+    if (pm->_views.size()) {
+        switch (op) {
+        case CANCEL:
+            pm->clear();
+            show_editor(app_t::instance()->currentEditor);
+            return true;
+        }
+        pm->input_sequence(keySequence);
+        return true;
+    }
 
     switch (op) {
     case QUIT:
@@ -94,6 +118,17 @@ bool app_view::input_sequence(std::string keySequence)
     case MOVE_FOCUS_DOWN:
         show_editor(app_t::instance()->currentEditor);
         return true;
+
+    case POPUP_SEARCH: {
+        int fw, fh;
+        Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)style.font.c_str()), &fw, &fh, NULL, 1);
+        int x = (layout()->render_rect.w / 2) - (30 * fw / 2);
+        view_item::cast<search_view>(search)->show_search();
+        popup_manager* pm = view_item::cast<popup_manager>(popups);
+        pm->clear();
+        pm->push_at(search, { x,0,0,0 }, POPUP_DIRECTION_DOWN);
+        return true;
+    }
 
     case CANCEL:
         show_editor(app_t::instance()->currentEditor);
@@ -286,6 +321,22 @@ void app_view::setup_style()
     vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
     view_style_register(vs_item, "tabbar.item:selected");
     view_style_register(vs_item, "tabbar.item:hovered");
+
+    vs_default;
+    vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
+    vs.filled = true;
+    view_style_register(vs, "completer");
+    view_style_register(vs, "search");
+    vs_item = vs;
+    view_style_register(vs_item, "completer.item");
+    view_style_register(vs_item, "search.item");
+    vs_item.bg = vs.fg;
+    vs_item.fg = vs.bg;
+    vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
+    view_style_register(vs_item, "completer.item:selected");
+    view_style_register(vs_item, "completer.item:hovered");
+    view_style_register(vs_item, "search.item:selected");
+    view_style_register(vs_item, "search.item:hovered");
 
     vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);

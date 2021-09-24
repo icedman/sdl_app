@@ -828,8 +828,8 @@ void editor_view::show_completer()
         scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
 
         int list_size = list->data.size();
-        if (list_size > 4)
-            list_size = 4;
+        if (list_size > 8)
+            list_size = 8;
         completer->layout()->width = completerItemsWidth * fw;
         completer->layout()->height = list_size * fh;
 
