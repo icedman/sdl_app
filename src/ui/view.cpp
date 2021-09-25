@@ -360,7 +360,7 @@ void view_input_button(int button, int x, int y, int pressed, int clicks, event_
                 _v = view_find_xy((*_view_list).back(), x, y);
             }
         }
-    } else {
+    } else if (_view_list->size()) {
         _v = view_find_xy((*_view_list).back(), x, y);
     }
 

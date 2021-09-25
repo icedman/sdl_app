@@ -10,6 +10,7 @@ struct search_view : popup_view {
 
     void show_search();
 
+    view_item_ptr input;
     view_item_ptr list;
 };
 

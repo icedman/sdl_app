@@ -1,12 +1,16 @@
 #include "search_view.h"
 #include "renderer.h"
 #include "list.h"
+#include "inputtext.h"
 
 search_view::search_view()
     : popup_view()
 {
     class_name = "completer";
     list = std::make_shared<list_view>();
+    input = std::make_shared<inputtext_view>();
+
+    content()->add_child(input);
     content()->add_child(list);
     interactive = true;
 }

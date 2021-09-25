@@ -9,8 +9,6 @@ struct inputtext_view : horizontal_container {
     inputtext_view();
 
     view_item_ptr editor;
-    view_item_ptr placeholder;
-
     void render() override;
 };
 

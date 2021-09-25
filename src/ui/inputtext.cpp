@@ -38,11 +38,7 @@ inputtext_view::inputtext_view()
     ev->minimap->layout()->visible = false;
     ev->bottom->layout()->visible = false;
 
-    // ev->font = "ui";
-
-    // ev->layout()->margin = m;
     layout()->height = h + m + (m / 2);
-
     add_child(editor);
 }
 

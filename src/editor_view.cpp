@@ -644,18 +644,20 @@ bool editor_view::input_sequence(std::string text)
 {
     operation_e op = operationFromKeys(text);
 
-    popup_manager* pm = view_item::cast<popup_manager>(popups);
-    completer_view* cv = view_item::cast<completer_view>(completer);
-    list_view* list = view_item::cast<list_view>(cv->list);
-    if (pm->_views.size()) {
-        switch (op) {
-        case MOVE_CURSOR_UP:
-        case MOVE_CURSOR_DOWN:
-        case ENTER:
-            return list->input_sequence(text);
-        default:
-            pm->clear();
-            break;
+    if (!editor->singleLineEdit) {
+        popup_manager* pm = view_item::cast<popup_manager>(popups);
+        completer_view* cv = view_item::cast<completer_view>(completer);
+        list_view* list = view_item::cast<list_view>(cv->list);
+        if (pm->_views.size()) {
+            switch (op) {
+            case MOVE_CURSOR_UP:
+            case MOVE_CURSOR_DOWN:
+            case ENTER:
+                return list->input_sequence(text);
+            default:
+                pm->clear();
+                break;
+            }
         }
     }
 
@@ -756,6 +758,10 @@ void editor_view::ensure_visible_cursor()
 // move to completer object
 void editor_view::show_completer()
 {
+    if (!editor || editor->singleLineEdit) {
+        return;
+    }
+
     popup_manager* pm = view_item::cast<popup_manager>(popups);
     pm->clear();
 
