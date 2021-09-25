@@ -7,10 +7,6 @@ inputtext_view::inputtext_view()
     : horizontal_container()
 {
     type = "inputtext";
-    app_t* app = app_t::instance();
-
-    editor = std::make_shared<editor_view>();
-    editor_view* ev = view_item::cast<editor_view>(editor);
 
     int h = 26;
     int m = 4;
@@ -18,7 +14,34 @@ inputtext_view::inputtext_view()
     if (Renderer::instance()->is_terminal()) {
         h = 1;
         m = 0;
+    }    
+    layout()->height = h + m + (m / 2);
+
+    set_editor(std::make_shared<editor_view>());
+}
+
+void inputtext_view::render()
+{
+    return ;
+    // background
+    layout_item_ptr lo = layout();
+    Renderer::instance()->draw_rect({ lo->render_rect.x,
+                                        lo->render_rect.y,
+                                        lo->render_rect.w,
+                                        lo->render_rect.h },
+        { 255, 255, 255, 10 }, false, 1.0f);
+}
+
+void inputtext_view::set_editor(view_item_ptr _editor)
+{
+    if (editor) {
+        remove_child(editor);
     }
+
+    app_t* app = app_t::instance();
+
+    editor = _editor;
+    editor_view* ev = view_item::cast<editor_view>(editor);
 
     ev->editor = std::make_shared<editor_t>();
     ev->editor->singleLineEdit = true;
@@ -27,7 +50,7 @@ inputtext_view::inputtext_view()
     ev->editor->view = ev;
     ev->editor->pushOp("OPEN", "");
     ev->editor->runAllOps();
-    ev->layout()->height = h;
+    ev->layout()->height = layout()->height;
 
     ev->v_scroll->disabled = true;
     ev->h_scroll->disabled = true;
@@ -38,17 +61,5 @@ inputtext_view::inputtext_view()
     ev->minimap->layout()->visible = false;
     ev->bottom->layout()->visible = false;
 
-    layout()->height = h + m + (m / 2);
     add_child(editor);
-}
-
-void inputtext_view::render()
-{
-    // background
-    layout_item_ptr lo = layout();
-    Renderer::instance()->draw_rect({ lo->render_rect.x,
-                                        lo->render_rect.y,
-                                        lo->render_rect.w,
-                                        lo->render_rect.h },
-        { 255, 0, 255 }, false, 1.0f);
 }

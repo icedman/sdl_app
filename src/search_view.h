@@ -8,6 +8,7 @@
 struct search_view : popup_view {
     search_view();
 
+    bool input_text(std::string text) override;
     void show_search();
 
     view_item_ptr input;

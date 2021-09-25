@@ -390,6 +390,7 @@ list_item_view* list_view::item_from_value(std::string value)
 
 bool list_view::input_sequence(std::string text)
 {
+    if (!data.size()) return false;
     operation_e op = operationFromKeys(text);
 
     if (content()->layout()->direction == LAYOUT_FLEX_DIRECTION_ROW) {

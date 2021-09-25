@@ -69,7 +69,7 @@ void editor_view::render()
     app_t* app = app_t::instance();
     view_style_t vs = style;
 
-    bool wrap = app->lineWrap;
+    bool wrap = app->lineWrap && !editor->singleLineEdit;
     int indent = app->tabSize;
 
     layout_item_ptr plo = layout();
@@ -461,7 +461,7 @@ void editor_view::update()
         layout_request();
     }
 
-    if (is_focused()) {
+    if (is_focused() && !editor->singleLineEdit) {
         app_t::instance()->currentEditor = editor;
     }
 
@@ -498,7 +498,7 @@ void editor_view::prelayout()
 
     int ww = area->layout()->render_rect.w - gutter->layout()->render_rect.w;
 
-    bool wrap = app_t::instance()->lineWrap;
+    bool wrap = app_t::instance()->lineWrap && !editor->singleLineEdit;
     if (!wrap && longest_block) {
         ww = longest_block->length() * fw;
     }

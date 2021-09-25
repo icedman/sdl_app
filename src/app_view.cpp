@@ -94,8 +94,7 @@ bool app_view::input_sequence(std::string keySequence)
             show_editor(app_t::instance()->currentEditor);
             return true;
         }
-        pm->input_sequence(keySequence);
-        return true;
+        return pm->input_sequence(keySequence);
     }
 
     switch (op) {

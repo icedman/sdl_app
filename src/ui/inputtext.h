@@ -8,8 +8,10 @@
 struct inputtext_view : horizontal_container {
     inputtext_view();
 
-    view_item_ptr editor;
     void render() override;
+
+    void set_editor(view_item_ptr editor);
+    view_item_ptr editor;
 };
 
 #endif // INPUTTEXT_VIEW_H
