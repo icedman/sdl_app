@@ -5,10 +5,20 @@
 #include "popup.h"
 #include "view.h"
 
+#include "block.h"
+#include "cursor.h"
+#include "editor.h"
+
 struct completer_view : popup_view {
     completer_view();
 
     view_item_ptr list;
+    editor_ptr editor;
+
+    cursor_t current_cursor;
+
+    void show_completer(editor_ptr editor);
+    bool commit(std::string text);
 };
 
 #endif // COMPLETER_VIEW_H

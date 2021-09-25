@@ -232,7 +232,6 @@ void Renderer::listen_events(event_list* events)
             }
         } else {
             if (!SDL_WaitEvent(&e)) {
-                SDL_Delay(50);
                 return;
             }
         }

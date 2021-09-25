@@ -377,11 +377,7 @@ editor_view::editor_view()
 
     popups = std::make_shared<popup_manager>();
     completer = std::make_shared<completer_view>();
-    completer->on(EVT_ITEM_SELECT, [this](event_t& e) {
-        e.cancelled = true;
-        list_item_view* item = (list_item_view*)e.target;
-        return commit_completer(item->data.value);
-    });
+
     add_child(popups);
 
     // disable, otherwise dragging will not work
@@ -636,7 +632,9 @@ bool editor_view::input_text(std::string text)
     editor->runAllOps();
     ensure_visible_cursor();
 
-    show_completer();
+    if (!editor->singleLineEdit) {
+        view_item::cast<completer_view>(completer)->show_completer(editor);
+    }
     return true;
 }
 
@@ -753,126 +751,4 @@ void editor_view::ensure_visible_cursor()
 
     cursor_t mainCursor = doc->cursor();
     scroll_to_cursor(mainCursor);
-}
-
-// move to completer object
-void editor_view::show_completer()
-{
-    if (!editor || editor->singleLineEdit) {
-        return;
-    }
-
-    popup_manager* pm = view_item::cast<popup_manager>(popups);
-    pm->clear();
-
-    struct document_t* doc = &editor->document;
-    if (doc->cursors.size() > 1) {
-        return;
-    }
-
-    std::string prefix;
-
-    cursor_t cursor = doc->cursor();
-    struct block_t& block = *cursor.block();
-    if (cursor.position() < 3)
-        return;
-
-    if (cursor.moveLeft(1)) {
-        cursor.selectWord();
-        prefix = cursor.selectedText();
-        cursor.cursor = cursor.anchor;
-        completer_cursor = cursor;
-    }
-
-    if (prefix.length() < 2) {
-        return;
-    }
-
-    completer_view* cm = view_item::cast<completer_view>(completer);
-    list_view* list = view_item::cast<list_view>(cm->list);
-    list->data.clear();
-
-    int completerItemsWidth = 0;
-    std::vector<std::string> words = editor->indexer->findWords(prefix);
-    for (auto w : words) {
-        if (w.length() <= prefix.length()) {
-            continue;
-        }
-        int score = levenshtein_distance((char*)prefix.c_str(), (char*)(w.c_str()));
-
-        if (completerItemsWidth < w.length()) {
-            completerItemsWidth = w.length();
-        }
-
-        list_item_data_t item = {
-            text : w,
-            value : w
-        };
-        list->data.push_back(item);
-        list->value = "";
-    }
-
-    if (!pm->_views.size() && list->data.size()) {
-        int fw, fh;
-        Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
-
-        blockdata_ptr blockData = completer_cursor.block()->data;
-        span_info_t s = spanAtBlock(blockData.get(), completer_cursor.position(), true);
-        scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
-
-        int list_size = list->data.size();
-        if (list_size > 8)
-            list_size = 8;
-        completer->layout()->width = completerItemsWidth * fw;
-        completer->layout()->height = list_size * fh;
-
-        if (Renderer::instance()->is_terminal()) {
-            completer->layout()->width += 2;
-        } else {
-            completer->layout()->height += 14;
-        }
-
-        list->focus_next();
-        for (int i = 0; i < 2; i++) {
-            if (!list->ensure_visible_cursor())
-                break;
-        }
-
-        pm->push_at(completer,
-            {
-                (uint8_t) ((completer_cursor.position() * fw) + scrollarea->layout()->render_rect.x + scrollarea->layout()->scroll_x - pm->layout()->render_rect.x),
-                (uint8_t) (s.y - scrollarea->layout()->render_rect.y),
-                (uint8_t) (fw * prefix.length()),
-                (uint8_t) fh
-            },
-                s.y > area->layout()->render_rect.h / 3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN
-            );
-
-        // printf(">%d %d\n", s.y, scrollarea->layout()->render_rect.y);
-
-        layout_request();
-        Renderer::instance()->throttle_up_events();
-    }
-}
-
-bool editor_view::commit_completer(std::string text)
-{
-    cursor_t cur = editor->document.cursor();
-    std::ostringstream ss;
-    ss << (completer_cursor.block()->lineNumber + 1);
-    ss << ":";
-    ss << completer_cursor.position();
-    editor->pushOp(MOVE_CURSOR, ss.str());
-    ss.str("");
-    ss.clear();
-    ss << (cur.block()->lineNumber + 1);
-    ss << ":";
-    ss << cur.position();
-    editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
-    editor->pushOp(INSERT, text);
-    editor->runAllOps();
-    popup_manager* pm = view_item::cast<popup_manager>(popups);
-    pm->clear();
-
-    return true;
 }
