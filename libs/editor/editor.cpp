@@ -79,26 +79,7 @@ void editor_t::runOp(operation_t op)
 
     if (snapshots.size()) {
         snapshot_t& snapshot = snapshots.back();
-
-        switch (_op) {
-        case TAB:
-        case CUT:
-        case ENTER:
-        case INSERT:
-        case DELETE:
-        case BACKSPACE:
-            // save cursors
-            // and operation
-            op.cursors = document.cursors;
-            for(auto& c : op.cursors) {
-                c.cursor.line = c.cursor.block->lineNumber + 1;
-                c.anchor.line = c.anchor.block->lineNumber + 1;
-            }
-            snapshot.history.push_back(op);
-
-        default:
-            break;
-        }
+        snapshot.history.push_back(op);
     }
 
     //-------------------
@@ -834,10 +815,10 @@ void editor_t::undo()
     highlighter.clearRequests();
     highlighter.pause();
 
-    usleep(5000);
+    usleep(1000);
 
-    editor_t tmp;
-    snapshot.restore(tmp.document.blocks);
+    snapshot.restore(document.blocks);
+    document.clearCursors();
 
     for (auto op : items) {
 
@@ -852,20 +833,12 @@ void editor_t::undo()
             break;
         }
 
-        for(auto& c : op.cursors) {
-            c.cursor.block = tmp.document.blockAtLine(c.cursor.line);
-            c.anchor.block = tmp.document.blockAtLine(c.anchor.line);
-        }
-
-        tmp.document.cursors = op.cursors;
-        tmp.pushOp(op);
-        tmp.runAllOps();
+        pushOp(op);
+        runAllOps();
     }
 
-    document.blocks = tmp.document.blocks;
-    document.cursors = tmp.document.cursors;
-
     snapshot.history = items;
+
     if (snapshots.size() > 1 && items.size() == 0) {
         snapshots.pop_back();
     }
