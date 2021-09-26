@@ -361,8 +361,6 @@ void Renderer::wake()
         return;
     }
 
-    printf("W\n");
-
     SDL_Event event;
     event.type = SDL_USEREVENT;
     event.user.code = 0;

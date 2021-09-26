@@ -13,14 +13,16 @@
 #include <cctype>
 #include <string>
 
-#define INDEXED_LINE_LENGTH_LIMIT 200
+#define INDEXED_LINE_LENGTH_LIMIT 256
 
 indexer_t::indexer_t()
     : threadId(0)
     , hasInvalidBlocks(false)
     , requestIdx(0)
 {
-    memset(&indexingRequests, 0, sizeof(size_t) * INDEX_REQUEST_SIZE);
+    for(int i=0; i<INDEX_REQUEST_SIZE; i++) {
+        indexingRequests[i] = nullptr;
+    }
 }
 
 indexer_t::~indexer_t()
@@ -46,7 +48,7 @@ void indexer_t::requestIndexBlock(block_ptr block)
         return;
     }
 
-    indexingRequests[requestIdx++] = block->lineNumber;
+    indexingRequests[requestIdx++] = block;
     if (requestIdx >= INDEX_REQUEST_SIZE)
         requestIdx = 0;
 }
@@ -135,16 +137,15 @@ void* indexerThread(void* arg)
         time_to_wait.tv_sec = time(NULL) + 2L;
 
         for (int i = 0; i < INDEX_REQUEST_SIZE; i++) {
-            if (indexer->indexingRequests[i] != 0) {
+            if (indexer->indexingRequests[i]) {
                 // todo make thread safe
-                block_ptr block = editor->document.blockAtLine(indexer->indexingRequests[i]);
+                block_ptr block = indexer->indexingRequests[i];
                 if (!block) {
-                    indexer->indexingRequests[i] = 0;
+                    indexer->indexingRequests[i] = nullptr;
                     continue;
                 }
                 indexer->_updateBlock(block);
-                // log("indexing %d", i);
-                indexer->indexingRequests[i] = 0;
+                indexer->indexingRequests[i] = nullptr;
                 // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
                 usleep(5000);
             }

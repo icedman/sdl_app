@@ -19,7 +19,7 @@ highlighter_t::highlighter_t()
     , processIdx(0)
     , _paused(false)
 {
-    memset(&highlightRequests, 0, sizeof(size_t) * HIGHLIGHT_REQUEST_SIZE);
+    clearRequests();
 }
 
 struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rendered)
@@ -56,20 +56,33 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rend
 
 void highlighter_t::clearRequests()
 {
+    for(int i=0; i<HIGHLIGHT_REQUEST_SIZE; i++) {
+        highlightRequests[i] = nullptr;
+    }
     processIdx = 0;
     requestIdx = 0;
-    memset(&highlightRequests, 0, sizeof(size_t) * HIGHLIGHT_REQUEST_SIZE);
 }
 
-int highlighter_t::requestHighlightBlock(block_ptr block)
+int highlighter_t::requestHighlightBlock(block_ptr block,  bool priority)
 {
     if (_paused) return 0;
 
-    highlightRequests[requestIdx++] = block->lineNumber;
-    if (requestIdx >= HIGHLIGHT_REQUEST_SIZE)
-        requestIdx = 0;
+    if (block->data && !block->data->dirty) {
+        return 0;
+    }
 
-    return 0;
+    for(int i=0; i< HIGHLIGHT_REQUEST_SIZE; i++) {
+        if (highlightRequests[i] == block) {
+            return 0;
+        }
+    }
+
+    highlightRequests[requestIdx++] = block;
+    if (requestIdx >= HIGHLIGHT_REQUEST_SIZE) {
+        requestIdx = 0;
+    }
+
+    return 1;
 }
 
 int highlighter_t::highlightBlocks(block_ptr block, int count)
@@ -104,7 +117,7 @@ static void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
 
 int highlighter_t::highlightBlock(block_ptr block)
 {
-    if (!block)
+    if (!block || !lang)
         return 0;
 
     if (!block->data) {
@@ -116,11 +129,7 @@ int highlighter_t::highlightBlock(block_ptr block)
         return 0;
     }
 
-    if (!lang) {
-        return 0;
-    }
-
-    // log("hl %d", block->lineNumber);
+    log("hl %d", block->lineNumber);
 
     blockdata_ptr blockData = block->data;
 
@@ -452,7 +461,7 @@ void* highlightThread(void* arg)
 
     static struct timespec time_to_wait = {0, 0};
 
-    usleep(200000);
+    // usleep(200000);
 
     while (true) {
         time_to_wait.tv_sec = time(NULL) + 2L;
@@ -462,33 +471,29 @@ void* highlightThread(void* arg)
             if (threadHl->_paused) {
                 break;
             }
-            size_t processIdx = threadHl->processIdx;
-            if (threadHl->highlightRequests[processIdx] != 0) {
 
-                // todo make thread safe
-                block_ptr block = editor->document.blockAtLine(threadHl->highlightRequests[processIdx]);
-                if (!block) {
-                    threadHl->highlightRequests[processIdx] = 0;
-                    continue;
-                }
+            size_t processIdx = threadHl->processIdx;
+            block_ptr block = threadHl->highlightRequests[processIdx];
+
+            if (block && (!block->data || block->data->dirty)) {
                 int lighted = threadHl->highlightBlock(block);
                 if (lighted && threadHl->callback) {
                     threadHl->callback(block->lineNumber);
                     if (breathe_counter > 32) {
-                        usleep(500);
+                        usleep(100);
                         breathe_counter = 0;
                     }
                 }
-                // log("indexing %d", i);
-                threadHl->highlightRequests[processIdx] = 0;
-                // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
             }
+
+            threadHl->highlightRequests[processIdx] = nullptr;
+            // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
             
             processIdx++;
             threadHl->processIdx = processIdx % HIGHLIGHT_REQUEST_SIZE;
         }
 
-        usleep(50000);
+        usleep(1000);
         
         // time_to_wait.tv_sec = time(NULL) + 4L;
         // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
@@ -508,7 +513,7 @@ void* _highlightThread(void* arg)
     // tmp.highlighter.lang = threadHl->lang;
     tmp.highlighter.theme = threadHl->theme;
 
-    usleep(200000);
+    // usleep(200000);
 
     block_ptr b = tmp.document.firstBlock();
     int breathe_counter = 0;
@@ -521,7 +526,7 @@ void* _highlightThread(void* arg)
         b = b->next();
 
         if (lighted && breathe_counter++ > 4) {
-            usleep(1000);
+            usleep(100);
             breathe_counter = 0;
         }
     }

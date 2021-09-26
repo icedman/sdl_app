@@ -17,7 +17,6 @@ struct custom_editor_view_t : editor_view {
     {
         editor_view::input_text(text);
         search->update_list();
-        Renderer::instance()->throttle_up_events();
     }
 
     bool input_sequence(std::string text)
@@ -67,7 +66,7 @@ search_view::search_view()
     : popup_view()
 {
     searchDirection = 0;
-    
+
     class_name = "completer";
     list = std::make_shared<list_view>();
     input = std::make_shared<inputtext_view>();
@@ -237,10 +236,7 @@ void search_view::prelayout()
         list_size = 10;
     }
 
-    int list_height = list_size * fh;
-    if (list_height) {
-        list_height += Renderer::instance()->is_terminal() ? 0 : 4;
-    }
+    int list_height = list_size * (Renderer::instance()->is_terminal() ? 1 : 24);
     int input_height = Renderer::instance()->is_terminal() ? 1 : 28;
     int search_width = 30;
     layout()->width = search_width * fw;

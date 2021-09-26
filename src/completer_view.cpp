@@ -98,17 +98,13 @@ void completer_view::show_completer(editor_ptr e)
 
         if (Renderer::instance()->is_terminal()) {
             layout()->width += 2;
-            layout()->height = list_size * fh;
+            layout()->height = list_size;
         } else {
             layout()->height = list_size * 24;
         }
 
         list->focus_next();
-        for (int i = 0; i < 2; i++) {
-            if (!list->ensure_visible_cursor())
-                break;
-        }
-
+        list->ensure_visible_cursor();
 
         int px = (s.x - pm->layout()->render_rect.x + offset * fw);
         int py = (s.y - ev->scrollarea->layout()->render_rect.y);

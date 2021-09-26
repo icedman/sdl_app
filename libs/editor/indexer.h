@@ -25,7 +25,7 @@ struct indexer_t {
 
     std::vector<std::string> findWords(std::string prefix);
 
-    size_t indexingRequests[INDEX_REQUEST_SIZE];
+    block_ptr indexingRequests[INDEX_REQUEST_SIZE];
     size_t requestIdx;
 
     void run();

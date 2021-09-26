@@ -151,14 +151,15 @@ void editor_view::render()
 
         blockdata_ptr blockData;
         if (!block->data || block->data->dirty) {
-            editor->highlighter.highlightBlock(block);
+            editor->highlighter.requestHighlightBlock(block);
             editor->highlighter.resume();
         }
+
         if (block->data) {
             blockData = block->data;
         }
 
-        if (!blockData || blockData->dirty) {
+        if (!blockData) { // } || blockData->dirty) {
             blockData = std::make_shared<blockdata_t>();
             span_info_t span = {
                 start : 0,
@@ -171,11 +172,6 @@ void editor_view::render()
             };
             blockData->spans.clear();
             blockData->spans.push_back(span);
-            // break;
-        }
-
-        if (!blockData) {
-            break;
         }
 
         if (!longest_block) {
@@ -679,6 +675,7 @@ bool editor_view::input_sequence(std::string text)
     case UNDO:
         Renderer::instance()->wake();
         Renderer::instance()->throttle_up_events();
+        editor->highlighter.clearRequests();
         break;
     }
 

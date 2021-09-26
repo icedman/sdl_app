@@ -45,7 +45,7 @@ void inputtext_view::set_editor(view_item_ptr _editor)
 
     ev->editor = std::make_shared<editor_t>();
     ev->editor->singleLineEdit = true;
-    ev->editor->highlighter.lang = language_from_file("", app->extensions);
+    ev->editor->highlighter.lang = nullptr; // language_from_file("", app->extensions);
     ev->editor->highlighter.theme = app->theme;
     ev->editor->view = ev;
     ev->editor->pushOp("OPEN", "");

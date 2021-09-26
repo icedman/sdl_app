@@ -12,7 +12,7 @@
 #include <vector>
 #include <functional>
 
-#define HIGHLIGHT_REQUEST_SIZE 1024
+#define HIGHLIGHT_REQUEST_SIZE 512
 
 typedef std::function<bool(int)> highlight_callback_t;
 
@@ -25,7 +25,7 @@ struct highlighter_t {
 
     void gatherBrackets(block_ptr block, char* first, char* last);
     void clearRequests();
-    int requestHighlightBlock(block_ptr block);
+    int requestHighlightBlock(block_ptr block, bool priority = false);
     int highlightBlocks(block_ptr block, int count = 1);
     int highlightBlock(block_ptr block);
     void run(editor_t* editor);
@@ -33,7 +33,7 @@ struct highlighter_t {
     void pause();
     void resume();
     
-    size_t highlightRequests[HIGHLIGHT_REQUEST_SIZE];
+    block_ptr highlightRequests[HIGHLIGHT_REQUEST_SIZE];
     size_t requestIdx;
     size_t processIdx;
 
