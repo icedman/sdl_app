@@ -421,3 +421,12 @@ bool list_view::input_sequence(std::string text)
     }
     return true;
 }
+
+bool list_view::compare_item(struct list_item_data_t& f1, struct list_item_data_t& f2)
+{
+    if (f1.score == f2.score) {
+        return f1.text < f2.text;
+    }
+    return f1.score < f2.score;
+}
+

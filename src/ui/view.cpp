@@ -186,13 +186,14 @@ void view_item::render()
     if (!lo->visible)
         return;
 
-#if 0    
-    Renderer::instance()->draw_rect({ lo->render_rect.x,
-                  lo->render_rect.y,
-                  lo->render_rect.w,
-                  lo->render_rect.h },
-        { color.r, color.g, color.b, color.a }, false, 1, 0);
-#endif
+    if (class_name != "" && style.class_name != "") {
+        view_style_t vs = style;
+        Renderer::instance()->draw_rect({ lo->render_rect.x,
+                      lo->render_rect.y,
+                      lo->render_rect.w,
+                      lo->render_rect.h },
+            { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+    }
 }
 
 void view_item::prerender()

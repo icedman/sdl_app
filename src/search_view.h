@@ -8,11 +8,17 @@
 struct search_view : popup_view {
     search_view();
 
-    bool input_text(std::string text) override;
+    void prelayout() override;
     void show_search();
+    bool commit();
+    
+    void update_list();
 
     view_item_ptr input;
     view_item_ptr list;
+
+    int searchDirection;
+    bool _findNext;
 };
 
 #endif // SEARCH_VIEW_H

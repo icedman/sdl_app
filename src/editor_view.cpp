@@ -256,7 +256,7 @@ void editor_view::render()
                 bool ul = false;
                 for (auto& c : cursors) {
                     if (pos == c.position() && block == c.block()) {
-                        hl = true;
+                        hl = true && (has_focus || c.hasSelection());
                         ul = c.hasSelection();
                         break;
                     }
@@ -277,7 +277,7 @@ void editor_view::render()
                     break;
                 }
 
-                if (hl && has_focus) {
+                if (hl) {
                     RenRect cr = {
                         alo->render_rect.x + (pos * fw),
                         alo->render_rect.y + (l * fh),

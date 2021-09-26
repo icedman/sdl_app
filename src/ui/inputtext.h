@@ -10,6 +10,9 @@ struct inputtext_view : horizontal_container {
 
     void render() override;
 
+    std::string value();
+    void set_value(std::string text);
+
     void set_editor(view_item_ptr editor);
     view_item_ptr editor;
 };

@@ -10,6 +10,7 @@ struct list_item_data_t {
     int indent;
     void* data;
     std::string value;
+    int score;
 
     bool equals(list_item_data_t d)
     {
@@ -63,6 +64,8 @@ struct list_view : panel_view {
     std::string prev_value;
 
     bool autoscroll;
+
+    static bool compare_item(struct list_item_data_t& f1, struct list_item_data_t& f2);
 };
 
 #endif // LIST_VIEW_H
