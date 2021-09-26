@@ -154,18 +154,6 @@ void block_t::print()
     log("%d %s", lineNumber, text().c_str());
 }
 
-size_t block_t::actualLineNumber()
-{
-    int l = 0;
-    for(auto b : document->blocks) {
-        b->lineNumber = l++;
-        if (b.get() == this) {
-            return b->lineNumber + 1;
-        }
-    }
-    return 0;
-}
-
 bool block_t::isValid()
 {
     block_ptr b = document->blockAtLine(lineNumber + 1);

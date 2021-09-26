@@ -75,15 +75,16 @@ void editor_t::runOp(operation_t op)
     std::string strParam = op.params;
     operation_e _op = op.op;
 
+    // document.updateBlocks(document.blocks);
+
     if (snapshots.size()) {
         snapshot_t& snapshot = snapshots.back();
 
         bool trouble = false;
         op.cursors = document.cursors;
         for(auto& c : op.cursors) {
-            c.cursor.line = c.block()->actualLineNumber();
-            c.anchor.line = c.anchorBlock()->actualLineNumber();
-            printf("%d %d\n", c.cursor.line, c.anchor.line);
+            c.cursor.line = c.block()->lineNumber;
+            c.anchor.line = c.anchorBlock()->lineNumber;
         }
 
         snapshot.history.push_back(op);
@@ -93,18 +94,22 @@ void editor_t::runOp(operation_t op)
     // handle selections
     //-------------------
     if (document.hasSelections()) {
+        snapshot_t& snapshot = snapshots.back();
+        operation_list items = snapshot.history;
         switch (_op) {
         case TAB:
         case ENTER:
         case INSERT: {
             operation_t d = { .op = DELETE_SELECTION };
             runOp(d);
+            snapshot.history = items;
             break;
         }
         case DELETE:
         case BACKSPACE: {
             operation_t d = { .op = DELETE_SELECTION };
             runOp(d);
+            snapshot.history = items;
             return;
         }
         default:
@@ -840,13 +845,19 @@ void editor_t::undo()
         }
 
         for(auto& c : op.cursors) {
-            c.cursor.block = document.blockAtLine(c.cursor.line);
-            c.anchor.block = document.blockAtLine(c.anchor.line);
+            c.cursor.block = document.blockAtLine(c.cursor.line+1);
+            c.anchor.block = document.blockAtLine(c.anchor.line+1);
+            if (!c.cursor.block || !c.anchor.block) {
+                // printf("??%d %d\n", c.cursor.line, c.anchor.line);
+            }
         }
-        document.cursors = op.cursors;
 
+        document.cursors = op.cursors;
+        
         pushOp(op);
         runAllOps();
+
+        document.updateBlocks(document.blocks);
     }
 
     snapshot.history = items;

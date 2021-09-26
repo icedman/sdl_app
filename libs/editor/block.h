@@ -100,7 +100,6 @@ struct block_t {
     void setWText(std::wstring text);
     void print();
     size_t length();
-    size_t actualLineNumber();
 
     bool isValid();
 

@@ -264,8 +264,8 @@ void document_t::print()
 block_ptr document_t::blockAtLine(size_t line)
 {
     block_list::iterator it = blocks.begin();
-    if (line >= blocks.size()) {
-        return nullptr;
+    if (line > blocks.size()) {
+        line = blocks.size();
     }
     if (line > 0) {
         it += (line - 1);
