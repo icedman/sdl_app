@@ -13,6 +13,7 @@
 #include "scrollbar.h"
 #include <algorithm>
 #include <set>
+#include <unistd.h>
 
 static std::vector<span_info_t> split_span(span_info_t si, const std::string& str)
 {
@@ -476,6 +477,7 @@ void editor_view::update()
     if (hl_start < 0)
         hl_start = 0;
     it += hl_start;
+
     for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
         block_ptr b = *it++;
         if (!b->data || b->data->dirty) {
