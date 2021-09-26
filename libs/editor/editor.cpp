@@ -82,6 +82,7 @@ void editor_t::runOp(operation_t op)
 
         switch (_op) {
         case TAB:
+        case CUT:
         case ENTER:
         case INSERT:
         case DELETE:

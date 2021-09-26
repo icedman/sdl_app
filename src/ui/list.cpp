@@ -286,6 +286,9 @@ void list_view::focus_next()
     }
 
     int idx = focused_index(data, focused_value);
+    if (idx == -1)
+        return;
+    
     if (idx >= 0 && ++idx < data.size()) {
         focused_value = data[idx].value;
     }

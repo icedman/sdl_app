@@ -145,9 +145,11 @@ void editor_view::render()
         longest_block = 0;
     }
 
+    int lineNumber = start_row;
     int l = 0;
     while (it != doc->blocks.end() && l < rows) {
         block_ptr block = *it++;
+        block->lineNumber = lineNumber++;
 
         blockdata_ptr blockData;
         if (!block->data || block->data->dirty) {
