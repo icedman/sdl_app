@@ -8,6 +8,8 @@ struct cursor_position_t {
 
     block_ptr block;
     size_t position;
+
+    // history hint
     size_t line;
 };
 

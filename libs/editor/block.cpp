@@ -3,7 +3,10 @@
 #include "util.h"
 #include "utf8.h"
 
+#include <algorithm>
+
 static size_t blocksCreated = 0;
+static size_t blockUID = 0xff;
 
 blockdata_t::blockdata_t()
     : dirty(true)
@@ -35,6 +38,7 @@ block_t::block_t()
     , x(-1)
     , y(-1)
 {
+    uid = blockUID++;
     blocksCreated++;
 }
 
@@ -150,8 +154,129 @@ void block_t::print()
     log("%d %s", lineNumber, text().c_str());
 }
 
+size_t block_t::actualLineNumber()
+{
+    int l = 0;
+    for(auto b : document->blocks) {
+        b->lineNumber = l++;
+        if (b.get() == this) {
+            return b->lineNumber + 1;
+        }
+    }
+    return 0;
+}
+
 bool block_t::isValid()
 {
     block_ptr b = document->blockAtLine(lineNumber + 1);
     return (b.get() == this);
+}
+
+
+static std::vector<span_info_t> splitSpan(span_info_t si, const std::string& str)
+{
+    static std::set<char> delimiters = {
+        '.', ',', ';', ':',
+        '-', '+', '*', '/', '%', '=',
+        '"', ' ', '\'', '\\',
+        '(', ')', '[', ']', '<', '>',
+        '&', '!', '?', '_', '~', '@'
+    };
+
+    std::vector<span_info_t> result;
+
+    char const* line = str.c_str();
+    char const* pch = str.c_str();
+    char const* start = pch;
+    for (; *pch; ++pch) {
+        if (delimiters.find(*pch) != delimiters.end()) {
+            span_info_t s = si;
+            s.start = start - line;
+            s.length = pch - start;
+            result.push_back(s);
+            start = pch;
+
+            // std::string t(line + s.start, s.length);
+            // printf(">%d %d >%s<\n", s.start, s.length, t.c_str());
+        }
+    }
+
+    span_info_t s = si;
+    s.start = start - line;
+    s.length = pch - start;
+    if (start == pch) {
+        s.length = 1;
+    }
+    result.push_back(s);
+
+    return result;
+}
+
+static bool compareSpan(span_info_t a, span_info_t b)
+{
+    return a.start < b.start;
+}
+
+std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
+{
+    std::vector<span_info_t> spans;
+    if (!data) {
+        return spans;
+    }
+
+    std::string text = this->text();
+
+    std::vector<span_info_t> source_spans = data->spans;
+    if (!source_spans.size()) {
+        span_info_t span = {
+                start : 0,
+                length : (int)length(),
+                colorIndex : 0,
+                bold : false,
+                italic : false,
+                state : BLOCK_STATE_UNKNOWN,
+                scope : ""
+            };
+        source_spans.push_back(span);
+    }
+
+    lineCount = 1;
+
+    // wrap
+    if (wrap && text.length() > cols) {
+        spans.clear();
+        for (auto& s : source_spans) {
+            if (s.length == 0)
+                continue;
+            std::string span_text = text.substr(s.start, s.length);
+            std::vector<span_info_t> ss = splitSpan(s, span_text);
+            for (auto _s : ss) {
+                _s.start += s.start;
+                spans.push_back(_s);
+            }
+        }
+
+        std::sort(spans.begin(), spans.end(), compareSpan);
+
+        int line = 0;
+        int line_x = 0;
+        for (auto& _s : spans) {
+            if (_s.start - (line * cols) + _s.length > cols) {
+                line++;
+                line_x = 0;
+            }
+            _s.line = line;
+            if (_s.line > 0) {
+                _s.line_x = indent + line_x;
+                line_x += _s.length;
+            }
+            std::string span_text = text.substr(_s.start, _s.length);
+        }
+
+        lineCount = line;
+    } else {
+        spans = data->spans;
+    }
+
+    return spans;
 }

@@ -38,6 +38,30 @@ document_t::~document_t()
     close();
 }
 
+void document_t::updateBlocks(block_list& blocks, size_t lineNumber, size_t count)
+{
+    if (lineNumber > 0) {
+        lineNumber--;
+    }
+    std::vector<block_ptr>::iterator it = blocks.begin();
+    it += lineNumber;
+
+    while (it != blocks.end()) {
+        block_ptr block = *it;
+        block->lineNumber = lineNumber++;
+        block->lineCount = 1;
+        // if (app_t::instance()->lineWrap && columns > 0) {
+        //     block->lineCount = 1 + ((block->length() - 1) / columns);
+        // }
+        it++;
+
+        if (count > 0) {
+            if (count-- == 0)
+                break;
+        }
+    }
+}
+
 block_ptr document_t::firstBlock()
 {
     if (!blocks.size()) {
@@ -211,6 +235,7 @@ void document_t::save()
     for (auto b : blocks) {
         std::string text = b->utf8_text();
         tmp << text << lineEnd;
+        // printf("%d %s\n", b->uid, text.c_str());
     }
 }
 
@@ -270,6 +295,7 @@ block_ptr document_t::addBlockAtLine(size_t line)
         lineNumber = line;
     }
 
+    updateBlocks(blocks, lineNumber);
     return b;
 }
 
@@ -287,6 +313,7 @@ void document_t::removeBlockAtLine(size_t lineNumber, size_t count)
     // std::cout << lineNumber << " : " << count << std::endl;
 
     blocks.erase(beg + lineNumber, beg + lineNumber + count);
+    updateBlocks(blocks, lineNumber);
 }
 
 cursor_t document_t::cursor()
@@ -441,7 +468,9 @@ void document_t::insertFromBuffer(struct cursor_t& cursor, std::shared_ptr<docum
 
         bufferBlocks.push_back(b);
     }
+
     blocks.insert(blocks.begin() + ln, make_move_iterator(bufferBlocks.begin()), make_move_iterator(bufferBlocks.end()));
+    updateBlocks(blocks, ln > 0 ? ln - 1 : ln);
 }
 
 void document_t::setColumns(int c)

@@ -151,7 +151,7 @@ int highlighter_t::highlightBlock(block_ptr block)
     //--------------
     for (int i = 0; i < 4; i++) {
         int ln = block->lineNumber - 4 + i;
-        if (ln < 0) {
+        if (ln < 0 || ln >= block->document->blocks.size()) {
             ln = 0;
         }
         block_ptr pb = block->document->blockAtLine(ln);

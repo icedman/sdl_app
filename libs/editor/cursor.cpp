@@ -84,8 +84,7 @@ bool compareCursor(cursor_t a, cursor_t b)
 
 cursor_position_t::cursor_position_t()
     : block(nullptr)
-{
-}
+{}
 
 cursor_t::cursor_t()
 {
@@ -107,9 +106,6 @@ void cursor_t::setPosition(block_ptr b, size_t p, bool keepAnchor)
     }
     cursor.block = b;
     cursor.position = p;
-    if (b) {
-        cursor.line = b->lineNumber;
-    }
     if (!keepAnchor) {
         setAnchor(b, p);
     }
@@ -124,9 +120,6 @@ void cursor_t::setAnchor(block_ptr b, size_t p)
 {
     anchor.block = b;
     anchor.position = p;
-    if (b) {
-        anchor.line = b->lineNumber;
-    }
 }
 
 block_ptr cursor_t::block()
@@ -313,9 +306,16 @@ bool _move_cursor(cursor_t& cursor, int dir)
 {
     block_ptr block = cursor.block();
     blockdata_ptr data = block->data;
-    if (!data || !data->rendered_spans.size()) {
-        return false;
+    if (!data) {
+        block->data = std::make_shared<blockdata_t>();
+        block->data->dirty = true;
+        data = block->data;
     }
+
+    data->rendered_spans = block->layoutSpan(
+        block->document->columns,
+        block->document->wrap,
+        block->document->wrapIndent);
 
     // find span
     bool found = false;
@@ -341,7 +341,6 @@ bool _move_cursor(cursor_t& cursor, int dir)
         if (s.line == ss.line + dir) {
             if (pos >= s.line_x && pos < s.line_x + s.length) {
                 cursor.cursor.position = s.start + pos - s.line_x;
-                // printf(">>>%d\n", cursor.position());
                 return true;
             }
         }
@@ -753,6 +752,7 @@ static int _cursorIndent(cursor_t* cursor)
     cur.insertText(tab);
     // cursor->cursor.position += inserted;
     // cursor->anchor.position += inserted;
+
     return inserted;
 }
 

@@ -56,6 +56,8 @@ struct document_t {
     size_t blockId;
     int columns;
     int rows;
+    bool wrap;
+    int wrapIndent;
 
     bool windowsLineEnd;
 
@@ -63,6 +65,7 @@ struct document_t {
     void insertFromBuffer(struct cursor_t& cursor, std::shared_ptr<document_t> buffer);
     std::vector<std::shared_ptr<document_t>> buffers;
 
+    void updateBlocks(block_list& blocks, size_t lineNumber = 0, size_t count = 0);
     void setColumns(int cols);
     void setRows(int rows);
 };

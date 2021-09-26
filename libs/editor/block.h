@@ -100,17 +100,22 @@ struct block_t {
     void setWText(std::wstring text);
     void print();
     size_t length();
+    size_t actualLineNumber();
 
     bool isValid();
 
     block_ptr next();
     block_ptr previous();
 
+    std::vector<span_info_t> layoutSpan(int cols, bool wrap, int indent = 0);
+
     blockdata_ptr data;
 
     // rendered block position
     int x;
     int y;
+
+    size_t uid;
 };
 
 #endif // BLOCK_H

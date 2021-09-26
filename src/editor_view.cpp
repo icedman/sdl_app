@@ -11,53 +11,7 @@
 #include "view.h"
 
 #include "scrollbar.h"
-#include <algorithm>
-#include <set>
 #include <unistd.h>
-
-static std::vector<span_info_t> split_span(span_info_t si, const std::string& str)
-{
-    static std::set<char> delimiters = {
-        '.', ',', ';', ':',
-        '-', '+', '*', '/', '%', '=',
-        '"', ' ', '\'', '\\',
-        '(', ')', '[', ']', '<', '>',
-        '&', '!', '?', '_', '~', '@'
-    };
-
-    std::vector<span_info_t> result;
-
-    char const* line = str.c_str();
-    char const* pch = str.c_str();
-    char const* start = pch;
-    for (; *pch; ++pch) {
-        if (delimiters.find(*pch) != delimiters.end()) {
-            span_info_t s = si;
-            s.start = start - line;
-            s.length = pch - start;
-            result.push_back(s);
-            start = pch;
-
-            // std::string t(line + s.start, s.length);
-            // printf(">%d %d >%s<\n", s.start, s.length, t.c_str());
-        }
-    }
-
-    span_info_t s = si;
-    s.start = start - line;
-    s.length = pch - start;
-    if (start == pch) {
-        s.length = 1;
-    }
-    result.push_back(s);
-
-    return result;
-}
-
-bool compareSpan(span_info_t a, span_info_t b)
-{
-    return a.start < b.start;
-}
 
 void editor_view::render()
 {
@@ -72,6 +26,9 @@ void editor_view::render()
 
     bool wrap = app->lineWrap && !editor->singleLineEdit;
     int indent = app->tabSize;
+
+    editor->document.wrap = wrap;
+    editor->document.wrapIndent = indent;
 
     layout_item_ptr plo = layout();
 
@@ -191,42 +148,9 @@ void editor_view::render()
         std::wstring wtext = block->wide_text() + L" \n";
         const wchar_t* wline = wtext.c_str();
 
-        // wrap
-        blockData->rendered_spans = blockData->spans;
-        if (wrap && text.length() > cols) {
-            blockData->rendered_spans.clear();
-            for (auto& s : blockData->spans) {
-                if (s.length == 0)
-                    continue;
-                std::string span_text = text.substr(s.start, s.length);
-                std::vector<span_info_t> ss = split_span(s, span_text);
-                for (auto _s : ss) {
-                    _s.start += s.start;
-                    blockData->rendered_spans.push_back(_s);
-                }
-            }
-
-            std::sort(blockData->rendered_spans.begin(), blockData->rendered_spans.end(), compareSpan);
-
-            int line = 0;
-            int line_x = 0;
-            for (auto& _s : blockData->rendered_spans) {
-                if (_s.start - (line * cols) + _s.length > cols) {
-                    line++;
-                    line_x = 0;
-                }
-                _s.line = line;
-                if (_s.line > 0) {
-                    _s.line_x = indent + line_x;
-                    line_x += _s.length;
-                }
-                std::string span_text = text.substr(_s.start, _s.length);
-            }
-
-            block->lineCount += line;
-        }
-
+        blockData->rendered_spans = block->layoutSpan(cols, wrap, indent);
         block->lineHeight = fh;
+
         int linc = 0;
         for (auto& s : blockData->rendered_spans) {
             if (s.length == 0)
@@ -678,9 +602,9 @@ bool editor_view::input_sequence(std::string text)
         Renderer::instance()->throttle_up_events();
         break;
     case UNDO:
+        editor->highlighter.clearRequests();
         Renderer::instance()->wake();
         Renderer::instance()->throttle_up_events();
-        editor->highlighter.clearRequests();
         break;
     }
 

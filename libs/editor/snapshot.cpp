@@ -6,6 +6,7 @@ void snapshot_t::save(block_list& blocks)
     snapshot.clear();
     for (auto block : blocks) {
         block_ptr b = std::make_shared<block_t>();
+        b->uid = block->uid;
         b->document = block->document;
         b->originalLineNumber = block->originalLineNumber;
         b->file = block->file;
@@ -35,6 +36,7 @@ void snapshot_t::restore(block_list& blocks)
     block_list::iterator it = blocks.begin();
     for (auto block : snapshot) {
         auto b = *it++;
+        b->uid = block->uid;
         b->document = block->document;
         b->originalLineNumber = block->originalLineNumber;
         b->file = block->file;

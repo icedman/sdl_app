@@ -5,8 +5,7 @@ project('app', 'cpp',
 
 add_global_arguments([
         '-w',
-        '-D_XOPEN_SOURCE_EXTENDED',
-        '-Wno-c++11-narrowing'
+        '-D_XOPEN_SOURCE_EXTENDED'
     ], language: 'cpp')
 
 pwd = meson.current_source_dir()

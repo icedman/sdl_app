@@ -66,8 +66,6 @@ void editor_t::pushOp(operation_t op)
 
 void editor_t::runOp(operation_t op)
 {
-    // app_t* app = app_t::instance();
-
     int intParam = 0;
     try {
         intParam = std::stoi(op.params);
@@ -79,6 +77,15 @@ void editor_t::runOp(operation_t op)
 
     if (snapshots.size()) {
         snapshot_t& snapshot = snapshots.back();
+
+        bool trouble = false;
+        op.cursors = document.cursors;
+        for(auto& c : op.cursors) {
+            c.cursor.line = c.block()->actualLineNumber();
+            c.anchor.line = c.anchorBlock()->actualLineNumber();
+            printf("%d %d\n", c.cursor.line, c.anchor.line);
+        }
+
         snapshot.history.push_back(op);
     }
 
@@ -815,12 +822,12 @@ void editor_t::undo()
     highlighter.clearRequests();
     highlighter.pause();
 
-    usleep(1000);
+    usleep(5000);
 
     snapshot.restore(document.blocks);
-    document.clearCursors();
 
     for (auto op : items) {
+
         switch (op.op) {
         case OPEN:
         case COPY:
@@ -832,12 +839,17 @@ void editor_t::undo()
             break;
         }
 
+        for(auto& c : op.cursors) {
+            c.cursor.block = document.blockAtLine(c.cursor.line);
+            c.anchor.block = document.blockAtLine(c.anchor.line);
+        }
+        document.cursors = op.cursors;
+
         pushOp(op);
         runAllOps();
     }
 
     snapshot.history = items;
-
     if (snapshots.size() > 1 && items.size() == 0) {
         snapshots.pop_back();
     }
