@@ -3,8 +3,11 @@ project('app', 'cpp',
   default_options : ['warning_level=3', 'cpp_std=c++11']
 )
 
-add_global_arguments('-w', language: 'cpp')
-add_global_arguments('-D_XOPEN_SOURCE_EXTENDED', language: 'cpp')
+add_global_arguments([
+        '-w',
+        '-D_XOPEN_SOURCE_EXTENDED',
+        '-Wno-c++11-narrowing'
+    ], language: 'cpp')
 
 pwd = meson.current_source_dir()
 cc = meson.get_compiler('cpp')
