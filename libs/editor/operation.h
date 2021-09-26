@@ -107,6 +107,7 @@ struct operation_t {
     std::string params;
     std::string name;
     std::string keys;
+
 };
 
 typedef std::vector<operation_t> operation_list;

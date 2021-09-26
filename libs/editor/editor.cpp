@@ -821,7 +821,6 @@ void editor_t::undo()
     document.clearCursors();
 
     for (auto op : items) {
-
         switch (op.op) {
         case OPEN:
         case COPY:

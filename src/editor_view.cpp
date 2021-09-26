@@ -150,6 +150,7 @@ void editor_view::render()
     while (it != doc->blocks.end() && l < rows) {
         block_ptr block = *it++;
         block->lineNumber = lineNumber++;
+        block->lineCount = 1;
 
         blockdata_ptr blockData;
         if (!block->data || block->data->dirty) {
@@ -218,12 +219,12 @@ void editor_view::render()
                     _s.line_x = indent + line_x;
                     line_x += _s.length;
                 }
-
                 std::string span_text = text.substr(_s.start, _s.length);
             }
+
+            block->lineCount += line;
         }
 
-        block->lineCount = 1;
         block->lineHeight = fh;
         int linc = 0;
         for (auto& s : blockData->rendered_spans) {
