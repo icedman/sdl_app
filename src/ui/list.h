@@ -53,7 +53,6 @@ struct list_view : panel_view {
     void focus_next();
     void clear();
 
-    int is_cursor_visible();
     bool ensure_visible_cursor();
 
     virtual view_item_ptr create_item();

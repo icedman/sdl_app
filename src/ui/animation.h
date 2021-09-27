@@ -25,8 +25,10 @@ struct animation {
 	void run(int index = 0);
 	void pause();
 	void cancel();
-	int pos();
+	 int pos();
 	bool is_running();
+
+	virtual float value();
 
 	static void request_animation();
 	static bool has_animations();
@@ -40,7 +42,7 @@ struct animate_ease_values : animation {
 
 	void update(int tick) override;
 	void run(float start, float end, float duration);
-	float value();
+	float value() override;
 
 	float start;
 	float end;

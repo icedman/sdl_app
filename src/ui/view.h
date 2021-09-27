@@ -21,7 +21,7 @@ struct view_item : layout_view, event_object_t {
     std::string type;
 
     layout_item_ptr layout() override;
-    void update(int millis = 0) override;
+    void update(int ticks) override;
     void prerender() override;
     void render() override;
 

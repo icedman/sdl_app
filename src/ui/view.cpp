@@ -173,10 +173,10 @@ bool view_item::is_clicked()
     return this == view_clicked;
 }
 
-void view_item::update(int millis)
+void view_item::update(int ticks)
 {
     for (auto v : _views) {
-        v->update();
+        v->update(ticks);
     }
 }
 

@@ -9,10 +9,10 @@ animation::animation()
 	, running(false)
 {}
 
-void animation::update(int millis)
+void animation::update(int tick)
 {
 	if (!is_running()) return;
-	index += millis;
+	index += tick;
 
 	if (index >= length) {
 		running = loop;
@@ -51,6 +51,11 @@ int animation::pos()
 	return index;
 }
 
+float animation::value()
+{
+	return 0;
+}
+
 static bool _animated = false;
 void animation::request_animation()
 {
@@ -77,7 +82,11 @@ float animate_ease_values::value()
 	if (!is_running()) {
 		return 0;
 	}
-	return Cubic::easeIn((float)index/length, start, end, length);
+
+	float t = (float)index/length;
+	float d = (float)(end - start)/length;
+	float v = Cubic::easeIn(t, start, d, length);
+	return v;
 }
 
 void animate_ease_values::update(int tick)

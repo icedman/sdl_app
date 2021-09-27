@@ -89,7 +89,7 @@ void list_view::prelayout()
 
 void list_view::update(int millis)
 {
-    scroll_animation.update(millis);
+    // scroll_animation.update(millis);
 
     if (autoscroll && prev_value != value) {
         if (!ensure_visible_cursor()) {
@@ -106,9 +106,7 @@ void list_view::update(int millis)
         int y = lo->rect.y + alo->scroll_y;
         if (y + lo->rect.h <= 0 || y >= alo->rect.h) {
             lo->offscreen = true;
-            // printf(">\n");
         }
-        // printf(">%d %d\n", lo->rect.y, alo->scroll_y);
     }
 
     bool hasChanges = false;
@@ -373,22 +371,49 @@ bool list_view::ensure_visible_cursor()
     layout_item_ptr alo = area->layout();
     layout_item_ptr lo = item->layout();
 
-    if (lo->render_rect.x + lo->render_rect.w > alo->render_rect.x + alo->render_rect.w) {
-        mouse_wheel(-1, 0);
-        scrolled = true;
-    }
-    if (lo->render_rect.x < alo->render_rect.x) {
-        mouse_wheel(1, 0);
-        scrolled = true;
-    }
+    // if (lo->render_rect.x + lo->render_rect.w > alo->render_rect.x + alo->render_rect.w) {
+    //     mouse_wheel(-1, 0);
+    //     scrolled = true;
+    // }
+    // if (lo->render_rect.x < alo->render_rect.x) {
+    //     mouse_wheel(1, 0);
+    //     scrolled = true;
+    // }
 
-    if (lo->render_rect.y + lo->render_rect.h > alo->render_rect.y + alo->render_rect.h) {
-        mouse_wheel(0, -1);
+    int target_scroll_x = alo->scroll_x;
+    if (lo->rect.x + alo->scroll_x < 0) {
+        target_scroll_x = -lo->rect.x;
         scrolled = true;
     }
-    if (lo->render_rect.y < alo->render_rect.y) {
-        mouse_wheel(0, 1);
+    if (lo->rect.x + lo->rect.w + alo->scroll_x > alo->rect.w) {
+        target_scroll_x = alo->rect.w - lo->rect.x - lo->rect.w;
         scrolled = true;
+    }
+    alo->scroll_x = target_scroll_x;
+
+    int target_scroll_y = alo->scroll_y;
+    if (lo->rect.y + alo->scroll_y < 0) {
+        target_scroll_y = -lo->rect.y;
+        scrolled = true;
+    }
+    if (lo->rect.y + lo->rect.h + alo->scroll_y > alo->rect.h) {
+        target_scroll_y = alo->rect.h - lo->rect.y - lo->rect.h;
+        scrolled = true;
+    }
+    alo->scroll_y = target_scroll_y;
+
+    // if (alo->scroll_y != target_scroll_y) {
+    //     if (!scroll_animation.callback) {
+    //         scroll_animation.callback = [alo](animation *anim) {
+    //             alo->scroll_y = anim->value();
+    //             return true;
+    //         };
+    //     }
+    //     scroll_animation.run(area->layout()->scroll_y, target_scroll_y, 500);
+    // }
+
+    if (scrolled) {
+        mouse_wheel(0,0);
     }
 
     return scrolled;
