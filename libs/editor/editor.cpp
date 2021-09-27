@@ -75,6 +75,7 @@ void editor_t::runOp(operation_t op)
     std::string strParam = op.params;
     operation_e _op = op.op;
 
+    // make sure somewhere block lineNumbers are accurate
     // document.updateBlocks(document.blocks);
 
     if (snapshots.size()) {
@@ -825,8 +826,9 @@ void editor_t::undo()
     }
 
     highlighter.clearRequests();
-    highlighter.pause();
 
+    // make this locking!
+    highlighter.pause();
     usleep(5000);
 
     snapshot.restore(document.blocks);
@@ -857,7 +859,7 @@ void editor_t::undo()
         pushOp(op);
         runAllOps();
 
-        document.updateBlocks(document.blocks);
+        // document.updateBlocks(document.blocks);
     }
 
     snapshot.history = items;
@@ -924,17 +926,14 @@ int editor_t::highlight(int startingLine, int count)
     size_t cx;
     size_t cy;
 
-    int l = 0;
     block_list::iterator it = document.blocks.begin();
 
-    int preceedingBlocks = 0;//count / 2;
-    int trailingBlocks = 0;//count / 3;
-    int idx = startingLine - preceedingBlocks;
-    if (idx < 0) {
-        idx = 0;
-    }
+    int idx = startingLine;
     if (idx >= document.blocks.size()) {
         return 0;
+    }
+    if (idx < 0) {
+        idx = 0;
     }
     it += idx;
     
@@ -942,6 +941,7 @@ int editor_t::highlight(int startingLine, int count)
     int c = 0;
     while (it != document.blocks.end()) {
         block_ptr b = *it++;
+        b->lineNumber = idx++;
         lighted += highlighter.highlightBlock(b);
         // log("%d %d %d", c, mainBlock->lineNumber, preceedingBlocks, count);
         if (c++ >= count) // mainBlock->lineNumber + preceedingBlocks + trailingBlocks + count)

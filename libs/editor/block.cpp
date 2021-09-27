@@ -51,13 +51,11 @@ block_t::~block_t()
 std::string block_t::text()
 {
     if (dirty) {
-
         if (!content.length() && wcontent.length()) {
             for(auto wc : wcontent) {
                 content += (char)(wc & 0xff);
             }
         }
-
         return content;
     }
 
@@ -79,7 +77,9 @@ std::wstring block_t::wide_text()
         return wcontent;
     }
     
-    return L"";
+    setText(text());
+
+    return wcontent;
 }
 
 std::string block_t::utf8_text()
@@ -105,9 +105,8 @@ void block_t::setText(std::string t)
     while(*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
-
-        wchar_t wc[2] = { (wchar_t)cp, 0 };
-        wcontent += wc;
+        // wchar_t wc[2] = { (wchar_t)cp, 0 };
+        wcontent += (wchar_t)cp;
     }
 
     cachedLength = 0;

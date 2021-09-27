@@ -77,6 +77,8 @@ int highlighter_t::requestHighlightBlock(block_ptr block,  bool priority)
         }
     }
 
+    block->wide_text();
+    
     highlightRequests[requestIdx++] = block;
     if (requestIdx >= HIGHLIGHT_REQUEST_SIZE) {
         requestIdx = 0;
@@ -480,7 +482,7 @@ void* highlightThread(void* arg)
                 if (lighted && threadHl->callback) {
                     threadHl->callback(block->lineNumber);
                     if (breathe_counter > 32) {
-                        usleep(100);
+                        usleep(500);
                         breathe_counter = 0;
                     }
                 }
@@ -526,7 +528,7 @@ void* _highlightThread(void* arg)
         b = b->next();
 
         if (lighted && breathe_counter++ > 4) {
-            usleep(100);
+            usleep(500);
             breathe_counter = 0;
         }
     }
@@ -548,7 +550,7 @@ void highlighter_t::run(editor_t* editor)
     }
 
     pthread_create(&threadId, NULL, &highlightThread, this);
-    pthread_create(&_threadId, NULL, &_highlightThread, this);
+    // pthread_create(&_threadId, NULL, &_highlightThread, this);
 }
 
 void highlighter_t::cancel()

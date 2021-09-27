@@ -142,9 +142,6 @@ void editor_view::render()
             longest_block = block;
         }
 
-        std::string text = block->text() + " \n";
-        const char* line = text.c_str();
-
         std::wstring wtext = block->wide_text() + L" \n";
         const wchar_t* wline = wtext.c_str();
 
@@ -158,6 +155,11 @@ void editor_view::render()
 
             color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
 
+            if (s.start >= wtext.length()) {
+                editor->highlighter.requestHighlightBlock(block);
+                continue;
+            }
+
             if (s.start + s.length >= wtext.length()) {
                 s.length = wtext.length() - s.start;
                 if (s.length <= 0) {
@@ -166,7 +168,6 @@ void editor_view::render()
                 }
             }
 
-            std::string span_text = text.substr(s.start, s.length);
             std::wstring span_wtext = wtext.substr(s.start, s.length);
 
             if (linc < s.line) {
@@ -601,11 +602,18 @@ bool editor_view::input_sequence(std::string text)
     case MOVE_CURSOR_PREVIOUS_PAGE:
         Renderer::instance()->throttle_up_events();
         break;
-    case UNDO:
+    case UNDO: {
         editor->highlighter.clearRequests();
         Renderer::instance()->wake();
         Renderer::instance()->throttle_up_events();
+
+        // re-highlight
+        if (start_row >= editor->document.blocks.size()) {
+            start_row = editor->document.blocks.size() - 1;
+        }
+        editor->highlight(start_row, rows);
         break;
+    }
     }
 
     return true;
