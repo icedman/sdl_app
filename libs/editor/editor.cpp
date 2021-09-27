@@ -131,7 +131,7 @@ void editor_t::runOp(operation_t op)
         operations.clear();
         return;
     case OPEN:
-        document.open(strParam, false);
+        document.open(strParam, true);
         createSnapshot();
         highlighter.run(this);
         return;
@@ -830,13 +830,11 @@ void editor_t::undo()
     highlighter.pause();
     usleep(5000);
 
-    printf("restore\n");
     snapshot.restore(document.blocks);
 
     for (auto op : items) {
 
-        std::string on = nameFromOperation(op.op);
-        printf("%s\n", on.c_str());
+        // std::string on = nameFromOperation(op.op);
 
         switch (op.op) {
         case OPEN:
@@ -853,7 +851,6 @@ void editor_t::undo()
             c.cursor.block = document.blockAtLine(c.cursor.line+1);
             c.anchor.block = document.blockAtLine(c.anchor.line+1);
             if (!c.cursor.block || !c.anchor.block) {
-                // printf("??%d %d\n", c.cursor.line, c.anchor.line);
             }
         }
 

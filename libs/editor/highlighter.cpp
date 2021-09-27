@@ -62,20 +62,22 @@ void highlighter_t::clearRequests()
     requestIdx = 0;
 }
 
-int highlighter_t::requestHighlightBlock(block_ptr block,  bool priority)
+void highlighter_t::requestHighlightBlock(block_ptr block,  bool priority)
 {
-    if (_paused) return 0;
+    if (_paused) return;
 
     if (block->data && !block->data->dirty) {
-        return 0;
+        return;
     }
 
     for(int i=0; i< HIGHLIGHT_REQUEST_SIZE; i++) {
         if (highlightRequests[i] == block) {
-            return 0;
+            // already pending
+            return;
         }
     }
 
+    // ensures thread is not reading text from file buffer
     block->wide_text();
     
     highlightRequests[requestIdx++] = block;
@@ -83,7 +85,7 @@ int highlighter_t::requestHighlightBlock(block_ptr block,  bool priority)
         requestIdx = 0;
     }
 
-    return 1;
+    return;
 }
 
 int highlighter_t::highlightBlocks(block_ptr block, int count)
@@ -130,7 +132,7 @@ int highlighter_t::highlightBlock(block_ptr block)
         return 0;
     }
 
-    log("hl %d", block->lineNumber);
+    // log("hl %d", block->lineNumber);
 
     blockdata_ptr blockData = block->data;
 

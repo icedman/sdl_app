@@ -45,7 +45,6 @@ block_t::block_t()
 block_t::~block_t()
 {
     blocksCreated--;
-    // std::cout << "blocks: " << blocksCreated << " : " << text() << std::endl;
 }
 
 std::string block_t::text()
@@ -76,9 +75,9 @@ std::wstring block_t::wide_text()
     if (dirty) {
         return wcontent;
     }
-    
-    setText(text());
 
+    setText(text());
+    
     return wcontent;
 }
 

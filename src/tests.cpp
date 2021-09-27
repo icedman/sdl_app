@@ -23,6 +23,7 @@ view_item_ptr test_root()
 view_item_ptr test6()
 {
     view_item_ptr root = std::make_shared<panel_view>();
+    // root->class_name = "editor";
     root->layout()->margin = 40;
 
     panel_view* panel = view_item::cast<panel_view>(root);

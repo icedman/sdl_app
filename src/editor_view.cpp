@@ -614,10 +614,11 @@ bool editor_view::input_sequence(std::string text)
         break;
     case UNDO: {
         editor->highlighter.clearRequests();
+        
         Renderer::instance()->wake();
         Renderer::instance()->throttle_up_events();
 
-        // re-highlight
+        // re-highlight (while highlight thread is sleeping)
         if (start_row >= editor->document.blocks.size()) {
             start_row = editor->document.blocks.size() - 1;
         }

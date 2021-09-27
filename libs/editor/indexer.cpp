@@ -48,6 +48,13 @@ void indexer_t::requestIndexBlock(block_ptr block)
         return;
     }
 
+    for(int i=0; i< INDEX_REQUEST_SIZE; i++) {
+        if (indexingRequests[i] == block) {
+            // already pending
+            return;
+        }
+    }
+
     indexingRequests[requestIdx++] = block;
     if (requestIdx >= INDEX_REQUEST_SIZE)
         requestIdx = 0;

@@ -50,6 +50,7 @@ struct list_view : panel_view {
     void select_focused();
     void focus_previous();
     void focus_next();
+    void clear();
 
     bool ensure_visible_cursor();
 

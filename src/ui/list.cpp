@@ -272,6 +272,8 @@ void list_view::focus_previous()
     int idx = focused_index(data, focused_value);
     if (idx > 0) {
         focused_value = data[idx - 1].value;
+    } else {
+        focused_value = "";
     }
 }
 
@@ -291,6 +293,8 @@ void list_view::focus_next()
     
     if (idx >= 0 && ++idx < data.size()) {
         focused_value = data[idx].value;
+    } else {
+        focused_value = "";
     }
 }
 
@@ -309,6 +313,13 @@ void list_view::select_focused()
             return;
         }
     }
+}
+
+void list_view::clear()
+{
+    value = "";
+    focused_value = "";
+    data.clear();
 }
 
 view_item_ptr list_view::create_item()

@@ -64,7 +64,7 @@ void completer_view::show_completer(editor_ptr e)
 
     completer_view* cm = this;
     list_view* list = view_item::cast<list_view>(cm->list);
-    list->data.clear();
+    list->clear();
 
     int completerItemsWidth = 0;
     std::vector<std::string> words = editor->indexer->findWords(prefix);

@@ -49,7 +49,7 @@ struct custom_editor_view_t : editor_view {
         }
 
         if (lv->data.size()) {
-            lv->data.clear();
+            lv->clear();
             layout_request();
             Renderer::instance()->throttle_up_events();
         }
@@ -96,6 +96,7 @@ search_view::search_view()
 void search_view::show_search(std::string value)
 {
     list_view* lv = view_item::cast<list_view>(list);
+    lv->clear();
     lv->layout()->visible = false;
 
     layout_request();
