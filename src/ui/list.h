@@ -3,6 +3,7 @@
 
 #include "panel.h"
 #include "view.h"
+#include "animation.h"
 
 struct list_item_data_t {
     std::string icon;
@@ -39,7 +40,7 @@ struct list_view : panel_view {
     list_view();
 
     virtual void prelayout() override;
-    virtual void update() override;
+    virtual void update(int millis = 0) override;
     virtual void render() override;
     virtual bool input_sequence(std::string text) override; 
 
@@ -67,6 +68,8 @@ struct list_view : panel_view {
     bool autoscroll;
 
     static bool compare_item(struct list_item_data_t& f1, struct list_item_data_t& f2);
+
+    animate_ease_values scroll_animation;
 };
 
 #endif // LIST_VIEW_H

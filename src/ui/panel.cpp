@@ -132,7 +132,7 @@ bool panel_view::mouse_wheel(int x, int y)
     return true;
 }
 
-void panel_view::update()
+void panel_view::update(int millis)
 {
     scrollbar_view* vs = view_item::cast<scrollbar_view>(v_scroll);
     scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
@@ -145,7 +145,7 @@ void panel_view::update()
         bottom->layout()->visible = false;
     }
 
-    view_item::update();
+    view_item::update(millis);
 }
 
 void panel_view::postlayout()

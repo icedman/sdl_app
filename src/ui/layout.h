@@ -102,7 +102,7 @@ struct layout_view {
 
     virtual void prelayout() {}
     virtual void postlayout() {}
-    virtual void update() {}
+    virtual void update(int millis = 0) {}
     virtual void prerender() {}
     virtual void render() {}
 };

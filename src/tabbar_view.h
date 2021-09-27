@@ -6,7 +6,7 @@
 struct app_tabbar_view : tabbar_view {
 
     app_tabbar_view();
-    void update() override;
+    void update(int millis) override;
     void select_item(list_item_view* item) override;
 };
 

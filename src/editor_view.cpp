@@ -360,7 +360,7 @@ editor_view::editor_view()
     });
 }
 
-void editor_view::update()
+void editor_view::update(int millis)
 {
     if (!editor) {
         return;
@@ -402,7 +402,7 @@ void editor_view::update()
         app_t::instance()->currentEditor = editor;
     }
 
-    panel_view::update();
+    panel_view::update(millis);
 
     block_list::iterator it = doc->blocks.begin();
 

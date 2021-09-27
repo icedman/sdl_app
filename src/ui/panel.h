@@ -19,7 +19,7 @@ struct panel_view : vertical_container {
     void _validate();
 
     virtual void postlayout() override;
-    virtual void update() override;
+    virtual void update(int millis = 0) override;
     virtual bool mouse_wheel(int x, int y) override;
 
     bool scrollbar_move(view_item* source);

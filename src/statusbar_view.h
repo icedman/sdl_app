@@ -7,7 +7,7 @@
 struct statusbar_view : horizontal_container {
     statusbar_view();
 
-    void update() override;
+    void update(int millis) override;
     void render() override;
 
     view_item_ptr status;

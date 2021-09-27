@@ -96,6 +96,8 @@ curses_files = [
 
 ui_files = [
     'src/backend/renderer.cpp',
+    'libs/PennerEasing/Cubic.cpp',
+    'src/ui/animation.cpp',
     'src/ui/button.cpp',
     'src/ui/events.cpp',
     'src/ui/image.cpp',
@@ -142,7 +144,7 @@ executable('ashlar',
     'src/main.cpp',
     sdl_files,
     ui_files,
-    include_directories: [ './src', './src/ui', './src/backend' ],
+    include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing' ],
     dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep ],
     install : true
 )
@@ -151,7 +153,7 @@ executable('ashlr',
     'src/main.cpp',
     curses_files,
     ui_files,
-    include_directories: [ './src', './src/ui', './src/backend' ],
+    include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing' ],
     dependencies: [ tmparser_dep, editor_dep, curses_dep ],
     install : true
 )

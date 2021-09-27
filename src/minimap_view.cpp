@@ -58,9 +58,9 @@ bool minimap_view::mouse_click(int x, int y, int button)
     return true;
 }
 
-void minimap_view::update()
+void minimap_view::update(int millis)
 {
-    view_item::update();
+    view_item::update(millis);
 
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;

@@ -23,7 +23,7 @@ struct editor_view : panel_view {
     bool input_sequence(std::string text) override;
 
     void render() override;
-    void update() override;
+    void update(int millis) override;
 
     void ensure_visible_cursor();
     void scroll_to_cursor(cursor_t c, bool centered = false);

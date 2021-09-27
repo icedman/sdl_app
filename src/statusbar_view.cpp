@@ -42,7 +42,7 @@ statusbar_view::statusbar_view()
     }
 }
 
-void statusbar_view::update()
+void statusbar_view::update(int millis)
 {
     statusbar_t* statusbar = statusbar_t::instance();
     if (statusbar) {
@@ -82,7 +82,7 @@ void statusbar_view::update()
         }
     }
 
-    view_item::update();
+    view_item::update(millis);
 }
 
 void statusbar_view::render()

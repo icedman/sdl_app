@@ -21,7 +21,7 @@ app_tabbar_view::app_tabbar_view()
     });
 }
 
-void app_tabbar_view::update()
+void app_tabbar_view::update(int millis)
 {
     if (!is_focused()) {
         focused_value = value;
@@ -35,7 +35,7 @@ void app_tabbar_view::update()
     hasChanges = hasChanges || app->editors.size() != data.size();
 
     if (!hasChanges) {
-        list_view::update();
+        list_view::update(millis);
         return;
     }
 
@@ -59,7 +59,7 @@ void app_tabbar_view::update()
         data.push_back(item);
     }
 
-    list_view::update();
+    list_view::update(millis);
 
     for (auto btn : content()->_views) {
         btn->layout()->preferred_constraint = {

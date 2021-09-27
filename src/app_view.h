@@ -19,7 +19,7 @@ struct app_view : vertical_container {
     view_item_ptr popups;
 
     bool input_sequence(std::string sequence) override;
-    void update() override;
+    void update(int millis) override;
     void create_editor_view(editor_ptr editor);
     void destroy_editor_view(editor_ptr editor);
 

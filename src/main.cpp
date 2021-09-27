@@ -93,14 +93,15 @@ int main(int argc, char** argv)
 
     int frames = FRAME_RENDER_INTERVAL;
     while (renderer->is_running()) {
+        int elapsed = renderer->ticks();
         if (app_t::instance()->currentEditor) {
             app_t::instance()->currentEditor->runAllOps();
         }
-        if (statusbar_t::instance()) {
-            statusbar_t::instance()->update(10);
-        }
 
-        root_view->update();
+        root_view->update(elapsed);
+        if (animation::has_animations()) {
+            renderer->throttle_up_events();
+        }
 
         int pw = w;
         int ph = h;

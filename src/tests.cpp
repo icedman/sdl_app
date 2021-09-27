@@ -101,7 +101,7 @@ view_item_ptr test5()
 }
 
 struct my_root : view_item {
-    void update() override
+    void update(int millis) override
     {
         ((scrollbar_view*)v_scroll.get())->set_size(100, 10);
         ((scrollbar_view*)h_scroll.get())->set_size(100, 10);

@@ -87,8 +87,10 @@ void list_view::prelayout()
     ((scrollarea_view*)(scrollarea.get()))->move_factor_y = fh;
 }
 
-void list_view::update()
+void list_view::update(int millis)
 {
+    scroll_animation.update(millis);
+
     if (autoscroll && prev_value != value) {
         if (!ensure_visible_cursor()) {
             prev_value = value;
@@ -180,7 +182,7 @@ void list_view::update()
         }
     }
 
-    panel_view::update();
+    panel_view::update(millis);
 }
 
 void list_view::select_item(list_item_view* item)
@@ -272,8 +274,6 @@ void list_view::focus_previous()
     int idx = focused_index(data, focused_value);
     if (idx > 0) {
         focused_value = data[idx - 1].value;
-    } else {
-        focused_value = "";
     }
 }
 
@@ -293,8 +293,6 @@ void list_view::focus_next()
     
     if (idx >= 0 && ++idx < data.size()) {
         focused_value = data[idx].value;
-    } else {
-        focused_value = "";
     }
 }
 
@@ -385,6 +383,9 @@ bool list_view::ensure_visible_cursor()
     }
 
     if (lo->render_rect.y + lo->render_rect.h > alo->render_rect.y + alo->render_rect.h) {
+        
+        scroll_animation.run(lo->render_rect.y, alo->render_rect.y + alo->render_rect.h - lo->render_rect.h, 2000);
+
         mouse_wheel(0, -1);
         scrolled = true;
     }

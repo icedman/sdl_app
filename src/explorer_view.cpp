@@ -23,7 +23,7 @@ explorer_view::explorer_view()
     });
 }
 
-void explorer_view::update()
+void explorer_view::update(int millis)
 {
     if (!is_focused()) {
         focused_value = value;
@@ -38,7 +38,7 @@ void explorer_view::update()
     hasChanges = hasChanges || explorer->renderList.size() != data.size();
 
     if (!hasChanges) {
-        list_view::update();
+        list_view::update(millis);
         return;
     }
 
@@ -74,7 +74,7 @@ void explorer_view::update()
         data.push_back(item);
     }
 
-    list_view::update();
+    list_view::update(millis);
 }
 
 void explorer_view::select_item(list_item_view* item)

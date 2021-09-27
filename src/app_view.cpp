@@ -165,7 +165,7 @@ bool app_view::input_sequence(std::string keySequence)
     return false;
 }
 
-void app_view::update()
+void app_view::update(int millis)
 {
     app_t* app = app_t::instance();
     for (auto e : app->editors) {
@@ -174,7 +174,7 @@ void app_view::update()
         }
     }
 
-    view_item::update();
+    view_item::update(millis);
 }
 
 void app_view::create_editor_view(editor_ptr editor)
