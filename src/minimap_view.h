@@ -18,8 +18,8 @@ struct minimap_view : view_item {
     int scroll_y;
     int spacing;
 
-    int start_y;
-    int end_y;
+    int start_row;
+    int end_row;
     int render_h;
 };
 

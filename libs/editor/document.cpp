@@ -85,11 +85,12 @@ block_ptr document_t::nextBlock(block_t* block)
     }
 
     size_t line = block->lineNumber;
-    block_list::iterator it = blocks.begin();
     if (line + 1 >= blocks.size()) {
         return nullptr;
     }
     line++;
+
+    block_list::iterator it = blocks.begin();
     it += line;
     return *it;
 }
@@ -101,11 +102,11 @@ block_ptr document_t::previousBlock(block_t* block)
     }
 
     size_t line = block->lineNumber;
-    block_list::iterator it = blocks.begin();
     if (line < 1) {
         return nullptr;
     }
     line--;
+    block_list::iterator it = blocks.begin();
     it += line;
     return *it;
 }

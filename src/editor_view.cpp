@@ -113,7 +113,6 @@ void editor_view::render()
         blockdata_ptr blockData;
         if (!block->data || block->data->dirty) {
             editor->highlighter.requestHighlightBlock(block);
-            editor->highlighter.resume();
         }
 
         if (block->data) {
@@ -367,14 +366,27 @@ void editor_view::update()
         return;
     }
 
+    int start_line = start_row;
+    int end_line = start_row + rows;
+
+    minimap_view* mv = view_item::cast<minimap_view>(minimap);
+    if (start_line > mv->start_row) {
+        start_line = mv->start_row;
+    }
+    if (end_line < mv->end_row) {
+        end_line = mv->end_row;
+    }
+
     if (!editor->highlighter.callback) {
-        editor->highlighter.callback = [this](int line) {
-            if (line >= this->start_row && line < this->start_row + this->rows) {
+        editor->highlighter.callback = [start_line, end_line](int line) {
+            if (line >= start_line && line <= end_line) {
                 Renderer::instance()->wake();
             }
             return true;
         };
     }
+
+    editor->highlighter.resume();
 
     editor->runAllOps();
     document_t* doc = &editor->document;
@@ -594,8 +606,6 @@ bool editor_view::input_sequence(std::string text)
     if (op != UNKNOWN) {
         ensure_visible_cursor();
     }
-
-    // printf("sequence %s\n", text.c_str());
 
     switch (op) {
     case MOVE_CURSOR_NEXT_PAGE:

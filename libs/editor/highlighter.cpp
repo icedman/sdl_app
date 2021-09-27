@@ -13,7 +13,6 @@
 
 highlighter_t::highlighter_t()
     : threadId(0)
-    , _threadId(0)
     , editor(0)
     , requestIdx(0)
     , processIdx(0)
@@ -504,39 +503,6 @@ void* highlightThread(void* arg)
     return NULL;
 }
 
-void* _highlightThread(void* arg)
-{
-    highlighter_t* threadHl = (highlighter_t*)arg;
-    editor_t* editor = threadHl->editor;
-
-    editor_t tmp;
-    tmp.document.open(editor->document.filePath, false);
-    tmp.highlighter.lang = language_from_file(editor->document.filePath, app_t::instance()->extensions);
-    // tmp.highlighter.lang = threadHl->lang;
-    tmp.highlighter.theme = threadHl->theme;
-
-    // usleep(200000);
-
-    block_ptr b = tmp.document.firstBlock();
-    int breathe_counter = 0;
-    while (b) {
-        int lighted = tmp.highlighter.highlightBlock(b);
-
-        block_ptr sb = editor->snapshots[0].snapshot[b->lineNumber];
-        sb->data = b->data;
-
-        b = b->next();
-
-        if (lighted && breathe_counter++ > 4) {
-            usleep(500);
-            breathe_counter = 0;
-        }
-    }
-
-    threadHl->threadId = 0;
-    return NULL;
-}
-
 void highlighter_t::run(editor_t* editor)
 {
     this->editor = editor;
@@ -550,7 +516,6 @@ void highlighter_t::run(editor_t* editor)
     }
 
     pthread_create(&threadId, NULL, &highlightThread, this);
-    // pthread_create(&_threadId, NULL, &_highlightThread, this);
 }
 
 void highlighter_t::cancel()
@@ -558,10 +523,6 @@ void highlighter_t::cancel()
     if (threadId) {
         pthread_cancel(threadId);
         threadId = 0;
-    }
-    if (_threadId) {
-        pthread_cancel(_threadId);
-        _threadId = 0;
     }
 }
 

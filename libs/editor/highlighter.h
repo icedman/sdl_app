@@ -39,7 +39,6 @@ struct highlighter_t {
 
     editor_t* editor;
     pthread_t threadId;
-    pthread_t _threadId;
 
     highlight_callback_t callback;
 

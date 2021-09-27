@@ -38,7 +38,7 @@ bool minimap_view::mouse_click(int x, int y, int button)
     if (ry > render_h)
         return true;
 
-    int line = start_y + ((float)(end_y - start_y) * (float)ry / render_h);
+    int line = start_row + ((float)(end_row - start_row) * (float)ry / render_h);
 
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
@@ -70,18 +70,18 @@ void minimap_view::update()
     if (it == doc->blocks.end()) {
         return;
     }
-    block_ptr block = *it;
     
-    int hl_length = end_y - start_y;
-    int hl_start = start_y;
-    if (hl_start < 0)
-        hl_start = 0;
-    it += hl_start;
-    for (int i = 0; i < hl_length && block; i++) {
+    if (start_row > doc->blocks.size() || start_row < 0) {
+        start_row = 0;
+    }
+    
+    int idx = start_row;
+    it += idx;
+    while(it != doc->blocks.end() && idx++<end_row) {
+        block_ptr block = *it++;
         if (!block->data || block->data->dirty) {
             editor->highlighter.requestHighlightBlock(block);
         }
-        block = block->next();
     }
 }
 
@@ -132,8 +132,8 @@ void minimap_view::render()
 
     // printf(">%f %d\n", p, scroll_y);
 
-    start_y = -1;
-    end_y = 0;
+    start_row = -1;
+    end_row = 0;
     render_h = 0;
 
     int render_y = 0;
@@ -158,7 +158,7 @@ void minimap_view::render()
             alpha = 250;
         }
 
-        if (!blockData || blockData->dirty) {
+        if (!blockData) {
             RenRect r = {
                 lo->render_rect.x,
                 lo->render_rect.y + l,
@@ -203,8 +203,8 @@ void minimap_view::render()
             }
         }
 
-        if (start_y == -1) {
-            start_y = block->lineNumber;
+        if (start_row == -1) {
+            start_row = block->lineNumber;
         }
         if (block->lineNumber == start) {
             render_y = lo->render_rect.y + l;
@@ -213,7 +213,7 @@ void minimap_view::render()
             render_current_y = lo->render_rect.y + l;
         }
 
-        end_y = block->lineNumber;
+        end_row = block->lineNumber;
 
         l += spacing;
     }
@@ -319,9 +319,9 @@ void minimap_view::render_terminal()
         auto& b = doc->blocks[idx];
 
         if (y == 0) {
-            start_y = b->lineNumber;
+            start_row = b->lineNumber;
         }
-        end_y = b->lineNumber;
+        end_row = b->lineNumber;
 
         buildUpDotsForBlock(b, TEXT_COMPRESS, TEXT_BUFFER);
 

@@ -46,7 +46,10 @@ void snapshot_t::restore(block_list& blocks)
         b->dirty = block->dirty;
         b->content = "";
         b->wcontent = block->wcontent;
-        b->data = nullptr;
+        // b->data = nullptr;
+        if (b->data) {
+            b->data->dirty = true;
+        }
         b->cachedLength = 0;
     }
 

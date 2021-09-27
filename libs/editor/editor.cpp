@@ -168,6 +168,8 @@ void editor_t::runOp(operation_t op)
         if (app_t::instance()->clipboard().length() < SIMPLE_PASTE_THRESHOLD) {
             inputBuffer = app_t::instance()->clipboard();
         } else {
+            highlighter.clearRequests();
+
             document.addBufferDocument(app_t::instance()->clipboard());
             document.insertFromBuffer(mainCursor, document.buffers.back());
             document.clearCursors();
@@ -797,9 +799,6 @@ void editor_t::undo()
     snapshot_t& snapshot = snapshots.back();
     operation_list items = snapshot.history;
 
-    if (items.size() == 0)
-        return;
-
     while (items.size() > 0) {
         auto lastOp = items.back();
         items.pop_back();
@@ -831,9 +830,13 @@ void editor_t::undo()
     highlighter.pause();
     usleep(5000);
 
+    printf("restore\n");
     snapshot.restore(document.blocks);
 
     for (auto op : items) {
+
+        std::string on = nameFromOperation(op.op);
+        printf("%s\n", on.c_str());
 
         switch (op.op) {
         case OPEN:
