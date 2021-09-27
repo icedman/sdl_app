@@ -42,6 +42,7 @@ void completer_view::show_completer(editor_ptr e)
     std::string prefix;
 
     cursor_t cursor = doc->cursor();
+    cursor_t _cursor = cursor;
     struct block_t& block = *cursor.block();
     if (cursor.position() < 3)
         return;
@@ -51,6 +52,10 @@ void completer_view::show_completer(editor_ptr e)
         prefix = cursor.selectedText();
         cursor.cursor = cursor.anchor;
         current_cursor = cursor;
+
+        if (prefix.length() != _cursor.position() - cursor.position()) {
+            return;
+        }
     }
 
     if (prefix.length() < 2) {
@@ -137,7 +142,7 @@ bool completer_view::commit(std::string text)
     ss.clear();
     ss << (cur.block()->lineNumber + 1);
     ss << ":";
-    ss << cur.position();
+    ss << (cur.position()-1);
     editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
     editor->pushOp(INSERT, text);
     editor->runAllOps();

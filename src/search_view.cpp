@@ -93,7 +93,7 @@ search_view::search_view()
     interactive = true;
 }
 
-void search_view::show_search()
+void search_view::show_search(std::string value)
 {
     list_view* lv = view_item::cast<list_view>(list);
     lv->layout()->visible = false;

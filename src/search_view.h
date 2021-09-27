@@ -9,7 +9,7 @@ struct search_view : popup_view {
     search_view();
 
     void prelayout() override;
-    void show_search();
+    void show_search(std::string value = "");
     bool commit();
     
     void update_list();
