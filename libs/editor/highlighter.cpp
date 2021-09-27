@@ -513,6 +513,7 @@ void highlighter_t::run(editor_t* editor)
     int c = 0;
     block_ptr b = editor->document.firstBlock();
     while (b && c++ < 100) {
+        b->wide_text();
         editor->highlighter.highlightBlock(b);
         b = b->next();
     }

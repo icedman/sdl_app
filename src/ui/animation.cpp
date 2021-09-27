@@ -82,8 +82,10 @@ float animate_ease_values::value()
 
 void animate_ease_values::update(int tick)
 {
-	animation::update(tick);
 	if (is_running()) {
-		printf("%f\n", value());
+		animation::update(tick);
+		if (callback) {
+			callback(this);
+		}
 	}
 }

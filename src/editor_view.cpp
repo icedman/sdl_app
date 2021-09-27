@@ -499,8 +499,8 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
                 int pos = (x - s.x) / fw;
                 hitPos = pos + s.start;
                 if (x > r.x && x <= r.x + r.w) {
-                    std::string span_text = text.substr(s.start, s.length);
-                    printf("%s\n", span_text.c_str());
+                    // std::string span_text = text.substr(s.start, s.length);
+                    // printf("%s\n", span_text.c_str());
                     break;
                 } else {
                     hitPos = pos + s.start + s.length;

@@ -2,7 +2,13 @@
 #define ANIMATION_H
 
 #include "view.h"
+
+#include <algorithm>
+#include <functional>
 #include <vector>
+
+struct animation;
+typedef std::function<bool(animation* anim)> animation_callback_t;
 
 struct animation {
 
@@ -24,6 +30,8 @@ struct animation {
 
 	static void request_animation();
 	static bool has_animations();
+
+	animation_callback_t callback;
 };
 
 typedef std::shared_ptr<animation> animation_ptr;

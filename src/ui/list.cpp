@@ -383,9 +383,6 @@ bool list_view::ensure_visible_cursor()
     }
 
     if (lo->render_rect.y + lo->render_rect.h > alo->render_rect.y + alo->render_rect.h) {
-        
-        scroll_animation.run(lo->render_rect.y, alo->render_rect.y + alo->render_rect.h - lo->render_rect.h, 2000);
-
         mouse_wheel(0, -1);
         scrolled = true;
     }
