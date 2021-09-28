@@ -131,7 +131,7 @@ void editor_t::runOp(operation_t op)
         operations.clear();
         return;
     case OPEN:
-        document.open(strParam, true);
+        document.open(strParam, false);
         createSnapshot();
         highlighter.run(this);
         return;
@@ -400,12 +400,21 @@ void editor_t::runOp(operation_t op)
 
         case MOVE_CURSOR_LEFT:
         case MOVE_CURSOR_LEFT_ANCHORED:
-            cur.moveLeft(intParam, _op == MOVE_CURSOR_LEFT_ANCHORED);
+            if (!cur.moveLeft(intParam, _op == MOVE_CURSOR_LEFT_ANCHORED)) {
+                if (document.cursors.size() == 1 && _op != MOVE_CURSOR_LEFT_ANCHORED) {
+                    document.clearCursors();
+                }
+            }
             break;
         case MOVE_CURSOR_RIGHT:
-        case MOVE_CURSOR_RIGHT_ANCHORED:
-            cur.moveRight(intParam, _op == MOVE_CURSOR_RIGHT_ANCHORED);
+        case MOVE_CURSOR_RIGHT_ANCHORED: {
+            if (!cur.moveRight(intParam, _op == MOVE_CURSOR_RIGHT_ANCHORED)) {
+                if (document.cursors.size() == 1 && _op != MOVE_CURSOR_RIGHT_ANCHORED) {
+                    document.clearCursors();
+                }
+            }
             break;
+        }
         case MOVE_CURSOR_UP:
         case MOVE_CURSOR_UP_ANCHORED:
             cur.moveUp(intParam, _op == MOVE_CURSOR_UP_ANCHORED);
@@ -519,66 +528,75 @@ void editor_t::runAllOps()
     operation_t op;
 
     bool snap = inputBuffer.size() > 1000;
-    char* _s = (char*)inputBuffer.c_str();
-    char* _t = _s;
-    char* p = _s;
 
+    // paste
     if (inputBuffer.size()) {
-        app_t::instance()->setClipboard(inputBuffer);
-    }
 
-    while (*p) {
+        snapshot_t& snapshot = snapshots.back();
+        operation_list items = snapshot.history;
 
-        if (singleLineEdit && *p == '\n') {
-            break;
-        }
 
-        op.op = INSERT;
-        op.params = "";
+        char* _s = (char*)inputBuffer.c_str();
+        char* _t = _s;
+        char* p = _s;
+        
+        while (*p) {
 
-        switch (*p) {
-        case '\n': {
-            if (p - _t > 0) {
-                op.params = std::string(_t, p - _t);
-                runOp(op);
-                p++;
-                _t = p;
+            if (singleLineEdit && *p == '\n') {
+                break;
             }
-            op.op = ENTER;
-            runOp(op);
-            // if (*_t == '\n') {
-            //     op.op = ENTER;
-            //     runOp(op);
-            //     _t++;
-            //     p++;
-            // }
-            break;
-        }
-        case '\t': {
-            if (p - _t > 0) {
-                op.params = std::string(_t, p - _t);
+
+            op.op = INSERT;
+            op.params = "";
+
+            switch (*p) {
+            case '\n': {
+                if (p - _t > 0) {
+                    op.params = std::string(_t, p - _t);
+                    runOp(op);
+                    p++;
+                    _t = p;
+                }
+                op.op = ENTER;
                 runOp(op);
-                p++;
-                _t = p;
+
+                if (*_t == '\n') {
+                    op.op = ENTER;
+                    runOp(op);
+                    _t++;
+                    p++;
+                }
+                
+                break;
             }
-            op.op = TAB;
+            case '\t': {
+                if (p - _t > 0) {
+                    op.params = std::string(_t, p - _t);
+                    runOp(op);
+                    p++;
+                    _t = p;
+                }
+                op.op = TAB;
+                runOp(op);
+                break;
+            }
+
+            default:
+                break;
+            }
+
+            p++;
+        }
+
+        if (p - _t > 0) {
+            op.op = INSERT;
+            op.params = std::string(_t, p - _t);
             runOp(op);
-            break;
         }
+        inputBuffer = "";
 
-        default:
-            break;
-        }
-
-        p++;
+        snapshot.history = items;
     }
-
-    if (p - _t > 0) {
-        op.op = INSERT;
-        op.params = std::string(_t, p - _t);
-        runOp(op);
-    }
-    inputBuffer = "";
 
     // todo
     // if single line editor
@@ -840,7 +858,6 @@ void editor_t::undo()
 
     // make this locking!
     highlighter.pause();
-    usleep(5000);
 
     snapshot.restore(document.blocks);
 

@@ -64,6 +64,10 @@ void highlighter_t::clearRequests()
 
 void highlighter_t::requestHighlightBlock(block_ptr block, bool priority)
 {
+    if (!threadId || _paused) {
+        highlightBlock(block);
+    }
+
     if (_paused)
         return;
 
@@ -532,8 +536,12 @@ void highlighter_t::cancel()
 
 void highlighter_t::pause()
 {
+    if (_paused) {
+        return;
+    }
     _paused = true;
     clearRequests();
+    usleep(5000);
 }
 
 void highlighter_t::resume()
