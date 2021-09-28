@@ -2,8 +2,6 @@
 #include "popup.h"
 #include "renderer.h"
 
-#include "app.h"
-
 static view_item* view_root = 0;
 static view_item* view_focused = 0;
 static view_item* view_hovered = 0;
@@ -534,35 +532,28 @@ void view_set_root(view_item* item)
 
 static view_item* _view_shift_focus(view_item* view, int x, int y)
 {
-    layout_item_ptr lo = view->layout();
-    int sx = 0;
-    int sy = 0;
-    if (x > 0) {
-        sx = lo->render_rect.w;
-    }
-    if (y > 0) {
-        sy = lo->render_rect.h;
-    }
+    // layout_item_ptr lo = view->layout();
+    // int sx = 0;
+    // int sy = 0;
+    // if (x > 0) {
+    //     sx = lo->render_rect.w;
+    // }
+    // if (y > 0) {
+    //     sy = lo->render_rect.h;
+    // }
 
-    for (int i = 0; i < 20; i++) {
-        view_item* next = _view_find_xy(view_root, lo->render_rect.x + sx + (i * x), lo->render_rect.y + sy + (i * y));
-        app_t::log("%d %d", lo->render_rect.x + sx + (i * x), lo->render_rect.y + sy + (i * y));
-        if (next && next->focusable) {
-            app_t::log("?: %s", next->type.c_str());
-            break;
-        }
-    }
-
+    // for (int i = 0; i < 20; i++) {
+    //     view_item* next = _view_find_xy(view_root, lo->render_rect.x + sx + (i * x), lo->render_rect.y + sy + (i * y));
+    //     if (next && next->focusable) {
+    //         break;
+    //     }
+    // }
     return NULL;
 }
 
 view_item* view_shift_focus(int x, int y)
 {
     view_item* view = view_focused;
-    app_t::log("current: %s", view->type.c_str());
     view_item* next = _view_shift_focus(view, x, y);
-    if (next) {
-        app_t::log("next: %s", next->type.c_str());
-    }
-    return NULL;
+    return next;
 }

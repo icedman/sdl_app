@@ -546,12 +546,12 @@ void editor_t::runAllOps()
             }
             op.op = ENTER;
             runOp(op);
-            if (*_t == '\n') {
-                op.op = ENTER;
-                runOp(op);
-                _t++;
-                p++;
-            }
+            // if (*_t == '\n') {
+            //     op.op = ENTER;
+            //     runOp(op);
+            //     _t++;
+            //     p++;
+            // }
             break;
         }
         case '\t': {
@@ -862,8 +862,6 @@ void editor_t::undo()
         for (auto& c : op.cursors) {
             c.cursor.block = document.blockAtLine(c.cursor.line + 1);
             c.anchor.block = document.blockAtLine(c.anchor.line + 1);
-            if (!c.cursor.block || !c.anchor.block) {
-            }
         }
 
         document.cursors = op.cursors;
@@ -878,6 +876,8 @@ void editor_t::undo()
     if (snapshots.size() > 1 && items.size() == 0) {
         snapshots.pop_back();
     }
+
+    // highlighter.resume();
 }
 
 void editor_t::createSnapshot()

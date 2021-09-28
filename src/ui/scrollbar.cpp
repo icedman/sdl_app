@@ -1,7 +1,5 @@
 #include "scrollbar.h"
 #include "renderer.h"
-
-#include "app.h"
 #include "style.h"
 
 scrollbar_view::scrollbar_view()
@@ -207,7 +205,6 @@ void scrollbar_view::set_size(int c, int w)
 
 void scrollbar_view::render()
 {
-    app_t* app = app_t::instance();
     view_style_t vs = style;
 
     layout_item_ptr lo = layout();

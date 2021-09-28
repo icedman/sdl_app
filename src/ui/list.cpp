@@ -2,7 +2,6 @@
 #include "renderer.h"
 
 #include "app.h"
-#include "app_view.h"
 #include "image.h"
 #include "scrollarea.h"
 #include "scrollbar.h"

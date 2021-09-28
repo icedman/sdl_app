@@ -1,8 +1,6 @@
 #include "tabbar.h"
 #include "renderer.h"
 
-#include "app.h"
-#include "app_view.h"
 #include "button.h"
 #include "image.h"
 #include "scrollbar.h"

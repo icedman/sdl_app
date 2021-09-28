@@ -148,7 +148,6 @@ block_ptr block_t::previous()
 
 void block_t::print()
 {
-    // std::cout << lineNumber << ": " << text() << std::endl;
     log("%d %s", lineNumber, text().c_str());
 }
 
@@ -209,13 +208,21 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
         return spans;
     }
 
-    std::string text = this->text();
+    std::string text = this->text() + " ";
 
     std::vector<span_info_t> source_spans = data->spans;
+
+    int spanLength = 0;
+    for (auto& s : source_spans) {
+        if (s.start + s.length > spanLength) {
+            spanLength = s.start + s.length;
+        }
+    }
+
     if (!source_spans.size()) {
         span_info_t span = {
             start : 0,
-            length : (int)length(),
+            length : text.length(),
             colorIndex : 0,
             bold : false,
             italic : false,
@@ -233,6 +240,7 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
         for (auto& s : source_spans) {
             if (s.length == 0)
                 continue;
+
             std::string span_text = text.substr(s.start, s.length);
             std::vector<span_info_t> ss = splitSpan(s, span_text);
             for (auto _s : ss) {
