@@ -14,7 +14,7 @@ inputtext_view::inputtext_view()
     if (Renderer::instance()->is_terminal()) {
         h = 1;
         m = 0;
-    }    
+    }
     layout()->height = h + m + (m / 2);
 
     set_editor(std::make_shared<editor_view>());
@@ -22,7 +22,7 @@ inputtext_view::inputtext_view()
 
 void inputtext_view::render()
 {
-    return ;
+    return;
     // background
     layout_item_ptr lo = layout();
     Renderer::instance()->draw_rect({ lo->render_rect.x,
@@ -66,7 +66,7 @@ void inputtext_view::set_editor(view_item_ptr _editor)
 
 std::string inputtext_view::value()
 {
-    return view_item::cast<editor_view>(editor)->editor->document.blocks.back()->utf8_text();
+    return view_item::cast<editor_view>(editor)->editor->document.blocks.back()->utf8Text();
 }
 
 void inputtext_view::set_value(std::string value)

@@ -11,7 +11,7 @@ struct search_view : popup_view {
     void prelayout() override;
     void show_search(std::string value = "");
     bool commit();
-    
+
     void update_list();
 
     view_item_ptr input;

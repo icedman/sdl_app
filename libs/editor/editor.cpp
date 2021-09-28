@@ -5,9 +5,9 @@
 // clipboard
 #include "app.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
-#include <algorithm>
 
 #include <unistd.h>
 
@@ -83,7 +83,7 @@ void editor_t::runOp(operation_t op)
 
         bool trouble = false;
         op.cursors = document.cursors;
-        for(auto& c : op.cursors) {
+        for (auto& c : op.cursors) {
             c.cursor.line = c.block()->lineNumber;
             c.anchor.line = c.anchorBlock()->lineNumber;
         }
@@ -532,9 +532,10 @@ void editor_t::runAllOps()
         op.params = "";
 
         switch (*p) {
+        case '\0':
         case '\n': {
             if (p - _t > 0) {
-                op.params = std::string(_t, p-_t);
+                op.params = std::string(_t, p - _t);
                 runOp(op);
                 p++;
                 _t = p;
@@ -545,7 +546,7 @@ void editor_t::runAllOps()
         }
         case '\t': {
             if (p - _t > 0) {
-                op.params = std::string(_t, p-_t);
+                op.params = std::string(_t, p - _t);
                 runOp(op);
                 p++;
                 _t = p;
@@ -563,7 +564,7 @@ void editor_t::runAllOps()
 
     if (p - _t > 0) {
         op.op = INSERT;
-        op.params = std::string(_t, p-_t);
+        op.params = std::string(_t, p - _t);
         runOp(op);
     }
     inputBuffer = "";
@@ -847,15 +848,15 @@ void editor_t::undo()
             break;
         }
 
-        for(auto& c : op.cursors) {
-            c.cursor.block = document.blockAtLine(c.cursor.line+1);
-            c.anchor.block = document.blockAtLine(c.anchor.line+1);
+        for (auto& c : op.cursors) {
+            c.cursor.block = document.blockAtLine(c.cursor.line + 1);
+            c.anchor.block = document.blockAtLine(c.anchor.line + 1);
             if (!c.cursor.block || !c.anchor.block) {
             }
         }
 
         document.cursors = op.cursors;
-        
+
         pushOp(op);
         runAllOps();
 
@@ -936,7 +937,7 @@ int editor_t::highlight(int startingLine, int count)
         idx = 0;
     }
     it += idx;
-    
+
     int lighted = 0;
     int c = 0;
     while (it != document.blocks.end()) {

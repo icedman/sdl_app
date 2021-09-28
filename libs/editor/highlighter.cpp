@@ -55,22 +55,23 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rend
 
 void highlighter_t::clearRequests()
 {
-    for(int i=0; i<HIGHLIGHT_REQUEST_SIZE; i++) {
+    for (int i = 0; i < HIGHLIGHT_REQUEST_SIZE; i++) {
         highlightRequests[i] = nullptr;
     }
     processIdx = 0;
     requestIdx = 0;
 }
 
-void highlighter_t::requestHighlightBlock(block_ptr block,  bool priority)
+void highlighter_t::requestHighlightBlock(block_ptr block, bool priority)
 {
-    if (_paused) return;
+    if (_paused)
+        return;
 
     if (block->data && !block->data->dirty) {
         return;
     }
 
-    for(int i=0; i< HIGHLIGHT_REQUEST_SIZE; i++) {
+    for (int i = 0; i < HIGHLIGHT_REQUEST_SIZE; i++) {
         if (highlightRequests[i] == block) {
             // already pending
             return;
@@ -78,8 +79,8 @@ void highlighter_t::requestHighlightBlock(block_ptr block,  bool priority)
     }
 
     // ensures thread is not reading text from file buffer
-    block->wide_text();
-    
+    block->wideText();
+
     highlightRequests[requestIdx++] = block;
     if (requestIdx >= HIGHLIGHT_REQUEST_SIZE) {
         requestIdx = 0;
@@ -102,7 +103,7 @@ int highlighter_t::highlightBlocks(block_ptr block, int count)
 static void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
 {
     std::vector<span_info_t>::iterator it = spans.begin();
-    while(it != spans.end()) {
+    while (it != spans.end()) {
         span_info_t s = *it;
         if (s.start >= comment.start && s.start + s.length <= comment.start + comment.length) {
             spans.erase(it);
@@ -235,7 +236,7 @@ int highlighter_t::highlightBlock(block_ptr block)
             span_info_t& prevSpan = blockData->spans.front();
             prevSpan.length = n - prevSpan.start;
         }
-        
+
         span.x = 0;
         span.y = 0;
         span.line = 0;
@@ -462,7 +463,7 @@ void* highlightThread(void* arg)
     highlighter_t* threadHl = (highlighter_t*)arg;
     editor_t* editor = threadHl->editor;
 
-    static struct timespec time_to_wait = {0, 0};
+    static struct timespec time_to_wait = { 0, 0 };
 
     // usleep(200000);
 
@@ -491,13 +492,13 @@ void* highlightThread(void* arg)
 
             threadHl->highlightRequests[processIdx] = nullptr;
             // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
-            
+
             processIdx++;
             threadHl->processIdx = processIdx % HIGHLIGHT_REQUEST_SIZE;
         }
 
         usleep(1000);
-        
+
         // time_to_wait.tv_sec = time(NULL) + 4L;
         // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
     }
@@ -513,7 +514,7 @@ void highlighter_t::run(editor_t* editor)
     int c = 0;
     block_ptr b = editor->document.firstBlock();
     while (b && c++ < 100) {
-        b->wide_text();
+        b->wideText();
         editor->highlighter.highlightBlock(b);
         b = b->next();
     }

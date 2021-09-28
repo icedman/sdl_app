@@ -110,7 +110,6 @@ struct operation_t {
 
     // history hint
     cursor_list cursors;
-
 };
 
 typedef std::vector<operation_t> operation_list;

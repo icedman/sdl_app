@@ -47,7 +47,7 @@ int main(int argc, char** argv)
     statusbar_t statusbar;
     search_t search;
 
-    Renderer *renderer = Renderer::instance();
+    Renderer* renderer = Renderer::instance();
 
     app.configure(argc, argv);
     app.setupColors(!renderer->is_terminal());

@@ -7,10 +7,10 @@
 #include "grammar.h"
 #include "theme.h"
 
+#include <functional>
 #include <pthread.h>
 #include <string>
 #include <vector>
-#include <functional>
 
 #define HIGHLIGHT_REQUEST_SIZE 512
 
@@ -32,7 +32,7 @@ struct highlighter_t {
     void cancel();
     void pause();
     void resume();
-    
+
     block_ptr highlightRequests[HIGHLIGHT_REQUEST_SIZE];
     size_t requestIdx;
     size_t processIdx;

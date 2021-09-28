@@ -1,9 +1,9 @@
 #ifndef LIST_VIEW_H
 #define LIST_VIEW_H
 
+#include "animation.h"
 #include "panel.h"
 #include "view.h"
-#include "animation.h"
 
 struct list_item_data_t {
     std::string icon;
@@ -42,7 +42,7 @@ struct list_view : panel_view {
     virtual void prelayout() override;
     virtual void update(int millis = 0) override;
     virtual void render() override;
-    virtual bool input_sequence(std::string text) override; 
+    virtual bool input_sequence(std::string text) override;
 
     virtual void select_item(list_item_view* item);
     bool is_item_selected(list_item_view* item);

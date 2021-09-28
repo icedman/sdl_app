@@ -139,7 +139,7 @@ void app_t::configure(int argc, char** argv)
     }
 
     if (argc > 1) {
-        inputFile = argv[argc-1];
+        inputFile = argv[argc - 1];
         if (inputFile == lastArg) {
             inputFile = "";
         }
@@ -423,7 +423,7 @@ editor_ptr app_t::openEditor(std::string path, bool check)
     if (path.length()) {
         DIR* dir = opendir(path.c_str());
         if (dir != NULL) {
-            path = ""; 
+            path = "";
             closedir(dir);
         }
     }

@@ -40,7 +40,7 @@ struct Renderer {
     bool is_throttle_up_events();
     void wake();
 
-    void render_view_tree(view_item *root);
+    void render_view_tree(view_item* root);
 
     int key_mods();
 

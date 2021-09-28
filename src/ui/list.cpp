@@ -221,8 +221,7 @@ void list_view::render()
             { lo->render_rect.x,
                 lo->render_rect.y,
                 lo->render_rect.w,
-                lo->render_rect.h
-            },
+                lo->render_rect.h },
             { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue },
             vs.filled,
             0);
@@ -288,7 +287,7 @@ void list_view::focus_next()
     int idx = focused_index(data, focused_value);
     if (idx == -1)
         return;
-    
+
     if (idx >= 0 && ++idx < data.size()) {
         focused_value = data[idx].value;
     }
@@ -413,7 +412,7 @@ bool list_view::ensure_visible_cursor()
     // }
 
     if (scrolled) {
-        mouse_wheel(0,0);
+        mouse_wheel(0, 0);
     }
 
     return scrolled;
@@ -421,17 +420,18 @@ bool list_view::ensure_visible_cursor()
 
 list_item_view* list_view::item_from_value(std::string value)
 {
-    for(auto item : content()->_views) {
+    for (auto item : content()->_views) {
         list_item_view* iv = view_item::cast<list_item_view>(item);
-        if (iv->data.value == value) return iv;
+        if (iv->data.value == value)
+            return iv;
     }
     return NULL;
 }
 
-
 bool list_view::input_sequence(std::string text)
 {
-    if (!data.size()) return false;
+    if (!data.size())
+        return false;
     operation_e op = operationFromKeys(text);
 
     if (content()->layout()->direction == LAYOUT_FLEX_DIRECTION_ROW) {
@@ -445,7 +445,7 @@ bool list_view::input_sequence(std::string text)
         }
     }
 
-    switch(op) {
+    switch (op) {
     case MOVE_CURSOR_UP:
     case MOVE_CURSOR_LEFT:
         focus_previous();
@@ -470,4 +470,3 @@ bool list_view::compare_item(struct list_item_data_t& f1, struct list_item_data_
     }
     return f1.score < f2.score;
 }
-

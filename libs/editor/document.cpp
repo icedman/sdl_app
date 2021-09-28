@@ -6,8 +6,8 @@
 
 #include "indexer.h"
 
-#include <dirent.h>
 #include <cstring>
+#include <dirent.h>
 #include <set>
 
 #define TMP_BUFFER "/tmp/tmpfile.XXXXXX"
@@ -230,11 +230,12 @@ bool document_t::open(std::string path, bool enableBuffer)
 
 void document_t::save()
 {
-    if (binary) return;
+    if (binary)
+        return;
     std::string lineEnd = windowsLineEnd ? WINDOWS_LINE_END : LINUX_LINE_END;
     std::ofstream tmp(filePath, std::ofstream::out);
     for (auto b : blocks) {
-        std::string text = b->utf8_text();
+        std::string text = b->utf8Text();
         tmp << text << lineEnd;
         // printf("%d %s\n", b->uid, text.c_str());
     }
@@ -242,10 +243,11 @@ void document_t::save()
 
 void document_t::saveAs(const char* path, bool replacePath)
 {
-    if (binary) return;
+    if (binary)
+        return;
     std::ofstream tmp(path, std::ofstream::out);
     for (auto b : blocks) {
-        std::string text = b->utf8_text();
+        std::string text = b->utf8Text();
         tmp << text << std::endl;
     }
 }

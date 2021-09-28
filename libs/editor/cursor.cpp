@@ -2,8 +2,8 @@
 #include "app.h"
 #include "document.h"
 #include "search.h"
-#include "util.h"
 #include "utf8.h"
+#include "util.h"
 
 #include <algorithm>
 
@@ -84,7 +84,8 @@ bool compareCursor(cursor_t a, cursor_t b)
 
 cursor_position_t::cursor_position_t()
     : block(nullptr)
-{}
+{
+}
 
 cursor_t::cursor_t()
 {
@@ -186,7 +187,7 @@ std::string cursor_t::selectedText()
         if (res != L"") {
             res += L"\n";
         }
-        std::wstring t = block->wide_text();
+        std::wstring t = block->wideText();
         if (block == start.block) {
             t = t.substr(start.position);
         }
@@ -234,11 +235,11 @@ bool cursor_t::eraseSelection()
     cursor_position_t start = selectionStart();
     cursor_position_t end = selectionEnd();
 
-    std::wstring t = start.block->wide_text().substr(0, start.position);
+    std::wstring t = start.block->wideText().substr(0, start.position);
     if (end.position + 1 < end.block->length()) {
-        t += end.block->wide_text().substr(end.position + 1);
+        t += end.block->wideText().substr(end.position + 1);
     } else {
-        t += end.block->wide_text().substr(end.position);
+        t += end.block->wideText().substr(end.position);
     }
 
     if (isMultiBlockSelection()) {
@@ -322,7 +323,7 @@ bool _move_cursor(cursor_t& cursor, int dir)
     span_info_t ss;
     int pos;
 
-    for(auto s : data->rendered_spans) {
+    for (auto s : data->rendered_spans) {
         if (cursor.position() >= s.start && cursor.position() < s.start + s.length) {
             ss = s;
             pos = cursor.position();
@@ -335,16 +336,16 @@ bool _move_cursor(cursor_t& cursor, int dir)
         }
     }
 
-    if (!found) return false;
+    if (!found)
+        return false;
 
-    for(auto s : data->rendered_spans) {
+    for (auto s : data->rendered_spans) {
         if (s.line == ss.line + dir) {
             if (pos >= s.line_x && pos < s.line_x + s.length) {
                 cursor.cursor.position = s.start + pos - s.line_x;
                 return true;
             }
         }
-
     }
 
     return false;
@@ -630,15 +631,15 @@ bool cursor_t::insertText(std::string t)
 {
     std::wstring wt;
 
-    char *p = (char*)t.c_str();
-    while(*p) {
+    char* p = (char*)t.c_str();
+    while (*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
         wchar_t wc[2] = { (wchar_t)cp, 0 };
         wt += wc;
     }
 
-    std::wstring blockText = block()->wide_text();
+    std::wstring blockText = block()->wideText();
     if (blockText.length() > 0) {
         blockText.insert(cursor.position, wt);
     } else {
@@ -650,7 +651,7 @@ bool cursor_t::insertText(std::string t)
 
 bool cursor_t::eraseText(int count)
 {
-    std::wstring blockText = block()->wide_text();
+    std::wstring blockText = block()->wideText();
     if (cursor.position < blockText.length()) {
         blockText.erase(cursor.position, count);
     }
@@ -661,7 +662,7 @@ bool cursor_t::eraseText(int count)
 
 bool cursor_t::splitLine()
 {
-    std::wstring blockText = block()->wide_text();
+    std::wstring blockText = block()->wideText();
     std::wstring nextText;
 
     if (position() < blockText.length()) {
@@ -679,8 +680,8 @@ bool cursor_t::mergeNextLine()
     if (!block()->next()) {
         return false;
     }
-    std::wstring blockText = block()->wide_text();
-    std::wstring nextText = block()->next()->wide_text();
+    std::wstring blockText = block()->wideText();
+    std::wstring nextText = block()->next()->wideText();
     block()->setWText(blockText + nextText);
     block()->document->removeBlockAtLine(block()->lineNumber + 1);
     return true;

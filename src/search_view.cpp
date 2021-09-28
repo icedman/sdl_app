@@ -1,17 +1,19 @@
 #include "search_view.h"
-#include "renderer.h"
-#include "list.h"
 #include "inputtext.h"
+#include "list.h"
+#include "renderer.h"
 
 #include "app.h"
-#include "search.h"
 #include "indexer.h"
+#include "search.h"
 
 #include <algorithm>
 
 struct custom_editor_view_t : editor_view {
-    custom_editor_view_t() : editor_view()
-    {}
+    custom_editor_view_t()
+        : editor_view()
+    {
+    }
 
     bool input_text(std::string text)
     {
@@ -45,7 +47,7 @@ struct custom_editor_view_t : editor_view {
         case ENTER:
             search->commit();
             return true;
-        break;
+            break;
         }
 
         if (lv->data.size()) {
@@ -57,7 +59,7 @@ struct custom_editor_view_t : editor_view {
         return editor_view::input_sequence(text);
     }
 
-    search_view *search;
+    search_view* search;
     view_item_ptr input;
     view_item_ptr list;
 };
@@ -72,7 +74,7 @@ search_view::search_view()
     input = std::make_shared<inputtext_view>();
 
     view_item_ptr _editor = std::make_shared<custom_editor_view_t>();
-    custom_editor_view_t *ev = view_item::cast<custom_editor_view_t>(_editor);
+    custom_editor_view_t* ev = view_item::cast<custom_editor_view_t>(_editor);
     ev->search = this;
     ev->input = input;
     ev->list = list;
@@ -108,7 +110,7 @@ void search_view::show_search(std::string value)
 void search_view::update_list()
 {
     list_view* lv = view_item::cast<list_view>(list);
-    
+
     struct app_t* app = app_t::instance();
 
     struct editor_t* editor = app->currentEditor.get();
@@ -121,12 +123,12 @@ void search_view::update_list()
     lv->value = "";
     if (editor->indexer) {
         std::vector<std::string> words = editor->indexer->findWords(inputtext);
-        for(auto w : words) {
+        for (auto w : words) {
             int score = levenshtein_distance((char*)inputtext.c_str(), (char*)(w.c_str()));
             list_item_data_t item = {
                 text : w,
                 value : w,
-                score: score
+                score : score
             };
             lv->data.push_back(item);
         }
@@ -145,7 +147,7 @@ void search_view::update_list()
 bool search_view::commit()
 {
     list_view* lv = view_item::cast<list_view>(list);
-    
+
     struct app_t* app = app_t::instance();
 
     struct editor_t* editor = app->currentEditor.get();
@@ -228,11 +230,11 @@ bool search_view::commit()
 void search_view::prelayout()
 {
     list_view* lv = view_item::cast<list_view>(list);
-       
+
     int fw, fh;
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)style.font.c_str()), &fw, &fh, NULL, 1);
 
-    int list_size = lv->data.size();    
+    int list_size = lv->data.size();
     if (list_size > 10) {
         list_size = 10;
     }

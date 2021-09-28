@@ -16,6 +16,7 @@ struct cursor_t;
 
 typedef std::shared_ptr<block_t> block_ptr;
 typedef std::vector<block_ptr> block_list;
+typedef std::wstring wide_string;
 
 enum block_state_e {
     BLOCK_STATE_UNKNOWN = 0,
@@ -93,9 +94,9 @@ struct block_t {
     bool dirty;
 
     std::string text();
-    std::wstring wide_text();
-    std::string utf8_text();
-    
+    std::wstring wideText();
+    std::string utf8Text();
+
     void setText(std::string text);
     void setWText(std::wstring text);
     void print();

@@ -141,7 +141,7 @@ void editor_view::render()
             longest_block = block;
         }
 
-        std::wstring wtext = block->wide_text() + L" \n";
+        std::wstring wtext = block->wideText() + L" \n";
         const wchar_t* wline = wtext.c_str();
 
         blockData->rendered_spans = block->layoutSpan(cols, wrap, indent);
@@ -614,7 +614,7 @@ bool editor_view::input_sequence(std::string text)
         break;
     case UNDO: {
         editor->highlighter.clearRequests();
-        
+
         Renderer::instance()->wake();
         Renderer::instance()->throttle_up_events();
 

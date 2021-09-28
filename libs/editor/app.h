@@ -60,14 +60,14 @@ struct app_t {
     // colors
     bool trueColors;
     std::string themeName;
-    
+
     int fg;
     int bg;
     int bgApp;
 
     int selFg;
     int selBg;
-    
+
     int treeFg;
     int treeBg;
     int treeHoverFg;

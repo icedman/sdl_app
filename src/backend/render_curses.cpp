@@ -27,7 +27,7 @@ enum KEY_ACTION {
     K_ESC = 27,
     K_BACKSPACE = 127,
     K_RESIZE = 150,
-    
+
     /* The following are just soft codes, not really reported by the terminal directly. */
     K_ALT_ = 1000,
     K_CTRL_,
@@ -234,7 +234,7 @@ static int readEscapeSequence(std::string& keySequence)
                 }
 
                 sequence = "alt+";
-                if (seq[0] == '3') {                    
+                if (seq[0] == '3') {
                     app_t::log("alt+%c\n", seq[1]);
                     switch (seq[1]) {
                     case 'A':
@@ -720,17 +720,20 @@ static bool _is_clipped(RenRect cr, int x, int y)
 
 static bool is_clipped(int x, int y)
 {
-    if (_is_clipped(clip_rect, x, y)) return true;
-    for(auto s : state_stack) {
-        if (_is_clipped(s.clip, x, y)) return true;
+    if (_is_clipped(clip_rect, x, y))
+        return true;
+    for (auto s : state_stack) {
+        if (_is_clipped(s.clip, x, y))
+            return true;
     }
     return false;
 }
 
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int radius)
 {
-    if (!fill) return;
-    
+    if (!fill)
+        return;
+
     int clr_index = clr.a;
 
     for (int y = 0; y < rect.height; y++) {
@@ -762,8 +765,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
     int pair = 0;
     int i = 0;
     while (*p) {
-        if (is_clipped(x + i, y) || 
-            (*p >= 0xD800 && *p <= 0xD8FF)) {
+        if (is_clipped(x + i, y) || (*p >= 0xD800 && *p <= 0xD8FF)) {
             p++;
             i++;
             continue;

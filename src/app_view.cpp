@@ -7,8 +7,8 @@
 
 #include "editor_view.h"
 #include "explorer_view.h"
-#include "statusbar_view.h"
 #include "search_view.h"
+#include "statusbar_view.h"
 #include "tabbar_view.h"
 
 #include "style.h"
@@ -125,7 +125,7 @@ bool app_view::input_sequence(std::string keySequence)
         view_item::cast<search_view>(search)->show_search();
         popup_manager* pm = view_item::cast<popup_manager>(popups);
         pm->clear();
-        pm->push_at(search, { x,0,0,0 }, POPUP_DIRECTION_DOWN);
+        pm->push_at(search, { x, 0, 0, 0 }, POPUP_DIRECTION_DOWN);
         return true;
     }
 
@@ -268,7 +268,7 @@ void app_view::setup_style()
         bg : Renderer::instance()->color_for_index(app->bgApp),
         border_color : Renderer::instance()->color_for_index(app->bgApp),
         filled : false,
-        border_width: 0,
+        border_width : 0,
         corner_radius : 0
 
     };
@@ -282,7 +282,7 @@ void app_view::setup_style()
     vs_default;
     view_style_register(vs_default, "scrollbar");
 
-    vs_default;    
+    vs_default;
     view_style_register(vs, "gutter");
 
     vs_default;

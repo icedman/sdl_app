@@ -6,8 +6,8 @@
 #include "util.h"
 
 #include <algorithm>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <cctype>
@@ -20,7 +20,7 @@ indexer_t::indexer_t()
     , hasInvalidBlocks(false)
     , requestIdx(0)
 {
-    for(int i=0; i<INDEX_REQUEST_SIZE; i++) {
+    for (int i = 0; i < INDEX_REQUEST_SIZE; i++) {
         indexingRequests[i] = nullptr;
     }
 }
@@ -48,7 +48,7 @@ void indexer_t::requestIndexBlock(block_ptr block)
         return;
     }
 
-    for(int i=0; i< INDEX_REQUEST_SIZE; i++) {
+    for (int i = 0; i < INDEX_REQUEST_SIZE; i++) {
         if (indexingRequests[i] == block) {
             // already pending
             return;
@@ -136,7 +136,7 @@ void* indexerThread(void* arg)
     indexer_t* indexer = (indexer_t*)arg;
     editor_t* editor = indexer->editor;
 
-    static struct timespec time_to_wait = {0, 0};
+    static struct timespec time_to_wait = { 0, 0 };
 
     usleep(200000);
 
@@ -159,7 +159,7 @@ void* indexerThread(void* arg)
         }
 
         usleep(500000);
-        
+
         // time_to_wait.tv_sec = time(NULL) + 4L;
         // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
     }

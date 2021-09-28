@@ -17,6 +17,7 @@ minimap_view::minimap_view()
 {
     class_name = "minimap";
     interactive = true;
+    sliding_y = 0;
 
     spacing = 2;
 
@@ -70,18 +71,26 @@ void minimap_view::update(int millis)
     if (it == doc->blocks.end()) {
         return;
     }
-    
+
     if (start_row > doc->blocks.size() || start_row < 0) {
         start_row = 0;
     }
-    
+
     int idx = start_row;
     it += idx;
-    while(it != doc->blocks.end() && idx++<end_row) {
+    while (it != doc->blocks.end() && idx++ < end_row) {
         block_ptr block = *it++;
         if (!block->data || block->data->dirty) {
             editor->highlighter.requestHighlightBlock(block);
         }
+    }
+
+    int d = render_y - sliding_y;
+    if (d * d > 4) {
+        sliding_y += (float)d / 200;
+        Renderer::instance()->throttle_up_events();
+    } else {
+        sliding_y = render_y;
     }
 }
 
@@ -136,7 +145,7 @@ void minimap_view::render()
     end_row = 0;
     render_h = 0;
 
-    int render_y = 0;
+    render_y = 0;
     int render_current_y = 0;
 
     int l = 0;
@@ -222,7 +231,7 @@ void minimap_view::render()
         Renderer::instance()->draw_rect(
             {
                 lo->render_rect.x,
-                render_y,
+                sliding_y,
                 lo->render_rect.w,
                 ev->rows * spacing,
             },
@@ -230,13 +239,13 @@ void minimap_view::render()
     }
 
     Renderer::instance()->draw_rect(
-            {
-                lo->render_rect.x,
-                render_current_y - spacing,
-                lo->render_rect.w,
-                1,
-            },
-            { 255, 255, 255, 40 }, true, 1, 0);
+        {
+            lo->render_rect.x,
+            render_current_y - spacing,
+            lo->render_rect.w,
+            1,
+        },
+        { 255, 255, 255, 40 }, true, 1, 0);
 }
 
 void minimap_view::buildUpDotsForBlock(block_ptr block, float textCompress, int bufferWidth)

@@ -26,7 +26,7 @@ void app_tabbar_view::update(int millis)
     if (!is_focused()) {
         focused_value = value;
     }
-    
+
     app_t* app = app_t::instance();
     ((list_view*)this)->value = app_t::instance()->currentEditor->document.fullPath;
 
@@ -82,7 +82,8 @@ void app_tabbar_view::update(int millis)
 
 void app_tabbar_view::select_item(list_item_view* item)
 {
-    if (!item) return;
+    if (!item)
+        return;
     list_view::select_item(item);
     app_t* app = app_t::instance();
     bool multi = (Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL;

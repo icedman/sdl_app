@@ -1,7 +1,7 @@
 #include "completer_view.h"
-#include "renderer.h"
 #include "editor_view.h"
 #include "panel.h"
+#include "renderer.h"
 #include "scrollarea.h"
 
 #include "indexer.h"
@@ -30,7 +30,7 @@ void completer_view::show_completer(editor_ptr e)
         return;
     }
 
-    editor_view *ev = (editor_view*)editor->view;
+    editor_view* ev = (editor_view*)editor->view;
     popup_manager* pm = view_item::cast<popup_manager>(ev->popups);
     pm->clear();
 
@@ -98,7 +98,7 @@ void completer_view::show_completer(editor_ptr e)
         int list_size = list->data.size();
         if (list_size > 4)
             list_size = 4;
-        
+
         layout()->width = completerItemsWidth * fw;
 
         if (Renderer::instance()->is_terminal()) {
@@ -115,15 +115,11 @@ void completer_view::show_completer(editor_ptr e)
         int py = (s.y - ev->scrollarea->layout()->render_rect.y);
 
         pm->push_at(ev->completer,
-            {
-                px,
+            { px,
                 py,
                 fw * prefix.length(),
-                fh
-            },
-                py > area->layout()->render_rect.h / 3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN
-            );
-
+                fh },
+            py > area->layout()->render_rect.h / 3 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN);
 
         layout_request();
         Renderer::instance()->throttle_up_events();
@@ -142,12 +138,12 @@ bool completer_view::commit(std::string text)
     ss.clear();
     ss << (cur.block()->lineNumber + 1);
     ss << ":";
-    ss << (cur.position()-1);
+    ss << (cur.position() - 1);
     editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
     editor->pushOp(INSERT, text);
     editor->runAllOps();
 
-    editor_view *ev = (editor_view*)editor->view;
+    editor_view* ev = (editor_view*)editor->view;
     popup_manager* pm = view_item::cast<popup_manager>(ev->popups);
     pm->clear();
 

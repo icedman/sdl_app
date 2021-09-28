@@ -1,7 +1,7 @@
 #include "block.h"
 #include "document.h"
-#include "util.h"
 #include "utf8.h"
+#include "util.h"
 
 #include <algorithm>
 
@@ -51,7 +51,7 @@ std::string block_t::text()
 {
     if (dirty) {
         if (!content.length() && wcontent.length()) {
-            for(auto wc : wcontent) {
+            for (auto wc : wcontent) {
                 content += (char)(wc & 0xff);
             }
         }
@@ -70,26 +70,26 @@ std::string block_t::text()
     return "";
 }
 
-std::wstring block_t::wide_text()
+std::wstring block_t::wideText()
 {
     if (dirty) {
         return wcontent;
     }
 
     setText(text());
-    
+
     return wcontent;
 }
 
-std::string block_t::utf8_text()
+std::string block_t::utf8Text()
 {
-    return wstring_to_utf8string(wide_text());
+    return wstring_to_utf8string(wideText());
 }
 
 void block_t::setText(std::string t)
 {
     dirty = true;
-    
+
     content = "";
     wcontent = L"";
 
@@ -100,8 +100,8 @@ void block_t::setText(std::string t)
         // }
     }
 
-    char *p = (char*)t.c_str();
-    while(*p) {
+    char* p = (char*)t.c_str();
+    while (*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
         // wchar_t wc[2] = { (wchar_t)cp, 0 };
@@ -114,7 +114,7 @@ void block_t::setText(std::string t)
 void block_t::setWText(std::wstring t)
 {
     dirty = true;
-    
+
     content = "";
     wcontent = t;
 
@@ -157,7 +157,6 @@ bool block_t::isValid()
     block_ptr b = document->blockAtLine(lineNumber + 1);
     return (b.get() == this);
 }
-
 
 static std::vector<span_info_t> splitSpan(span_info_t si, const std::string& str)
 {
@@ -215,14 +214,14 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
     std::vector<span_info_t> source_spans = data->spans;
     if (!source_spans.size()) {
         span_info_t span = {
-                start : 0,
-                length : (int)length(),
-                colorIndex : 0,
-                bold : false,
-                italic : false,
-                state : BLOCK_STATE_UNKNOWN,
-                scope : ""
-            };
+            start : 0,
+            length : (int)length(),
+            colorIndex : 0,
+            bold : false,
+            italic : false,
+            state : BLOCK_STATE_UNKNOWN,
+            scope : ""
+        };
         source_spans.push_back(span);
     }
 

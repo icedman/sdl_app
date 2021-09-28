@@ -72,6 +72,15 @@ int codepoint_to_utf8(uint32_t utf, char* out)
 
 std::string wstring_to_utf8string(std::wstring text)
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
-    return utf8_conv.to_bytes(text.c_str());
+    // std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+    // return utf8_conv.to_bytes(text.c_str());
+
+    std::string res;
+    for (auto c : text) {
+        char tmp[5];
+        codepoint_to_utf8(c, (char*)tmp);
+        res += tmp;
+    }
+
+    return res;
 }

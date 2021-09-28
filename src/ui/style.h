@@ -15,7 +15,7 @@ struct view_style_t {
     color_info_t fg;
     color_info_t bg;
     color_info_t border_color;
-    
+
     bool filled;
     int border_width;
     int corner_radius;

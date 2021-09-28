@@ -189,9 +189,9 @@ void view_item::render()
     if (class_name != "" && style.class_name != "") {
         view_style_t vs = style;
         Renderer::instance()->draw_rect({ lo->render_rect.x,
-                      lo->render_rect.y,
-                      lo->render_rect.w,
-                      lo->render_rect.h },
+                                            lo->render_rect.y,
+                                            lo->render_rect.w,
+                                            lo->render_rect.h },
             { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
     }
 }
@@ -212,8 +212,8 @@ void view_item::prerender()
 std::string view_item::computed_class()
 {
     std::string cls = class_name;
-    view_item *_parent = ((view_item*)parent);
-    while(_parent) {
+    view_item* _parent = ((view_item*)parent);
+    while (_parent) {
         std::string parent_class = _parent->class_name;
         if (parent_class != "") {
             if (cls != "") {
@@ -535,8 +535,8 @@ void view_set_root(view_item* item)
 static view_item* _view_shift_focus(view_item* view, int x, int y)
 {
     layout_item_ptr lo = view->layout();
-    int sx = 0; 
-    int sy = 0; 
+    int sx = 0;
+    int sy = 0;
     if (x > 0) {
         sx = lo->render_rect.w;
     }
@@ -544,15 +544,15 @@ static view_item* _view_shift_focus(view_item* view, int x, int y)
         sy = lo->render_rect.h;
     }
 
-    for(int i=0;i<20; i++) {
-        view_item* next = _view_find_xy(view_root, lo->render_rect.x + sx + (i*x), lo->render_rect.y + sy + (i*y));
-        app_t::log("%d %d", lo->render_rect.x + sx + (i*x), lo->render_rect.y + sy + (i*y));
+    for (int i = 0; i < 20; i++) {
+        view_item* next = _view_find_xy(view_root, lo->render_rect.x + sx + (i * x), lo->render_rect.y + sy + (i * y));
+        app_t::log("%d %d", lo->render_rect.x + sx + (i * x), lo->render_rect.y + sy + (i * y));
         if (next && next->focusable) {
             app_t::log("?: %s", next->type.c_str());
             break;
         }
     }
-    
+
     return NULL;
 }
 

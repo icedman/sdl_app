@@ -20,6 +20,9 @@ struct minimap_view : view_item {
 
     int start_row;
     int end_row;
+
+    float sliding_y;
+    int render_y;
     int render_h;
 };
 

@@ -68,7 +68,7 @@ void load_extensions(const std::string _path, std::vector<struct extension_t>& e
             }
         }
 
-        if (append ) {
+        if (append) {
             if (ex.package["name"].asString() == "meson") {
                 log(ex.package["name"].asString().c_str());
                 log("extensions path %s", ex.path.c_str());
@@ -370,7 +370,7 @@ theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t
             }
 
             // log("theme compare %s %s\n", theme_ui.c_str(), theme["label"].asString().c_str());
-            
+
             if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
                 theme_path = ext.path + "/" + theme["path"].asString();
                 // std::cout << ext.path << "..." << std::endl;
