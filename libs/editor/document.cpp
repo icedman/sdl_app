@@ -134,6 +134,8 @@ std::string _tabsToSpaces(std::string line)
 
 bool document_t::open(std::string path, bool enableBuffer)
 {
+    enableBuffer = false;
+
     std::set<char> delims_ext = { '.' };
     std::vector<std::string> spath_ext = split_path(path, delims_ext);
     std::string suffix = "*." + spath_ext.back();
@@ -179,6 +181,10 @@ bool document_t::open(std::string path, bool enableBuffer)
         //--------------------------
         b->lineNumber = b->originalLineNumber;
         b->lineCount = 1;
+        
+        // b->data = std::make_shared<blockdata_t>();
+        // b->data->dirty = true;
+
         if (columns) {
             b->lineCount = line.length() / columns;
         }

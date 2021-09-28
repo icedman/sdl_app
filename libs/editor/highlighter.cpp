@@ -462,68 +462,111 @@ void highlighter_t::gatherBrackets(block_ptr block, char* first, char* last)
     }
 }
 
+struct highlight_thread_t {
+    pthread_t threadId;
+    editor_ptr editor;
+    size_t start;
+    size_t count;
+};
+
+volatile int running_threads = 0;
+pthread_mutex_t running_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static
+void sleep(int ms)
+{
+    struct timespec waittime;
+
+    waittime.tv_sec = (ms / 1000);
+    ms = ms % 1000;
+    waittime.tv_nsec = ms * 1000 * 1000;
+
+    nanosleep( &waittime, NULL);
+}
+
 void* highlightThread(void* arg)
 {
-    highlighter_t* threadHl = (highlighter_t*)arg;
-    editor_t* editor = threadHl->editor;
+    highlight_thread_t* threadHl = (highlight_thread_t*)arg;
+    editor_ptr editor = threadHl->editor;
 
-    static struct timespec time_to_wait = { 0, 0 };
+    printf("start:%d count:%d\n", threadHl->start, threadHl->count);
 
-    // usleep(200000);
+    editor->highlight(threadHl->start, threadHl->count);
 
-    while (true) {
-        time_to_wait.tv_sec = time(NULL) + 2L;
-
-        int breathe_counter = 0;
-        for (int i = 0; i < HIGHLIGHT_REQUEST_SIZE; i++) {
-            if (threadHl->_paused) {
-                break;
-            }
-
-            size_t processIdx = threadHl->processIdx;
-            block_ptr block = threadHl->highlightRequests[processIdx];
-
-            if (block && (!block->data || block->data->dirty)) {
-                int lighted = threadHl->highlightBlock(block);
-                if (lighted && threadHl->callback) {
-                    threadHl->callback(block->lineNumber);
-                    if (breathe_counter > 32) {
-                        usleep(500);
-                        breathe_counter = 0;
-                    }
-                }
-            }
-
-            threadHl->highlightRequests[processIdx] = nullptr;
-            // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
-
-            processIdx++;
-            threadHl->processIdx = processIdx % HIGHLIGHT_REQUEST_SIZE;
-        }
-
-        usleep(1000);
-
-        // time_to_wait.tv_sec = time(NULL) + 4L;
-        // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
-    }
+    pthread_mutex_lock(&running_mutex);
+    running_threads--;
+    pthread_mutex_unlock(&running_mutex);
 
     return NULL;
 }
 
-void highlighter_t::run(editor_t* editor)
+void highlighter_t::run(editor_t* _editor)
 {
-    this->editor = editor;
+    if (!_editor->document.blocks.size()) {
+        return;
+    }
 
-    // highlight first page
-    // int c = 0;
-    // block_ptr b = editor->document.firstBlock();
-    // while (b && c++ < 100) {
-    //     b->wideText();
-    //     editor->highlighter.highlightBlock(b);
-    //     b = b->next();
-    // }
+    if (!_editor->highlighter.lang) {
+        return;
+    }
 
-    // pthread_create(&threadId, NULL, &highlightThread, this);
+    this->editor = _editor;
+
+    #define THREAD_COUNT 8
+    #define MIN_PER_PAGE 2000
+    // printf("lines: %d\n", editor->document.blocks.size());
+    int per_page = editor->document.blocks.size() / THREAD_COUNT;
+    if (per_page < MIN_PER_PAGE) {
+        // highlight first page
+        int c = 0;
+        block_ptr b = editor->document.firstBlock();
+        while (b && c++ < MIN_PER_PAGE) {
+            b->wideText();
+            editor->highlighter.highlightBlock(b);
+            b = b->next();
+        }
+        return;
+    }
+
+    // printf("per page: %d\n", per_page);
+
+    highlight_thread_t threads[THREAD_COUNT];
+
+    for(int i=0;i<THREAD_COUNT;i++) {
+        
+        editor_ptr editor = std::make_shared<editor_t>();
+        editor->pushOp("OPEN", _editor->document.fullPath);
+        editor->runAllOps();
+
+        threads[i].editor = editor;
+        threads[i].start = i * per_page;
+        threads[i].count = per_page;
+
+        editor->highlighter.lang = editor->highlighter.lang;
+        editor->highlighter.theme = _editor->highlighter.theme;
+
+        pthread_create(&threads[i].threadId, NULL, &highlightThread, &threads[i]);
+        pthread_mutex_lock(&running_mutex);
+        running_threads++;
+        pthread_mutex_unlock(&running_mutex);
+    }
+
+    while (running_threads) {
+        sleep(50);
+    }
+
+    block_list::iterator mit = this->editor->document.blocks.begin();
+    for(int i=0;i<THREAD_COUNT;i++) {
+        block_list::iterator it = threads[i].editor->document.blocks.begin();
+        it += threads[i].start;
+        for(int j=0;j<per_page;j++) {
+            block_ptr bm = *mit++;
+            block_ptr b = *it++;
+            bm->data = b->data;
+        }
+    }
+
+    printf("done\n");
 }
 
 void highlighter_t::cancel()
