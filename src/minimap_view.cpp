@@ -81,7 +81,7 @@ void minimap_view::update(int millis)
     while (it != doc->blocks.end() && idx++ < end_row) {
         block_ptr block = *it++;
         if (!block->data || block->data->dirty) {
-            editor->highlighter.requestHighlightBlock(block);
+            // editor->highlighter.requestHighlightBlock(block);
         }
     }
 

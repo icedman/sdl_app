@@ -112,7 +112,7 @@ void editor_view::render()
 
         blockdata_ptr blockData;
         if (!block->data || block->data->dirty) {
-            editor->highlighter.requestHighlightBlock(block);
+            editor->highlighter.highlightBlock(block);
         }
 
         if (block->data) {
@@ -153,12 +153,6 @@ void editor_view::render()
                 continue;
 
             color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
-
-            if (s.start >= wtext.length()) {
-                editor->highlighter.requestHighlightBlock(block);
-                continue;
-            }
-
             if (s.start + s.length >= wtext.length()) {
                 s.length = wtext.length() - s.start;
                 if (s.length <= 0) {
@@ -418,7 +412,7 @@ void editor_view::update(int millis)
     for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
         block_ptr b = *it++;
         if (!b->data || b->data->dirty) {
-            editor->highlighter.requestHighlightBlock(b);
+            editor->highlighter.highlightBlock(b);
         }
     }
 }
@@ -615,17 +609,14 @@ bool editor_view::input_sequence(std::string text)
         Renderer::instance()->throttle_up_events();
         break;
     case UNDO: {
-
-        editor->highlighter.clearRequests();
-
-        // Renderer::instance()->wake();
+        // editor->highlighter.clearRequests();
         // Renderer::instance()->throttle_up_events();
 
         // re-highlight (while highlight thread is sleeping)
-        if (start_row >= editor->document.blocks.size()) {
-            start_row = editor->document.blocks.size() - 1;
-        }
-        editor->highlight(start_row, rows);
+        // if (start_row >= editor->document.blocks.size()) {
+        //     start_row = editor->document.blocks.size() - 1;
+        // }
+        // editor->highlight(start_row, rows);
         break;
     }
     }

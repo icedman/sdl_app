@@ -25,7 +25,7 @@ struct highlighter_t {
 
     void gatherBrackets(block_ptr block, char* first, char* last);
     void clearRequests();
-    void requestHighlightBlock(block_ptr block, bool priority = false);
+    void _requestHighlightBlock(block_ptr block, bool priority = false);
     int highlightBlocks(block_ptr block, int count = 1);
     int highlightBlock(block_ptr block);
     void run(editor_t* editor);

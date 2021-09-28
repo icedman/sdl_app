@@ -62,7 +62,7 @@ void highlighter_t::clearRequests()
     requestIdx = 0;
 }
 
-void highlighter_t::requestHighlightBlock(block_ptr block, bool priority)
+void highlighter_t::_requestHighlightBlock(block_ptr block, bool priority)
 {
     if (!threadId || _paused) {
         highlightBlock(block);
@@ -515,15 +515,15 @@ void highlighter_t::run(editor_t* editor)
     this->editor = editor;
 
     // highlight first page
-    int c = 0;
-    block_ptr b = editor->document.firstBlock();
-    while (b && c++ < 100) {
-        b->wideText();
-        editor->highlighter.highlightBlock(b);
-        b = b->next();
-    }
+    // int c = 0;
+    // block_ptr b = editor->document.firstBlock();
+    // while (b && c++ < 100) {
+    //     b->wideText();
+    //     editor->highlighter.highlightBlock(b);
+    //     b = b->next();
+    // }
 
-    pthread_create(&threadId, NULL, &highlightThread, this);
+    // pthread_create(&threadId, NULL, &highlightThread, this);
 }
 
 void highlighter_t::cancel()
@@ -536,7 +536,7 @@ void highlighter_t::cancel()
 
 void highlighter_t::pause()
 {
-    if (_paused) {
+    if (_paused || !threadId) {
         return;
     }
     _paused = true;

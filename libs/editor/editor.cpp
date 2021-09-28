@@ -594,7 +594,6 @@ void editor_t::runAllOps()
             runOp(op);
         }
         inputBuffer = "";
-
         snapshot.history = items;
     }
 
