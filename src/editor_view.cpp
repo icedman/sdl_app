@@ -608,6 +608,8 @@ bool editor_view::input_sequence(std::string text)
     }
 
     switch (op) {
+    case CUT:
+    case PASTE:
     case MOVE_CURSOR_NEXT_PAGE:
     case MOVE_CURSOR_PREVIOUS_PAGE:
         Renderer::instance()->throttle_up_events();

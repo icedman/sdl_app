@@ -528,11 +528,15 @@ void editor_t::runAllOps()
     }
 
     while (*p) {
+
+        if (singleLineEdit && *p == '\n') {
+            break;
+        }
+
         op.op = INSERT;
         op.params = "";
 
         switch (*p) {
-        case '\0':
         case '\n': {
             if (p - _t > 0) {
                 op.params = std::string(_t, p - _t);
@@ -542,6 +546,12 @@ void editor_t::runAllOps()
             }
             op.op = ENTER;
             runOp(op);
+            if (*_t == '\n') {
+                op.op = ENTER;
+                runOp(op);
+                _t++;
+                p++;
+            }
             break;
         }
         case '\t': {
@@ -555,6 +565,7 @@ void editor_t::runAllOps()
             runOp(op);
             break;
         }
+
         default:
             break;
         }
