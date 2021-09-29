@@ -261,8 +261,6 @@ bool cursor_t::moveLeft(int count, bool keepAnchor)
         if (block()->previous()) {
             cursorAtPreviousUnfoldedBlock(*this, keepAnchor);
             cursor.position = block()->length() - 1;
-        } else {
-            return false;
         }
     }
 
@@ -287,8 +285,6 @@ bool cursor_t::moveRight(int count, bool keepAnchor)
         if (block()->next()) {
             cursorAtNextUnfoldedBlock(*this, keepAnchor);
             cursor.position = 0;
-        } else {
-            return false;
         }
     }
 
@@ -381,7 +377,7 @@ bool cursor_t::moveUp(int count, bool keepAnchor)
         if (block()->previous()) {
             cursorAtPreviousUnfoldedBlock(*this, keepAnchor);
         } else {
-            return false;
+            moveStartOfLine(keepAnchor);
         }
     }
 
@@ -425,7 +421,7 @@ bool cursor_t::moveDown(int count, bool keepAnchor)
         if (block()->next()) {
             cursorAtNextUnfoldedBlock(*this, keepAnchor);
         } else {
-            return false;
+            moveEndOfLine(keepAnchor);
         }
     }
 

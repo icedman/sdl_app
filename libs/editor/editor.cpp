@@ -825,6 +825,8 @@ void editor_t::undo()
     snapshot_t& snapshot = snapshots.back();
     operation_list items = snapshot.history;
 
+    if (items.size() == 0) return;
+
     while (items.size() > 0) {
         auto lastOp = items.back();
         items.pop_back();

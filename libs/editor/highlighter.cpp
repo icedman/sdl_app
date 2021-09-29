@@ -430,6 +430,12 @@ struct highlight_thread_t {
 
 volatile int running_threads = 0;
 pthread_mutex_t running_mutex = PTHREAD_MUTEX_INITIALIZER;
+static highlight_thread_t threads[MAX_THREAD_COUNT];
+
+bool highlighter_t::hasRunningThreads()
+{
+    return running_threads;
+}
 
 static void sleep(int ms)
 {
@@ -447,7 +453,7 @@ void* highlightThread(void* arg)
     highlight_thread_t* threadHl = (highlight_thread_t*)arg;
     editor_ptr editor = threadHl->editor;
 
-    printf("start:%d count:%d\n", threadHl->start, threadHl->count);
+    // log("start:%d count:%d\n", threadHl->start, threadHl->count);
 
     int lighted = 0;
 
@@ -467,7 +473,7 @@ void* highlightThread(void* arg)
     running_threads--;
     pthread_mutex_unlock(&running_mutex);
 
-    printf("done %d %d\n", (int)threadHl->index, lighted);
+    // log("done %d %d\n", (int)threadHl->index, lighted);
     return NULL;
 }
 
@@ -481,27 +487,27 @@ void highlighter_t::run(editor_t* _editor)
 
     backend_t::instance()->ticks();
 
-    printf("lines: %d\n", editor->document.blocks.size());
+    log("lines: %d\n", editor->document.blocks.size());
     int per_thread = 0.5f + (float)editor->document.blocks.size() / MAX_THREAD_COUNT;
     if (per_thread < LINES_PER_THREAD) {
         per_thread = LINES_PER_THREAD;
     }
 
     int thread_count = 0.5f + ((float)editor->document.blocks.size() / per_thread);
-    printf("threads: %d per threads: %d\n", thread_count, per_thread);
+    log("threads: %d per threads: %d\n", thread_count, per_thread);
 
     if (thread_count == 0) {
         block_ptr b = editor->document.firstBlock();
         while (b) {
             b->wideText();
             editor->highlighter.highlightBlock(b);
+            b->data->dirty = true;
             b = b->next();
         }
         return;
     }
 
     running_threads = 0;
-    highlight_thread_t threads[MAX_THREAD_COUNT];
 
     for (int i = 0; i < thread_count; i++) {
 
@@ -527,9 +533,5 @@ void highlighter_t::run(editor_t* _editor)
         sleep(100);
     }
 
-    for (auto b : editor->document.blocks) {
-        b->data->dirty = true;
-    }
-
-    printf("done in %fs\n", (float)backend_t::instance()->ticks() / 1000);
+    log("whole document highlighting done in %fs\n", (float)backend_t::instance()->ticks() / 1000);
 }

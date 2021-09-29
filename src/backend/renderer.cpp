@@ -2,19 +2,20 @@
 #include "app.h"
 #include "view.h"
 
-static int throttle_up_event_counter = 0;
+static int throttle_up_events_counter = 0;
+static int throttle_down_rendering_counter = 0;
 
 void Renderer::throttle_up_events(int frames)
 {
-    if (throttle_up_event_counter < frames) {
-        throttle_up_event_counter = frames;
+    if (throttle_up_events_counter < frames) {
+        throttle_up_events_counter = frames;
     }
 }
 
 bool Renderer::is_throttle_up_events()
 {
-    if (throttle_up_event_counter > 0) {
-        throttle_up_event_counter--;
+    if (throttle_up_events_counter > 0) {
+        throttle_up_events_counter--;
         return true;
     }
     return false;

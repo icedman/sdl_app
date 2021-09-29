@@ -26,6 +26,8 @@ struct highlighter_t {
     int highlightBlock(block_ptr block);
     void run(editor_t* editor);
 
+    static bool hasRunningThreads();
+    
     editor_t* editor;
 
     highlight_callback_t callback;
