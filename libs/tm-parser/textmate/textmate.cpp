@@ -48,7 +48,7 @@ void tm_load_theme(struct tm_t* tm, char* filename)
 
 tm_color_t to_color(color_info_t c, theme_ptr theme = 0)
 {
-    tm_color_t tc = { c.red*255, c.green*255, c.blue*255, 0 };
+    tm_color_t tc = { c.red * 255, c.green * 255, c.blue * 255, 0 };
     if (theme) {
         tc.index = color_info_t::nearest_color_index(tc.r, tc.g, tc.b);
     }
@@ -72,7 +72,6 @@ tm_color_t* tm_theme_colors(struct tm_t* tm)
         bg = clr;
         bg.index = -1;
     }
-
 
     int idx = 0;
     _colors[idx++] = to_color(fg);
@@ -150,9 +149,9 @@ void tm_free_state(tm_parser_state_t& state)
     }
 
     if (state.spans) {
-        tm_text_span_t *ts = state.spans;
-        while(ts) {
-            tm_text_span_t *next = ts->next;
+        tm_text_span_t* ts = state.spans;
+        while (ts) {
+            tm_text_span_t* next = ts->next;
             free(ts);
             ts = next;
         }

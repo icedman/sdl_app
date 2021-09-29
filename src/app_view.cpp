@@ -195,8 +195,6 @@ void app_view::destroy_editor_view(editor_ptr editor)
         return;
     }
 
-    editor->highlighter.pause();
-
     app_t* app = app_t::instance();
 
     view_set_focused(0);

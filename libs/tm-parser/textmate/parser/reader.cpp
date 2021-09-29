@@ -44,7 +44,7 @@ rule_ptr convert_json(Json::Value const& json)
     if (!json.isObject()) {
         return res;
     }
-    
+
     //------------
     // strings
     //------------

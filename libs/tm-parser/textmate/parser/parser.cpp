@@ -1,5 +1,5 @@
-#include "parse.h"
 #include "grammar.h"
+#include "parse.h"
 
 #include <cstring>
 #include <iostream>
@@ -337,31 +337,28 @@ static void collect_children(std::vector<rule_ptr> const& children,
 }
 
 #if 1
-static void collect_injections(stack_ptr const &stack,
-                               scope::context_t const &scope,
-                               std::vector<rule_t *> const &groups,
-                               std::vector<rule_t *> &res) {
+static void collect_injections(stack_ptr const& stack,
+    scope::context_t const& scope,
+    std::vector<rule_t*> const& groups,
+    std::vector<rule_t*>& res)
+{
     // D(DBF_Parser_Flow, bug("%s\n", to_s(scope).c_str()););
-    for(stack_ptr node = stack; node; node = node->parent)
-    {
-      for(auto const& pair : node->rule->injections)
-      {
-        if(pair.first.does_match(scope))
-          collect_rule(pair.second.get(), res, nullptr);
-      }
+    for (stack_ptr node = stack; node; node = node->parent) {
+        for (auto const& pair : node->rule->injections) {
+            if (pair.first.does_match(scope))
+                collect_rule(pair.second.get(), res, nullptr);
+        }
     }
 
-    for(rule_t const* rule : groups)
-    {
-      if(rule->is_root) // already handled via the stack
-        continue;
+    for (rule_t const* rule : groups) {
+        if (rule->is_root) // already handled via the stack
+            continue;
 
-      for(auto const& pair : rule->injections)
-      {
-        // D(DBF_Parser_Flow, bug("selector: ‘%s’ → %s\n", to_s(pair.first).c_str(), BSTR(pair.first.does_match(scope))););
-        if(pair.first.does_match(scope))
-          collect_rule(pair.second.get(), res, nullptr);
-      }
+        for (auto const& pair : rule->injections) {
+            // D(DBF_Parser_Flow, bug("selector: ‘%s’ → %s\n", to_s(pair.first).c_str(), BSTR(pair.first.does_match(scope))););
+            if (pair.first.does_match(scope))
+                collect_rule(pair.second.get(), res, nullptr);
+        }
     }
 }
 #endif
@@ -400,10 +397,10 @@ static void collect_rules(char const* first, char const* last, size_t i,
     collect_children(stack->rule->children, rules, &groups);
 
 #if 1
-  collect_injections(stack, 
-    scope::context_t(stack->scope, ""), groups, injectedRulesPre);
-  collect_injections(stack, 
-    scope::context_t("", stack->scope), groups, injectedRulesPost);
+    collect_injections(stack,
+        scope::context_t(stack->scope, ""), groups, injectedRulesPre);
+    collect_injections(stack,
+        scope::context_t("", stack->scope), groups, injectedRulesPost);
 #endif
 
     for (rule_t* rule : groups)

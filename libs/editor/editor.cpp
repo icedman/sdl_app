@@ -29,7 +29,6 @@ editor_t::editor_t()
 
 editor_t::~editor_t()
 {
-    highlighter.cancel();
     if (indexer) {
         indexer->cancel();
         delete indexer;
@@ -168,8 +167,6 @@ void editor_t::runOp(operation_t op)
         if (app_t::instance()->clipboard().length() < SIMPLE_PASTE_THRESHOLD) {
             inputBuffer = app_t::instance()->clipboard();
         } else {
-            highlighter.clearRequests();
-
             document.addBufferDocument(app_t::instance()->clipboard());
             document.insertFromBuffer(mainCursor, document.buffers.back());
             document.clearCursors();
@@ -535,11 +532,10 @@ void editor_t::runAllOps()
         snapshot_t& snapshot = snapshots.back();
         operation_list items = snapshot.history;
 
-
         char* _s = (char*)inputBuffer.c_str();
         char* _t = _s;
         char* p = _s;
-        
+
         while (*p) {
 
             if (singleLineEdit && *p == '\n') {
@@ -566,7 +562,7 @@ void editor_t::runAllOps()
                     _t++;
                     p++;
                 }
-                
+
                 break;
             }
             case '\t': {
@@ -594,6 +590,7 @@ void editor_t::runAllOps()
             runOp(op);
         }
         inputBuffer = "";
+
         snapshot.history = items;
     }
 
@@ -853,11 +850,6 @@ void editor_t::undo()
             break;
     }
 
-    highlighter.clearRequests();
-
-    // make this locking!
-    highlighter.pause();
-
     snapshot.restore(document.blocks);
 
     for (auto op : items) {
@@ -892,8 +884,6 @@ void editor_t::undo()
     if (snapshots.size() > 1 && items.size() == 0) {
         snapshots.pop_back();
     }
-
-    // highlighter.resume();
 }
 
 void editor_t::createSnapshot()

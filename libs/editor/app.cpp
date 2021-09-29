@@ -481,7 +481,6 @@ void app_t::closeEditor(editor_ptr editor)
 void app_t::shutdown()
 {
     for (auto e : editors) {
-        e->highlighter.cancel();
         if (e->indexer) {
             e->indexer->cancel();
         }

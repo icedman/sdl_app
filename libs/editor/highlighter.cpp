@@ -1,5 +1,6 @@
 #include "highlighter.h"
 #include "app.h"
+#include "backend.h"
 #include "document.h"
 #include "editor.h"
 #include "indexer.h"
@@ -10,15 +11,12 @@
 #include <unistd.h>
 
 #define LINE_LENGTH_LIMIT 500
+#define MAX_THREAD_COUNT 32
+#define LINES_PER_THREAD 200
 
 highlighter_t::highlighter_t()
-    : threadId(0)
-    , editor(0)
-    , requestIdx(0)
-    , processIdx(0)
-    , _paused(false)
+    : editor(0)
 {
-    clearRequests();
 }
 
 struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rendered)
@@ -51,46 +49,6 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rend
     }
 
     return res;
-}
-
-void highlighter_t::clearRequests()
-{
-    for (int i = 0; i < HIGHLIGHT_REQUEST_SIZE; i++) {
-        highlightRequests[i] = nullptr;
-    }
-    processIdx = 0;
-    requestIdx = 0;
-}
-
-void highlighter_t::_requestHighlightBlock(block_ptr block, bool priority)
-{
-    if (!threadId || _paused) {
-        highlightBlock(block);
-    }
-
-    if (_paused)
-        return;
-
-    if (block->data && !block->data->dirty) {
-        return;
-    }
-
-    for (int i = 0; i < HIGHLIGHT_REQUEST_SIZE; i++) {
-        if (highlightRequests[i] == block) {
-            // already pending
-            return;
-        }
-    }
-
-    // ensures thread is not reading text from file buffer
-    block->wideText();
-
-    highlightRequests[requestIdx++] = block;
-    if (requestIdx >= HIGHLIGHT_REQUEST_SIZE) {
-        requestIdx = 0;
-    }
-
-    return;
 }
 
 int highlighter_t::highlightBlocks(block_ptr block, int count)
@@ -184,6 +142,9 @@ int highlighter_t::highlightBlock(block_ptr block)
     if (prevBlockData) {
         previousBlockState = prevBlockData->state;
         parser_state = prevBlockData->parser_state;
+        // if (prevBlockData->parser_state_serialized.scope != "") {
+        //     parser_state = lang->grammar->unserialize_state(prevBlockData->parser_state_serialized);
+        // }
         if (parser_state && parser_state->rule) {
             blockData->lastPrevBlockRule = parser_state->rule->rule_id;
         }
@@ -201,10 +162,7 @@ int highlighter_t::highlightBlock(block_ptr block)
         return 1;
     } else {
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
-
-        // test state serializationn
-        // parse::stack_serialized_t ss = lang->grammar->serialize_state(parser_state);
-        // parser_state = lang->grammar->unserialize_state(ss);
+        // blockData->parser_state_serialized = lang->grammar->serialize_state(parser_state);
     }
 
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
@@ -463,6 +421,7 @@ void highlighter_t::gatherBrackets(block_ptr block, char* first, char* last)
 }
 
 struct highlight_thread_t {
+    int index;
     pthread_t threadId;
     editor_ptr editor;
     size_t start;
@@ -472,8 +431,7 @@ struct highlight_thread_t {
 volatile int running_threads = 0;
 pthread_mutex_t running_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static
-void sleep(int ms)
+static void sleep(int ms)
 {
     struct timespec waittime;
 
@@ -481,7 +439,7 @@ void sleep(int ms)
     ms = ms % 1000;
     waittime.tv_nsec = ms * 1000 * 1000;
 
-    nanosleep( &waittime, NULL);
+    nanosleep(&waittime, NULL);
 }
 
 void* highlightThread(void* arg)
@@ -491,36 +449,49 @@ void* highlightThread(void* arg)
 
     printf("start:%d count:%d\n", threadHl->start, threadHl->count);
 
-    editor->highlight(threadHl->start, threadHl->count);
+    int lighted = 0;
+
+    for (int i = 0; i < threadHl->count; i += 1000) {
+        int c = 1000;
+        if (i + c > threadHl->count) {
+            c = threadHl->count - i;
+        }
+        lighted += editor->highlight(threadHl->start + i, c);
+        sleep(10);
+    }
+
+    threadHl->count = lighted;
+    // lighted = editor->highlight(threadHl->start, threadHl->count);
 
     pthread_mutex_lock(&running_mutex);
     running_threads--;
     pthread_mutex_unlock(&running_mutex);
 
+    printf("done %d %d\n", (int)threadHl->index, lighted);
     return NULL;
 }
 
 void highlighter_t::run(editor_t* _editor)
 {
-    if (!_editor->document.blocks.size()) {
-        return;
-    }
-
-    if (!_editor->highlighter.lang) {
+    if (_editor->document.blocks.size() <= 1) {
         return;
     }
 
     this->editor = _editor;
 
-    #define THREAD_COUNT 8
-    #define MIN_PER_PAGE 2000
-    // printf("lines: %d\n", editor->document.blocks.size());
-    int per_page = editor->document.blocks.size() / THREAD_COUNT;
-    if (per_page < MIN_PER_PAGE) {
-        // highlight first page
-        int c = 0;
+    backend_t::instance()->ticks();
+
+    int per_thread = 0.5f + (float)editor->document.blocks.size() / MAX_THREAD_COUNT;
+    if (per_thread < LINES_PER_THREAD) {
+        per_thread = LINES_PER_THREAD;
+    }
+
+    int thread_count = 0.5f + ((float)editor->document.blocks.size() / per_thread);
+    printf("threads: %d per threads: %d\n", thread_count, per_thread);
+
+    if (thread_count == 0) {
         block_ptr b = editor->document.firstBlock();
-        while (b && c++ < MIN_PER_PAGE) {
+        while (b) {
             b->wideText();
             editor->highlighter.highlightBlock(b);
             b = b->next();
@@ -528,66 +499,37 @@ void highlighter_t::run(editor_t* _editor)
         return;
     }
 
-    // printf("per page: %d\n", per_page);
+    highlight_thread_t threads[MAX_THREAD_COUNT];
 
-    highlight_thread_t threads[THREAD_COUNT];
+    for (int i = 0; i < thread_count; i++) {
 
-    for(int i=0;i<THREAD_COUNT;i++) {
-        
         editor_ptr editor = std::make_shared<editor_t>();
-        editor->pushOp("OPEN", _editor->document.fullPath);
-        editor->runAllOps();
-
-        threads[i].editor = editor;
-        threads[i].start = i * per_page;
-        threads[i].count = per_page;
-
-        editor->highlighter.lang = editor->highlighter.lang;
+        editor->document.blocks = _editor->document.blocks;
+        // editor->document.open(_editor->document.fullPath, true);
+        editor->highlighter.lang = _editor->highlighter.lang;
+        // editor->highlighter.lang = language_from_file(_editor->document.fullPath, app_t::instance()->extensions);
         editor->highlighter.theme = _editor->highlighter.theme;
+
+        threads[i].index = i;
+        threads[i].editor = editor;
+        threads[i].start = i * per_thread;
+        threads[i].count = per_thread;
 
         pthread_create(&threads[i].threadId, NULL, &highlightThread, &threads[i]);
         pthread_mutex_lock(&running_mutex);
         running_threads++;
         pthread_mutex_unlock(&running_mutex);
+
+        // sleep(100);
     }
 
     while (running_threads) {
-        sleep(50);
+        sleep(100);
     }
 
-    block_list::iterator mit = this->editor->document.blocks.begin();
-    for(int i=0;i<THREAD_COUNT;i++) {
-        block_list::iterator it = threads[i].editor->document.blocks.begin();
-        it += threads[i].start;
-        for(int j=0;j<per_page;j++) {
-            block_ptr bm = *mit++;
-            block_ptr b = *it++;
-            bm->data = b->data;
-        }
+    for (auto b : editor->document.blocks) {
+        b->data->dirty = true;
     }
 
-    printf("done\n");
-}
-
-void highlighter_t::cancel()
-{
-    if (threadId) {
-        pthread_cancel(threadId);
-        threadId = 0;
-    }
-}
-
-void highlighter_t::pause()
-{
-    if (_paused || !threadId) {
-        return;
-    }
-    _paused = true;
-    clearRequests();
-    usleep(5000);
-}
-
-void highlighter_t::resume()
-{
-    _paused = false;
+    printf("done in %fs\n", (float)backend_t::instance()->ticks() / 1000);
 }

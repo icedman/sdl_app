@@ -380,8 +380,6 @@ void editor_view::update(int millis)
         };
     }
 
-    editor->highlighter.resume();
-
     editor->runAllOps();
     document_t* doc = &editor->document;
 
@@ -398,23 +396,23 @@ void editor_view::update(int millis)
 
     panel_view::update(millis);
 
-    block_list::iterator it = doc->blocks.begin();
+    // block_list::iterator it = doc->blocks.begin();
 
-    int view_height = rows;
-    int hl_prior = 16;
-    int hl_start = start_row - hl_prior;
-    int hl_length = view_height + hl_prior * 2;
+    // int view_height = rows;
+    // int hl_prior = 16;
+    // int hl_start = start_row - hl_prior;
+    // int hl_length = view_height + hl_prior * 2;
 
-    if (hl_start < 0)
-        hl_start = 0;
-    it += hl_start;
+    // if (hl_start < 0)
+    //     hl_start = 0;
+    // it += hl_start;
 
-    for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
-        block_ptr b = *it++;
-        if (!b->data || b->data->dirty) {
-            editor->highlighter.highlightBlock(b);
-        }
-    }
+    // for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
+    //     block_ptr b = *it++;
+    //     if (!b->data || b->data->dirty) {
+    //         editor->highlighter.highlightBlock(b);
+    //     }
+    // }
 }
 
 void editor_view::prelayout()
@@ -609,7 +607,6 @@ bool editor_view::input_sequence(std::string text)
         Renderer::instance()->throttle_up_events();
         break;
     case UNDO: {
-        // editor->highlighter.clearRequests();
         // Renderer::instance()->throttle_up_events();
 
         // re-highlight (while highlight thread is sleeping)

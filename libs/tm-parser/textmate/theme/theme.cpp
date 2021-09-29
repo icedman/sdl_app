@@ -1,15 +1,15 @@
 #include "theme.h"
-#include "util.h"
 #include "colors.h"
+#include "util.h"
 // #include "reader.h"
 
 #include <iostream>
 
-static theme_t *current_parsed_theme = 0;
+static theme_t* current_parsed_theme = 0;
 static std::map<int, color_info_t> trueColors;
 
 static int termColorCount = 256;
-static color_t *termColors = (color_t*)termColors256;
+static color_t* termColors = (color_t*)termColors256;
 
 int nearest_color(int r, int g, int b, bool trueColor = false)
 {
@@ -17,16 +17,16 @@ int nearest_color(int r, int g, int b, bool trueColor = false)
 
     int idx = -1;
     long d = 0;
-    for(int i=0; i<termColorCount; i++) {
+    for (int i = 0; i < termColorCount; i++) {
         const color_t clr = termColors[i];
-        int rr = r - clr.r; 
-        int gg = g - clr.g; 
+        int rr = r - clr.r;
+        int gg = g - clr.g;
         int bb = b - clr.b;
         long dd = (rr * rr) + (gg * gg) + (bb * bb);
         if (idx == -1 || d > dd) {
             d = dd;
             idx = i;
-        } 
+        }
     }
 
     return idx;
@@ -43,7 +43,7 @@ int color_info_t::nearest_color_index(int red, int green, int blue)
 {
     return nearest_color(red * 255, green * 255, blue * 255);
 }
-    
+
 /*
 https://code.visualstudio.com/api/references/theme-color
 */
@@ -115,7 +115,7 @@ static void get_settings_color(Json::Value const& item, color_info_t* target)
             current_parsed_theme->colorIndices.emplace(target->index, clr);
         }
     }
-    
+
     // std::cout<<item.asString()<<std::endl;
 }
 

@@ -228,7 +228,6 @@ grammar_ptr parse_grammar(Json::Value const& json)
     return std::make_shared<grammar_t>(json);
 }
 
-
 stack_serialized_t grammar_t::serialize_state(stack_ptr stack)
 {
     stack_serialized_t s;
@@ -250,79 +249,81 @@ rule_ptr rule_find_rule(rule_ptr rule, int rule_id)
         return rule;
     }
 
-    if (rule->captures)
-    {
+    if (rule->captures) {
         std::map<std::string, rule_ptr>::iterator it = rule->captures->begin();
         while (it != rule->captures->end()) {
             rule_ptr res = rule_find_rule(it->second, rule_id);
-            if (res) return res;
+            if (res)
+                return res;
             it++;
         }
     }
 
-    if (rule->begin_captures)
-    {
+    if (rule->begin_captures) {
         std::map<std::string, rule_ptr>::iterator it = rule->begin_captures->begin();
         while (it != rule->begin_captures->end()) {
             rule_ptr res = rule_find_rule(it->second, rule_id);
-            if (res) return res;
+            if (res)
+                return res;
             it++;
         }
     }
 
-    if (rule->while_captures)
-    {
+    if (rule->while_captures) {
         std::map<std::string, rule_ptr>::iterator it = rule->while_captures->begin();
         while (it != rule->while_captures->end()) {
             rule_ptr res = rule_find_rule(it->second, rule_id);
-            if (res) return res;
+            if (res)
+                return res;
             it++;
         }
     }
 
-    if (rule->end_captures)
-    {
+    if (rule->end_captures) {
         std::map<std::string, rule_ptr>::iterator it = rule->end_captures->begin();
         while (it != rule->end_captures->end()) {
             rule_ptr res = rule_find_rule(it->second, rule_id);
-            if (res) return res;
+            if (res)
+                return res;
             it++;
         }
     }
 
-    if (rule->repository)
-    {
+    if (rule->repository) {
         std::map<std::string, rule_ptr>::iterator it = rule->repository->begin();
         while (it != rule->repository->end()) {
             rule_ptr res = rule_find_rule(it->second, rule_id);
-            if (res) return res;
+            if (res)
+                return res;
             it++;
         }
     }
 
-    if (rule->injection_rules)
-    {
+    if (rule->injection_rules) {
         std::map<std::string, rule_ptr>::iterator it = rule->injection_rules->begin();
         while (it != rule->injection_rules->end()) {
             rule_ptr res = rule_find_rule(it->second, rule_id);
-            if (res) return res;
+            if (res)
+                return res;
             it++;
         }
     }
 
-    for(auto r : rule->children) {
+    for (auto r : rule->children) {
         rule_ptr res = rule_find_rule(r, rule_id);
-        if (res) return res;
+        if (res)
+            return res;
     }
 
     return nullptr;
 }
 
-rule_ptr grammar_t::find_rule(grammar_t *grammar, int rule_id)
+rule_ptr grammar_t::find_rule(grammar_t* grammar, int rule_id)
 {
-    for(auto r : grammar->_grammars) {
+    for (auto r : grammar->_grammars) {
         rule_ptr res = rule_find_rule(r.second, rule_id);
-        if (res) return res;
+        if (res)
+            return res;
     }
     return nullptr;
 }

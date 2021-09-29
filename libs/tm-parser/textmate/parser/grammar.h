@@ -72,7 +72,7 @@ private:
 
     Json::Value doc;
 
-    rule_ptr find_rule(grammar_t *grammar, int id);
+    rule_ptr find_rule(grammar_t* grammar, int id);
 };
 
 typedef std::shared_ptr<grammar_t> grammar_ptr;

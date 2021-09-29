@@ -38,7 +38,6 @@ struct color_info_t {
 
     static int set_term_color_count(int count);
     static int nearest_color_index(int red, int green, int blue);
-    
 };
 
 enum bool_t {
@@ -151,5 +150,5 @@ private:
 };
 
 theme_ptr parse_theme(Json::Value& json);
-    
+
 #endif

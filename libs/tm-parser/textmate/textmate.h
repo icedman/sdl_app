@@ -10,17 +10,17 @@ struct tm_text_span_t {
     int start;
     int length;
     int color;
-    struct tm_text_span_t *next;
+    struct tm_text_span_t* next;
 };
 
 struct tm_parser_state_t {
     int size;
-    char *data;
-    tm_text_span_t *spans;
+    char* data;
+    tm_text_span_t* spans;
 };
 
 struct tm_color_t {
-    int r,g,b;
+    int r, g, b;
     int index;
 };
 
