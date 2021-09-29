@@ -134,7 +134,8 @@ std::string _tabsToSpaces(std::string line)
 
 bool document_t::open(std::string path, bool enableBuffer)
 {
-    // enableBuffer = false;
+    // buffer mode doesn't work well with threaded highlighting
+    enableBuffer = false;
 
     std::set<char> delims_ext = { '.' };
     std::vector<std::string> spath_ext = split_path(path, delims_ext);

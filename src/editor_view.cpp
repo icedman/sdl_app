@@ -19,6 +19,11 @@ void editor_view::render()
         return;
     }
 
+    // if (highlighter_t::hasRunningThreads()) {
+    //     Renderer::instance()->wake();
+    //     return;
+    // }
+
     RenFont* _font = Renderer::instance()->font((char*)font.c_str());
 
     app_t* app = app_t::instance();
@@ -510,7 +515,9 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
             ss << ":";
             ss << hitPos;
             int mods = Renderer::instance()->key_mods();
-            if (clicks == 0 || mods & K_MOD_SHIFT) {
+            if (clicks == 0 || mods & K_MOD_CTRL) {
+                editor->pushOp(ADD_CURSOR_AND_MOVE, ss.str());
+            } else if (clicks == 0 || mods & K_MOD_SHIFT) {
                 editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
             } else if (clicks == 1) {
                 editor->pushOp(MOVE_CURSOR, ss.str());

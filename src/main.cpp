@@ -89,8 +89,6 @@ int main(int argc, char** argv)
     renderer->create_font("Source Code Pro 10", "ui-small");
     renderer->set_default_font(font);
 
-    // renderer->show_debug(true);
-
     int frames = FRAME_RENDER_INTERVAL;
     while (renderer->is_running()) {
         int elapsed = renderer->ticks();

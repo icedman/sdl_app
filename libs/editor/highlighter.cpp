@@ -434,7 +434,10 @@ static highlight_thread_t threads[MAX_THREAD_COUNT];
 
 bool highlighter_t::hasRunningThreads()
 {
-    return running_threads;
+    pthread_mutex_lock(&running_mutex);
+    bool res = running_threads > 0;
+    pthread_mutex_unlock(&running_mutex);
+    return res;
 }
 
 static void sleep(int ms)
@@ -494,23 +497,21 @@ void highlighter_t::run(editor_t* _editor)
     }
 
     int thread_count = 0.5f + ((float)editor->document.blocks.size() / per_thread);
-    log("threads: %d per threads: %d\n", thread_count, per_thread);
 
-    if (thread_count == 0) {
+    if (thread_count == 0 || thread_count * per_thread < 1000) {
         block_ptr b = editor->document.firstBlock();
         while (b) {
-            b->wideText();
             editor->highlighter.highlightBlock(b);
-            b->data->dirty = true;
             b = b->next();
         }
         return;
     }
 
+    log("threads: %d per threads: %d\n", thread_count, per_thread);
+
     running_threads = 0;
 
     for (int i = 0; i < thread_count; i++) {
-
         editor_ptr editor = std::make_shared<editor_t>();
         editor->document.blocks = _editor->document.blocks;
         editor->highlighter.lang = _editor->highlighter.lang;
@@ -521,17 +522,26 @@ void highlighter_t::run(editor_t* _editor)
         threads[i].start = i * per_thread;
         threads[i].count = per_thread;
 
+        editor->highlight(threads[i].start, 10);
+    }
+
+    for (int i = 0; i < thread_count; i++) {
         pthread_create(&threads[i].threadId, NULL, &highlightThread, &threads[i]);
         pthread_mutex_lock(&running_mutex);
         running_threads++;
         pthread_mutex_unlock(&running_mutex);
-
-        // sleep(100);
     }
 
     while (running_threads) {
         sleep(100);
     }
+
+    // re-highlight start of threads .. to reconsider previous block
+    for (int i = 0; i < thread_count; i++) {
+        editor->document.blockAtLine(threads[i].start)->data->dirty = true;
+        editor->highlight(threads[i].start, 10);
+    }
+
 
     log("whole document highlighting done in %fs\n", (float)backend_t::instance()->ticks() / 1000);
 }

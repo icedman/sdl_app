@@ -192,7 +192,36 @@ void editor_t::runOp(operation_t op)
         break;
     }
 
-    // TODO!!
+    case ADD_CURSOR_AND_MOVE: {
+        document.addCursor(mainCursor);
+
+        std::vector<std::string> strings;
+        std::istringstream f(strParam);
+        std::string s;
+        while (getline(f, s, ':')) {
+            strings.push_back(s);
+        }
+
+        if (strings.size() == 2) {
+            size_t line = 0;
+            size_t pos = 0;
+            try {
+                line = std::stoi(strings[0]);
+                pos = std::stoi(strings[1]);
+                block_ptr block = document.blockAtLine(line);
+                if (!block) {
+                    block = document.lastBlock();
+                }
+                mainCursor.setPosition(block, pos, false);
+            } catch (std::exception e) {
+            }
+
+            document.setCursor(mainCursor, true);
+            document.clearDuplicateCursors();
+        }
+        return;
+    }
+
     case ADD_CURSOR_AND_MOVE_UP: {
         document.addCursor(mainCursor);
         // _op = MOVE_CURSOR_UP;
