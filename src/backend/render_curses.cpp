@@ -67,7 +67,9 @@ enum KEY_ACTION {
     K_HOME_KEY,
     K_END_KEY,
     K_PAGE_UP,
-    K_PAGE_DOWN
+    K_PAGE_DOWN,
+
+    K_MOUSE
 };
 
 static Renderer theRenderer;
@@ -154,6 +156,26 @@ static int readMoreEscapeSequence(int c, std::string& keySequence)
     return K_ESC;
 }
 
+static int readMoreMouseSequence(std::string& keySequence)
+{
+    keySequence = "mouse;";
+    
+    std::string m;
+    char c;
+    while(true) {
+        read(STDIN_FILENO, &c, 1);
+        if (!c) break;
+        if (c == 'M') break;
+        if (c == 'm') break;
+        keySequence += c;
+    }
+
+    // if (c == 'M')
+    keySequence += ";";
+    keySequence += c;
+
+    return 0;
+}
 static int readEscapeSequence(std::string& keySequence)
 {
     keySequence = "";
@@ -377,6 +399,9 @@ static int readEscapeSequence(std::string& keySequence)
         case 'F':
             keySequence = "end";
             return K_END_KEY;
+        case '<':
+            readMoreMouseSequence(keySequence);
+            return K_MOUSE;
         }
         app_t::log("escape+%c+%c\n", seq[0], seq[1]);
     }
@@ -438,12 +463,6 @@ Renderer* Renderer::instance()
     return &theRenderer;
 }
 
-static void sig_handler(int num)
-{
-    endwin();
-    refresh();
-}
-
 void Renderer::init()
 {
     app_t::log("init\n");
@@ -452,17 +471,12 @@ void Renderer::init()
 
     initscr();
 
-    // struct sigaction old_action;
-    // struct sigaction new_action;
-    // new_action.sa_handler = sig_handler;
-    // new_action.sa_flags = 0;
-    // sigemptyset(&new_action.sa_mask);
-    // sigaction(SIGWINCH, &new_action, &old_action);
-
     raw();
     keypad(stdscr, true);
     noecho();
     nodelay(stdscr, true);
+
+    // mousemask(ALL_MOUSE_EVENTS, NULL);
 
     use_default_colors();
     start_color();
@@ -554,6 +568,47 @@ void Renderer::listen_events(event_list* events)
     }
 
     if (keySequence.length() > 1) {
+
+        if (keySequence[0] == 'm' && keySequence[1] == 'o') {
+            std::vector<std::string> strings;
+            std::istringstream f(keySequence);
+            std::string s;
+            while (getline(f, s, ';')) {
+                strings.push_back(s);
+            }
+            int x = std::stoi(strings[2]);
+            int y = std::stoi(strings[3]);
+
+            if (strings[4] == "m") return;
+
+            events->push_back({
+                type: EVT_MOUSE_DOWN,
+                x: x,
+                y: y,
+                button: 0,
+                clicks: 1
+            });
+
+            events->push_back({
+                type: EVT_MOUSE_UP,
+                x: x,
+                y: y,
+                button: 0,
+                clicks: 1
+            });
+
+            events->push_back({
+                type: EVT_MOUSE_CLICK,
+                x: x,
+                y: y,
+                button: 0,
+                clicks: 1
+            });
+
+            // app_t::log("%s", keySequence.c_str());
+            return;
+        }
+
         events->push_back({
             type : EVT_KEY_SEQUENCE,
             text : keySequence
