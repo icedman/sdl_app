@@ -3,6 +3,7 @@
 #include "events.h"
 #include "layout.h"
 #include "renderer.h"
+#include "scripting.h"
 #include "tests.h"
 
 #include "app.h"
@@ -48,6 +49,7 @@ int main(int argc, char** argv)
     search_t search;
 
     Renderer* renderer = Renderer::instance();
+    Scripting* scripting = Scripting::instance();
 
     app.configure(argc, argv);
     app.setupColors(!renderer->is_terminal());
@@ -62,6 +64,7 @@ int main(int argc, char** argv)
     explorer.setRootFromFile(file);
 
     renderer->init();
+    scripting->init();
 
     color_info_t bg = renderer->color_for_index(app.bgApp);
 
@@ -138,6 +141,7 @@ int main(int argc, char** argv)
     }
 
     renderer->shutdown();
+    scripting->shutdown();
 
     app.shutdown();
 }

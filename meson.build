@@ -124,6 +124,14 @@ ui_files = [
     'src/tests.cpp'
 ]
 
+scripting_inc = [
+    'src/scripting'
+]
+
+scripting_files = [
+    'src/scripting/scripting.cpp'
+]
+
 tmparser_lib = static_library('tmparser',
     textmate_files, 
     include_directories: [ textmate_inc ],
@@ -144,8 +152,9 @@ executable('ashlar',
     'src/main.cpp',
     sdl_files,
     ui_files,
-    include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing' ],
-    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep ],
+    scripting_files,
+    include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing', scripting_inc ],
+    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep, quickjs_dep ],
     install : true
 )
 
@@ -153,7 +162,8 @@ executable('ashlr',
     'src/main.cpp',
     curses_files,
     ui_files,
-    include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing' ],
-    dependencies: [ tmparser_dep, editor_dep, curses_dep ],
+    scripting_files,
+    include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing', scripting_inc ],
+    dependencies: [ tmparser_dep, editor_dep, curses_dep, quickjs_dep ],
     install : true
 )

@@ -4,6 +4,7 @@
 #include "app.h"
 #include "operation.h"
 #include "statusbar.h"
+#include "scripting.h"
 
 #include "editor_view.h"
 #include "explorer_view.h"
@@ -117,6 +118,11 @@ bool app_view::input_sequence(std::string keySequence)
     case MOVE_FOCUS_DOWN:
         show_editor(app_t::instance()->currentEditor);
         return true;
+
+    case POPUP_COMMANDS: {
+        Scripting::instance()->execute("app.log('popup command palette')");
+        return true;
+    }
 
     case POPUP_SEARCH: {
         int fw, fh;
