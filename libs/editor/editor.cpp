@@ -131,8 +131,8 @@ void editor_t::runOp(operation_t op)
         return;
     case OPEN:
         document.open(strParam, false);
-        createSnapshot();
         highlighter.run(this);
+        createSnapshot();
         return;
     case SAVE: {
         if (document.fileName == "") {
@@ -164,14 +164,17 @@ void editor_t::runOp(operation_t op)
             return;
         }
 
-        if (app_t::instance()->clipboard().length() < SIMPLE_PASTE_THRESHOLD) {
-            inputBuffer = app_t::instance()->clipboard();
-        } else {
-            document.addBufferDocument(app_t::instance()->clipboard());
-            document.insertFromBuffer(mainCursor, document.buffers.back());
-            document.clearCursors();
-            createSnapshot();
-        }
+        inputBuffer = app_t::instance()->clipboard();
+
+        // if (app_t::instance()->clipboard().length() < SIMPLE_PASTE_THRESHOLD) {
+        //    inputBuffer = app_t::instance()->clipboard();
+        // } else {
+        //     document.addBufferDocument(app_t::instance()->clipboard());
+        //     document.insertFromBuffer(mainCursor, document.buffers.back());
+        //     document.clearCursors();        
+        //     createSnapshot();
+        // }
+
         break;
 
     case CUT:
@@ -594,11 +597,8 @@ void editor_t::runAllOps()
         snapshot.history = items;
     }
 
-    // todo
-    // if single line editor
-    // combine all lines??
-
     if (snap) {
+        highlighter.run(this);
         createSnapshot();
     }
 }

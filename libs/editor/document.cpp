@@ -473,6 +473,7 @@ void document_t::insertFromBuffer(struct cursor_t& cursor, std::shared_ptr<docum
         b->lineCount = 1;
         b->dirty = false;
         b->content = "";
+        b->wcontent = L"";
         b->data = nullptr;
 
         bufferBlocks.push_back(b);

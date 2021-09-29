@@ -16,7 +16,10 @@ void snapshot_t::save(block_list& blocks)
         b->dirty = block->dirty;
         b->content = "";
         b->wcontent = block->wcontent;
-        b->data = nullptr;
+        b->data = block->data;
+        if (b->data) {
+            b->data->dirty = true;
+        }
         b->cachedLength = 0;
         snapshot.push_back(b);
     }
@@ -46,7 +49,7 @@ void snapshot_t::restore(block_list& blocks)
         b->dirty = block->dirty;
         b->content = "";
         b->wcontent = block->wcontent;
-        // b->data = nullptr;
+        b->data = block->data;
         if (b->data) {
             b->data->dirty = true;
         }

@@ -481,6 +481,7 @@ void highlighter_t::run(editor_t* _editor)
 
     backend_t::instance()->ticks();
 
+    printf("lines: %d\n", editor->document.blocks.size());
     int per_thread = 0.5f + (float)editor->document.blocks.size() / MAX_THREAD_COUNT;
     if (per_thread < LINES_PER_THREAD) {
         per_thread = LINES_PER_THREAD;
@@ -499,15 +500,14 @@ void highlighter_t::run(editor_t* _editor)
         return;
     }
 
+    running_threads = 0;
     highlight_thread_t threads[MAX_THREAD_COUNT];
 
     for (int i = 0; i < thread_count; i++) {
 
         editor_ptr editor = std::make_shared<editor_t>();
         editor->document.blocks = _editor->document.blocks;
-        // editor->document.open(_editor->document.fullPath, true);
         editor->highlighter.lang = _editor->highlighter.lang;
-        // editor->highlighter.lang = language_from_file(_editor->document.fullPath, app_t::instance()->extensions);
         editor->highlighter.theme = _editor->highlighter.theme;
 
         threads[i].index = i;
