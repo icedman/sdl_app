@@ -395,7 +395,6 @@ void editor_t::runOp(operation_t op)
             e.moveLeft(1);
             cur = s;
             cur.setPosition(e.cursor, true);
-            cur.single_character_selected = true;
             break;
         }
 

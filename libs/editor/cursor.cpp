@@ -108,6 +108,7 @@ void cursor_t::setPosition(block_ptr b, size_t p, bool keepAnchor)
     }
     cursor.block = b;
     cursor.position = p;
+    single_character_selected = keepAnchor;
     if (!keepAnchor) {
         setAnchor(b, p);
     }
