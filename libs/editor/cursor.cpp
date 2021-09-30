@@ -88,6 +88,7 @@ cursor_position_t::cursor_position_t()
 }
 
 cursor_t::cursor_t()
+    : single_character_selected(false)
 {
 }
 
@@ -146,11 +147,12 @@ size_t cursor_t::anchorPosition()
 void cursor_t::clearSelection()
 {
     anchor = cursor;
+    single_character_selected = false;
 }
 
 bool cursor_t::hasSelection()
 {
-    return (cursor.block.get() != anchor.block.get() || cursor.position != anchor.position);
+    return single_character_selected || (cursor.block.get() != anchor.block.get() || cursor.position != anchor.position);
 }
 
 bool cursor_t::isMultiBlockSelection()
@@ -257,6 +259,10 @@ bool cursor_t::moveLeft(int count, bool keepAnchor)
 
     if (cursor.position > 0) {
         cursor.position--;
+        if (keepAnchor && !single_character_selected) {
+            anchor.position--;
+            single_character_selected = true;
+        }
     } else {
         if (block()->previous()) {
             cursorAtPreviousUnfoldedBlock(*this, keepAnchor);
@@ -281,6 +287,10 @@ bool cursor_t::moveRight(int count, bool keepAnchor)
 
     if (cursor.position + 1 < block()->length()) {
         cursor.position++;
+        if (keepAnchor && !single_character_selected) {
+            cursor.position--;
+            single_character_selected = true;
+        }
     } else {
         if (block()->next()) {
             cursorAtNextUnfoldedBlock(*this, keepAnchor);

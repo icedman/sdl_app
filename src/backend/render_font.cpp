@@ -229,7 +229,7 @@ void Renderer::get_font_extents(RenFont* font, int* w, int* h, const char* text,
     *h = font->font_height;
 }
 
-static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor clr, bool italic)
+static inline void draw_char_image(RenImage* image, RenRect rect, RenColor clr, bool italic = false, bool underline = false)
 {
     items_drawn++;
 
@@ -264,7 +264,7 @@ static inline void ren_draw_char_image(RenImage* image, RenRect rect, RenColor c
     cairo_restore(cairo_context);
 }
 
-int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic)
+int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
     items_drawn++;
 
@@ -300,7 +300,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
         }
 
         if (glyph.cp == *p & 0xff && glyph.image) {
-            ren_draw_char_image(glyph.image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2), y + (font->font_height / 2) - (glyph.ch / 2), glyph.cw + 1, glyph.ch }, clr, italic);
+            draw_char_image(glyph.image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2), y + (font->font_height / 2) - (glyph.ch / 2), glyph.cw + 1, glyph.ch }, clr, italic);
         }
 
         i++;
@@ -310,7 +310,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
     return x;
 }
 
-int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
+int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
     items_drawn++;
 
@@ -335,7 +335,7 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
         GlyphSet glyph = set[cp & 0xff];
         if (glyph.cp == cp & 0xff && glyph.image) {
-            ren_draw_char_image(glyph.image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2), y + (font->font_height / 2) - (glyph.ch / 2), glyph.cw + 1, glyph.ch }, clr, italic);
+            draw_char_image(glyph.image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2), y + (font->font_height / 2) - (glyph.ch / 2), glyph.cw + 1, glyph.ch }, clr, italic);
         }
 
         i++;

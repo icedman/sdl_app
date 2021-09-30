@@ -247,3 +247,13 @@ void search_view::prelayout()
 
     lv->layout()->visible = list_size > 0;
 }
+
+void search_view::update_list_indexer()
+{
+    
+}
+
+void search_view::update_list_files()
+{
+    
+}

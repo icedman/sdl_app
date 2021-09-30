@@ -507,6 +507,13 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
     cairo_restore(cairo_context);
 }
 
+void Renderer::draw_underline(RenRect rect, RenColor color)
+{
+    rect.y += rect.height - 1;
+    rect.height = 1;
+    draw_rect(rect, color, true, 1.0f);
+}
+
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
 {
     items_drawn++;
@@ -545,7 +552,7 @@ void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int 
     }
 }
 
-int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor color, bool bold, bool italic)
+int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor color, bool bold, bool italic, bool underline)
 {
     return 0;
 }

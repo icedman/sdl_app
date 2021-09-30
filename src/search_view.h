@@ -13,6 +13,8 @@ struct search_view : popup_view {
     bool commit();
 
     void update_list();
+    void update_list_indexer();
+    void update_list_files();
 
     view_item_ptr input;
     view_item_ptr list;

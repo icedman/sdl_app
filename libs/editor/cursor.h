@@ -22,6 +22,7 @@ struct cursor_t {
 
     cursor_position_t cursor;
     cursor_position_t anchor;
+    bool single_character_selected;
 
     bool isNull();
 

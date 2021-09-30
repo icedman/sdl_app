@@ -177,8 +177,11 @@ void editor_view::render()
             for (int pos = s.start; pos < s.start + s.length; pos++) {
                 bool hl = false;
                 bool ul = false;
+                bool hasSelection = false;
+
                 for (auto& c : cursors) {
                     if (pos == c.position() && block == c.block()) {
+                        hasSelection |= c.hasSelection();
                         hl = true && (has_focus || c.hasSelection());
                         ul = c.hasSelection();
                         break;
@@ -200,7 +203,7 @@ void editor_view::render()
                     break;
                 }
 
-                if (hl) {
+                if (hl || hasSelection) {
                     RenRect cr = {
                         alo->render_rect.x + (pos * fw),
                         alo->render_rect.y + (l * fh),
@@ -219,19 +222,26 @@ void editor_view::render()
                         int cursor_pad = 4;
                         cr.width = 1;
                         if (!Renderer::instance()->is_terminal()) {
-                            cr.width = 2;
-                            cr.y -= cursor_pad;
-                            cr.height += cursor_pad * 2;
+                            if (hasSelection) {
+                                cr.width = fw;
+                            } else {
+                                cr.width = 2;
+                                cr.y -= cursor_pad;
+                                cr.height += cursor_pad * 2;
+                            }
+                        } else {
+                            if (hasSelection) {
+                                ul = true;
+                            }
                         }
                         cur = clr;
                     }
                     cr.x += alo->scroll_x;
 
                     Renderer::instance()->draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
-                    if (ul && !Renderer::instance()->is_terminal()) {
-                        cr.y += fh - 2;
-                        cr.height = 1;
-                        Renderer::instance()->draw_rect(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue }, true, 1.0f);
+
+                    if (ul) {
+                        Renderer::instance()->draw_underline(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue });
                     }
 
                     previous_cursor_rects.push_back(cr);

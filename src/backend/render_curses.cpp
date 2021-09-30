@@ -84,7 +84,12 @@ typedef struct _color_pair {
 
 static std::map<int, _color_pair> color_pairs;
 
-char* background_colors = 0;
+struct screen_meta_t {
+    char bg;
+    char underline;
+};
+
+screen_meta_t* screen_meta = 0;
 int bg_w = 0;
 int bg_h = 0;
 
@@ -784,6 +789,11 @@ static bool is_clipped(int x, int y)
     return false;
 }
 
+void Renderer::draw_underline(RenRect rect, RenColor color)
+{
+    screen_meta[rect.x + rect.y * bg_w].underline = 1;
+}
+
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int radius)
 {
     if (!fill)
@@ -802,12 +812,12 @@ void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int 
             attron(COLOR_PAIR(pair));
             addch(' ');
             attroff(COLOR_PAIR(pair));
-            background_colors[rect.x + x + (rect.y + y) * bg_w] = clr_index;
+            screen_meta[rect.x + x + (rect.y + y) * bg_w].bg = clr_index;
         }
     }
 }
 
-int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic)
+int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
     int clr_index = clr.a ? clr.a : -1;
 
@@ -827,10 +837,14 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
         }
 
         move(y, x + i);
-        int bg = background_colors[x + i + y * bg_w];
+        int bg = screen_meta[x + i + y * bg_w].bg;
+        int ul = screen_meta[x + i + y * bg_w].underline;
         pair = pair_for_colors(clr_index, bg && bg != clr_index ? bg : -1);
         if (bg == clr_index) {
             attron(A_REVERSE);
+        }
+        if (ul || underline) {
+            attron(A_UNDERLINE);
         }
         attron(COLOR_PAIR(pair));
 
@@ -840,6 +854,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
             addwstr((wchar_t*)s);
         }
 
+        attroff(A_UNDERLINE);
         attroff(A_REVERSE);
         attroff(COLOR_PAIR(pair));
 
@@ -854,7 +869,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
     return 0;
 }
 
-int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic)
+int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
     int clr_index = clr.a ? clr.a : -1;
 
@@ -876,18 +891,22 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
         }
 
         move(y, x + i);
-        int bg = background_colors[x + i + y * bg_w];
+        int bg = screen_meta[x + i + y * bg_w].bg;
+        int ul = screen_meta[x + i + y * bg_w].underline;
         pair = pair_for_colors(clr_index, bg && bg != clr_index ? bg : -1);
         if (bg == clr_index) {
             attron(A_REVERSE);
         }
-
+        if (ul || underline) {
+            attron(A_UNDERLINE);
+        }
         attron(COLOR_PAIR(pair));
 
         if (isprint(cp & 0xff)) {
             addch(cp & 0xff);
         }
 
+        attroff(A_UNDERLINE);
         attroff(A_REVERSE);
         attroff(COLOR_PAIR(pair));
         i++;
@@ -900,7 +919,7 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
     return 0;
 }
 
-int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool bold, bool italic)
+int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
     int clr_index = clr.a ? clr.a : -1;
 
@@ -957,7 +976,7 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
     if (is_clipped(x, y))
         return 0;
 
-    int bg = background_colors[x + y * bg_w];
+    int bg = screen_meta[x + y * bg_w].bg;
     pair = pair_for_colors(clr_index, bg && bg != clr_index ? bg : -1);
     if (bg == clr_index) {
         attron(A_REVERSE);
@@ -987,15 +1006,15 @@ void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
         update_colors();
     }
 
-    if (background_colors == 0 || bg_w != window_cols || bg_h != window_rows) {
-        if (background_colors)
-            free(background_colors);
+    if (screen_meta == 0 || bg_w != window_cols || bg_h != window_rows) {
+        if (screen_meta)
+            free(screen_meta);
         bg_w = window_cols;
         bg_h = window_rows;
-        background_colors = (char*)calloc(bg_w * bg_h, sizeof(char));
+        screen_meta = (screen_meta_t*)calloc(bg_w * bg_h, sizeof(screen_meta_t));
     }
 
-    memset(background_colors, 0, bg_w * bg_h * sizeof(char));
+    memset(screen_meta, 0, bg_w * bg_h * sizeof(screen_meta_t));
 
     clip_rect = { 0, 0, window_cols, window_rows };
 
