@@ -159,22 +159,11 @@ void editor_t::runOp(operation_t op)
         return;
 
     case PASTE:
-        // log("paste %s", app_t::instance()->clipboard().c_str());
         if (!app_t::instance()->clipboard().length()) {
             return;
         }
 
         inputBuffer = app_t::instance()->clipboard();
-
-        // if (app_t::instance()->clipboard().length() < SIMPLE_PASTE_THRESHOLD) {
-        //    inputBuffer = app_t::instance()->clipboard();
-        // } else {
-        //     document.addBufferDocument(app_t::instance()->clipboard());
-        //     document.insertFromBuffer(mainCursor, document.buffers.back());
-        //     document.clearCursors();        
-        //     createSnapshot();
-        // }
-
         break;
 
     case CUT:
@@ -292,6 +281,12 @@ void editor_t::runOp(operation_t op)
         if (skipOp)
             continue;
 
+        if (_op == DUPLICATE_SELECTION) {
+            if (!cur.hasSelection()) {
+                _op = DUPLICATE_LINE;
+            }
+        }
+
         switch (_op) {
 
         case SELECT_WORD: {
@@ -379,8 +374,14 @@ void editor_t::runOp(operation_t op)
 
         case CLEAR_SELECTION:
             break;
-        case DUPLICATE_SELECTION:
+
+        case DUPLICATE_SELECTION: {
+            std::string text = cur.selectedText();
+            cur.moveEndOfSelection();
+            cur.insertText(text);
+            cur.moveRight(text.length());
             break;
+        }
 
         case DELETE_SELECTION:
             if (cur.hasSelection()) {

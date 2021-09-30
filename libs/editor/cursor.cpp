@@ -450,6 +450,13 @@ bool cursor_t::moveDown(int count, bool keepAnchor)
     return true;
 }
 
+bool cursor_t::moveEndOfSelection()
+{
+    setPosition(selectionEnd(), false);
+    moveRight(1, false);
+    return true;
+}
+
 bool cursor_t::movePreviousBlock(int count, bool keepAnchor)
 {
     --count;

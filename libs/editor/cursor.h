@@ -52,6 +52,7 @@ struct cursor_t {
     bool movePreviousBlock(int count = 1, bool keepAnchor = false);
     bool moveNextWord(bool keepAnchor = false);
     bool movePreviousWord(bool keepAnchor = false);
+    bool moveEndOfSelection();
     bool findWord(std::string word, int direction);
 
     bool insertText(std::string);

@@ -5,4 +5,10 @@
 
 ## document ##
 
-* crash on buffered document undos
+* crash on document undos
+
+##
+
+* ctrl+shift+d .. duplicate multiblock
+* select word .. '
+

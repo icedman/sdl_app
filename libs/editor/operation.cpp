@@ -43,13 +43,13 @@ static const operation_name operation_names[] = {
 
     { "SELECT_ALL", SELECT_ALL, "ctrl+a" },
     { "SELECT_LINE", SELECT_LINE, "ctrl+l" },
-    { "DUPLICATE_LINE", DUPLICATE_LINE, "ctrl+shift+d" },
+    { "DUPLICATE_LINE", DUPLICATE_LINE, "" },
     { "DELETE_LINE", DELETE_LINE, "" },
     { "MOVE_LINE_UP", MOVE_LINE_UP, "ctrl+shift+up" },
     { "MOVE_LINE_DOWN", MOVE_LINE_DOWN, "ctrl+shift+down" },
 
     { "CLEAR_SELECTION", CLEAR_SELECTION, "" },
-    { "DUPLICATE_SELECTION", DUPLICATE_SELECTION, "" },
+    { "DUPLICATE_SELECTION", DUPLICATE_SELECTION, "ctrl+shift+d" },
     { "DELETE_SELECTION", DELETE_SELECTION, "" },
     { "ADD_CURSOR_AND_MOVE", ADD_CURSOR_AND_MOVE, "" },
     { "ADD_CURSOR_AND_MOVE_UP", ADD_CURSOR_AND_MOVE_UP, "ctrl+up" },
