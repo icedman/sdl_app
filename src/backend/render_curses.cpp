@@ -164,14 +164,17 @@ static int readMoreEscapeSequence(int c, std::string& keySequence)
 static int readMoreMouseSequence(std::string& keySequence)
 {
     keySequence = "mouse;";
-    
+
     std::string m;
     char c;
-    while(true) {
+    while (true) {
         read(STDIN_FILENO, &c, 1);
-        if (!c) break;
-        if (c == 'M') break;
-        if (c == 'm') break;
+        if (!c)
+            break;
+        if (c == 'M')
+            break;
+        if (c == 'm')
+            break;
         keySequence += c;
     }
 
@@ -426,6 +429,8 @@ static int readKey(std::string& keySequence)
                 return readEscapeSequence(keySequence);
             }
 
+            // app_t::log("%d\n", c);
+
             switch (c) {
             case K_TAB:
                 keySequence = "tab";
@@ -584,30 +589,31 @@ void Renderer::listen_events(event_list* events)
             int x = std::stoi(strings[2]);
             int y = std::stoi(strings[3]);
 
-            if (strings[4] == "m") return;
+            if (strings[4] == "m")
+                return;
 
             events->push_back({
-                type: EVT_MOUSE_DOWN,
-                x: x,
-                y: y,
-                button: 0,
-                clicks: 1
+                type : EVT_MOUSE_DOWN,
+                x : x,
+                y : y,
+                button : 0,
+                clicks : 1
             });
 
             events->push_back({
-                type: EVT_MOUSE_UP,
-                x: x,
-                y: y,
-                button: 0,
-                clicks: 1
+                type : EVT_MOUSE_UP,
+                x : x,
+                y : y,
+                button : 0,
+                clicks : 1
             });
 
             events->push_back({
-                type: EVT_MOUSE_CLICK,
-                x: x,
-                y: y,
-                button: 0,
-                clicks: 1
+                type : EVT_MOUSE_CLICK,
+                x : x,
+                y : y,
+                button : 0,
+                clicks : 1
             });
 
             // app_t::log("%s", keySequence.c_str());

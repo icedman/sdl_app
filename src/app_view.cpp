@@ -3,8 +3,8 @@
 
 #include "app.h"
 #include "operation.h"
-#include "statusbar.h"
 #include "scripting.h"
+#include "statusbar.h"
 
 #include "editor_view.h"
 #include "explorer_view.h"
@@ -129,9 +129,9 @@ bool app_view::input_sequence(std::string keySequence)
         int fw, fh;
         Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)style.font.c_str()), &fw, &fh, NULL, 1);
         int x = (layout()->render_rect.w / 2) - (30 * fw / 2);
-        
+
         view_item::cast<search_view>(search)->show_search(op, op == POPUP_SEARCH_LINE ? ":" : "");
-        
+
         popup_manager* pm = view_item::cast<popup_manager>(popups);
         pm->clear();
         pm->push_at(search, { x, 0, 0, 0 }, POPUP_DIRECTION_DOWN);

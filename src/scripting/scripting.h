@@ -3,13 +3,13 @@
 
 #include <string>
 
-struct Scripting
-{
+struct Scripting {
     static Scripting* instance();
 
     bool init();
     void shutdown();
     void update(int ticks);
+    void restart();
 
     int execute(std::string script);
 };

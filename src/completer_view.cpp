@@ -7,6 +7,8 @@
 #include "indexer.h"
 #include "search.h"
 
+#include <algorithm>
+
 completer_view::completer_view()
     : popup_view()
 {
@@ -62,12 +64,20 @@ void completer_view::show_completer(editor_ptr e)
         return;
     }
 
+    std::string _prefix = prefix;
+    if (prefix.length() > 3) {
+        _prefix.pop_back();
+    }
+    if (_prefix.length() > 3) {
+        _prefix.pop_back();
+    }
+
     completer_view* cm = this;
     list_view* list = view_item::cast<list_view>(cm->list);
     list->clear();
 
     int completerItemsWidth = 0;
-    std::vector<std::string> words = editor->indexer->findWords(prefix);
+    std::vector<std::string> words = editor->indexer->findWords(_prefix);
     for (auto w : words) {
         if (w.length() <= prefix.length()) {
             continue;
@@ -80,10 +90,15 @@ void completer_view::show_completer(editor_ptr e)
 
         list_item_data_t item = {
             text : w,
-            value : w
+            value : w,
+            score : score
         };
         list->data.push_back(item);
         list->_value = 0;
+    }
+
+    if (list->data.size()) {
+        std::sort(list->data.begin(), list->data.end(), list_view::compare_item);
     }
 
     if (!pm->_views.size() && list->data.size()) {

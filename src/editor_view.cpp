@@ -117,7 +117,7 @@ void editor_view::render()
 
         blockdata_ptr blockData;
         if (!block->data || block->data->dirty) {
-            // editor->highlighter.highlightBlock(block);
+            editor->highlighter.highlightBlock(block);
         }
 
         if (block->data) {
@@ -179,6 +179,20 @@ void editor_view::render()
                 bool ul = false;
                 bool hasSelection = false;
 
+                RenRect cr = {
+                    alo->render_rect.x + (pos * fw),
+                    alo->render_rect.y + (l * fh),
+                    fw, fh
+                };
+
+                // bracket
+                if (editor->cursorBracket1.bracket != -1 && editor->cursorBracket2.bracket != -1) {
+                    if ((pos == editor->cursorBracket1.position && block->lineNumber == editor->cursorBracket1.line) || (pos == editor->cursorBracket2.position && block->lineNumber == editor->cursorBracket2.line)) {
+
+                        Renderer::instance()->draw_underline(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue });
+                    }
+                }
+
                 for (auto& c : cursors) {
                     if (pos == c.position() && block == c.block()) {
                         hasSelection |= c.hasSelection();
@@ -204,11 +218,6 @@ void editor_view::render()
                 }
 
                 if (hl || hasSelection) {
-                    RenRect cr = {
-                        alo->render_rect.x + (pos * fw),
-                        alo->render_rect.y + (l * fh),
-                        fw, fh
-                    };
 
                     if (s.line > 0) {
                         cr.x -= pos * fw;
@@ -238,7 +247,9 @@ void editor_view::render()
                     }
                     cr.x += alo->scroll_x;
 
-                    Renderer::instance()->draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
+                    if (hl || hasSelection) {
+                        Renderer::instance()->draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
+                    }
 
                     if (ul) {
                         Renderer::instance()->draw_underline(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue });
@@ -411,23 +422,25 @@ void editor_view::update(int millis)
 
     panel_view::update(millis);
 
-    block_list::iterator it = doc->blocks.begin();
+    // block_list::iterator it = doc->blocks.begin();
 
-    int view_height = rows;
-    int hl_prior = 16;
-    int hl_start = start_row - hl_prior;
-    int hl_length = view_height + hl_prior * 2;
+    // int view_height = rows;
+    // int hl_prior = 16;
+    // int hl_start = start_row - hl_prior;
+    // int hl_length = view_height + hl_prior * 2;
 
-    if (hl_start < 0)
-        hl_start = 0;
-    it += hl_start;
+    // if (hl_start < 0)
+    //     hl_start = 0;
+    // it += hl_start;
 
-    for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
-        block_ptr b = *it++;
-        if (!b->data || b->data->dirty) {
-            editor->highlighter.highlightBlock(b);
-        }
-    }
+    // for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
+    //     block_ptr b = *it++;
+    //     if (!b->data || b->data->dirty) {
+    //         editor->highlighter.highlightBlock(b);
+    //     }
+    // }
+
+    editor->matchBracketsUnderCursor();
 }
 
 void editor_view::prelayout()

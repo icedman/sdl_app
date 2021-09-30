@@ -28,11 +28,10 @@ static JSValue js_log(JSContext* ctx, JSValueConst this_val,
     return JS_UNDEFINED;
 }
 
-
 /* also used to initialize the worker context */
-static JSContext *JS_NewCustomContext(JSRuntime *rt)
+static JSContext* JS_NewCustomContext(JSRuntime* rt)
 {
-    JSContext *ctx;
+    JSContext* ctx;
     ctx = JS_NewContext(rt);
     if (!ctx)
         return NULL;
@@ -74,9 +73,9 @@ bool Scripting::init()
     JSValue ret;
 
     std::string imports = "import * as std from 'std';";
-                imports += "import * as os from 'os';";
-                imports += "globalThis.os = os;";
-                imports += "globalThis.std = std;";
+    imports += "import * as os from 'os';";
+    imports += "globalThis.os = os;";
+    imports += "globalThis.std = std;";
     ret = JS_Eval(ctx, imports.c_str(), imports.length(), "<input>", JS_EVAL_TYPE_MODULE);
     if (JS_IsException(ret)) {
         app_t::log("JS err : %s\n", JS_ToCString(ctx, JS_GetException(ctx)));
@@ -85,11 +84,10 @@ bool Scripting::init()
         return false;
     }
 
-
     // std::string path = "./dist/app.js";
     // std::ifstream file(path, std::ifstream::in);
     // std::string script((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    // // std::cout << script << std::endl;    
+    // // std::cout << script << std::endl;
     // ret = JS_Eval(ctx, script.c_str(), script.length(), path.c_str(), JS_EVAL_TYPE_GLOBAL);
     // if (JS_IsException(ret)) {
     //     // printf("JS err : %s\n", JS_ToCString(ctx, JS_GetException(ctx)));
@@ -125,4 +123,10 @@ int Scripting::execute(std::string script)
         JS_ResetUncatchableError(ctx);
         return 0;
     }
-}    
+}
+
+void Scripting::restart()
+{
+    shutdown();
+    init();
+}

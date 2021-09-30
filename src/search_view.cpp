@@ -5,9 +5,9 @@
 
 #include "app.h"
 #include "app_view.h"
+#include "explorer.h"
 #include "indexer.h"
 #include "search.h"
-#include "explorer.h"
 
 #include <algorithm>
 
@@ -108,8 +108,8 @@ search_view::search_view()
 
 void search_view::show_search(int m, std::string value)
 {
-    inputtext_view *iv = view_item::cast<inputtext_view>(input);
-    editor_view *ev = view_item::cast<editor_view>(iv->editor);
+    inputtext_view* iv = view_item::cast<inputtext_view>(input);
+    editor_view* ev = view_item::cast<editor_view>(iv->editor);
     iv->set_value(value);
     ev->editor->pushOp(MOVE_CURSOR_END_OF_LINE, "");
     ev->editor->runAllOps();
@@ -127,13 +127,13 @@ void search_view::show_search(int m, std::string value)
 
 void search_view::update_list()
 {
-    switch(mode) {
+    switch (mode) {
     case POPUP_SEARCH:
         update_list_indexer();
         break;
     case POPUP_SEARCH_FILES:
         update_list_files();
-        break;        
+        break;
     }
 
     view_set_focused(view_item::cast<inputtext_view>(input)->editor.get());
@@ -146,7 +146,7 @@ bool search_view::commit()
     if (mode == POPUP_SEARCH_FILES) {
         app_t* app = app_t::instance();
         app_view* av = (app_view*)app->view;
-        list_item_view *item = (list_item_view*)lv->_focused_value;
+        list_item_view* item = (list_item_view*)lv->_focused_value;
         if (item) {
             av->show_editor(app->openEditor(item->data.value), true);
             av->close_popups();
@@ -293,7 +293,7 @@ void search_view::update_list_indexer()
 
 void search_view::update_list_files()
 {
-    explorer_t *explorer = explorer_t::instance();
+    explorer_t* explorer = explorer_t::instance();
 
     list_view* lv = view_item::cast<list_view>(list);
 
@@ -302,22 +302,34 @@ void search_view::update_list_files()
     struct editor_t* editor = app->currentEditor.get();
 
     std::string inputtext = view_item::cast<inputtext_view>(input)->value();
+    // printf("%s\n", inputtext.c_str());
 
     int prev_size = lv->data.size();
     lv->data.clear();
     lv->_value = 0;
 
     if (inputtext.length()) {
-        for(auto f : explorer->fileList())
-        {
-            if (f->isDirectory) continue;
+        for (auto f : explorer->fileList()) {
+            if (f->isDirectory)
+                continue;
+
+            if (f->name.length() <= inputtext.length()) {
+                continue;
+            }
+
+            if (f->name[0] != inputtext[0]) {
+                continue;
+            }
+
             int score = levenshtein_distance((char*)inputtext.c_str(), (char*)(f->name.c_str()));
             list_item_data_t item = {
                 text : f->name,
-                data: (void*)f,
+                data : (void*)f,
                 value : f->fullPath,
                 score : score
             };
+
+            // printf("%s %d\n", f->name.c_str(), score);
             lv->data.push_back(item);
         }
     }

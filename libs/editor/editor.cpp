@@ -856,6 +856,11 @@ void editor_t::undo()
 
     if (items.size() == 0) return;
 
+    // for (auto op : items) {
+    //     std::string on = nameFromOperation(op.op);
+    //     printf("%s\n", on.c_str());
+    // }
+
     while (items.size() > 0) {
         auto lastOp = items.back();
         items.pop_back();
@@ -884,8 +889,6 @@ void editor_t::undo()
     snapshot.restore(document.blocks);
 
     for (auto op : items) {
-
-        // std::string on = nameFromOperation(op.op);
 
         switch (op.op) {
         case OPEN:
@@ -969,8 +972,6 @@ int editor_t::highlight(int startingLine, int count)
     block_ptr mainBlock = mainCursor.block();
 
     cursor_list cursors = document.cursors;
-
-    matchBracketsUnderCursor();
 
     size_t cx;
     size_t cy;

@@ -33,7 +33,7 @@ void explorer_view::update(int millis)
     ((list_view*)this)->_value = ((list_view*)this)->item_from_value(app_t::instance()->currentEditor->document.fullPath);
 
     bool hasChanges = explorer->regenerateList;
-    explorer->update(0); // did change?
+    explorer->update(millis); // did change?
 
     hasChanges = hasChanges || explorer->renderList.size() != data.size();
 

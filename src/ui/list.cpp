@@ -127,8 +127,16 @@ void list_view::update(int millis)
         hasChanges = true;
     }
 
-    if (!hasChanges)
+    view_item_list::iterator it;
+    if (!hasChanges) {
+        it = content()->_views.begin();
+        for (auto d : data) {
+            view_item_ptr item = *it++;
+            list_item_view* iv = view_item::cast<list_item_view>(item);
+            item->layout()->visible = true;
+        }
         return;
+    }
 
     while (content()->_views.size() < data.size()) {
         view_item_ptr item = create_item();
@@ -142,7 +150,7 @@ void list_view::update(int millis)
     }
 
     bool hasIcons = false;
-    view_item_list::iterator it = content()->_views.begin();
+    it = content()->_views.begin();
     for (auto d : data) {
         view_item_ptr item = *it++;
         list_item_view* iv = view_item::cast<list_item_view>(item);
@@ -245,7 +253,7 @@ void list_view::render()
     // Renderer::instance()->draw_rect({ r.x, r.y, r.w - 20, r.h - 4 }, { 255,0,255,150 }, false, 1);
 }
 
-int focused_index(std::vector<list_item_data_t>& data, list_item_view *item)
+int focused_index(std::vector<list_item_data_t>& data, list_item_view* item)
 {
     if (item == 0)
         return -1;

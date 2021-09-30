@@ -15,7 +15,7 @@ struct list_item_data_t {
 
     bool equals(list_item_data_t d)
     {
-        return (icon == d.icon && text == d.text && indent == d.indent && data == d.data);
+        return (value == d.value && icon == d.icon && text == d.text && indent == d.indent && data == d.data);
     }
 };
 
