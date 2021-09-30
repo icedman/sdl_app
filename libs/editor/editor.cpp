@@ -376,10 +376,26 @@ void editor_t::runOp(operation_t op)
             break;
 
         case DUPLICATE_SELECTION: {
-            std::string text = cur.selectedText();
+            std::vector<std::string> text = cur.selectedTextArray();
             cur.moveEndOfSelection();
-            cur.insertText(text);
-            cur.moveRight(text.length());
+            cursor_t s = cur;
+            bool first = true;
+            for(auto t : text) {
+                if (!first) {
+                    cur.splitLine();
+                    cur.moveDown(1);
+                    cur.moveStartOfLine();
+                }
+                cur.insertText(t);
+                if (t.length())
+                cur.moveRight(t.length());
+                first = false;
+            }
+            cursor_t e = cur;
+            e.moveLeft(1);
+            cur = s;
+            cur.setPosition(e.cursor, true);
+            cur.single_character_selected = true;
             break;
         }
 
@@ -562,12 +578,14 @@ void editor_t::runAllOps()
     // paste
     if (inputBuffer.size()) {
 
-        snapshot_t& snapshot = snapshots.back();
-        operation_list items = snapshot.history;
+        // snapshot_t& snapshot = snapshots.back();
+        // operation_list items = snapshot.history;
 
         char* _s = (char*)inputBuffer.c_str();
         char* _t = _s;
         char* p = _s;
+
+        op.group = 0xff;
 
         while (*p) {
 
@@ -624,7 +642,8 @@ void editor_t::runAllOps()
         }
         inputBuffer = "";
 
-        snapshot.history = items;
+        // fix undo for paste
+        // snapshot.history = items;
     }
 
     if (snap) {
@@ -867,6 +886,7 @@ void editor_t::undo()
         items.pop_back();
 
         bool endPop = false;
+
         switch (lastOp.op) {
         case TAB:
         case ENTER:
@@ -881,6 +901,10 @@ void editor_t::undo()
             endPop = true;
         default:
             break;
+        }
+
+        if (lastOp.group == 0xff) {
+            endPop = false;
         }
 
         if (endPop)
@@ -911,9 +935,9 @@ void editor_t::undo()
 
         pushOp(op);
         runAllOps();
-
-        // document.updateBlocks(document.blocks);
     }
+
+    document.updateBlocks(document.blocks);
 
     snapshot.history = items;
     if (snapshots.size() > 1 && items.size() == 0) {

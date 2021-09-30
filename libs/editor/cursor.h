@@ -37,6 +37,7 @@ struct cursor_t {
     cursor_position_t selectionStart();
     cursor_position_t selectionEnd();
     std::string selectedText();
+    std::vector<std::string> selectedTextArray();
     block_list selectedBlocks();
     bool eraseSelection();
 

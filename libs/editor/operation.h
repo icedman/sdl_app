@@ -111,6 +111,7 @@ struct operation_t {
 
     // history hint
     cursor_list cursors;
+    int group;
 };
 
 typedef std::vector<operation_t> operation_list;
