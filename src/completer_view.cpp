@@ -83,7 +83,7 @@ void completer_view::show_completer(editor_ptr e)
             value : w
         };
         list->data.push_back(item);
-        list->value = "";
+        list->_value = 0;
     }
 
     if (!pm->_views.size() && list->data.size()) {

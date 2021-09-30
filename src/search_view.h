@@ -9,7 +9,7 @@ struct search_view : popup_view {
     search_view();
 
     void prelayout() override;
-    void show_search(std::string value = "");
+    void show_search(int mode, std::string value = "");
     bool commit();
 
     void update_list();
@@ -21,6 +21,8 @@ struct search_view : popup_view {
 
     int searchDirection;
     bool _findNext;
+
+    int mode;
 };
 
 #endif // SEARCH_VIEW_H

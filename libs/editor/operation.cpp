@@ -109,8 +109,8 @@ static const operation_name operation_names[] = {
 
     { "POPUP_SEARCH", POPUP_SEARCH, "ctrl+f" },
     { "POPUP_SEARCH_LINE", POPUP_SEARCH_LINE, "ctrl+g" },
+    { "POPUP_SEARCH_FILES", POPUP_SEARCH_FILES, "ctrl+p" },
     { "POPUP_COMMANDS", POPUP_COMMANDS, "ctrl+shift+p" },
-    { "POPUP_FILES", POPUP_FILES, "ctrl+p" },
     { "POPUP_COMPLETION", POPUP_COMPLETION, "" },
 
     { 0 }

@@ -12,7 +12,7 @@
 
 #define LINE_LENGTH_LIMIT 500
 #define MAX_THREAD_COUNT 32
-#define LINES_PER_THREAD 200
+#define LINES_PER_THREAD 1000
 
 highlighter_t::highlighter_t()
     : editor(0)
@@ -533,7 +533,7 @@ void highlighter_t::run(editor_t* _editor)
     }
 
     while (running_threads) {
-        sleep(100);
+        sleep(10);
     }
 
     // re-highlight start of threads .. to reconsider previous block

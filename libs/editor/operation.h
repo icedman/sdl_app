@@ -98,8 +98,8 @@ enum operation_e {
 
     POPUP_SEARCH,
     POPUP_SEARCH_LINE,
+    POPUP_SEARCH_FILES,
     POPUP_COMMANDS,
-    POPUP_FILES,
     POPUP_COMPLETION
 };
 

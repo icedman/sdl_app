@@ -4,8 +4,10 @@
 #include "renderer.h"
 
 #include "app.h"
+#include "app_view.h"
 #include "indexer.h"
 #include "search.h"
+#include "explorer.h"
 
 #include <algorithm>
 
@@ -17,6 +19,14 @@ struct custom_editor_view_t : editor_view {
 
     bool input_text(std::string text)
     {
+        block_ptr b = editor->document.firstBlock();
+        if ((b->text() + " ")[0] == ':') {
+            char lastChar = (" " + text).back();
+            if (lastChar < '0' || lastChar > '9') {
+                return true;
+            }
+        }
+
         editor_view::input_text(text);
         search->update_list();
     }
@@ -37,8 +47,9 @@ struct custom_editor_view_t : editor_view {
                 lv->focus_next();
             }
             lv->ensure_visible_cursor();
-            if (lv->focused_value != "") {
-                view_item::cast<inputtext_view>(input)->set_value(lv->focused_value.c_str());
+            if (lv->_focused_value) {
+                std::string value = lv->_focused_value->data.text.c_str();
+                view_item::cast<inputtext_view>(input)->set_value(value);
                 editor->pushOp(SELECT_ALL, "");
                 editor->runAllOps();
             }
@@ -95,8 +106,14 @@ search_view::search_view()
     interactive = true;
 }
 
-void search_view::show_search(std::string value)
+void search_view::show_search(int m, std::string value)
 {
+    inputtext_view *iv = view_item::cast<inputtext_view>(input);
+    editor_view *ev = view_item::cast<editor_view>(iv->editor);
+    iv->set_value(value);
+    ev->editor->pushOp(MOVE_CURSOR_END_OF_LINE, "");
+    ev->editor->runAllOps();
+
     list_view* lv = view_item::cast<list_view>(list);
     lv->clear();
     lv->layout()->visible = false;
@@ -105,48 +122,37 @@ void search_view::show_search(std::string value)
     Renderer::instance()->throttle_up_events();
 
     view_set_focused(view_item::cast<inputtext_view>(input)->editor.get());
+    mode = m;
 }
 
 void search_view::update_list()
 {
-    list_view* lv = view_item::cast<list_view>(list);
-
-    struct app_t* app = app_t::instance();
-
-    struct editor_t* editor = app->currentEditor.get();
-
-    std::string inputtext = view_item::cast<inputtext_view>(input)->value();
-
-    // indexer
-    int prev_size = lv->data.size();
-    lv->data.clear();
-    lv->value = "";
-    if (editor->indexer) {
-        std::vector<std::string> words = editor->indexer->findWords(inputtext);
-        for (auto w : words) {
-            int score = levenshtein_distance((char*)inputtext.c_str(), (char*)(w.c_str()));
-            list_item_data_t item = {
-                text : w,
-                value : w,
-                score : score
-            };
-            lv->data.push_back(item);
-        }
-
-        if (lv->data.size()) {
-            sort(lv->data.begin(), lv->data.end(), list_view::compare_item);
-        }
+    switch(mode) {
+    case POPUP_SEARCH:
+        update_list_indexer();
+        break;
+    case POPUP_SEARCH_FILES:
+        update_list_files();
+        break;        
     }
 
-    if (lv->data.size() != prev_size) {
-        layout_request();
-        Renderer::instance()->throttle_up_events();
-    }
+    view_set_focused(view_item::cast<inputtext_view>(input)->editor.get());
 }
 
 bool search_view::commit()
 {
     list_view* lv = view_item::cast<list_view>(list);
+
+    if (mode == POPUP_SEARCH_FILES) {
+        app_t* app = app_t::instance();
+        app_view* av = (app_view*)app->view;
+        list_item_view *item = (list_item_view*)lv->_focused_value;
+        if (item) {
+            av->show_editor(app->openEditor(item->data.value), true);
+            av->close_popups();
+        }
+        return true;
+    }
 
     struct app_t* app = app_t::instance();
 
@@ -250,10 +256,78 @@ void search_view::prelayout()
 
 void search_view::update_list_indexer()
 {
-    
+    list_view* lv = view_item::cast<list_view>(list);
+
+    struct app_t* app = app_t::instance();
+
+    struct editor_t* editor = app->currentEditor.get();
+
+    std::string inputtext = view_item::cast<inputtext_view>(input)->value();
+
+    int prev_size = lv->data.size();
+    lv->data.clear();
+    lv->_value = 0;
+
+    if (editor->indexer) {
+        std::vector<std::string> words = editor->indexer->findWords(inputtext);
+        for (auto w : words) {
+            int score = levenshtein_distance((char*)inputtext.c_str(), (char*)(w.c_str()));
+            list_item_data_t item = {
+                text : w,
+                value : w,
+                score : score
+            };
+            lv->data.push_back(item);
+        }
+
+        if (lv->data.size()) {
+            sort(lv->data.begin(), lv->data.end(), list_view::compare_item);
+        }
+    }
+
+    if (lv->data.size() != prev_size) {
+        layout_request();
+        Renderer::instance()->throttle_up_events();
+    }
 }
 
 void search_view::update_list_files()
 {
-    
+    explorer_t *explorer = explorer_t::instance();
+
+    list_view* lv = view_item::cast<list_view>(list);
+
+    struct app_t* app = app_t::instance();
+
+    struct editor_t* editor = app->currentEditor.get();
+
+    std::string inputtext = view_item::cast<inputtext_view>(input)->value();
+
+    int prev_size = lv->data.size();
+    lv->data.clear();
+    lv->_value = 0;
+
+    if (inputtext.length()) {
+        for(auto f : explorer->fileList())
+        {
+            if (f->isDirectory) continue;
+            int score = levenshtein_distance((char*)inputtext.c_str(), (char*)(f->name.c_str()));
+            list_item_data_t item = {
+                text : f->name,
+                data: (void*)f,
+                value : f->fullPath,
+                score : score
+            };
+            lv->data.push_back(item);
+        }
+    }
+
+    if (lv->data.size()) {
+        sort(lv->data.begin(), lv->data.end(), list_view::compare_item);
+    }
+
+    if (lv->data.size() != prev_size) {
+        layout_request();
+        Renderer::instance()->throttle_up_events();
+    }
 }

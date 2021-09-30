@@ -10,11 +10,11 @@ app_tabbar_view::app_tabbar_view()
 
     on(EVT_KEY_SEQUENCE, [this](event_t& evt) {
         evt.cancelled = true;
-        std::string val = this->focused_value;
+        list_item_view* val = this->_focused_value;
         bool res = this->input_sequence(evt.text);
-        if (val != this->focused_value) {
-            this->value = this->focused_value;
-            this->select_item(this->item_from_value(this->focused_value));
+        if (val != this->_focused_value) {
+            this->_value = this->_focused_value;
+            this->select_item(this->_focused_value);
             view_set_focused(this);
         }
         return res;
@@ -24,11 +24,11 @@ app_tabbar_view::app_tabbar_view()
 void app_tabbar_view::update(int millis)
 {
     if (!is_focused()) {
-        focused_value = value;
+        _focused_value = _value;
     }
 
     app_t* app = app_t::instance();
-    ((list_view*)this)->value = app_t::instance()->currentEditor->document.fullPath;
+    ((list_view*)this)->_value = ((list_view*)this)->item_from_value(app_t::instance()->currentEditor->document.fullPath);
 
     bool hasChanges = false;
 

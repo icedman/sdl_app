@@ -17,6 +17,7 @@ struct view_item : layout_view, event_object_t {
     view_item();
     ~view_item();
 
+    std::string uid;
     std::string name;
     std::string type;
 

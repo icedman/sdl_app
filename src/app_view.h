@@ -24,6 +24,7 @@ struct app_view : vertical_container {
     void destroy_editor_view(editor_ptr editor);
 
     void show_editor(editor_ptr editor, bool sole = true);
+    void close_popups();
 
     void setup_style();
 };

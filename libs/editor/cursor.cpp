@@ -257,9 +257,11 @@ bool cursor_t::moveLeft(int count, bool keepAnchor)
 {
     --count;
 
+    bool selected = hasSelection();
+
     if (cursor.position > 0) {
         cursor.position--;
-        if (keepAnchor && !single_character_selected) {
+        if (keepAnchor && !single_character_selected && !selected) {
             anchor.position--;
             single_character_selected = true;
         }
@@ -285,9 +287,11 @@ bool cursor_t::moveRight(int count, bool keepAnchor)
 {
     --count;
 
+    bool selected = hasSelection();
+
     if (cursor.position + 1 < block()->length()) {
         cursor.position++;
-        if (keepAnchor && !single_character_selected) {
+        if (keepAnchor && !selected) {
             cursor.position--;
             single_character_selected = true;
         }

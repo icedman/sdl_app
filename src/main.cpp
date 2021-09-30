@@ -99,6 +99,7 @@ int main(int argc, char** argv)
             app_t::instance()->currentEditor->runAllOps();
         }
 
+        scripting->update(elapsed);
         root_view->update(elapsed);
         if (animation::has_animations()) {
             renderer->throttle_up_events();

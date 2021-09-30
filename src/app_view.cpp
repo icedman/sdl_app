@@ -91,8 +91,7 @@ bool app_view::input_sequence(std::string keySequence)
     if (pm->_views.size()) {
         switch (op) {
         case CANCEL:
-            pm->clear();
-            show_editor(app_t::instance()->currentEditor);
+            close_popups();
             return true;
         }
         return pm->input_sequence(keySequence);
@@ -124,11 +123,15 @@ bool app_view::input_sequence(std::string keySequence)
         return true;
     }
 
-    case POPUP_SEARCH: {
+    case POPUP_SEARCH_FILES:
+    case POPUP_SEARCH:
+    case POPUP_SEARCH_LINE: {
         int fw, fh;
         Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)style.font.c_str()), &fw, &fh, NULL, 1);
         int x = (layout()->render_rect.w / 2) - (30 * fw / 2);
-        view_item::cast<search_view>(search)->show_search();
+        
+        view_item::cast<search_view>(search)->show_search(op, op == POPUP_SEARCH_LINE ? ":" : "");
+        
         popup_manager* pm = view_item::cast<popup_manager>(popups);
         pm->clear();
         pm->push_at(search, { x, 0, 0, 0 }, POPUP_DIRECTION_DOWN);
@@ -255,6 +258,15 @@ void app_view::show_editor(editor_ptr editor, bool sole)
         ((view_item*)(editor->view))->layout()->visible = true;
         app_t::instance()->currentEditor = editor;
         layout_request();
+    }
+}
+
+void app_view::close_popups()
+{
+    popup_manager* pm = view_item::cast<popup_manager>(popups);
+    if (pm->_views.size()) {
+        pm->clear();
+        show_editor(app_t::instance()->currentEditor);
     }
 }
 

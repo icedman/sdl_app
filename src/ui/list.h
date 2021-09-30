@@ -60,10 +60,10 @@ struct list_view : panel_view {
     list_item_view* item_from_value(std::string value);
 
     std::vector<list_item_data_t> data;
-    std::string value;
-    std::string focused_value;
 
-    std::string prev_value;
+    list_item_view* _value;
+    list_item_view* _prev_value;
+    list_item_view* _focused_value;
 
     bool autoscroll;
 

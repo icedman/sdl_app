@@ -68,6 +68,9 @@ list_view::list_view(std::vector<list_item_data_t> items)
 list_view::list_view()
     : panel_view()
     , autoscroll(false)
+    , _value(0)
+    , _prev_value(0)
+    , _focused_value(0)
 {
     interactive = true;
 
@@ -90,9 +93,9 @@ void list_view::update(int millis)
 {
     // scroll_animation.update(millis);
 
-    if (autoscroll && prev_value != value) {
+    if (autoscroll && _prev_value != _value) {
         if (!ensure_visible_cursor()) {
-            prev_value = value;
+            _prev_value = _value;
         }
         Renderer::instance()->throttle_up_events(240);
     }
@@ -184,8 +187,9 @@ void list_view::update(int millis)
 
 void list_view::select_item(list_item_view* item)
 {
-    if (item->data.value != value) {
-        value = item->data.value;
+    // if (item->data.value != value) {
+    if (item != _value) {
+        _value = item;
 
         // propagate this event
         event_t event;
@@ -199,12 +203,12 @@ void list_view::select_item(list_item_view* item)
 
 bool list_view::is_item_selected(list_item_view* item)
 {
-    return value == item->data.value && value.length();
+    return _value == item;
 }
 
 bool list_view::is_item_focused(list_item_view* item)
 {
-    return focused_value == item->data.value && item->data.value.length();
+    return _focused_value == item;
 }
 
 void list_view::render()
@@ -241,14 +245,14 @@ void list_view::render()
     // Renderer::instance()->draw_rect({ r.x, r.y, r.w - 20, r.h - 4 }, { 255,0,255,150 }, false, 1);
 }
 
-int focused_index(std::vector<list_item_data_t>& data, std::string value)
+int focused_index(std::vector<list_item_data_t>& data, list_item_view *item)
 {
-    if (value == "")
+    if (item == 0)
         return -1;
 
     int idx = 0;
     for (auto d : data) {
-        if (d.value == value) {
+        if (d.value == item->data.value) {
             return idx;
         }
         idx++;
@@ -262,14 +266,14 @@ void list_view::focus_previous()
     if (!data.size())
         return;
 
-    if (focused_value == "") {
-        focused_value = data[0].value;
+    if (_focused_value == 0) {
+        _focused_value = item_from_value(data[0].value);
         return;
     }
 
-    int idx = focused_index(data, focused_value);
+    int idx = focused_index(data, _focused_value);
     if (idx > 0) {
-        focused_value = data[idx - 1].value;
+        _focused_value = item_from_value(data[idx - 1].value);
     }
 }
 
@@ -278,17 +282,17 @@ void list_view::focus_next()
     if (!data.size())
         return;
 
-    if (focused_value == "") {
-        focused_value = data[0].value;
+    if (_focused_value == 0) {
+        _focused_value = item_from_value(data[0].value);
         return;
     }
 
-    int idx = focused_index(data, focused_value);
+    int idx = focused_index(data, _focused_value);
     if (idx == -1)
         return;
 
     if (idx >= 0 && ++idx < data.size()) {
-        focused_value = data[idx].value;
+        _focused_value = item_from_value(data[idx].value);
     }
 }
 
@@ -296,13 +300,13 @@ void list_view::select_focused()
 {
     if (!data.size())
         return;
-    int idx = focused_index(data, focused_value);
+    int idx = focused_index(data, _focused_value);
     if (idx == -1)
         return;
 
     for (auto v : content()->_views) {
         list_item_view* item = view_item::cast<list_item_view>(v);
-        if (item->data.value == focused_value) {
+        if (item == _focused_value) {
             select_item(item);
             return;
         }
@@ -311,8 +315,9 @@ void list_view::select_focused()
 
 void list_view::clear()
 {
-    value = "";
-    focused_value = "";
+    _value = 0;
+    _prev_value = 0;
+    _focused_value = 0;
     data.clear();
 }
 
@@ -347,9 +352,9 @@ view_item_ptr list_view::create_item()
 
 bool list_view::ensure_visible_cursor()
 {
-    int idx = focused_index(data, focused_value);
+    int idx = focused_index(data, _focused_value);
     if (idx == -1) {
-        idx = focused_index(data, value);
+        idx = focused_index(data, _value);
     }
     if (idx == -1) {
         return true;
@@ -456,7 +461,7 @@ bool list_view::input_sequence(std::string text)
         ensure_visible_cursor();
         break;
     case ENTER:
-        select_item(item_from_value(focused_value));
+        select_item(_focused_value);
         break;
     }
     return true;
