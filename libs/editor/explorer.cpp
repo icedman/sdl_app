@@ -220,11 +220,9 @@ void explorer_t::preloadFolders()
 
 void explorer_t::update(int delta)
 {
-    /*
-    if (!allFilesLoaded && app_t::instance()->isIdle() == 2) {
+    if (!allFilesLoaded) {
         preloadFolders();
     }
-    */
 
     if (regenerateList) {
         regenerateList = false;

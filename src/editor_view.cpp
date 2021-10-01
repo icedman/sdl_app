@@ -598,6 +598,59 @@ bool editor_view::input_text(std::string text)
     return true;
 }
 
+bool _move_cursor(cursor_t& cursor, int dir)
+{
+    block_ptr block = cursor.block();
+    blockdata_ptr data = block->data;
+
+    if (!data) return false;
+
+    // if (!data) {
+    //     block->data = std::make_shared<blockdata_t>();
+    //     block->data->dirty = true;
+    //     data = block->data;
+
+    //     data->rendered_spans = block->layoutSpan(
+    //         block->document->columns,
+    //         block->document->wrap,
+    //         block->document->wrapIndent);
+    // }
+
+    // find span
+    bool found = false;
+    span_info_t ss;
+    int pos;
+
+    for (auto s : data->rendered_spans) {
+        if (cursor.position() >= s.start && cursor.position() < s.start + s.length) {
+            ss = s;
+            pos = cursor.position();
+            if (s.line > 0) {
+                pos -= s.start;
+                pos += s.line_x;
+            }
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+        return false;
+
+    for (auto s : data->rendered_spans) {
+
+        if (s.line == ss.line + dir) {
+            if (pos >= s.line_x && pos < s.line_x + s.length) {
+                cursor.cursor.position = s.start + pos - s.line_x;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
 bool editor_view::input_sequence(std::string text)
 {
     operation_e op = operationFromKeys(text);
@@ -622,6 +675,28 @@ bool editor_view::input_sequence(std::string text)
     if (!editor) {
         return false;
     }
+
+
+    switch (op) {
+        case MOVE_CURSOR_UP:
+        case MOVE_CURSOR_DOWN: {
+            cursor_t cursor = editor->document.cursor();
+            block_ptr block = cursor.block();
+            if (block->lineCount > 1) {
+                if (_move_cursor(cursor, op == MOVE_CURSOR_UP ? -1 : 1)) {
+                    text = ""; 
+                    std::ostringstream ss;
+                    ss << (block->lineNumber + 1);
+                    ss << ":";
+                    ss << cursor.position();
+                    int mods = Renderer::instance()->key_mods();
+                    editor->pushOp((mods & K_MOD_CTRL) ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
+                }
+            }
+        }
+        break;
+    }
+
     editor->input(-1, text);
     editor->runAllOps();
 

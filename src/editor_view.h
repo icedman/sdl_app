@@ -31,6 +31,8 @@ struct editor_view : panel_view {
     int start_row;
     int v_scroll_index;
 
+    int target_start_row;
+
     int mouse_x;
     int mouse_y;
     int rows;

@@ -91,8 +91,6 @@ void list_view::prelayout()
 
 void list_view::update(int millis)
 {
-    // scroll_animation.update(millis);
-
     if (autoscroll && _prev_value != _value) {
         if (!ensure_visible_cursor()) {
             _prev_value = _value;
@@ -412,16 +410,6 @@ bool list_view::ensure_visible_cursor()
         scrolled = true;
     }
     alo->scroll_y = target_scroll_y;
-
-    // if (alo->scroll_y != target_scroll_y) {
-    //     if (!scroll_animation.callback) {
-    //         scroll_animation.callback = [alo](animation *anim) {
-    //             alo->scroll_y = anim->value();
-    //             return true;
-    //         };
-    //     }
-    //     scroll_animation.run(area->layout()->scroll_y, target_scroll_y, 500);
-    // }
 
     if (scrolled) {
         mouse_wheel(0, 0);

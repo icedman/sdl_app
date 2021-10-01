@@ -226,6 +226,7 @@ void Renderer::listen_events(event_list* events)
 
         SDL_Event e;
 
+        // todo ... 
         if (is_throttle_up_events()) {
             if (!SDL_PollEvent(&e)) {
                 return;

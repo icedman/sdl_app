@@ -1,7 +1,6 @@
 #ifndef LIST_VIEW_H
 #define LIST_VIEW_H
 
-#include "animation.h"
 #include "panel.h"
 #include "view.h"
 
@@ -68,8 +67,6 @@ struct list_view : panel_view {
     bool autoscroll;
 
     static bool compare_item(struct list_item_data_t& f1, struct list_item_data_t& f2);
-
-    animate_ease_values scroll_animation;
 };
 
 #endif // LIST_VIEW_H

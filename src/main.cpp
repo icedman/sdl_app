@@ -4,6 +4,7 @@
 #include "layout.h"
 #include "renderer.h"
 #include "scripting.h"
+#include "animation.h"
 #include "tests.h"
 
 #include "app.h"

@@ -352,86 +352,14 @@ bool cursor_t::moveRight(int count, bool keepAnchor)
     return true;
 }
 
-bool _move_cursor(cursor_t& cursor, int dir)
-{
-    block_ptr block = cursor.block();
-    blockdata_ptr data = block->data;
-    if (!data) {
-        block->data = std::make_shared<blockdata_t>();
-        block->data->dirty = true;
-        data = block->data;
-    }
-
-    data->rendered_spans = block->layoutSpan(
-        block->document->columns,
-        block->document->wrap,
-        block->document->wrapIndent);
-
-    // find span
-    bool found = false;
-    span_info_t ss;
-    int pos;
-
-    for (auto s : data->rendered_spans) {
-        if (cursor.position() >= s.start && cursor.position() < s.start + s.length) {
-            ss = s;
-            pos = cursor.position();
-            if (s.line > 0) {
-                pos -= s.start;
-                pos += s.line_x;
-            }
-            found = true;
-            break;
-        }
-    }
-
-    if (!found)
-        return false;
-
-    for (auto s : data->rendered_spans) {
-        if (s.line == ss.line + dir) {
-            if (pos >= s.line_x && pos < s.line_x + s.length) {
-                cursor.cursor.position = s.start + pos - s.line_x;
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
 bool cursor_t::moveUp(int count, bool keepAnchor)
 {
-    document_t* doc = block()->document;
-    int columns = doc->columns ? doc->columns : 1000;
-
     --count;
 
-    bool navigateWrappedLine = false;
-    if (block()->lineCount > 1 && app_t::instance()->lineWrap) {
-        cursor_t cur = *this;
-        if (_move_cursor(cur, -1)) {
-            *this = cur;
-            navigateWrappedLine = true;
-        } else {
-            int line = 1 + (cursor.position / columns);
-            if (line > 1) {
-                if (cursor.position > columns) {
-                    cursor.position -= columns;
-                } else {
-                    cursor.position = 0;
-                }
-                navigateWrappedLine = true;
-            }
-        }
-    }
-
-    if (!navigateWrappedLine) {
-        if (block()->previous()) {
-            cursorAtPreviousUnfoldedBlock(*this, keepAnchor);
-        } else {
-            moveStartOfLine(keepAnchor);
-        }
+    if (block()->previous()) {
+        cursorAtPreviousUnfoldedBlock(*this, keepAnchor);
+    } else {
+        moveStartOfLine(keepAnchor);
     }
 
     if (count > 0) {
@@ -449,33 +377,10 @@ bool cursor_t::moveDown(int count, bool keepAnchor)
 {
     --count;
 
-    document_t* doc = block()->document;
-    int columns = doc->columns ? doc->columns : 1000;
-
-    bool navigateWrappedLine = false;
-    if (block()->lineCount > 1 && app_t::instance()->lineWrap && columns) {
-        cursor_t cur = *this;
-        if (_move_cursor(cur, 1)) {
-            *this = cur;
-            navigateWrappedLine = true;
-        } else {
-            int line = 1 + (cursor.position / columns);
-            if (line < block()->lineCount) {
-                cursor.position += doc->columns;
-                if (cursor.position >= block()->length()) {
-                    cursor.position = block()->length() - 1;
-                }
-                navigateWrappedLine = true;
-            }
-        }
-    }
-
-    if (!navigateWrappedLine) {
-        if (block()->next()) {
-            cursorAtNextUnfoldedBlock(*this, keepAnchor);
-        } else {
-            moveEndOfLine(keepAnchor);
-        }
+    if (block()->next()) {
+        cursorAtNextUnfoldedBlock(*this, keepAnchor);
+    } else {
+        moveEndOfLine(keepAnchor);
     }
 
     if (count > 0) {
