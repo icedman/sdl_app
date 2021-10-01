@@ -58,8 +58,6 @@ struct blockdata_t {
     std::vector<bracket_info_t> brackets;
 
     parse::stack_ptr parser_state;
-    parse::stack_serialized_t parser_state_serialized;
-    // std::map<size_t, scope::scope_t> scopes;
 
     int* dots;
 

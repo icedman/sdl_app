@@ -133,7 +133,6 @@ int highlighter_t::highlightBlock(block_ptr block)
     bool firstLine = true;
     parse::stack_ptr parser_state = NULL;
     std::map<size_t, scope::scope_t> scopes;
-    // blockData->scopes.clear();
     blockData->spans.clear();
     blockData->rendered_spans.clear();
 
@@ -143,9 +142,6 @@ int highlighter_t::highlightBlock(block_ptr block)
     if (prevBlockData) {
         previousBlockState = prevBlockData->state;
         parser_state = prevBlockData->parser_state;
-        // if (prevBlockData->parser_state_serialized.scope != "") {
-        //     parser_state = lang->grammar->unserialize_state(prevBlockData->parser_state_serialized);
-        // }
         if (parser_state && parser_state->rule) {
             blockData->lastPrevBlockRule = parser_state->rule->rule_id;
         }
@@ -163,7 +159,6 @@ int highlighter_t::highlightBlock(block_ptr block)
         return 1;
     } else {
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
-        // blockData->parser_state_serialized = lang->grammar->serialize_state(parser_state);
     }
 
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();

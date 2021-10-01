@@ -19,11 +19,6 @@ void editor_view::render()
         return;
     }
 
-    // if (highlighter_t::hasRunningThreads()) {
-    //     Renderer::instance()->wake();
-    //     return;
-    // }
-
     RenFont* _font = Renderer::instance()->font((char*)font.c_str());
 
     app_t* app = app_t::instance();
