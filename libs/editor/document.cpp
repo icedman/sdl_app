@@ -134,7 +134,7 @@ std::string _tabsToSpaces(std::string line)
 
 bool document_t::open(std::string path, bool enableBuffer)
 {
-    // buffer mode doesn't work well with threaded highlighting
+    // file buffer mode doesn't work well with threaded highlighting
     enableBuffer = false;
 
     std::set<char> delims_ext = { '.' };
@@ -216,8 +216,11 @@ bool document_t::open(std::string path, bool enableBuffer)
     }
 
     // reopen from tmp
-    file = std::ifstream(tmpPath, std::ifstream::in);
-    tempFileFullPath = tmpPath;
+    if (enableBuffer) {
+        file = std::ifstream(tmpPath, std::ifstream::in);
+        tempFileFullPath = tmpPath;
+        tmpPaths.push_back(tmpPath);
+    }
 
     std::set<char> delims = { '\\', '/' };
     std::vector<std::string> spath = split_path(filePath, delims);
@@ -229,8 +232,6 @@ bool document_t::open(std::string path, bool enableBuffer)
     expand_path((char**)(&cpath));
     fullPath = std::string(cpath);
     free(cpath);
-
-    tmpPaths.push_back(tmpPath);
 
     clearCursors();
     return true;

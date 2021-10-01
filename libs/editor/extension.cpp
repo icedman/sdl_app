@@ -287,9 +287,9 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
         lang->grammar = parse::parse_grammar(empty);
     }
 
-    if (suffix != ".") {
-        cache.emplace(suffix, lang);
-    }
+    // if (suffix != ".") {
+    //     cache.emplace(suffix, lang);
+    // }
     return lang;
 }
 

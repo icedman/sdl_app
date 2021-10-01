@@ -604,18 +604,15 @@ bool _move_cursor(cursor_t& cursor, int dir)
     if (!found)
         return false;
 
-    // printf("%d %d %d %d\n", ss.line, ss.line + dir, ss.start, pos);
-
     for (auto s : data->rendered_spans) {
         if (s.line == ss.line + dir) {
+            if (s.line == 0) s.line_x = s.start;
             if (pos >= s.line_x && pos < s.line_x + s.length) {
                 cursor.cursor.position = s.start + pos - s.line_x;
                 return true;
             }
         }
     }
-
-    printf("not!\n");
 
     return false;
 }

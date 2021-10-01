@@ -422,6 +422,7 @@ struct highlight_thread_t {
     editor_ptr editor;
     size_t start;
     size_t count;
+    bool done;
 };
 
 volatile int running_threads = 0;
@@ -454,19 +455,18 @@ void* highlightThread(void* arg)
 
     // log("start:%d count:%d\n", threadHl->start, threadHl->count);
 
-    int lighted = 0;
+    // int lighted = 0;
+    // for (int i = 0; i < threadHl->count; i += 1000) {
+    //     int c = 1000;
+    //     if (i + c > threadHl->count) {
+    //         c = threadHl->count - i;
+    //     }
+    //     lighted += editor->highlight(threadHl->start + i, c);
+    //     sleep(10);
+    // }
+    // threadHl->count = lighted;
 
-    for (int i = 0; i < threadHl->count; i += 1000) {
-        int c = 1000;
-        if (i + c > threadHl->count) {
-            c = threadHl->count - i;
-        }
-        lighted += editor->highlight(threadHl->start + i, c);
-        sleep(10);
-    }
-
-    threadHl->count = lighted;
-    // lighted = editor->highlight(threadHl->start, threadHl->count);
+    threadHl->count = editor->highlight(threadHl->start, threadHl->count);
 
     pthread_mutex_lock(&running_mutex);
     running_threads--;
@@ -478,19 +478,21 @@ void* highlightThread(void* arg)
 
 void highlighter_t::run(editor_t* _editor)
 {
-    if (_editor->document.blocks.size() <= 1) {
+    if (_editor->document.blocks.size() <= 20) {
         return;
     }
 
     this->editor = _editor;
 
-    log("lines: %d\n", editor->document.blocks.size());
-    int per_thread = 0.5f + (float)editor->document.blocks.size() / MAX_THREAD_COUNT;
+    size_t lines = editor->document.blocks.size();
+
+    log("lines: %d\n", lines);
+    int per_thread = (float)lines / MAX_THREAD_COUNT;
     if (per_thread < LINES_PER_THREAD) {
         per_thread = LINES_PER_THREAD;
     }
 
-    int thread_count = 0.5f + ((float)editor->document.blocks.size() / per_thread);
+    int thread_count = 0.5f + ((float)lines / per_thread);
     if (thread_count == 0) thread_count = 1;
 
     log("threads: %d per threads: %d\n", thread_count, per_thread);
@@ -502,7 +504,12 @@ void highlighter_t::run(editor_t* _editor)
     for (int i = 0; i < thread_count; i++) {
         editor_ptr editor = std::make_shared<editor_t>();
         editor->document.blocks = _editor->document.blocks;
+    
+        if (i % 8 == 0)
+        editor->highlighter.lang = language_from_file(_editor->document.fullPath, app_t::instance()->extensions);
+        else
         editor->highlighter.lang = _editor->highlighter.lang;
+
         editor->highlighter.theme = _editor->highlighter.theme;
 
         threads[i].index = i;
@@ -510,7 +517,12 @@ void highlighter_t::run(editor_t* _editor)
         threads[i].start = i * per_thread;
         threads[i].count = per_thread;
 
-        editor->highlight(threads[i].start, 10);
+        if (i + 1 == thread_count) {
+            size_t total = (i  + 1) * per_thread;
+            threads[i].count += (lines - total);
+        }
+
+        editor->highlight(threads[i].start, 4);
     }
 
     for (int i = 0; i < thread_count; i++) {
