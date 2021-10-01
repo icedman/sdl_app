@@ -223,16 +223,12 @@ std::vector<std::string> cursor_t::selectedTextArray()
     block_ptr block = start.block;
 
     while (block) {
-        // if (res != L"") {
-        //     res += L"\n";
-        // }
         std::wstring t = block->wideText();
         if (block == start.block) {
             t = t.substr(start.position);
         }
         if (block == end.block) {
             if (block == start.block) {
-                // std::cout << start.position << " - " << end.position << std::endl;
                 t = t.substr(0, end.position - start.position + 1);
             } else {
                 t = t.substr(0, end.position + 1);

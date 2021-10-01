@@ -14,6 +14,7 @@
 #include "operation.h"
 #include "search.h"
 #include "statusbar.h"
+#include "utf8.h"
 
 #include "button.h"
 #include "text.h"
@@ -42,6 +43,13 @@ struct sdl_backend_t : backend_t {
 
 int main(int argc, char** argv)
 {
+    // std::string tmp1 = "12345";
+    // std::string tmp2 = "1ȹ2ȹ3ȹ4ȹ5ȹ";
+    // printf("%d\n", utf8_length(tmp1));
+    // printf("%s\n", utf8_substr(tmp1, 1, 2).c_str());
+    // printf("%d\n", utf8_length(tmp2));
+    // printf("%s\n", utf8_substr(tmp2, 1, 2).c_str());
+
     sdl_backend_t backend;
     app_t app;
     keybinding_t keybinding;

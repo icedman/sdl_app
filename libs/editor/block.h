@@ -16,7 +16,6 @@ struct cursor_t;
 
 typedef std::shared_ptr<block_t> block_ptr;
 typedef std::vector<block_ptr> block_list;
-typedef std::wstring wide_string;
 
 enum block_state_e {
     BLOCK_STATE_UNKNOWN = 0,

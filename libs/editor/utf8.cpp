@@ -83,3 +83,40 @@ std::string wstring_to_utf8string(std::wstring text)
     }
     return res;
 }
+
+std::string utf8_substr(std::string &text, size_t start, size_t len)
+{
+    char *t = (char*)text.c_str();
+    char *p = t;
+    char *s = 0;
+    char *e = 0;
+    int cp;
+    
+    size_t idx = 0;
+    while (*p) {
+        unsigned cp;
+        if (idx == start) {
+            s = p;
+        }
+        p = (char*)utf8_to_codepoint(p, &cp);
+        idx++;
+        if (idx == start + len) {
+            e = p;
+        }
+
+        if (s && e) break;
+    }
+    return text.substr(s - t, e - s);
+}
+
+size_t utf8_length(std::string &text)
+{
+    char *p = (char*)text.c_str();
+    size_t idx = 0;
+    while (*p) {
+        unsigned cp;
+        p = (char*)utf8_to_codepoint(p, &cp);
+        idx++;
+    }
+    return idx;
+}
