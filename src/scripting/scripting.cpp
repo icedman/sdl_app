@@ -3,30 +3,10 @@
 
 #include <iostream>
 
-extern "C" {
-#include "quickjs-libc.h"
-#include "quickjs.h"
-}
+#include "js_app.h"
 
 static JSRuntime* rt = 0;
 static JSContext* ctx = 0;
-static JSValue global_app;
-
-static JSValue js_log(JSContext* ctx, JSValueConst this_val,
-    int argc, JSValueConst* argv)
-{
-    int i;
-    const char* str;
-
-    for (i = 0; i < argc; i++) {
-        str = JS_ToCString(ctx, argv[i]);
-        if (!str)
-            return JS_EXCEPTION;
-        app_t::log("%s", str);
-        JS_FreeCString(ctx, str);
-    }
-    return JS_UNDEFINED;
-}
 
 /* also used to initialize the worker context */
 static JSContext* JS_NewCustomContext(JSRuntime* rt)
@@ -63,12 +43,7 @@ bool Scripting::init()
     /* loader for ES6 modules */
     JS_SetModuleLoaderFunc(rt, NULL, js_module_loader, NULL);
 
-    JSValue global_obj = JS_GetGlobalObject(ctx);
-
-    global_app = JS_NewObject(ctx);
-    JS_SetPropertyStr(ctx, global_app, "log", JS_NewCFunction(ctx, js_log, "log", 1));
-    JS_SetPropertyStr(ctx, global_obj, "app", global_app);
-    JS_FreeValue(ctx, global_obj);
+    JSApp_Init(ctx);
 
     JSValue ret;
 

@@ -34,6 +34,7 @@ struct document_t {
     std::string filePath;
     std::string fileName;
     std::string fullPath;
+    std::string tempFileFullPath;
     bool binary;
 
     std::vector<std::string> tmpPaths;
@@ -68,6 +69,8 @@ struct document_t {
     void updateBlocks(block_list& blocks, size_t lineNumber = 0, size_t count = 0);
     void setColumns(int cols);
     void setRows(int rows);
+
+    bool lineNumberingIntegrity();
 };
 
 #endif // DOCUMENT_H

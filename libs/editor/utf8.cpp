@@ -1,7 +1,7 @@
 #include "utf8.h"
 
-#include <codecvt>
-#include <locale>
+// #include <codecvt>
+// #include <locale>
 
 const char* utf8_to_codepoint(const char* p, unsigned* dst)
 {
@@ -81,6 +81,5 @@ std::string wstring_to_utf8string(std::wstring text)
         codepoint_to_utf8(c, (char*)tmp);
         res += tmp;
     }
-
     return res;
 }

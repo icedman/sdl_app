@@ -129,7 +129,8 @@ scripting_inc = [
 ]
 
 scripting_files = [
-    'src/scripting/scripting.cpp'
+    'src/scripting/scripting.cpp',
+    'src/scripting/js_app.cpp'
 ]
 
 tmparser_lib = static_library('tmparser',

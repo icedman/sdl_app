@@ -217,6 +217,7 @@ bool document_t::open(std::string path, bool enableBuffer)
 
     // reopen from tmp
     file = std::ifstream(tmpPath, std::ifstream::in);
+    tempFileFullPath = tmpPath;
 
     std::set<char> delims = { '\\', '/' };
     std::vector<std::string> spath = split_path(filePath, delims);
@@ -492,4 +493,14 @@ void document_t::setColumns(int c)
 void document_t::setRows(int r)
 {
     rows = r;
+}
+
+bool document_t::lineNumberingIntegrity()
+{
+    for(int i=0;i<blocks.size();i++) {
+        if (blocks[i]->lineNumber != i) {
+            return false;
+        }
+    }
+    return true;
 }

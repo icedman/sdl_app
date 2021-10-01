@@ -92,6 +92,8 @@ struct block_t {
     std::string content;
     std::wstring wcontent;
     std::ifstream* file;
+    std::ifstream* tmpFile;
+
     size_t filePosition;
     bool dirty;
 
@@ -116,6 +118,7 @@ struct block_t {
     // rendered block position
     int x;
     int y;
+    int columns;
 
     size_t uid;
 };

@@ -37,6 +37,7 @@ block_t::block_t()
     , cachedLength(0)
     , x(-1)
     , y(-1)
+    , columns(0)
 {
     uid = blockUID++;
     blocksCreated++;
@@ -76,7 +77,27 @@ std::wstring block_t::wideText()
         return wcontent;
     }
 
+#if 0
     setText(text());
+#else
+   if (file) {
+        file->seekg(filePosition, file->beg);
+        size_t pos = file->tellg();
+        std::string line;
+        if (std::getline(*file, line)) {
+
+            std::wstring res;
+            char* p = (char*)line.c_str();
+            while (*p) {
+                unsigned cp;
+                p = (char*)utf8_to_codepoint(p, &cp);
+                res += (wchar_t)cp;
+            }
+
+            return res;
+        }
+    }
+#endif
 
     return wcontent;
 }
@@ -104,7 +125,6 @@ void block_t::setText(std::string t)
     while (*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
-        // wchar_t wc[2] = { (wchar_t)cp, 0 };
         wcontent += (wchar_t)cp;
     }
 
@@ -208,7 +228,13 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
         return spans;
     }
 
+    if (data->rendered_spans.size() && cols == columns) {
+        return data->rendered_spans;
+    }
+
+
     std::string text = this->text() + " ";
+    columns = cols;
 
     std::vector<span_info_t> source_spans = data->spans;
 

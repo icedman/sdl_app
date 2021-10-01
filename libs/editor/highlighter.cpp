@@ -12,7 +12,7 @@
 
 #define LINE_LENGTH_LIMIT 500
 #define MAX_THREAD_COUNT 32
-#define LINES_PER_THREAD 1000
+#define LINES_PER_THREAD 400
 
 highlighter_t::highlighter_t()
     : editor(0)
@@ -135,6 +135,7 @@ int highlighter_t::highlightBlock(block_ptr block)
     std::map<size_t, scope::scope_t> scopes;
     // blockData->scopes.clear();
     blockData->spans.clear();
+    blockData->rendered_spans.clear();
 
     const char* first = str.c_str();
     const char* last = first + text.length() + 1;
@@ -488,8 +489,6 @@ void highlighter_t::run(editor_t* _editor)
 
     this->editor = _editor;
 
-    backend_t::instance()->ticks();
-
     log("lines: %d\n", editor->document.blocks.size());
     int per_thread = 0.5f + (float)editor->document.blocks.size() / MAX_THREAD_COUNT;
     if (per_thread < LINES_PER_THREAD) {
@@ -497,18 +496,12 @@ void highlighter_t::run(editor_t* _editor)
     }
 
     int thread_count = 0.5f + ((float)editor->document.blocks.size() / per_thread);
-
-    if (thread_count == 0 || thread_count * per_thread < 1000) {
-        block_ptr b = editor->document.firstBlock();
-        while (b) {
-            editor->highlighter.highlightBlock(b);
-            b = b->next();
-        }
-        return;
-    }
+    if (thread_count == 0) thread_count = 1;
 
     log("threads: %d per threads: %d\n", thread_count, per_thread);
 
+    backend_t::instance()->ticks();
+    
     running_threads = 0;
 
     for (int i = 0; i < thread_count; i++) {
@@ -541,7 +534,6 @@ void highlighter_t::run(editor_t* _editor)
         editor->document.blockAtLine(threads[i].start)->data->dirty = true;
         editor->highlight(threads[i].start, 10);
     }
-
 
     log("whole document highlighting done in %fs\n", (float)backend_t::instance()->ticks() / 1000);
 }

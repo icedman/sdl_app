@@ -21,9 +21,22 @@ minimap_view::minimap_view()
 
     spacing = 2;
 
-    on(EVT_MOUSE_DRAG, [this](event_t e) {
-        e.cancelled = true;
-        return this->mouse_click(e.x, e.y, e.button);
+    // on(EVT_MOUSE_DRAG, [this](event_t e) {
+        // e.cancelled = true;
+        // return this->mouse_click(e.x, e.y, e.button);
+    // });
+
+    on(EVT_MOUSE_DRAG_START, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->scrollbar->mouse_drag_start(evt.x, evt.y);
+    });
+    on(EVT_MOUSE_DRAG, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->scrollbar->mouse_drag(evt.x, evt.y);
+    });
+    on(EVT_MOUSE_DRAG_END, [this](event_t& evt) {
+        evt.cancelled = true;
+        return this->scrollbar->mouse_drag_end(evt.x, evt.y);
     });
 
     on(EVT_MOUSE_CLICK, [this](event_t e) {

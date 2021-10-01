@@ -344,6 +344,8 @@ editor_view::editor_view()
     v_scroll->layout()->order = 4;
     layout_sort(container->layout());
 
+    view_item::cast<minimap_view>(minimap)->scrollbar = v_scroll;
+
     content()->layout()->stack = true;
 
     if (Renderer::instance()->is_terminal()) {
@@ -422,32 +424,12 @@ void editor_view::update(int millis)
 
     panel_view::update(millis);
 
-    // block_list::iterator it = doc->blocks.begin();
-
-    // int view_height = rows;
-    // int hl_prior = 16;
-    // int hl_start = start_row - hl_prior;
-    // int hl_length = view_height + hl_prior * 2;
-
-    // if (hl_start < 0)
-    //     hl_start = 0;
-    // it += hl_start;
-
-    // for (int i = 0; i < hl_length && it != doc->blocks.end(); i++) {
-    //     block_ptr b = *it++;
-    //     if (!b->data || b->data->dirty) {
-    //         editor->highlighter.highlightBlock(b);
-    //     }
-    // }
-
     editor->matchBracketsUnderCursor();
 }
 
 void editor_view::prelayout()
 {
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
-    // scrollbar_view *vs = view_item::cast<scrollbar_view>(v_scroll);
-    // scrollbar_view *hs = view_item::cast<scrollbar_view>(h_scroll);
 
     int fw, fh;
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
@@ -595,6 +577,7 @@ bool editor_view::input_text(std::string text)
     if (!editor->singleLineEdit) {
         view_item::cast<completer_view>(completer)->show_completer(editor);
     }
+
     return true;
 }
 
@@ -604,17 +587,6 @@ bool _move_cursor(cursor_t& cursor, int dir)
     blockdata_ptr data = block->data;
 
     if (!data) return false;
-
-    // if (!data) {
-    //     block->data = std::make_shared<blockdata_t>();
-    //     block->data->dirty = true;
-    //     data = block->data;
-
-    //     data->rendered_spans = block->layoutSpan(
-    //         block->document->columns,
-    //         block->document->wrap,
-    //         block->document->wrapIndent);
-    // }
 
     // find span
     bool found = false;
@@ -637,8 +609,9 @@ bool _move_cursor(cursor_t& cursor, int dir)
     if (!found)
         return false;
 
-    for (auto s : data->rendered_spans) {
+    // printf("%d %d %d %d\n", ss.line, ss.line + dir, ss.start, pos);
 
+    for (auto s : data->rendered_spans) {
         if (s.line == ss.line + dir) {
             if (pos >= s.line_x && pos < s.line_x + s.length) {
                 cursor.cursor.position = s.start + pos - s.line_x;
@@ -646,6 +619,8 @@ bool _move_cursor(cursor_t& cursor, int dir)
             }
         }
     }
+
+    printf("not!\n");
 
     return false;
 }
@@ -676,7 +651,7 @@ bool editor_view::input_sequence(std::string text)
         return false;
     }
 
-
+    // navigate wrapped lines
     switch (op) {
         case MOVE_CURSOR_UP:
         case MOVE_CURSOR_DOWN: {
@@ -705,22 +680,36 @@ bool editor_view::input_sequence(std::string text)
     }
 
     switch (op) {
+    case UNDO:
     case CUT:
     case PASTE:
+        Renderer::instance()->throttle_up_events();
+        break;
+
     case MOVE_CURSOR_NEXT_PAGE:
     case MOVE_CURSOR_PREVIOUS_PAGE:
         Renderer::instance()->throttle_up_events();
         break;
-    case UNDO: {
-        // Renderer::instance()->throttle_up_events();
-        // re-highlight (while highlight thread is sleeping)
-        // if (start_row >= editor->document.blocks.size()) {
-        //     start_row = editor->document.blocks.size() - 1;
-        // }
-        // editor->highlight(start_row, rows);
+    }
+
+#if 0
+    switch (op) {
+    case UNDO:
+    case CUT:
+    case PASTE:
+    case ENTER:
+    case BACKSPACE:
+    case DELETE:
+    case DUPLICATE_LINE:
+    case DUPLICATE_SELECTION:
+    case DELETE_SELECTION:
+    case INSERT:
+        if (!editor->document.lineNumberingIntegrity()) {
+            printf("line numbering problem!!!\n");
+        }
         break;
     }
-    }
+#endif
 
     return true;
 }

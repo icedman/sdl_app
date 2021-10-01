@@ -1,6 +1,11 @@
 #ifndef SCRIPTING_H
 #define SCRIPTING_H
 
+extern "C" {
+#include "quickjs-libc.h"
+#include "quickjs.h"
+}
+
 #include <string>
 
 struct Scripting {

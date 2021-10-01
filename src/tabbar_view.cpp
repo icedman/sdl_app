@@ -51,7 +51,7 @@ void app_tabbar_view::update(int millis)
     for (auto f : app->editors) {
         list_item_data_t item = {
             icon : "",
-            text : f->document.fileName.length() ? f->document.fileName : "untitled",
+            text : "  " + (f->document.fileName.length() ? f->document.fileName : "untitled") + "  ",
             indent : 0,
             data : f.get(),
             value : f->document.fullPath

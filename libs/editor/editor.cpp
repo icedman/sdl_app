@@ -2,7 +2,7 @@
 #include "indexer.h"
 #include "util.h"
 
-// clipboard
+#include "backend.h"
 #include "app.h"
 
 #include <algorithm>
@@ -130,7 +130,7 @@ void editor_t::runOp(operation_t op)
         operations.clear();
         return;
     case OPEN:
-        document.open(strParam, false);
+        document.open(strParam, true);
         highlighter.run(this);
         createSnapshot();
         return;

@@ -15,6 +15,8 @@ struct minimap_view : view_item {
     void buildUpDotsForBlock(block_ptr block, float textCompress, int bufferWidth);
     void render_terminal();
 
+    view_item_ptr scrollbar;
+
     int scroll_y;
     int spacing;
 
