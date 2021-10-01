@@ -289,9 +289,15 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
             glyph = set[*p];
         } else {
             glyph = font->utf8[*p];
-            if (glyph.cp != *p && *p < 32768) {
+            if (glyph.cp != *p) {
                 char u[3];
-                codepoint_to_utf8(*p, u);
+
+                if (codepoint_to_utf8(*p, u) == 0) {
+                    i++;
+                    p++;
+                    continue;
+                }
+
                 font->utf8[*p] = bake_glyph(font, u);
                 glyph = set[*p];
             }
@@ -310,47 +316,8 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
-    items_drawn++;
-
-    if (!font) {
-        font = Renderer::instance()->get_default_font();
-    }
-    int length = strlen(text);
-    bool shear = false;
-
-    cairo_t* cairo_context = ren_context();
-
-    GlyphSet* set = font->regular;
-
-    char* p = (char*)text;
-
-    int i = 0;
-    while (*p) {
-        unsigned cp;
-        p = (char*)utf8_to_codepoint(p, &cp);
-        clr.a = 0;
-
-        GlyphSet glyph;
-        if (cp < MAX_GLYPHSET) {
-            glyph = set[cp];
-        } else {
-            glyph = font->utf8[cp];
-            if (glyph.cp != cp && cp < 32768) {
-                char u[3];
-                codepoint_to_utf8(cp, u);
-                font->utf8[cp] = bake_glyph(font, u);
-                glyph = set[cp];
-            }
-        }
-
-        if (glyph.cp == cp && glyph.image) {
-            draw_char_image(glyph.image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2), y + (font->font_height / 2) - (glyph.ch / 2), glyph.cw + 1, glyph.ch }, clr, italic);
-        }
-
-        i++;
-    }
-
-    return x;
+    std::wstring w = utf8string_to_wstring(text);
+    draw_wtext(font, w.c_str(), x, y, clr, bold, italic, underline);
 }
 
 void Renderer::register_font(char* path)

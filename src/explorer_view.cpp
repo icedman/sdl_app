@@ -34,7 +34,7 @@ void explorer_view::update(int millis)
 
     bool hasChanges = explorer->regenerateList;
 
-    if (!Renderer::instance()->is_throttle_up_events()) {
+    if (!Renderer::instance()->is_throttle_up_events() || !data.size()) {
         explorer->update(millis); // did change?
     }
 

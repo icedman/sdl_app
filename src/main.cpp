@@ -1,10 +1,10 @@
 // printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);// printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
 
+#include "animation.h"
 #include "events.h"
 #include "layout.h"
 #include "renderer.h"
 #include "scripting.h"
-#include "animation.h"
 #include "tests.h"
 
 #include "app.h"
@@ -43,13 +43,6 @@ struct sdl_backend_t : backend_t {
 
 int main(int argc, char** argv)
 {
-    // std::string tmp1 = "12345";
-    // std::string tmp2 = "1ȹ2ȹ3ȹ4ȹ5ȹ";
-    // printf("%d\n", utf8_length(tmp1));
-    // printf("%s\n", utf8_substr(tmp1, 1, 2).c_str());
-    // printf("%d\n", utf8_length(tmp2));
-    // printf("%s\n", utf8_substr(tmp2, 1, 2).c_str());
-
     sdl_backend_t backend;
     app_t app;
     keybinding_t keybinding;

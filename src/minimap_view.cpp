@@ -22,8 +22,8 @@ minimap_view::minimap_view()
     spacing = 2;
 
     // on(EVT_MOUSE_DRAG, [this](event_t e) {
-        // e.cancelled = true;
-        // return this->mouse_click(e.x, e.y, e.button);
+    // e.cancelled = true;
+    // return this->mouse_click(e.x, e.y, e.button);
     // });
 
     on(EVT_MOUSE_DRAG_START, [this](event_t& evt) {

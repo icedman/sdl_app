@@ -18,7 +18,6 @@ static JSValue js_log(JSContext* ctx, JSValueConst this_val,
     return JS_UNDEFINED;
 }
 
-
 JSValue JSApp_Init(JSContext* ctx)
 {
     JSValue global_obj = JS_GetGlobalObject(ctx);

@@ -49,10 +49,9 @@ block_t::~block_t()
 std::string block_t::text()
 {
     if (dirty) {
-        return content;
+        // ... 
     }
-
-    return "";
+    return content;
 }
 
 void block_t::setText(std::string t)

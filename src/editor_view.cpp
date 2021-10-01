@@ -8,8 +8,8 @@
 #include "renderer.h"
 #include "search.h"
 #include "style.h"
-#include "view.h"
 #include "utf8.h"
+#include "view.h"
 
 #include "scrollbar.h"
 #include <unistd.h>
@@ -277,7 +277,7 @@ void editor_view::render()
                                                 fh },
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
 #endif
-            
+
             Renderer::instance()->draw_text(_font, span_text.c_str(),
                 s.x,
                 s.y,
@@ -581,7 +581,8 @@ bool _move_cursor(cursor_t& cursor, int dir)
     block_ptr block = cursor.block();
     blockdata_ptr data = block->data;
 
-    if (!data) return false;
+    if (!data)
+        return false;
 
     // find span
     bool found = false;
@@ -606,7 +607,8 @@ bool _move_cursor(cursor_t& cursor, int dir)
 
     for (auto s : data->rendered_spans) {
         if (s.line == ss.line + dir) {
-            if (s.line == 0) s.line_x = s.start;
+            if (s.line == 0)
+                s.line_x = s.start;
             if (pos >= s.line_x && pos < s.line_x + s.length) {
                 cursor.cursor.position = s.start + pos - s.line_x;
                 return true;
@@ -616,7 +618,6 @@ bool _move_cursor(cursor_t& cursor, int dir)
 
     return false;
 }
-
 
 bool editor_view::input_sequence(std::string text)
 {
@@ -645,23 +646,22 @@ bool editor_view::input_sequence(std::string text)
 
     // navigate wrapped lines
     switch (op) {
-        case MOVE_CURSOR_UP:
-        case MOVE_CURSOR_DOWN: {
-            cursor_t cursor = editor->document.cursor();
-            block_ptr block = cursor.block();
-            if (block->lineCount > 1) {
-                if (_move_cursor(cursor, op == MOVE_CURSOR_UP ? -1 : 1)) {
-                    text = ""; 
-                    std::ostringstream ss;
-                    ss << (block->lineNumber + 1);
-                    ss << ":";
-                    ss << cursor.position();
-                    int mods = Renderer::instance()->key_mods();
-                    editor->pushOp((mods & K_MOD_CTRL) ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
-                }
+    case MOVE_CURSOR_UP:
+    case MOVE_CURSOR_DOWN: {
+        cursor_t cursor = editor->document.cursor();
+        block_ptr block = cursor.block();
+        if (block->lineCount > 1) {
+            if (_move_cursor(cursor, op == MOVE_CURSOR_UP ? -1 : 1)) {
+                text = "";
+                std::ostringstream ss;
+                ss << (block->lineNumber + 1);
+                ss << ":";
+                ss << cursor.position();
+                int mods = Renderer::instance()->key_mods();
+                editor->pushOp((mods & K_MOD_CTRL) ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
             }
         }
-        break;
+    } break;
     }
 
     editor->input(-1, text);

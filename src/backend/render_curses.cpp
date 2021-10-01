@@ -855,7 +855,6 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
         attron(COLOR_PAIR(pair));
 
         wchar_t s[2] = { *p, 0 };
-        // const wchar_t s[] = { 128193, L' ', 128194, L' ', 128196, L' ', 0 };
         if (s[0] != L'\n' && s[0] != L'\t') {
             addwstr((wchar_t*)s);
         }
@@ -877,52 +876,8 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
-    int clr_index = clr.a ? clr.a : -1;
-
-    if (bold) {
-        attron(A_BOLD);
-    }
-
-    char* p = (char*)text;
-
-    int pair = 0;
-    int i = 0;
-    while (*p) {
-        unsigned cp;
-        p = (char*)utf8_to_codepoint(p, &cp);
-
-        if (is_clipped(x + i, y)) {
-            i++;
-            continue;
-        }
-
-        move(y, x + i);
-        int bg = screen_meta[x + i + y * bg_w].bg;
-        int ul = screen_meta[x + i + y * bg_w].underline;
-        pair = pair_for_colors(clr_index, bg && bg != clr_index ? bg : -1);
-        if (bg == clr_index) {
-            attron(A_REVERSE);
-        }
-        if (ul || underline) {
-            attron(A_UNDERLINE);
-        }
-        attron(COLOR_PAIR(pair));
-
-        if (isprint(cp & 0xff)) {
-            addch(cp & 0xff);
-        }
-
-        attroff(A_UNDERLINE);
-        attroff(A_REVERSE);
-        attroff(COLOR_PAIR(pair));
-        i++;
-    }
-
-    attroff(A_UNDERLINE);
-    attroff(A_BOLD);
-
-    // app_t::log(">%d %d %s", clr.a, pair, text);
-    return 0;
+    std::wstring w = utf8string_to_wstring(text);
+    draw_wtext(font, w.c_str(), x, y, clr, bold, italic, underline);
 }
 
 int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
