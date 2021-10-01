@@ -1,8 +1,5 @@
 #include "utf8.h"
 
-// #include <codecvt>
-// #include <locale>
-
 const char* utf8_to_codepoint(const char* p, unsigned* dst)
 {
     unsigned res, n;
@@ -96,6 +93,10 @@ std::wstring utf8string_to_wstring(std::string text)
 
 std::string utf8_substr(std::string &text, size_t pos, size_t len)
 {
+    if (len == 0) {
+        return "";
+    }
+    
     char *t = (char*)text.c_str();
     char *p = t;
     char *s = 0;

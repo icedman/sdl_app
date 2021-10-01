@@ -310,10 +310,6 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
-    // std::string tmp = text;
-    // std::wstring wtmp = utf8string_to_wstring(tmp);
-    // return draw_wtext(font, wtmp.c_str(), x, y, clr, bold, italic, underline);
-
     items_drawn++;
 
     if (!font) {

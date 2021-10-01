@@ -600,7 +600,7 @@ bool cursor_t::insertText(std::string t)
 bool cursor_t::eraseText(int count)
 {
     std::string blockText = block()->text();
-    if (cursor.position < blockText.length()) {
+    if (cursor.position < block()->length()) {
         utf8_erase(blockText, cursor.position, count);
     }
 
@@ -613,7 +613,7 @@ bool cursor_t::splitLine()
     std::string blockText = block()->text();
     std::string nextText;
 
-    if (position() < blockText.length()) {
+    if (position() < block()->length()) {
         nextText = utf8_substr(blockText, position());
     }
 

@@ -11,10 +11,6 @@
 
 #include <unistd.h>
 
-// 20K
-// beyond this threshold, paste will use an additional file buffer
-#define SIMPLE_PASTE_THRESHOLD 20000
-
 editor_t::editor_t()
     : view(0)
     , indexer(0)
