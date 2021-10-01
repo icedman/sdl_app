@@ -9,8 +9,6 @@ void snapshot_t::save(block_list& blocks)
         b->uid = block->uid;
         b->document = block->document;
         b->originalLineNumber = block->originalLineNumber;
-        b->file = block->file;
-        b->filePosition = block->filePosition;
         b->lineNumber = block->lineNumber;
         b->lineCount = block->lineCount;
         b->dirty = block->dirty;
@@ -41,8 +39,6 @@ void snapshot_t::restore(block_list& blocks)
         b->uid = block->uid;
         b->document = block->document;
         b->originalLineNumber = block->originalLineNumber;
-        b->file = block->file;
-        b->filePosition = block->filePosition;
         b->lineNumber = block->lineNumber;
         b->lineCount = block->lineCount;
         b->dirty = block->dirty;

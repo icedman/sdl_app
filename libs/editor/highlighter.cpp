@@ -478,6 +478,7 @@ void* highlightThread(void* arg)
 
 void highlighter_t::run(editor_t* _editor)
 {
+#if 0
     if (_editor->document.blocks.size() <= 20) {
         return;
     }
@@ -543,4 +544,5 @@ void highlighter_t::run(editor_t* _editor)
     }
 
     log("whole document highlighting done in %fs\n", (float)backend_t::instance()->ticks() / 1000);
+#endif
 }

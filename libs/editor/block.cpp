@@ -28,8 +28,6 @@ blockdata_t::~blockdata_t()
 
 block_t::block_t()
     : document(0)
-    , file(0)
-    , filePosition(0)
     , lineNumber(0)
     , lineCount(0)
     , data(0)
@@ -52,15 +50,6 @@ std::string block_t::text()
 {
     if (dirty) {
         return content;
-    }
-
-    if (file) {
-        file->seekg(filePosition, file->beg);
-        size_t pos = file->tellg();
-        std::string line;
-        if (std::getline(*file, line)) {
-            return line;
-        }
     }
 
     return "";

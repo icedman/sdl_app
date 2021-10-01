@@ -87,10 +87,6 @@ struct block_t {
     int lineHeight;
 
     std::string content;
-    std::ifstream* file;
-    std::ifstream* tmpFile;
-
-    size_t filePosition;
     bool dirty;
 
     std::string text();

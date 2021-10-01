@@ -31,6 +31,8 @@ document_t::~document_t()
     cursors.clear();
     blocks.clear();
 
+    // delete all tmpPaths
+
     // for (auto& b : blocks) {
     // std::cout << ":<<" << b.use_count() << std::endl;
     // }
@@ -134,7 +136,7 @@ std::string _tabsToSpaces(std::string line)
 
 bool document_t::open(std::string path, bool enableBuffer)
 {
-    // file buffer mode doesn't work well with threaded highlighting
+    // file buffer mode doesn't work well with threaded highlighting & indexing
     enableBuffer = false;
 
     std::set<char> delims_ext = { '.' };
@@ -155,10 +157,6 @@ bool document_t::open(std::string path, bool enableBuffer)
     mkstemp((char*)tmpPath.c_str());
 
     file = std::ifstream(path, std::ifstream::in);
-    std::ofstream tmp;
-    if (enableBuffer) {
-        tmp = std::ofstream(tmpPath, std::ofstream::out);
-    }
 
     std::string line;
     size_t offset = 0;
@@ -175,9 +173,6 @@ bool document_t::open(std::string path, bool enableBuffer)
         // b->uid = blockId++;
         b->document = this;
         b->originalLineNumber = lineNo++;
-
-        b->file = &file;
-        b->filePosition = pos;
 
         //--------------------------
         b->lineNumber = b->originalLineNumber;
@@ -200,26 +195,11 @@ bool document_t::open(std::string path, bool enableBuffer)
         pos = file.tellg();
         pos -= offset;
 
-        if (enableBuffer) {
-            tmp << line << std::endl;
-        } else {
-            b->setText(line);
-        }
-    }
-
-    if (enableBuffer) {
-        tmp.close();
+        b->setText(line);
     }
 
     if (!blocks.size()) {
         addBlockAtLine(0);
-    }
-
-    // reopen from tmp
-    if (enableBuffer) {
-        file = std::ifstream(tmpPath, std::ifstream::in);
-        tempFileFullPath = tmpPath;
-        tmpPaths.push_back(tmpPath);
     }
 
     std::set<char> delims = { '\\', '/' };
@@ -440,49 +420,6 @@ cursor_t document_t::findNextOccurence(cursor_t cur, std::string word)
         block = block->next();
     }
     return cursor_t();
-}
-
-void document_t::addBufferDocument(const std::string& largeText)
-{
-    std::string tmpPath = TMP_PASTE;
-    mkstemp((char*)tmpPath.c_str());
-
-    log(tmpPath.c_str());
-
-    std::ofstream tmp(tmpPath, std::ofstream::out);
-    tmp << largeText;
-    tmp.close();
-
-    std::shared_ptr<document_t> doc = std::make_shared<document_t>();
-    doc->open(tmpPath.c_str());
-    buffers.emplace_back(doc);
-
-    tmpPaths.push_back(tmpPath);
-}
-
-void document_t::insertFromBuffer(struct cursor_t& cursor, std::shared_ptr<document_t> buffer)
-{
-    std::vector<block_ptr> bufferBlocks;
-    size_t ln = cursor.block()->lineNumber;
-    for (auto bb : buffer->blocks) {
-
-        block_ptr b = std::make_shared<block_t>();
-
-        b->document = this;
-        b->originalLineNumber = 0;
-        b->file = bb->file;
-        b->filePosition = bb->filePosition;
-        b->lineNumber = 0;
-        b->lineCount = 1;
-        b->dirty = false;
-        b->content = "";
-        b->data = nullptr;
-
-        bufferBlocks.push_back(b);
-    }
-
-    blocks.insert(blocks.begin() + ln, make_move_iterator(bufferBlocks.begin()), make_move_iterator(bufferBlocks.end()));
-    updateBlocks(blocks, ln > 0 ? ln - 1 : ln);
 }
 
 void document_t::setColumns(int c)

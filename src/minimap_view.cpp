@@ -89,15 +89,6 @@ void minimap_view::update(int millis)
         start_row = 0;
     }
 
-    int idx = start_row;
-    it += idx;
-    while (it != doc->blocks.end() && idx++ < end_row) {
-        block_ptr block = *it++;
-        if (!block->data || block->data->dirty) {
-            // editor->highlighter.requestHighlightBlock(block);
-        }
-    }
-
     int d = render_y - sliding_y;
     if (d * d > 4) {
         sliding_y += (float)d / 200;
@@ -166,14 +157,11 @@ void minimap_view::render()
         block_ptr block = *it;
         it++;
 
-        blockdata_ptr blockData = block->data;
-
-        if (!blockData && block->originalLineNumber < snapBlocks.size()) {
-            block_ptr sb = snapBlocks[block->originalLineNumber];
-            if (sb->data && !sb->data->dirty) {
-                blockData = sb->data;
-            }
+        if (!block->data || block->data->dirty) {
+            editor->highlighter.highlightBlock(block);
         }
+
+        blockdata_ptr blockData = block->data;
 
         uint8_t alpha = 80;
         if (block == current_block) {

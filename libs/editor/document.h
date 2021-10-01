@@ -37,8 +37,6 @@ struct document_t {
     std::string tempFileFullPath;
     bool binary;
 
-    std::vector<std::string> tmpPaths;
-
     cursor_t cursor();
     void addCursor(cursor_t cur);
     void setCursor(cursor_t cur, bool mainCursor = false);
@@ -61,10 +59,6 @@ struct document_t {
     int wrapIndent;
 
     bool windowsLineEnd;
-
-    void addBufferDocument(const std::string& largeText);
-    void insertFromBuffer(struct cursor_t& cursor, std::shared_ptr<document_t> buffer);
-    std::vector<std::shared_ptr<document_t>> buffers;
 
     void updateBlocks(block_list& blocks, size_t lineNumber = 0, size_t count = 0);
     void setColumns(int cols);

@@ -66,8 +66,9 @@ void indexer_t::_updateBlock(block_ptr block)
         return;
     }
 
-    std::string text = block->text().substr(0, INDEXED_LINE_LENGTH_LIMIT);
+    if (!block->content.length()) return;
 
+    std::string text = block->text().substr(0, INDEXED_LINE_LENGTH_LIMIT);
     if (text.length() < 4) {
         return;
     }
