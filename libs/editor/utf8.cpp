@@ -72,9 +72,6 @@ int codepoint_to_utf8(uint32_t utf, char* out)
 
 std::string wstring_to_utf8string(std::wstring text)
 {
-    // std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
-    // return utf8_conv.to_bytes(text.c_str());
-
     std::string res;
     for (auto c : text) {
         char tmp[5];
@@ -84,29 +81,95 @@ std::string wstring_to_utf8string(std::wstring text)
     return res;
 }
 
-std::string utf8_substr(std::string &text, size_t start, size_t len)
+std::wstring utf8string_to_wstring(std::string text)
+{
+    std::wstring res;
+    char *p = (char*)text.c_str();
+    while (*p) {
+        unsigned cp;
+        p = (char*)utf8_to_codepoint(p, &cp);
+        res += (wchar_t)cp;
+    }
+    
+    return res;
+}
+
+std::string utf8_substr(std::string &text, size_t pos, size_t len)
 {
     char *t = (char*)text.c_str();
     char *p = t;
     char *s = 0;
     char *e = 0;
-    int cp;
+    unsigned cp;
     
     size_t idx = 0;
     while (*p) {
         unsigned cp;
-        if (idx == start) {
+        if (idx == pos) {
             s = p;
         }
         p = (char*)utf8_to_codepoint(p, &cp);
         idx++;
-        if (idx == start + len) {
+        if (idx == pos + len) {
             e = p;
         }
 
         if (s && e) break;
     }
+
+    if (!s) s = p;
+    if (!e) e = p;
     return text.substr(s - t, e - s);
+}
+
+std::string utf8_insert(std::string &text, size_t pos, std::string &str)
+{
+    char *t = (char*)text.c_str();
+    char *p = t;
+    char *s = 0;
+    unsigned cp;
+    
+    size_t idx = 0;
+    while (*p) {
+        unsigned cp;
+        if (idx == pos) {
+            s = p;
+        }
+        p = (char*)utf8_to_codepoint(p, &cp);
+        idx++;
+        if (s) break;
+    }
+
+    if (!s) s = p;
+    return text.insert(s - t, str);
+}
+
+std::string utf8_erase(std::string &text, size_t pos, size_t len)
+{
+    char *t = (char*)text.c_str();
+    char *p = t;
+    char *s = 0;
+    char *e = 0;
+    unsigned cp;
+    
+    size_t idx = 0;
+    while (*p) {
+        unsigned cp;
+        if (idx == pos) {
+            s = p;
+        }
+        p = (char*)utf8_to_codepoint(p, &cp);
+        idx++;
+        if (idx == pos + len) {
+            e = p;
+        }
+
+        if (s && e) break;
+    }
+
+    if (!s) s = p;
+    if (!e) e = p;
+    return text.erase(s - t, e - s);
 }
 
 size_t utf8_length(std::string &text)

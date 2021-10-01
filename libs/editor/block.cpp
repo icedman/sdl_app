@@ -51,11 +51,6 @@ block_t::~block_t()
 std::string block_t::text()
 {
     if (dirty) {
-        if (!content.length() && wcontent.length()) {
-            for (auto wc : wcontent) {
-                content += (char)(wc & 0xff);
-            }
-        }
         return content;
     }
 
@@ -71,72 +66,10 @@ std::string block_t::text()
     return "";
 }
 
-std::wstring block_t::wideText()
-{
-    if (dirty) {
-        return wcontent;
-    }
-
-#if 0
-    setText(text());
-#else
-   if (file) {
-        file->seekg(filePosition, file->beg);
-        size_t pos = file->tellg();
-        std::string line;
-        if (std::getline(*file, line)) {
-
-            std::wstring res;
-            char* p = (char*)line.c_str();
-            while (*p) {
-                unsigned cp;
-                p = (char*)utf8_to_codepoint(p, &cp);
-                res += (wchar_t)cp;
-            }
-
-            return res;
-        }
-    }
-#endif
-
-    return wcontent;
-}
-
-std::string block_t::utf8Text()
-{
-    return wstring_to_utf8string(wideText());
-}
-
 void block_t::setText(std::string t)
 {
     dirty = true;
-
-    content = "";
-    wcontent = L"";
-
-    if (data) {
-        data->dirty = true;
-        // if (data->folded && data->foldable) {
-        //     document->editor->toggleFold(lineNumber);
-        // }
-    }
-
-    char* p = (char*)t.c_str();
-    while (*p) {
-        unsigned cp;
-        p = (char*)utf8_to_codepoint(p, &cp);
-        wcontent += (wchar_t)cp;
-    }
-
-    cachedLength = 0;
-}
-
-void block_t::setWText(std::wstring t)
-{
-    dirty = true;
-
-    content = "";
-    wcontent = t;
+    content = t;
 
     if (data) {
         data->dirty = true;
@@ -151,7 +84,7 @@ void block_t::setWText(std::wstring t)
 size_t block_t::length()
 {
     if (cachedLength == 0) {
-        cachedLength = wcontent.length() + 1;
+        cachedLength = utf8_length(content) + 1;
     }
     return cachedLength;
 }
@@ -233,7 +166,7 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
     }
 
 
-    std::string text = this->text() + " ";
+    std::string text = this->text();
     columns = cols;
 
     std::vector<span_info_t> source_spans = data->spans;
@@ -248,7 +181,7 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
     if (!source_spans.size()) {
         span_info_t span = {
             start : 0,
-            length : text.length(),
+            length : utf8_length(text),
             colorIndex : 0,
             bold : false,
             italic : false,
@@ -261,13 +194,13 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
     lineCount = 1;
 
     // wrap
-    if (wrap && text.length() > cols) {
+    if (wrap && utf8_length(text) > cols) {
         spans.clear();
         for (auto& s : source_spans) {
             if (s.length == 0)
                 continue;
 
-            std::string span_text = text.substr(s.start, s.length);
+            std::string span_text = utf8_substr(text, s.start, s.length);
             std::vector<span_info_t> ss = splitSpan(s, span_text);
             for (auto _s : ss) {
                 _s.start += s.start;
@@ -289,7 +222,7 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
                 _s.line_x = indent + line_x;
                 line_x += _s.length;
             }
-            std::string span_text = text.substr(_s.start, _s.length);
+            std::string span_text = utf8_substr(text, _s.start, _s.length);
         }
 
         lineCount = line;

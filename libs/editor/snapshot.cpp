@@ -14,8 +14,7 @@ void snapshot_t::save(block_list& blocks)
         b->lineNumber = block->lineNumber;
         b->lineCount = block->lineCount;
         b->dirty = block->dirty;
-        b->content = "";
-        b->wcontent = block->wcontent;
+        b->content = block->content;
         b->data = block->data;
         if (b->data) {
             b->data->dirty = true;
@@ -47,8 +46,7 @@ void snapshot_t::restore(block_list& blocks)
         b->lineNumber = block->lineNumber;
         b->lineCount = block->lineCount;
         b->dirty = block->dirty;
-        b->content = "";
-        b->wcontent = block->wcontent;
+        b->content = block->content;
         b->data = block->data;
         if (b->data) {
             b->data->dirty = true;

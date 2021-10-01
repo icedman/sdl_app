@@ -243,7 +243,7 @@ void document_t::save()
     std::string lineEnd = windowsLineEnd ? WINDOWS_LINE_END : LINUX_LINE_END;
     std::ofstream tmp(filePath, std::ofstream::out);
     for (auto b : blocks) {
-        std::string text = b->utf8Text();
+        std::string text = b->text();
         tmp << text << lineEnd;
         // printf("%d %s\n", b->uid, text.c_str());
     }
@@ -255,7 +255,7 @@ void document_t::saveAs(const char* path, bool replacePath)
         return;
     std::ofstream tmp(path, std::ofstream::out);
     for (auto b : blocks) {
-        std::string text = b->utf8Text();
+        std::string text = b->text();
         tmp << text << std::endl;
     }
 }
@@ -475,7 +475,6 @@ void document_t::insertFromBuffer(struct cursor_t& cursor, std::shared_ptr<docum
         b->lineCount = 1;
         b->dirty = false;
         b->content = "";
-        b->wcontent = L"";
         b->data = nullptr;
 
         bufferBlocks.push_back(b);

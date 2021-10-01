@@ -179,7 +179,7 @@ cursor_position_t cursor_t::selectionEnd()
 
 std::string cursor_t::selectedText()
 {
-    std::wstring res;
+    std::string res;
 
     cursor_position_t start = selectionStart();
     cursor_position_t end = selectionEnd();
@@ -187,18 +187,18 @@ std::string cursor_t::selectedText()
     block_ptr block = start.block;
 
     while (block) {
-        if (res != L"") {
-            res += L"\n";
+        if (res != "") {
+            res += "\n";
         }
-        std::wstring t = block->wideText();
+        std::string t = block->text();
         if (block == start.block) {
-            t = t.substr(start.position);
+            t = utf8_substr(t, start.position);
         }
         if (block == end.block) {
             if (block == start.block) {
-                t = t.substr(0, end.position - start.position + 1);
+                t = utf8_substr(t, 0, end.position - start.position + 1);
             } else {
-                t = t.substr(0, end.position + 1);
+                t = utf8_substr(t, 0, end.position + 1);
             }
         }
         res += t;
@@ -209,13 +209,12 @@ std::string cursor_t::selectedText()
         block = block->next();
     }
 
-    return wstring_to_utf8string(res);
+    return res;
 }
 
 std::vector<std::string> cursor_t::selectedTextArray()
 {
     std::vector<std::string> res;
-    // std::wstring res;
 
     cursor_position_t start = selectionStart();
     cursor_position_t end = selectionEnd();
@@ -223,19 +222,19 @@ std::vector<std::string> cursor_t::selectedTextArray()
     block_ptr block = start.block;
 
     while (block) {
-        std::wstring t = block->wideText();
+        std::string t = block->text();
         if (block == start.block) {
-            t = t.substr(start.position);
+            t = utf8_substr(t, start.position);
         }
         if (block == end.block) {
             if (block == start.block) {
-                t = t.substr(0, end.position - start.position + 1);
+                t = utf8_substr(t, 0, end.position - start.position + 1);
             } else {
-                t = t.substr(0, end.position + 1);
+                t = utf8_substr(t, 0, end.position + 1);
             }
         }
 
-        res.push_back(wstring_to_utf8string(t));
+        res.push_back(t);
 
         if (block == end.block) {
             break;
@@ -271,11 +270,14 @@ bool cursor_t::eraseSelection()
     cursor_position_t start = selectionStart();
     cursor_position_t end = selectionEnd();
 
-    std::wstring t = start.block->wideText().substr(0, start.position);
+    std::string start_text = start.block->text();
+    std::string end_text = end.block->text();
+    
+    std::string t = utf8_substr(start_text, 0, start.position);
     if (end.position + 1 < end.block->length()) {
-        t += end.block->wideText().substr(end.position + 1);
+        t += utf8_substr(end_text, end.position + 1);
     } else {
-        t += end.block->wideText().substr(end.position);
+        t += utf8_substr(end_text, end.position);
     }
 
     if (isMultiBlockSelection()) {
@@ -283,7 +285,7 @@ bool cursor_t::eraseSelection()
         block()->document->removeBlockAtLine(start.block->lineNumber + 1, count);
     }
 
-    start.block->setWText(t);
+    start.block->setText(t);
     return true;
 }
 
@@ -585,49 +587,39 @@ bool cursor_t::moveEndOfDocument(bool keepAnchor)
 
 bool cursor_t::insertText(std::string t)
 {
-    std::wstring wt;
-
-    char* p = (char*)t.c_str();
-    while (*p) {
-        unsigned cp;
-        p = (char*)utf8_to_codepoint(p, &cp);
-        wchar_t wc[2] = { (wchar_t)cp, 0 };
-        wt += wc;
-    }
-
-    std::wstring blockText = block()->wideText();
+    std::string blockText = block()->text();
     if (blockText.length() > 0) {
-        blockText.insert(cursor.position, wt);
+        utf8_insert(blockText, cursor.position, t);
     } else {
-        blockText = wt;
+        blockText = t;
     }
-    block()->setWText(blockText);
+    block()->setText(blockText);
     return true;
 }
 
 bool cursor_t::eraseText(int count)
 {
-    std::wstring blockText = block()->wideText();
+    std::string blockText = block()->text();
     if (cursor.position < blockText.length()) {
-        blockText.erase(cursor.position, count);
+        utf8_erase(blockText, cursor.position, count);
     }
 
-    block()->setWText(blockText);
+    block()->setText(blockText);
     return true;
 }
 
 bool cursor_t::splitLine()
 {
-    std::wstring blockText = block()->wideText();
-    std::wstring nextText;
+    std::string blockText = block()->text();
+    std::string nextText;
 
     if (position() < blockText.length()) {
-        nextText = blockText.substr(position());
+        nextText = utf8_substr(blockText, position());
     }
 
-    blockText = blockText.substr(0, position());
-    block()->setWText(blockText);
-    block()->document->addBlockAtLine(block()->lineNumber + 1)->setWText(nextText);
+    blockText = utf8_substr(blockText, 0, position());
+    block()->setText(blockText);
+    block()->document->addBlockAtLine(block()->lineNumber + 1)->setText(nextText);
     return true;
 }
 
@@ -636,9 +628,9 @@ bool cursor_t::mergeNextLine()
     if (!block()->next()) {
         return false;
     }
-    std::wstring blockText = block()->wideText();
-    std::wstring nextText = block()->next()->wideText();
-    block()->setWText(blockText + nextText);
+    std::string blockText = block()->text();
+    std::string nextText = block()->next()->text();
+    block()->setText(blockText + nextText);
     block()->document->removeBlockAtLine(block()->lineNumber + 1);
     return true;
 }

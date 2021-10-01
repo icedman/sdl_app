@@ -66,7 +66,7 @@ void inputtext_view::set_editor(view_item_ptr _editor)
 
 std::string inputtext_view::value()
 {
-    return view_item::cast<editor_view>(editor)->editor->document.blocks.back()->utf8Text();
+    return view_item::cast<editor_view>(editor)->editor->document.blocks.back()->text();
 }
 
 void inputtext_view::set_value(std::string value)

@@ -87,7 +87,6 @@ struct block_t {
     int lineHeight;
 
     std::string content;
-    std::wstring wcontent;
     std::ifstream* file;
     std::ifstream* tmpFile;
 
@@ -95,11 +94,8 @@ struct block_t {
     bool dirty;
 
     std::string text();
-    std::wstring wideText();
-    std::string utf8Text();
 
     void setText(std::string text);
-    void setWText(std::wstring text);
     void print();
     size_t length();
 

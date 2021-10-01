@@ -280,8 +280,6 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
     wchar_t* p = (wchar_t*)text;
 
-    int xx = 0;
-
     int i = 0;
     while (*p) {
         clr.a = 0;
@@ -312,6 +310,10 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
+    // std::string tmp = text;
+    // std::wstring wtmp = utf8string_to_wstring(tmp);
+    // return draw_wtext(font, wtmp.c_str(), x, y, clr, bold, italic, underline);
+
     items_drawn++;
 
     if (!font) {
@@ -325,7 +327,6 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
     GlyphSet* set = font->regular;
 
     char* p = (char*)text;
-    int xx = 0;
 
     int i = 0;
     while (*p) {
@@ -333,8 +334,20 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
         p = (char*)utf8_to_codepoint(p, &cp);
         clr.a = 0;
 
-        GlyphSet glyph = set[cp & 0xff];
-        if (glyph.cp == cp & 0xff && glyph.image) {
+        GlyphSet glyph;
+        if (cp < MAX_GLYPHSET) {
+            glyph = set[cp];
+        } else {
+            glyph = font->utf8[cp];
+            if (glyph.cp != cp && cp < 32768) {
+                char u[3];
+                codepoint_to_utf8(cp, u);
+                font->utf8[cp] = bake_glyph(font, u);
+                glyph = set[cp];
+            }
+        }
+
+        if (glyph.cp == cp && glyph.image) {
             draw_char_image(glyph.image, { x + (i * font->font_width) + (font->font_width / 2) - (glyph.cw / 2), y + (font->font_height / 2) - (glyph.ch / 2), glyph.cw + 1, glyph.ch }, clr, italic);
         }
 

@@ -9,6 +9,7 @@
 #include "search.h"
 #include "style.h"
 #include "view.h"
+#include "utf8.h"
 
 #include "scrollbar.h"
 #include <unistd.h>
@@ -141,8 +142,7 @@ void editor_view::render()
             longest_block = block;
         }
 
-        std::wstring wtext = block->wideText() + L" \n";
-        const wchar_t* wline = wtext.c_str();
+        std::string text = block->text() + " \n";
 
         blockData->rendered_spans = block->layoutSpan(cols, wrap, indent);
         block->lineHeight = fh;
@@ -153,15 +153,15 @@ void editor_view::render()
                 continue;
 
             color_info_t clr = Renderer::instance()->color_for_index(s.colorIndex);
-            if (s.start + s.length >= wtext.length()) {
-                s.length = wtext.length() - s.start;
+            if (s.start + s.length >= utf8_length(text)) {
+                s.length = utf8_length(text) - s.start;
                 if (s.length <= 0) {
                     s.length = 0;
                     continue;
                 }
             }
 
-            std::wstring span_wtext = wtext.substr(s.start, s.length);
+            std::string span_text = utf8_substr(text, s.start, s.length);
 
             if (linc < s.line) {
                 linc = s.line;
@@ -277,8 +277,8 @@ void editor_view::render()
                                                 fh },
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
 #endif
-
-            Renderer::instance()->draw_wtext(_font, (wchar_t*)span_wtext.c_str(),
+            
+            Renderer::instance()->draw_text(_font, span_text.c_str(),
                 s.x,
                 s.y,
                 { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
@@ -496,7 +496,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
                 int pos = (x - s.x) / fw;
                 hitPos = pos + s.start;
                 if (x > r.x && x <= r.x + r.w) {
-                    // std::string span_text = text.substr(s.start, s.length);
+                    // std::string span_text = utf8_substr(text, s.start, s.length);
                     // printf("%s\n", span_text.c_str());
                     break;
                 } else {
