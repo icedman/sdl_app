@@ -14,6 +14,8 @@
 #include "scrollbar.h"
 #include <unistd.h>
 
+bool _span_from_cursor(cursor_t& cursor, span_info_t& span, int &span_pos);
+
 void editor_view::render()
 {
     if (!editor) {
@@ -146,7 +148,7 @@ void editor_view::render()
         block->lineHeight = fh;
         block->y = offset_y;
 
-        offscreen = (offset_y + alo->scroll_y > fh * rows || offset_y < -alo->scroll_y);
+        offscreen = (block->y + alo->scroll_y > fh * rows || block->y + (block->lineCount * fh) < -alo->scroll_y);
         offset_y += block->lineCount * fh;
 
         for (auto& s : blockData->rendered_spans) {
@@ -574,13 +576,12 @@ bool editor_view::input_text(std::string text)
     return true;
 }
 
-bool _move_cursor(cursor_t& cursor, int dir)
+bool _span_from_cursor(cursor_t& cursor, span_info_t& span, int &span_pos)
 {
     block_ptr block = cursor.block();
     blockdata_ptr data = block->data;
 
-    if (!data)
-        return false;
+    if (!data) return false;
 
     // find span
     bool found = false;
@@ -599,6 +600,38 @@ bool _move_cursor(cursor_t& cursor, int dir)
             break;
         }
     }
+
+    span = ss;
+    span_pos = pos;
+    return found;
+}
+
+bool _move_cursor(cursor_t& cursor, int dir)
+{
+    block_ptr block = cursor.block();
+    blockdata_ptr data = block->data;
+
+    if (!data)
+        return false;
+
+    // find span
+    bool found = false;
+    span_info_t ss;
+    int pos;
+
+    found = _span_from_cursor(cursor, ss, pos);
+    // for (auto s : data->rendered_spans) {
+    //     if (cursor.position() >= s.start && cursor.position() < s.start + s.length) {
+    //         ss = s;
+    //         pos = cursor.position();
+    //         if (s.line > 0) {
+    //             pos -= s.start;
+    //             pos += s.line_x;
+    //         }
+    //         found = true;
+    //         break;
+    //     }
+    // }
 
     if (!found)
         return false;
@@ -718,19 +751,19 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
     int cols = alo->render_rect.w / fw;
     int rows = block->document->rows;
 
-    if (start_row > l) {
-        start_row = l;
-    }
-    if (start_row + rows - 4 < l) {
-        start_row = l - (rows - 4);
-    }
+    // if (start_row > l) {
+    //     start_row = l;
+    // }
+    // if (start_row + rows - 4 < l) {
+    //     start_row = l - (rows - 4);
+    // }
 
-    if (centered) {
-        l -= rows / 2;
-        if (l < 0)
-            l = 0;
-        start_row = l;
-    }
+    // if (centered) {
+    //     l -= rows / 2;
+    //     if (l < 0)
+    //         l = 0;
+    //     start_row = l;
+    // }
 
     int start_col = c.position();
     int scroll_x_col = alo->scroll_x / fw;
@@ -745,8 +778,23 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
         area->layout()->scroll_x = scroll_x_col * fw;
     }
 
-    area->layout()->scroll_y = -start_row * fh;
+    span_info_t ss;
+    int pos;
 
+    if (_span_from_cursor(c, ss, pos)) {
+        int uy = -(c.block()->y - (ss.line + 2) * fh);
+        if (area->layout()->scroll_y < uy
+            ) {
+            area->layout()->scroll_y = uy;
+        }
+
+        int ly = -(c.block()->y - (ss.line + 2) * fh) + ((rows - 2) * fh);
+        if (area->layout()->scroll_y > ly) {
+            area->layout()->scroll_y = ly;
+        }
+    }
+
+    // area->layout()->scroll_y = -start_row * fh;
     // printf("scroll: %d %d\n", area->layout()->scroll_y, l);
 
     update_scrollbars();
