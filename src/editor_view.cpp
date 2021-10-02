@@ -45,11 +45,6 @@ void editor_view::render()
 
     Renderer::instance()->state_save();
 
-    // for(auto r: previous_cursor_rects) {
-    //     Renderer::instance()->draw_rect(r, { 255,0,0 }, false, 2);
-    // }
-    previous_cursor_rects.clear();
-
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
     layout_item_ptr lo = content()->layout();
@@ -88,9 +83,7 @@ void editor_view::render()
     if (start >= doc->blocks.size()) {
         start = (doc->blocks.size() - 1);
     }
-    it += start;
-
-    // printf(">>%d %d\n", start_row, rows);
+    it += pre_line;
 
     theme_ptr theme = app->theme;
 
@@ -104,12 +97,17 @@ void editor_view::render()
         longest_block = 0;
     }
 
-    int lineNumber = start_row;
+    int offset_y = (pre_line + 1) * fh;
+    if (!Renderer::instance()->is_terminal()) {
+        offset_y += 8;
+    }
+
+    bool offscreen = false;
+    int lineNumber = pre_line;
     int l = 0;
-    while (it != doc->blocks.end() && l < rows) {
+    while (it != doc->blocks.end() && l < rows * 2) {
         block_ptr block = *it++;
         block->lineNumber = lineNumber++;
-        block->lineCount = 1;
 
         blockdata_ptr blockData;
         if (!block->data || block->data->dirty) {
@@ -142,12 +140,15 @@ void editor_view::render()
             longest_block = block;
         }
 
-        std::string text = block->text() + " \n";
+        std::string text = block->text() + " ";
 
         blockData->rendered_spans = block->layoutSpan(cols, wrap, indent);
         block->lineHeight = fh;
+        block->y = offset_y;
 
-        int linc = 0;
+        offscreen = (offset_y + alo->scroll_y > fh * rows || offset_y < -alo->scroll_y);
+        offset_y += block->lineCount * fh;
+
         for (auto& s : blockData->rendered_spans) {
             if (s.length == 0)
                 continue;
@@ -163,100 +164,94 @@ void editor_view::render()
 
             std::string span_text = utf8_substr(text, s.start, s.length);
 
-            if (linc < s.line) {
-                linc = s.line;
-                block->lineCount = 1 + linc;
-            }
-
             // cursors
-            for (int pos = s.start; pos < s.start + s.length; pos++) {
-                bool hl = false;
-                bool ul = false;
-                bool hasSelection = false;
+            if (!offscreen) {
+                for (int pos = s.start; pos < s.start + s.length; pos++) {
+                    bool hl = false;
+                    bool ul = false;
+                    bool hasSelection = false;
 
-                RenRect cr = {
-                    alo->render_rect.x + (pos * fw),
-                    alo->render_rect.y + (l * fh),
-                    fw, fh
-                };
+                    RenRect cr = {
+                        alo->render_rect.x + (pos * fw),
+                        block->y + alo->scroll_y,
+                        fw, fh
+                    };
 
-                // bracket
-                if (editor->cursorBracket1.bracket != -1 && editor->cursorBracket2.bracket != -1) {
-                    if ((pos == editor->cursorBracket1.position && block->lineNumber == editor->cursorBracket1.line) || (pos == editor->cursorBracket2.position && block->lineNumber == editor->cursorBracket2.line)) {
-
-                        Renderer::instance()->draw_underline(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue });
+                    // bracket
+                    if (editor->cursorBracket1.bracket != -1 && editor->cursorBracket2.bracket != -1) {
+                        if ((pos == editor->cursorBracket1.position && block->lineNumber == editor->cursorBracket1.line) || (pos == editor->cursorBracket2.position && block->lineNumber == editor->cursorBracket2.line)) {
+                            Renderer::instance()->draw_underline(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue });
+                        }
                     }
-                }
 
-                for (auto& c : cursors) {
-                    if (pos == c.position() && block == c.block()) {
-                        hasSelection |= c.hasSelection();
-                        hl = true && (has_focus || c.hasSelection());
-                        ul = c.hasSelection();
+                    for (auto& c : cursors) {
+                        if (pos == c.position() && block == c.block()) {
+                            hasSelection |= c.hasSelection();
+                            hl = true && (has_focus || c.hasSelection());
+                            ul = c.hasSelection();
+                            break;
+                        }
+                        if (!c.hasSelection())
+                            continue;
+
+                        cursor_position_t start = c.selectionStart();
+                        cursor_position_t end = c.selectionEnd();
+
+                        if (block->lineNumber < start.block->lineNumber || block->lineNumber > end.block->lineNumber)
+                            continue;
+                        if (block == start.block && pos < start.position)
+                            continue;
+                        if (block == end.block && pos > end.position)
+                            continue;
+
+                        hl = true;
                         break;
                     }
-                    if (!c.hasSelection())
-                        continue;
-
-                    cursor_position_t start = c.selectionStart();
-                    cursor_position_t end = c.selectionEnd();
-
-                    if (block->lineNumber < start.block->lineNumber || block->lineNumber > end.block->lineNumber)
-                        continue;
-                    if (block == start.block && pos < start.position)
-                        continue;
-                    if (block == end.block && pos > end.position)
-                        continue;
-
-                    hl = true;
-                    break;
-                }
-
-                if (hl || hasSelection) {
-
-                    if (s.line > 0) {
-                        cr.x -= pos * fw;
-                        cr.x += s.line_x * fw;
-                        cr.x += (pos - s.start) * fw;
-                    }
-
-                    cr.y += (s.line * fh);
-                    color_info_t cur = sel;
-                    if (hlMainCursor) {
-                        int cursor_pad = 4;
-                        cr.width = 1;
-                        if (!Renderer::instance()->is_terminal()) {
-                            if (hasSelection) {
-                                cr.width = fw;
-                            } else {
-                                cr.width = 2;
-                                cr.y -= cursor_pad;
-                                cr.height += cursor_pad * 2;
-                            }
-                        } else {
-                            if (hasSelection) {
-                                ul = true;
-                            }
-                        }
-                        cur = clr;
-                    }
-                    cr.x += alo->scroll_x;
 
                     if (hl || hasSelection) {
-                        Renderer::instance()->draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
-                    }
 
-                    if (ul) {
-                        Renderer::instance()->draw_underline(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue });
-                    }
+                        if (s.line > 0) {
+                            cr.x -= pos * fw;
+                            cr.x += s.line_x * fw;
+                            cr.x += (pos - s.start) * fw;
+                        }
 
-                    previous_cursor_rects.push_back(cr);
+                        cr.y += (s.line * fh);
+                        color_info_t cur = sel;
+                        if (hlMainCursor) {
+                            int cursor_pad = 4;
+                            cr.width = 1;
+                            if (!Renderer::instance()->is_terminal()) {
+                                if (hasSelection) {
+                                    cr.width = fw;
+                                } else {
+                                    cr.width = 2;
+                                    cr.y -= cursor_pad;
+                                    cr.height += cursor_pad * 2;
+                                }
+                            } else {
+                                if (hasSelection) {
+                                    ul = true;
+                                }
+                            }
+                            cur = clr;
+                        }
+                        cr.x += alo->scroll_x;
+
+                        if (hl || hasSelection) {
+                            Renderer::instance()->draw_rect(cr, { (uint8_t)cur.red, (uint8_t)cur.green, (uint8_t)cur.blue, 125 }, true, 1.0f);
+                        }
+
+                        if (ul) {
+                            Renderer::instance()->draw_underline(cr, { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue });
+                        }
+                    }
                 }
             }
 
             s.x = alo->render_rect.x + (s.start * fw);
             s.x += alo->scroll_x;
-            s.y = alo->render_rect.y + (l * fh);
+            s.y = block->y;
 
             if (s.line > 0) {
                 s.x -= s.start * fw;
@@ -267,27 +262,26 @@ void editor_view::render()
 
             if (s.line == 0) {
                 block->x = alo->render_rect.x;
-                block->y = s.y;
             }
 
-#if 0
-            Renderer::instance()->draw_rect({ s.x,
-                                                s.y,
-                                                fw * s.length,
-                                                fh },
-                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
-#endif
-
-            Renderer::instance()->draw_text(_font, span_text.c_str(),
-                s.x,
-                s.y,
-                { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
-                    (uint8_t)(Renderer::instance()->is_terminal() ? clr.index : 255) },
-                s.bold, s.italic);
+            if (!offscreen) {
+    #if 0
+                Renderer::instance()->draw_rect({ s.x,
+                                                    s.y + alo->scroll_y,
+                                                    fw * s.length,
+                                                    fh },
+                    { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
+    #endif
+                Renderer::instance()->draw_text(_font, span_text.c_str(),
+                    s.x,
+                    s.y + alo->scroll_y,
+                    { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
+                        (uint8_t)(Renderer::instance()->is_terminal() ? clr.index : 255) },
+                    s.bold, s.italic);
+            }
         }
 
         l++;
-        l += linc;
     }
 
     Renderer::instance()->state_restore();
@@ -302,11 +296,31 @@ void editor_view::render()
     if (prev_longest != longest_block) {
         layout_request();
     }
+
+    // compute document height
+    computed_lines = editor->document.blocks.size();
+    int pre = rows / 2;
+    int s = start_row - pre;
+    if (s < 0) {
+        s = 0;
+    }
+    pre_line = s;
+
+    int c = rows * 2;
+    block_ptr b = editor->document.blockAtLine(pre_line);
+    while(b && c-->0) {
+        computed_lines += b->lineCount - 1;
+        b = b->next();
+    }
+
+    // app_t::log("%d %d", computed_lines, editor->document.blocks.size());
 }
 
 editor_view::editor_view()
     : panel_view()
     , start_row(0)
+    , pre_line(0)
+    , computed_lines(0)
 {
     type = "editor";
     font = "editor";
@@ -383,27 +397,6 @@ void editor_view::update(int millis)
         return;
     }
 
-    int start_line = start_row;
-    int end_line = start_row + rows;
-
-    minimap_view* mv = view_item::cast<minimap_view>(minimap);
-    if (start_line > mv->start_row) {
-        start_line = mv->start_row;
-    }
-    if (end_line < mv->end_row) {
-        end_line = mv->end_row;
-    }
-
-    if (!editor->highlighter.callback) {
-        editor->highlighter.callback = [start_line, end_line](int line) {
-            if (line >= start_line && line <= end_line) {
-                Renderer::instance()->wake();
-            }
-            return true;
-        };
-    }
-
-    editor->runAllOps();
     document_t* doc = &editor->document;
 
     if (doc->columns != cols || doc->rows != rows) {
@@ -430,6 +423,9 @@ void editor_view::prelayout()
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     int lines = editor->document.blocks.size();
+    if (computed_lines != 0) {
+        lines = computed_lines;
+    }
 
     int ww = area->layout()->render_rect.w - gutter->layout()->render_rect.w;
 
@@ -453,10 +449,12 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         return false;
     }
 
+    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+    layout_item_ptr alo = area->layout();
+    layout_item_ptr lo = content()->layout();
+
     mouse_x = x;
     mouse_y = y;
-
-    layout_item_ptr lo = content()->layout();
 
     cursor_t cursor = editor->document.cursor();
 
@@ -478,7 +476,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         }
 
         blockdata_ptr blockData = block->data;
-        std::string text = block->text() + "\n";
+        std::string text = block->text();
         const char* line = text.c_str();
 
         bool hitLine = false;
@@ -487,7 +485,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         for (auto& s : blockData->rendered_spans) {
             layout_rect r = {
                 s.x,
-                s.y,
+                s.y + alo->scroll_y,
                 s.length * fw,
                 fh
             };
@@ -697,7 +695,7 @@ bool editor_view::input_sequence(std::string text)
     case DELETE_SELECTION:
     case INSERT:
         if (!editor->document.lineNumberingIntegrity()) {
-            printf("line numbering problem!!!\n");
+            log("line numbering error\n");
         }
         break;
     }

@@ -38,6 +38,9 @@ struct editor_view : panel_view {
     int rows;
     int cols;
 
+    size_t pre_line;
+    size_t computed_lines;
+
     editor_ptr editor;
     block_ptr longest_block;
     view_item_ptr gutter;
@@ -47,8 +50,6 @@ struct editor_view : panel_view {
 
     std::string font;
     int fw, fh;
-
-    std::vector<RenRect> previous_cursor_rects;
 };
 
 #endif // EDITOR_VIEW_H

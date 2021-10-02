@@ -263,6 +263,7 @@ void app_view::show_editor(editor_ptr editor, bool sole)
 
 void app_view::close_popups()
 {
+    app_t::log("close popups");
     popup_manager* pm = view_item::cast<popup_manager>(popups);
     if (pm->_views.size()) {
         pm->clear();

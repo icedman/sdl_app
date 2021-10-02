@@ -3,6 +3,7 @@
 
 #include "app.h"
 #include "editor_view.h"
+#include "scrollarea.h"
 #include "style.h"
 
 gutter_view::gutter_view()
@@ -17,6 +18,9 @@ void gutter_view::render()
     editor_ptr editor = ev->editor;
     view_style_t vs = style;
 
+    scrollarea_view* area = view_item::cast<scrollarea_view>(ev->scrollarea);
+    layout_item_ptr alo = area->layout();
+
     layout_item_ptr lo = layout();
 
     if (Renderer::instance()->is_terminal()) {
@@ -29,8 +33,8 @@ void gutter_view::render()
     int fw, fh;
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)vs.font.c_str()), &fw, &fh, NULL, 1);
 
-    int start = ev->start_row;
-    int view_height = ev->rows;
+    int start = ev->pre_line;
+    int view_height = ev->rows * 2;
 
     document_t* doc = &editor->document;
     block_list::iterator it = doc->blocks.begin();
@@ -54,17 +58,16 @@ void gutter_view::render()
             }
         }
 
-        if (!blockData || block->y == -1) {
-            // Renderer::instance()->throttle_up_events();
-            return;
+        int y = block->y + alo->scroll_y;
+        if (y > ev->rows * fh) {
+            break;
+        }
+        if (block->y < -alo->scroll_y) {
+            l++;
+            continue;
         }
 
-        int linc = block->lineCount;
-        int y = block->y;
-
         std::string ln = std::to_string(block->lineNumber + 1);
-        // std::string ln = std::to_string(block->length());
-
         Renderer::instance()->draw_text(Renderer::instance()->font((char*)vs.font.c_str()), ln.c_str(),
             lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw),
             y,
@@ -72,6 +75,6 @@ void gutter_view::render()
                 (uint8_t)(Renderer::instance()->is_terminal() ? vs.fg.index : 125) });
 
         // log(">line:%d %d %d\n", block->lineNumber + 1, lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw), y);
-        l += linc;
+        l++;
     }
 }

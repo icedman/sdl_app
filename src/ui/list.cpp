@@ -371,34 +371,24 @@ bool list_view::ensure_visible_cursor()
 
     view_item_ptr item = content()->_views[idx];
 
-    // list_item_view *iv = view_item::cast<list_item_view>(item);
-    // list_view *lv = view_item::cast<list_view>(this);
-    // scrollbar_view* hs = view_item::cast<scrollbar_view>(h_scroll);
     bool scrolled = false;
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
     layout_item_ptr lo = item->layout();
 
-    // if (lo->render_rect.x + lo->render_rect.w > alo->render_rect.x + alo->render_rect.w) {
-    //     mouse_wheel(-1, 0);
-    //     scrolled = true;
-    // }
-    // if (lo->render_rect.x < alo->render_rect.x) {
-    //     mouse_wheel(1, 0);
-    //     scrolled = true;
-    // }
-
-    int target_scroll_x = alo->scroll_x;
-    if (lo->rect.x + alo->scroll_x < 0) {
-        target_scroll_x = -lo->rect.x;
-        scrolled = true;
+    if (content()->layout()->direction == LAYOUT_FLEX_DIRECTION_ROW) {
+        int target_scroll_x = alo->scroll_x;
+        if (lo->rect.x + alo->scroll_x < 0) {
+            target_scroll_x = -lo->rect.x;
+            scrolled = true;
+        }
+        if (lo->rect.x + lo->rect.w + alo->scroll_x > alo->rect.w) {
+            target_scroll_x = alo->rect.w - lo->rect.x - lo->rect.w;
+            scrolled = true;
+        }
+        alo->scroll_x = target_scroll_x;
     }
-    if (lo->rect.x + lo->rect.w + alo->scroll_x > alo->rect.w) {
-        target_scroll_x = alo->rect.w - lo->rect.x - lo->rect.w;
-        scrolled = true;
-    }
-    alo->scroll_x = target_scroll_x;
 
     int target_scroll_y = alo->scroll_y;
     if (lo->rect.y + alo->scroll_y < 0) {

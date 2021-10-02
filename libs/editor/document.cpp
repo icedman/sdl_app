@@ -51,10 +51,6 @@ void document_t::updateBlocks(block_list& blocks, size_t lineNumber, size_t coun
     while (it != blocks.end()) {
         block_ptr block = *it;
         block->lineNumber = lineNumber++;
-        block->lineCount = 1;
-        // if (app_t::instance()->lineWrap && columns > 0) {
-        //     block->lineCount = 1 + ((block->length() - 1) / columns);
-        // }
         it++;
 
         if (count > 0) {
@@ -134,11 +130,8 @@ std::string _tabsToSpaces(std::string line)
     return t;
 }
 
-bool document_t::open(std::string path, bool enableBuffer)
+bool document_t::open(std::string path)
 {
-    // file buffer mode doesn't work well with threaded highlighting & indexing
-    enableBuffer = false;
-
     std::set<char> delims_ext = { '.' };
     std::vector<std::string> spath_ext = split_path(path, delims_ext);
     std::string suffix = "*." + spath_ext.back();

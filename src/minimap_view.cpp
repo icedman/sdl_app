@@ -21,11 +21,6 @@ minimap_view::minimap_view()
 
     spacing = 2;
 
-    // on(EVT_MOUSE_DRAG, [this](event_t e) {
-    // e.cancelled = true;
-    // return this->mouse_click(e.x, e.y, e.button);
-    // });
-
     on(EVT_MOUSE_DRAG_START, [this](event_t& evt) {
         evt.cancelled = true;
         return this->scrollbar->mouse_drag_start(evt.x, evt.y);
@@ -79,11 +74,6 @@ void minimap_view::update(int millis)
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
     document_t* doc = &editor->document;
-
-    block_list::iterator it = doc->blocks.begin();
-    if (it == doc->blocks.end()) {
-        return;
-    }
 
     if (start_row > doc->blocks.size() || start_row < 0) {
         start_row = 0;

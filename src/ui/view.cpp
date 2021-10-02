@@ -236,7 +236,7 @@ int view_item::on(event_type_e event_type, event_callback_t callback)
 
 void view_item::propagate_event(event_t& event)
 {
-    if (parent && type != "popup") {
+    if (parent && type != "popup" && type != "panel") {
         ((view_item*)parent)->propagate_event(event);
     }
     for (auto c : callbacks[event.type]) {
@@ -481,9 +481,6 @@ void view_input_key(int key, event_t event)
 
 void view_input_text(std::string text, event_t event)
 {
-    // if ((Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL || (Renderer::instance()->key_mods() & K_MOD_ALT) == K_MOD_ALT) {
-    //     return;
-    // }
     if (Renderer::instance()->key_mods() && Renderer::instance()->key_mods() != K_MOD_SHIFT)
         return;
     if (view_focused) {

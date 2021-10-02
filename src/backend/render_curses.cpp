@@ -161,7 +161,7 @@ static int readMoreEscapeSequence(int c, std::string& keySequence)
     return K_ESC;
 }
 
-static int readMoreMouseSequence(std::string& keySequence)
+static int readMouseSequence(std::string& keySequence)
 {
     keySequence = "mouse;";
 
@@ -408,7 +408,7 @@ static int readEscapeSequence(std::string& keySequence)
             keySequence = "end";
             return K_END_KEY;
         case '<':
-            readMoreMouseSequence(keySequence);
+            readMouseSequence(keySequence);
             return K_MOUSE;
         }
         app_t::log("escape+%c+%c\n", seq[0], seq[1]);
@@ -626,6 +626,7 @@ void Renderer::listen_events(event_list* events)
         });
         return;
     }
+
 
     if (!isprint(ch)) {
         switch (ch) {
