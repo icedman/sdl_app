@@ -122,6 +122,18 @@ void editor_t::runOp(operation_t op)
     }
 
     switch (_op) {
+
+    case DEBUG_SCOPES: {
+        blockdata_ptr data = mainCursor.block()->data;
+        log("-------------\n%s", mainCursor.block()->text().c_str());
+        for(auto s : data->spans) {
+            log("scope: %s", s.scope.c_str());
+        }
+        struct span_info_t span = spanAtBlock(data.get(), mainCursor.position());
+        log("scope: %s", span.scope.c_str());
+        return;
+    }
+    
     case CANCEL:
         operations.clear();
         return;
@@ -296,14 +308,9 @@ void editor_t::runOp(operation_t op)
 
         switch (_op) {
 
-        case SELECT_WORD: {
+        case SELECT_WORD:
             cur.selectWord();
-
-            blockdata_ptr data = cur.block()->data;
-            struct span_info_t span = spanAtBlock(data.get(), cur.position());
-            log("scope: %s", span.scope.c_str());
             break;
-        }
 
         case TOGGLE_COMMENT: {
             int count = cur.toggleLineComment();

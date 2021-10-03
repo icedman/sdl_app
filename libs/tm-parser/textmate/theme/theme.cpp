@@ -174,6 +174,14 @@ void theme_t::shared_styles_t::setup_styles(Json::Value const& themeItem)
             }
         }
     }
+
+    // find global background/foreground
+    // We assume that the first style is the unscoped root style
+
+    if (!_styles.empty()) {
+        _foreground = _styles[0].foreground;
+        _background = _styles[0].background;
+    }
 }
 
 style_t theme_t::shared_styles_t::parse_styles(Json::Value const& item,
@@ -264,6 +272,16 @@ void theme_t::setup_global_style(Json::Value const& themeItem)
             }
         }
     }
+}
+
+color_info_t theme_t::foreground() const
+{
+    return _styles->_foreground;
+}
+
+color_info_t theme_t::background(std::string const& fileType) const
+{
+    return _styles->_background;
 }
 
 theme_t::shared_styles_ptr

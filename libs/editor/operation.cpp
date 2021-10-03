@@ -122,6 +122,8 @@ static const operation_name operation_names[] = {
     { "TOGGLE_SIDEBAR", TOGGLE_SIDEBAR, "ctrl+shift+b" },
     { "TOGGLE_SIDEBAR", TOGGLE_SIDEBAR, "shift+alt+b" },
 
+    { "DEBUG_SCOPES", DEBUG_SCOPES, "ctrl+shift+i" },
+
     { 0 }
 };
 

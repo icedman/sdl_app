@@ -290,7 +290,7 @@ void app_view::setup_style()
     style_t comment = theme->styles_for_scope("comment");
 
     view_style_t vs_default;
-    view_style_clear(vs_default);
+    style_clear(vs_default);
 
     vs_default.font = "editor";
     vs_default.filled = false;
@@ -300,73 +300,73 @@ void app_view::setup_style()
 
     view_style_t vs = vs_default;
     view_style_t vs_item = vs_default;
-    view_style_register(vs_default, "default");
+    style_register(vs_default, "default");
 
     vs = vs_default;
-    view_style_register(vs_default, "editor");
+    style_register(vs_default, "editor");
 
     vs = vs_default;
-    view_style_register(vs_default, "scrollbar");
+    style_register(vs_default, "scrollbar");
 
     vs = vs_default;
-    view_style_register(vs, "gutter");
+    style_register(vs, "gutter");
 
     vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs.filled = Renderer::instance()->is_terminal() ? false : true;
-    view_style_register(vs, "list");
+    style_register(vs, "list");
     vs_item = vs;
-    view_style_register(vs_item, "list.item");
+    style_register(vs_item, "list.item");
     vs_item.bg = vs.fg;
     vs_item.fg = vs.bg;
     vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
-    view_style_register(vs_item, "list.item:selected");
-    view_style_register(vs_item, "list.item:hovered");
+    style_register(vs_item, "list.item:selected");
+    style_register(vs_item, "list.item:hovered");
 
     vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs.filled = Renderer::instance()->is_terminal() ? false : true;
-    view_style_register(vs, "explorer");
+    style_register(vs, "explorer");
     vs_item = vs;
-    view_style_register(vs_item, "explorer.item");
+    style_register(vs_item, "explorer.item");
     vs_item.bg = vs.fg;
     vs_item.fg = vs.bg;
     vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
-    view_style_register(vs_item, "explorer.item:selected");
-    view_style_register(vs_item, "explorer.item:hovered");
+    style_register(vs_item, "explorer.item:selected");
+    style_register(vs_item, "explorer.item:hovered");
 
     vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs.filled = Renderer::instance()->is_terminal() ? false : true;
-    view_style_register(vs, "tabbar");
+    style_register(vs, "tabbar");
     vs_item = vs;
-    view_style_register(vs_item, "tabbar.item");
+    style_register(vs_item, "tabbar.item");
     vs_item.bg = vs.fg;
     vs_item.fg = vs.bg;
     vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
-    view_style_register(vs_item, "tabbar.item:selected");
-    view_style_register(vs_item, "tabbar.item:hovered");
+    style_register(vs_item, "tabbar.item:selected");
+    style_register(vs_item, "tabbar.item:hovered");
 
     vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs.filled = true;
-    view_style_register(vs, "completer");
-    view_style_register(vs, "search");
+    style_register(vs, "completer");
+    style_register(vs, "search");
     vs_item = vs;
-    view_style_register(vs_item, "completer.item");
-    view_style_register(vs_item, "search.item");
+    style_register(vs_item, "completer.item");
+    style_register(vs_item, "search.item");
     vs_item.bg = vs.fg;
     vs_item.fg = vs.bg;
     vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
-    view_style_register(vs_item, "completer.item:selected");
-    view_style_register(vs_item, "completer.item:hovered");
-    view_style_register(vs_item, "search.item:selected");
-    view_style_register(vs_item, "search.item:hovered");
+    style_register(vs_item, "completer.item:selected");
+    style_register(vs_item, "completer.item:hovered");
+    style_register(vs_item, "search.item:selected");
+    style_register(vs_item, "search.item:hovered");
 
     vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
-    view_style_register(vs, "statusbar");
+    style_register(vs, "statusbar");
 }
 
 void app_view::prelayout()

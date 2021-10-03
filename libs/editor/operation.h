@@ -107,6 +107,8 @@ enum operation_e {
     TOGGLE_SIDEBAR,
     TOGGLE_MINIMAP,
     TOGGLE_GUTTER,
+
+    DEBUG_SCOPES
 };
 
 struct operation_t {

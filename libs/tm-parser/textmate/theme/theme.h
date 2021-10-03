@@ -112,7 +112,6 @@ struct theme_t {
     float font_size() const;
     color_info_t foreground() const;
     color_info_t background(std::string const& fileType = NULL_STR) const;
-    // bool is_dark () const;
 
     style_t const& styles_for_scope(scope::scope_t const& scope);
 
@@ -132,6 +131,9 @@ private:
             std::string scope_selector);
 
         std::vector<style_t> _styles;
+
+        color_info_t _foreground;
+        color_info_t _background;
     };
 
     typedef std::shared_ptr<shared_styles_t> shared_styles_ptr;
@@ -142,7 +144,7 @@ private:
 
     std::string _font_name;
     float _font_size;
-
+    
     std::map<size_t, style_t> _cache;
     // mutable google::dense_hash_map<scope::scope_t, styles_t> _cache;
 

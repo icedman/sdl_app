@@ -6,6 +6,8 @@
 inputtext_view::inputtext_view(std::string text)
     : horizontal_container()
 {
+    class_name = "inputtext";
+
     int h = 26;
     int m = 4;
 

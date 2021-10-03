@@ -25,6 +25,8 @@ struct view_item : layout_view, event_object_t {
     std::string uid;
     std::string name;
 
+    static bool debug_render;
+
     virtual view_type type_of() { return CONTAINER; }
     virtual bool is_type_of(view_type t) { return t == CONTAINER; }
 
@@ -34,6 +36,8 @@ struct view_item : layout_view, event_object_t {
     void update(int ticks) override;
     void prerender() override;
     void render() override;
+    
+    virtual void render_frame();
 
     void add_child(view_item_ptr view);
     void remove_child(view_item_ptr view);

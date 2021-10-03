@@ -23,7 +23,7 @@ view_item_ptr test_root()
 view_item_ptr test6()
 {
     view_item_ptr root = std::make_shared<panel_view>();
-    // root->class_name = "editor";
+    root->class_name = "default";
     root->layout()->margin = 40;
 
     panel_view* panel = view_item::cast<panel_view>(root);
@@ -115,6 +115,8 @@ struct my_root : view_item {
 view_item_ptr test4()
 {
     view_item_ptr root = std::make_shared<my_root>();
+    root->class_name = "default";
+
     layout_item_ptr layout = root->layout();
     layout->margin = 40;
     layout->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
@@ -170,7 +172,16 @@ view_item_ptr test4()
 
 view_item_ptr test3()
 {
+    view_style_t vs;
+    style_clear(vs);
+
+    vs.bg = { 150,0,150,255 };
+    vs.filled = true;
+    style_register(vs, "default.button");
+
+
     view_item_ptr root = std::make_shared<view_item>();
+    root->class_name = "default";
 
     view_item_ptr item_a = std::make_shared<view_item>();
     view_item_ptr item_b = std::make_shared<view_item>();
@@ -189,6 +200,7 @@ view_item_ptr test3()
     item_e->layout()->grow = 4;
 
     view_item_ptr button = std::make_shared<button_view>("hey button");
+    button->class_name = "button";
     button->add_child(std::make_shared<text_view>("hello world"));
 
     // view_item_ptr button = std::make_shared<view_item>();
@@ -198,6 +210,12 @@ view_item_ptr test3()
     button->layout()->margin = 4;
     button->layout()->wrap = true;
     button->layout()->fit_children = false;
+
+    button->on(EVT_MOUSE_CLICK, [](event_t& evt) {
+        printf("click!\n");
+        return true;
+    });
+
     item_b->add_child(button);
     item_b->layout()->margin = 20;
     // item_b->layout()->scroll_x = -80;
@@ -212,7 +230,11 @@ view_item_ptr test3()
 
 view_item_ptr test2()
 {
+    view_item::debug_render = true;
+
     view_item_ptr view = std::make_shared<view_item>();
+    view->class_name = "default";
+
     layout_item_ptr root = view->layout();
 
     // root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
@@ -260,7 +282,11 @@ view_item_ptr test2()
 
 view_item_ptr test1()
 {
+    view_item::debug_render = true;
+
     view_item_ptr view = std::make_shared<view_item>();
+    view->class_name = "default";
+
     layout_item_ptr root = view->layout();
 
     root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;

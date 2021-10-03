@@ -31,6 +31,8 @@ const char* view_type_names[] = {
 
 std::string previous_sequence = "";
 
+bool view_item::debug_render = false;
+
 view_item_list popups;
 void view_input_list(view_item_list& list, view_item_ptr item)
 {
@@ -201,13 +203,22 @@ void view_item::render()
     if (!lo->visible)
         return;
 
+    render_frame();
+}
+
+void view_item::render_frame()
+{
+    layout_item_ptr lo = layout();
+    if (!lo->visible)
+        return;
+
     if (class_name != "" && style.class_name != "") {
         view_style_t vs = style;
         Renderer::instance()->draw_rect({ lo->render_rect.x,
                                             lo->render_rect.y,
                                             lo->render_rect.w,
                                             lo->render_rect.h },
-            { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
+            { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue, 255 }, vs.filled);
     }
 }
 
@@ -220,7 +231,8 @@ void view_item::prerender()
     if (style.class_name == computed_class_name) {
         return;
     }
-    style = view_style_get(computed_class_name);
+
+    style = style_get(computed_class_name);
     style.class_name = computed_class_name;
 }
 

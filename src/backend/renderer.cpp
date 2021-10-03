@@ -48,18 +48,17 @@ static inline void render_item(layout_item_ptr item)
             view->prerender();
             view->render();
         }
-    } else {
-        // debug layout only
-        #if 1
+    } else if (view_item::debug_render) {
         RenRect r = {
             item->render_rect.x,
             item->render_rect.y,
             item->render_rect.w,
             item->render_rect.h
         };
-        Renderer::instance()->draw_rect(r, { 255,0,0,255 }, false, 1);
-        Renderer::instance()->draw_text(NULL, item->name.c_str(), r.x, r.y, { 255,0,255 });
-        #endif
+
+        view_style_t vs = style_get("default");
+        Renderer::instance()->draw_rect(r, { item->rgb.r, item->rgb.g, item->rgb.b, 0 }, false, 1);
+        Renderer::instance()->draw_text(NULL, item->name.c_str(), r.x, r.y, { vs.fg.red, vs.fg.green, vs.fg.blue, 0 } );
     }
 
     for (auto child : item->children) {

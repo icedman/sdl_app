@@ -39,8 +39,9 @@ struct view_style_t {
     borders_t padding;
 };
 
-void view_style_clear(view_style_t& style);
-void view_style_register(view_style_t style, std::string name);
-view_style_t view_style_get(std::string name);
+void style_init();
+void style_clear(view_style_t& style);
+void style_register(view_style_t style, std::string name);
+view_style_t style_get(std::string name);
 
 #endif // STYLE_H

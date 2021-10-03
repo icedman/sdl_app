@@ -222,9 +222,11 @@ int highlighter_t::highlightBlock(block_ptr block)
     }
 
     std::string text = block->text();
-    std::string str = text;
-    str += "\n";
+    std::string str = text + "\n";
 
+    // hack.. cpp/c (highlighter probably needs a contiguous buffer)
+    str += ";\n";
+    
     //--------------
     // for minimap line cache
     //--------------
@@ -250,7 +252,7 @@ int highlighter_t::highlightBlock(block_ptr block)
     blockData->rendered_spans.clear();
 
     const char* first = str.c_str();
-    const char* last = first + text.length() + 1;
+    const char* last = first + str.length();
 
     if (prevBlockData) {
         previousBlockState = prevBlockData->state;
@@ -258,7 +260,7 @@ int highlighter_t::highlightBlock(block_ptr block)
         if (parser_state && parser_state->rule) {
             blockData->lastPrevBlockRule = parser_state->rule->rule_id;
         }
-        firstLine = !(parser_state != NULL);
+        firstLine = (parser_state == NULL);
     }
 
     if (!parser_state) {
@@ -266,7 +268,7 @@ int highlighter_t::highlightBlock(block_ptr block)
         firstLine = true;
     }
 
-    if (text.length() > LINE_LENGTH_LIMIT) {
+    if (str.length() > LINE_LENGTH_LIMIT) {
         // too long to parse
         blockData->dirty = false;
         return 1;

@@ -25,24 +25,24 @@
 #include <set>
 #include <vector>
 
-#define FRAME_RENDER_INTERVAL 4
-
-extern int ren_rendered;
+#define FRAME_RENDER_INTERVAL 16
 
 struct sdl_backend_t : backend_t {
     void setClipboardText(std::string text) override
     {
         Renderer::instance()->set_clipboard(text);
-    };
+    }
 
     std::string getClipboardText() override
     {
         return Renderer::instance()->get_clipboard();
-    };
+    }
 };
 
 int main(int argc, char** argv)
 {
+    style_init();
+    
     sdl_backend_t backend;
     app_t app;
     keybinding_t keybinding;

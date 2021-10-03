@@ -18,6 +18,7 @@ minimap_view::minimap_view()
     class_name = "minimap";
     interactive = true;
     sliding_y = 0;
+    render_y = 0;
 
     spacing = 2;
 
