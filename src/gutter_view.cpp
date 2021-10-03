@@ -33,11 +33,13 @@ void gutter_view::render()
     int fw, fh;
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)vs.font.c_str()), &fw, &fh, NULL, 1);
 
-    int start = ev->pre_line;
+    int start = ev->start_row;
     int view_height = ev->rows * 2;
 
     document_t* doc = &editor->document;
     block_list::iterator it = doc->blocks.begin();
+    if (start < 0)
+        start = 0;
     if (start >= doc->blocks.size()) {
         start = (doc->blocks.size() - 1);
     }
@@ -58,6 +60,9 @@ void gutter_view::render()
             }
         }
 
+        if (blockData->folded)
+            continue;
+
         int y = block->y + alo->scroll_y;
         if (y > ev->rows * fh) {
             break;
@@ -70,7 +75,7 @@ void gutter_view::render()
         std::string ln = std::to_string(block->lineNumber + 1);
         Renderer::instance()->draw_text(Renderer::instance()->font((char*)vs.font.c_str()), ln.c_str(),
             lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw),
-            y,
+            y + lo->render_rect.y,
             { (uint8_t)vs.fg.green, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue,
                 (uint8_t)(Renderer::instance()->is_terminal() ? vs.fg.index : 125) });
 

@@ -55,8 +55,6 @@ struct document_t {
     size_t blockId;
     int columns;
     int rows;
-    bool wrap;
-    int wrapIndent;
 
     bool windowsLineEnd;
 

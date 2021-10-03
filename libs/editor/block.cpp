@@ -61,9 +61,9 @@ void block_t::setText(std::string t)
 
     if (data) {
         data->dirty = true;
-        // if (data->folded && data->foldable) {
-        //     document->editor->toggleFold(lineNumber);
-        // }
+        if (data->folded && data->foldable) {
+            // document->editor->toggleFold(lineNumber);
+        }
     }
 
     cachedLength = 0;

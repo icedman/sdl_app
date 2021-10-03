@@ -3,8 +3,8 @@
 
 scrollarea_view::scrollarea_view()
     : view_item("scrollarea")
-    , move_factor_x(20)
-    , move_factor_y(20)
+    , move_factor_x(8)
+    , move_factor_y(8)
 {
     interactive = true;
     layout()->fit_children = false;

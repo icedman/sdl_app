@@ -476,6 +476,10 @@ void app_t::closeEditor(editor_ptr editor)
         }
         it++;
     }
+
+    if (editors.size()) {
+        currentEditor = editors.front();
+    }
 }
 
 void app_t::shutdown()

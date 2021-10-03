@@ -1,10 +1,10 @@
 // printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);// printf("%d %f %f %f\n", it->first, it->second.red, it->second.green, it->second.blue);
 
+#include "animation.h"
 #include "events.h"
 #include "layout.h"
 #include "renderer.h"
 #include "scripting.h"
-#include "animation.h"
 #include "tests.h"
 
 #include "app.h"

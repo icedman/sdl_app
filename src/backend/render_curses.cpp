@@ -627,7 +627,6 @@ void Renderer::listen_events(event_list* events)
         return;
     }
 
-
     if (!isprint(ch)) {
         switch (ch) {
         case K_ESC:

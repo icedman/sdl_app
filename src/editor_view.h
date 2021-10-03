@@ -38,7 +38,6 @@ struct editor_view : panel_view {
     int rows;
     int cols;
 
-    size_t pre_line;
     size_t computed_lines;
 
     editor_ptr editor;

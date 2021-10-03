@@ -100,7 +100,12 @@ enum operation_e {
     POPUP_SEARCH_LINE,
     POPUP_SEARCH_FILES,
     POPUP_COMMANDS,
-    POPUP_COMPLETION
+    POPUP_COMPLETION,
+
+    TOGGLE_SIDEBAR,
+    TOGGLE_TABBAR,
+    TOGGLE_MINIMAP,
+    TOGGLE_GUTTER,
 };
 
 struct operation_t {

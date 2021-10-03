@@ -95,7 +95,7 @@ static const operation_name operation_names[] = {
     { "MOVE_FOCUS_UP", MOVE_FOCUS_UP, "alt+k" },
     { "MOVE_FOCUS_DOWN", MOVE_FOCUS_DOWN, "alt+j" },
 
-    { "SPLIT_VIEW", SPLIT_VIEW, "alt+=" },
+    { "SPLIT_VIEW", SPLIT_VIEW, "" },
     { "TOGGLE_FOLD", TOGGLE_FOLD, "alt+-" },
 
     { "OPEN", OPEN, "" },
@@ -111,7 +111,13 @@ static const operation_name operation_names[] = {
     { "POPUP_SEARCH_LINE", POPUP_SEARCH_LINE, "ctrl+g" },
     { "POPUP_SEARCH_FILES", POPUP_SEARCH_FILES, "ctrl+p" },
     { "POPUP_COMMANDS", POPUP_COMMANDS, "ctrl+shift+p" },
+    { "POPUP_COMMANDS", POPUP_COMMANDS, "alt+shift+p" },
     { "POPUP_COMPLETION", POPUP_COMPLETION, "" },
+
+    { "TOGGLE_SIDEBAR", TOGGLE_SIDEBAR, "ctrl+shift+b" },
+    { "TOGGLE_SIDEBAR", TOGGLE_SIDEBAR, "shift+alt+b" },
+    { "TOGGLE_TABBAR", TOGGLE_TABBAR, "ctrl+shift+tab" },
+    { "TOGGLE_TABBAR", TOGGLE_TABBAR, "shift+alt+tab" },
 
     { 0 }
 };

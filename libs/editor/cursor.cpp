@@ -795,7 +795,7 @@ int cursor_t::unindent()
     return count;
 }
 
-static int _cursorToggleLineComment(cursor_t* cursor)
+static int _cursorToggleLineComment(cursor_t* cursor, int indent = -1)
 {
     // editor_ptr editor = app_t::instance()->currentEditor;
     editor_t* editor = cursor->block()->document->editor;
@@ -806,7 +806,9 @@ static int _cursorToggleLineComment(cursor_t* cursor)
     std::string text = cursor->block()->text();
 
     // check existing comment
-    int indent = countIndentSize(text);
+    if (indent == -1) {
+        indent = countIndentSize(text);
+    }
     std::string trimmed(text.c_str() + indent);
 
     std::string singleLineComment = editor->highlighter.lang->lineComment;
@@ -814,7 +816,7 @@ static int _cursorToggleLineComment(cursor_t* cursor)
 
     cursor->cursor.position = indent;
 
-    if (trimmed.find(singleLineComment) == 0) {
+    if (text.find(singleLineComment) == indent) {
         cursor->eraseText(singleLineComment.length());
         return -singleLineComment.length();
     }
@@ -832,12 +834,20 @@ int cursor_t::toggleLineComment()
         cursor_position_t posCur = selectionStart();
         cursor_position_t anchorCur = selectionEnd();
 
+        int indent = -1;
+        for (auto b : blocks) {
+            int _i = countIndentSize(b->text());
+            if (_i < indent || indent == -1) {
+                indent = _i;
+            }
+        }
+
         int count = 0;
         int idx = 0;
         for (auto b : blocks) {
             cursor_t cur = *this;
             cur.setPosition(b, 0);
-            count = _cursorToggleLineComment(&cur);
+            count = _cursorToggleLineComment(&cur, indent);
         }
 
         return count;

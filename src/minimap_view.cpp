@@ -8,7 +8,7 @@
 #include "dots.h"
 #include "style.h"
 
-#define DRAW_SCALE 0.75f
+#define DRAW_SCALE 0.5f
 #define TEXT_COMPRESS 5
 #define TEXT_BUFFER 25
 

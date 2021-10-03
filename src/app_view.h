@@ -18,6 +18,7 @@ struct app_view : vertical_container {
     view_item_ptr commands;
     view_item_ptr popups;
 
+    void prelayout() override;
     bool input_sequence(std::string sequence) override;
     void update(int millis) override;
     void create_editor_view(editor_ptr editor);

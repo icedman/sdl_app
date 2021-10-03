@@ -168,6 +168,19 @@ bool app_view::input_sequence(std::string keySequence)
     case CLOSE:
         destroy_editor_view(app->currentEditor);
         return true;
+
+    case TOGGLE_SIDEBAR:
+        app_t::instance()->showSidebar = !app_t::instance()->showSidebar;
+        layout_request();
+        return true;
+
+    case TOGGLE_TABBAR:
+        app_t::instance()->showTabbar = !app_t::instance()->showTabbar;
+        layout_request();
+        return true;
+
+    default:
+        break;
     }
 
     // printf("%s\n", keySequence.c_str());
@@ -358,4 +371,11 @@ void app_view::setup_style()
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
     view_style_register(vs, "statusbar");
+}
+
+void app_view::prelayout()
+{
+    tabbar->layout()->visible = app_t::instance()->showTabbar;
+    statusbar->layout()->visible = app_t::instance()->showStatusBar;
+    explorer->layout()->visible = app_t::instance()->showSidebar;
 }
