@@ -21,9 +21,9 @@ struct highlighter_t {
 
     highlighter_t();
 
-    void gatherBrackets(block_ptr block, char* first, char* last);
     int highlightBlocks(block_ptr block, int count = 1);
     int highlightBlock(block_ptr block);
+    void updateBrackets(block_ptr block);
     void run(editor_t* editor);
 
     static bool hasRunningThreads();

@@ -1,5 +1,6 @@
 #include "block.h"
 #include "document.h"
+#include "editor.h"
 #include "utf8.h"
 #include "util.h"
 
@@ -62,7 +63,7 @@ void block_t::setText(std::string t)
     if (data) {
         data->dirty = true;
         if (data->folded && data->foldable) {
-            // document->editor->toggleFold(lineNumber);
+            document->editor->toggleFold(lineNumber);
         }
     }
 

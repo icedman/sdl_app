@@ -81,6 +81,119 @@ static void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
     spans.insert(spans.begin(), 1, comment);
 }
 
+static void gatherBrackets(block_ptr block, char* first, char* last, language_info_ptr lang)
+{
+    if (!lang) return;
+
+    blockdata_ptr blockData = block->data;
+    if (!block->data) {
+        block->data = std::make_shared<blockdata_t>();
+        block->data->dirty = true;
+        blockData = block->data;
+    }
+
+    if (blockData->brackets.size()) {
+        return;
+    }
+
+    std::vector<bracket_info_t> brackets;
+    for (char* c = (char*)first; c < last;) {
+        bool found = false;
+
+        struct span_info_t span = spanAtBlock(blockData.get(), c - first);
+        if (span.length && (span.state == BLOCK_STATE_COMMENT || span.state == BLOCK_STATE_STRING)) {
+            c++;
+            continue;
+        }
+
+        // opening
+        int i = 0;
+        for (auto b : lang->bracketOpen) {
+            if (strstr(c, b.c_str()) == c) {
+                found = true;
+                size_t l = (c - first);
+                brackets.push_back({ .line = block->lineNumber,
+                    .position = l,
+                    // .absolutePosition = block->position + l,
+                    .bracket = i,
+                    .open = true });
+                c += b.length();
+                break;
+            }
+        }
+
+        if (found) {
+            continue;
+        }
+
+        // closing
+        i = 0;
+        for (auto b : lang->bracketClose) {
+            if (strstr(c, b.c_str()) == c) {
+                found = true;
+                size_t l = (c - first);
+                brackets.push_back({ .line = block->lineNumber,
+                    .position = l,
+                    //.absolutePosition = block->position + l,
+                    .bracket = i,
+                    .open = false });
+                c += b.length();
+                break;
+            }
+        }
+
+        if (found) {
+            continue;
+        }
+
+        c++;
+    }
+
+    blockData->brackets = brackets;
+
+    // log("brackets %d %d", blockData->brackets.size(), blockData->foldingBrackets.size());
+}
+
+void highlighter_t::updateBrackets(block_ptr block)
+{
+    blockdata_ptr blockData = block->data;
+    if (!block->data) return;
+
+    for(auto& b : blockData->brackets) {
+        b.line = block->lineNumber;
+    }
+
+    blockData->ifElseHack = true;
+    blockData->foldingBrackets.clear();
+
+    // bracket pairing
+    for (auto& b : blockData->brackets) {
+        if (!b.open && blockData->foldingBrackets.size()) {
+            auto l = blockData->foldingBrackets.back();
+            if (l.open && l.bracket == b.bracket) {
+                blockData->foldingBrackets.pop_back();
+            } else {
+                // std::cout << "error brackets" << std::endl;
+            }
+            continue;
+        }
+        blockData->foldingBrackets.push_back(b);
+    }
+
+    // hack for if-else-
+    if (blockData->foldingBrackets.size() == 2) {
+        if (blockData->foldingBrackets[0].open != blockData->foldingBrackets[1].open && blockData->foldingBrackets[0].bracket == blockData->foldingBrackets[1].bracket) {
+            blockData->foldingBrackets.clear();
+            blockData->ifElseHack = true;
+        }
+    }
+
+    if (blockData->foldingBrackets.size()) {
+        auto l = blockData->foldingBrackets.back();
+        blockData->foldable = l.open;
+    }
+}
+
 int highlighter_t::highlightBlock(block_ptr block)
 {
     if (!block || !lang)
@@ -282,8 +395,11 @@ int highlighter_t::highlightBlock(block_ptr block)
     blockData->foldable = false;
     blockData->foldingBrackets.clear();
     blockData->ifElseHack = false;
-    gatherBrackets(block, (char*)first, (char*)last);
+    gatherBrackets(block, (char*)first, (char*)last, lang);
 
+    //----------------------
+    // save parser state
+    //----------------------
     blockData->parser_state = parser_state;
     blockData->dirty = false;
     blockData->lastRule = parser_state->rule->rule_id;
@@ -314,106 +430,6 @@ int highlighter_t::highlightBlock(block_ptr block)
     }
 
     return 1;
-}
-
-void highlighter_t::gatherBrackets(block_ptr block, char* first, char* last)
-{
-    blockdata_ptr blockData = block->data;
-    if (!block->data) {
-        block->data = std::make_shared<blockdata_t>();
-        block->data->dirty = true;
-        blockData = block->data;
-    }
-
-    if (blockData->brackets.size()) {
-        return;
-    }
-
-    if (lang->brackets) {
-        std::vector<bracket_info_t> brackets;
-        for (char* c = (char*)first; c < last;) {
-            bool found = false;
-
-            struct span_info_t span = spanAtBlock(blockData.get(), c - first);
-            if (span.length && (span.state == BLOCK_STATE_COMMENT || span.state == BLOCK_STATE_STRING)) {
-                c++;
-                continue;
-            }
-
-            // opening
-            int i = 0;
-            for (auto b : lang->bracketOpen) {
-                if (strstr(c, b.c_str()) == c) {
-                    found = true;
-                    size_t l = (c - first);
-                    brackets.push_back({ .line = block->lineNumber,
-                        .position = l,
-                        // .absolutePosition = block->position + l,
-                        .bracket = i,
-                        .open = true });
-                    c += b.length();
-                    break;
-                }
-            }
-
-            if (found) {
-                continue;
-            }
-
-            // closing
-            i = 0;
-            for (auto b : lang->bracketClose) {
-                if (strstr(c, b.c_str()) == c) {
-                    found = true;
-                    size_t l = (c - first);
-                    brackets.push_back({ .line = block->lineNumber,
-                        .position = l,
-                        //.absolutePosition = block->position + l,
-                        .bracket = i,
-                        .open = false });
-                    c += b.length();
-                    break;
-                }
-            }
-
-            if (found) {
-                continue;
-            }
-
-            c++;
-        }
-
-        blockData->brackets = brackets;
-
-        // bracket pairing
-        for (auto b : brackets) {
-            if (!b.open && blockData->foldingBrackets.size()) {
-                auto l = blockData->foldingBrackets.back();
-                if (l.open && l.bracket == b.bracket) {
-                    blockData->foldingBrackets.pop_back();
-                } else {
-                    // std::cout << "error brackets" << std::endl;
-                }
-                continue;
-            }
-            blockData->foldingBrackets.push_back(b);
-        }
-
-        // hack for if-else-
-        if (blockData->foldingBrackets.size() == 2) {
-            if (blockData->foldingBrackets[0].open != blockData->foldingBrackets[1].open && blockData->foldingBrackets[0].bracket == blockData->foldingBrackets[1].bracket) {
-                blockData->foldingBrackets.clear();
-                blockData->ifElseHack = true;
-            }
-        }
-
-        if (blockData->foldingBrackets.size()) {
-            auto l = blockData->foldingBrackets.back();
-            blockData->foldable = l.open;
-        }
-
-        // log("brackets %d %d", blockData->brackets.size(), blockData->foldingBrackets.size());
-    }
 }
 
 struct highlight_thread_t {

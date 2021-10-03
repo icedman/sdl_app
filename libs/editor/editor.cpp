@@ -817,18 +817,21 @@ void editor_t::toggleFold(size_t line)
     document_t* doc = &document;
     block_ptr folder = doc->blockAtLine(line + 1);
 
+    // printf("%d %s\n", line, folder->text().c_str());
+
     cursor_t openBracket = findLastOpenBracketCursor(folder);
     if (openBracket.isNull()) {
-        // log("> %d", folder->lineNumber);
         return;
     }
 
     bracket_info_t bracket = bracketAtCursor(openBracket);
     if (bracket.bracket == -1) {
+        // printf("2> %d", folder->lineNumber);
         return;
     }
     cursor_t endBracket = findBracketMatchCursor(bracket, openBracket);
     if (endBracket.isNull()) {
+        // printf("3> %d", folder->lineNumber);
         return;
     }
 
@@ -844,19 +847,13 @@ void editor_t::toggleFold(size_t line)
     block = block->next();
     while (block) {
         blockdata_ptr targetData = block->data;
+        if (!targetData) break;
+
         targetData->folded = blockData->folded;
         targetData->foldable = false;
-        targetData->foldedBy = blockData->folded ? line : 0;
-        if (blockData->folded) {
-            // block->setVisible(false);
-            // block->setLineCount(0);
-            // block->lineCount = 0;
-        } else {
-            targetData->dirty = true;
-            // block->setVisible(true);
-            // block->setLineCount(1);
-            // block->lineCount = 1;
-        }
+        targetData->foldedBy = blockData->folded ? block->uid : 0;
+        targetData->dirty = true;
+
         if (block == endBlock) {
             break;
         }

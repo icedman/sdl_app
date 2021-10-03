@@ -98,6 +98,7 @@ void editor_view::render()
             editor->highlighter.highlightBlock(block);
         }
 
+        editor->highlighter.updateBrackets(block);
         blockdata_ptr blockData = block->data;
 
         if (!longest_block) {
@@ -284,6 +285,8 @@ editor_view::editor_view()
     : panel_view()
     , start_row(0)
     , computed_lines(0)
+    , showMinimap(true)
+    , showGutter(true)
 {
     type = "editor";
     font = "editor";
@@ -380,8 +383,8 @@ void editor_view::update(int millis)
 
 void editor_view::prelayout()
 {
-    minimap->layout()->visible = app_t::instance()->showMinimap;
-    gutter->layout()->visible = app_t::instance()->showGutter;
+    minimap->layout()->visible = app_t::instance()->showMinimap && showMinimap;
+    gutter->layout()->visible = app_t::instance()->showGutter && showGutter;
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
 
@@ -680,8 +683,9 @@ bool editor_view::input_sequence(std::string text)
         break;
     }
 
-#if 0
+#if 1
     switch (op) {
+    case TOGGLE_FOLD:
     case UNDO:
     case CUT:
     case PASTE:
@@ -693,7 +697,7 @@ bool editor_view::input_sequence(std::string text)
     case DELETE_SELECTION:
     case INSERT:
         if (!editor->document.lineNumberingIntegrity()) {
-            log("line numbering error\n");
+            app_t::log("line numbering error\n");
         }
         break;
     }

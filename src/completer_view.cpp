@@ -33,6 +33,8 @@ void completer_view::show_completer(editor_ptr e)
     }
 
     editor_view* ev = (editor_view*)editor->view;
+    layout_item_ptr elo = ev->layout();
+
     popup_manager* pm = view_item::cast<popup_manager>(ev->popups);
     pm->clear();
 
@@ -109,6 +111,7 @@ void completer_view::show_completer(editor_ptr e)
         span_info_t s = spanAtBlock(blockData.get(), current_cursor.position(), true);
         int offset = current_cursor.position() - s.start;
         scrollarea_view* area = view_item::cast<scrollarea_view>(ev->scrollarea);
+        layout_item_ptr alo = area->layout();
 
         int list_size = list->data.size();
         if (list_size > 4)
@@ -127,7 +130,7 @@ void completer_view::show_completer(editor_ptr e)
         list->ensure_visible_cursor();
 
         int px = (s.x - pm->layout()->render_rect.x + offset * fw);
-        int py = (s.y - ev->scrollarea->layout()->render_rect.y);
+        int py = (s.y + alo->scroll_y);
 
         pm->push_at(ev->completer,
             { px,

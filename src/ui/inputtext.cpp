@@ -61,6 +61,9 @@ void inputtext_view::set_editor(view_item_ptr _editor)
     ev->minimap->layout()->visible = false;
     ev->bottom->layout()->visible = false;
 
+    ev->showMinimap = false;
+    ev->showGutter = false;
+
     add_child(editor);
 }
 

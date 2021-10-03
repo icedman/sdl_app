@@ -49,6 +49,9 @@ struct editor_view : panel_view {
 
     std::string font;
     int fw, fh;
+
+    bool showMinimap;
+    bool showGutter;
 };
 
 #endif // EDITOR_VIEW_H
