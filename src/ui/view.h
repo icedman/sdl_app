@@ -28,6 +28,8 @@ struct view_item : layout_view, event_object_t {
     virtual view_type type_of() { return CONTAINER; }
     virtual bool is_type_of(view_type t) { return t == CONTAINER; }
 
+    virtual std::string type_name();
+
     layout_item_ptr layout() override;
     void update(int ticks) override;
     void prerender() override;

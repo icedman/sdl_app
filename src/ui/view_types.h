@@ -14,7 +14,8 @@ enum view_type {
     SCROLLAREA,
     SCROLLBAR,
     TABBAR,
-    CUSTOM
+    CUSTOM,
+    END
 };
 
 #endif // VIEW_TYPES_H

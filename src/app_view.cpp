@@ -289,32 +289,29 @@ void app_view::setup_style()
     theme_ptr theme = app->theme;
     style_t comment = theme->styles_for_scope("comment");
 
-    view_style_t vs_default = {
-        font : "editor",
-        italic : false,
-        bold : false,
-        fg : Renderer::instance()->color_for_index(comment.foreground.index),
-        bg : Renderer::instance()->color_for_index(app->bgApp),
-        border_color : Renderer::instance()->color_for_index(app->bgApp),
-        filled : false,
-        border_width : 0,
-        corner_radius : 0
+    view_style_t vs_default;
+    view_style_clear(vs_default);
 
-    };
+    vs_default.font = "editor";
+    vs_default.filled = false;
+    vs_default.fg = Renderer::instance()->color_for_index(comment.foreground.index);
+    vs_default.bg = Renderer::instance()->color_for_index(app->bgApp);
+    vs_default.border_color = Renderer::instance()->color_for_index(app->bgApp);
+
     view_style_t vs = vs_default;
     view_style_t vs_item = vs_default;
     view_style_register(vs_default, "default");
 
-    vs_default;
+    vs = vs_default;
     view_style_register(vs_default, "editor");
 
-    vs_default;
+    vs = vs_default;
     view_style_register(vs_default, "scrollbar");
 
-    vs_default;
+    vs = vs_default;
     view_style_register(vs, "gutter");
 
-    vs_default;
+    vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs.filled = Renderer::instance()->is_terminal() ? false : true;
     view_style_register(vs, "list");
@@ -338,7 +335,7 @@ void app_view::setup_style()
     view_style_register(vs_item, "explorer.item:selected");
     view_style_register(vs_item, "explorer.item:hovered");
 
-    vs_default;
+    vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs.filled = Renderer::instance()->is_terminal() ? false : true;
     view_style_register(vs, "tabbar");
@@ -350,7 +347,7 @@ void app_view::setup_style()
     view_style_register(vs_item, "tabbar.item:selected");
     view_style_register(vs_item, "tabbar.item:hovered");
 
-    vs_default;
+    vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs.filled = true;
     view_style_register(vs, "completer");
@@ -366,7 +363,7 @@ void app_view::setup_style()
     view_style_register(vs_item, "search.item:selected");
     view_style_register(vs_item, "search.item:hovered");
 
-    vs_default;
+    vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);
     vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
     view_style_register(vs, "statusbar");

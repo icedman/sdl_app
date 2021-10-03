@@ -98,7 +98,6 @@ struct layout_view {
     virtual bool is_hovered() { return false; }
     virtual bool is_clicked() { return false; }
     virtual layout_item_ptr layout() { return 0; }
-    virtual void set_layout(layout_item_ptr l) { _layout = l; }
 
     virtual void prelayout() {}
     virtual void postlayout() {}
@@ -121,7 +120,7 @@ struct layout_item {
         , scroll_y(0)
         , width(0)
         , height(0)
-        , fit_children(true)
+        , fit_children(false)
         , margin(0)
         , margin_left(0)
         , margin_right(0)

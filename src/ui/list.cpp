@@ -12,6 +12,7 @@ list_item_view::list_item_view()
     : horizontal_container()
 {
     interactive = true;
+    layout()->fit_children = true;
 
     on(EVT_MOUSE_CLICK, [this](event_t& evt) {
         evt.cancelled = true;

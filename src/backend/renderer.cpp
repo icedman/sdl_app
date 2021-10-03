@@ -39,13 +39,27 @@ static inline void render_item(layout_item_ptr item)
 
     Renderer::instance()->state_save();
 
-    if (view->_views.size()) {
-        Renderer::instance()->set_clip_rect(clip);
-    }
-
     if (view) {
-        view->prerender();
-        view->render();
+        if (view->_views.size()) {
+            Renderer::instance()->set_clip_rect(clip);
+        }
+
+        if (view) {
+            view->prerender();
+            view->render();
+        }
+    } else {
+        // debug layout only
+        #if 1
+        RenRect r = {
+            item->render_rect.x,
+            item->render_rect.y,
+            item->render_rect.w,
+            item->render_rect.h
+        };
+        Renderer::instance()->draw_rect(r, { 255,0,0,255 }, false, 1);
+        Renderer::instance()->draw_text(NULL, item->name.c_str(), r.x, r.y, { 255,0,255 });
+        #endif
     }
 
     for (auto child : item->children) {

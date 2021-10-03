@@ -17,7 +17,7 @@
 
 view_item_ptr test_root()
 {
-    return test5();
+    return test2();
 }
 
 view_item_ptr test6()
@@ -212,7 +212,9 @@ view_item_ptr test3()
 
 view_item_ptr test2()
 {
-    layout_item_ptr root = std::make_shared<layout_item>();
+    view_item_ptr view = std::make_shared<view_item>();
+    layout_item_ptr root = view->layout();
+
     // root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     root->direction = LAYOUT_FLEX_DIRECTION_ROW;
 
@@ -253,14 +255,14 @@ view_item_ptr test2()
         child->height = 200;
     }
 
-    view_item_ptr view = std::make_shared<view_item>();
-    view->set_layout(root);
     return view;
 }
 
 view_item_ptr test1()
 {
-    layout_item_ptr root = std::make_shared<layout_item>();
+    view_item_ptr view = std::make_shared<view_item>();
+    layout_item_ptr root = view->layout();
+
     root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     root->margin = 20;
 
@@ -346,9 +348,6 @@ view_item_ptr test1()
     item_g->height = 400;
     item_h->width = 80;
     item_h->height = 200;
-
-    view_item_ptr view = std::make_shared<view_item>();
-    view->set_layout(root);
 
     if (item_a->children.size() == 0)
         item_a->children.push_back(std::make_shared<layout_item>());

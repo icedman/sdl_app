@@ -13,6 +13,22 @@ static int drag_start_x = 0;
 static int drag_start_y = 0;
 static bool dragging = false;
 
+const char* view_type_names[] = {
+    "container",
+    "text",
+    "button",
+    "image",
+    "panel",
+    "popup",
+    "list",
+    "list_item",
+    "inputtext",
+    "scrollarea",
+    "scrollbar",
+    "tabbar",
+    "custom"
+};
+
 std::string previous_sequence = "";
 
 view_item_list popups;
@@ -60,6 +76,15 @@ view_item::~view_item()
         view_clicked = 0;
     if (view_dragged == this)
         view_dragged = 0;
+}
+
+std::string view_item::type_name()
+{
+    if (type_of() <= CUSTOM) {
+        return view_type_names[type_of()];
+    }
+
+    return "";
 }
 
 RenImage* view_item::cache(int w, int h)
