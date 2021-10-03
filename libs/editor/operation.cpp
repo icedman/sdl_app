@@ -57,6 +57,7 @@ static const operation_name operation_names[] = {
     { "ADD_CURSOR_AND_MOVE_UP", ADD_CURSOR_AND_MOVE_UP, "ctrl+up" },
     { "ADD_CURSOR_AND_MOVE_DOWN", ADD_CURSOR_AND_MOVE_DOWN, "ctrl+down" },
     { "ADD_CURSOR_FOR_SELECTED_WORD", ADD_CURSOR_FOR_SELECTED_WORD, "ctrl+d" },
+    { "CLEAR_LAST_CURSOR", CLEAR_LAST_CURSOR, "ctrl+u" },
     { "CLEAR_CURSORS", CLEAR_CURSORS, "" },
 
     { "MOVE_CURSOR", MOVE_CURSOR, "" },

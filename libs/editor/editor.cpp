@@ -237,6 +237,17 @@ void editor_t::runOp(operation_t op)
             _op = SELECT_WORD;
         }
         break;
+
+    case CLEAR_LAST_CURSOR:
+        if (document.cursors.size() > 1) {
+            document.cursors[0] = document.cursors.back();
+            document.cursors.pop_back();
+        } else {
+            mainCursor.clearSelection();
+            document.setCursor(mainCursor, true);    
+        }
+        break;
+
     case CLEAR_CURSORS:
         mainCursor.clearSelection();
         document.clearCursors();
