@@ -6,7 +6,9 @@
 #include "view.h"
 
 struct inputtext_view : horizontal_container {
-    inputtext_view();
+    inputtext_view(std::string text = "");
+
+    DECLAR_VIEW_TYPE(INPUTTEXT, horizontal_container)
 
     void render() override;
 

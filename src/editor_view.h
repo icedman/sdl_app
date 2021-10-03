@@ -12,6 +12,8 @@
 struct editor_view : panel_view {
     editor_view();
 
+    DECLAR_VIEW_TYPE(CUSTOM, panel_view)
+
     void prelayout() override;
 
     bool mouse_down(int x, int y, int button, int clicks = 0) override;

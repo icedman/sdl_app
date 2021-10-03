@@ -25,7 +25,7 @@ void view_input_list(view_item_list& list, view_item_ptr item)
     if (!list.size()) {
         popups.clear();
     } else {
-        if (item->type == "popup") {
+        if (item->is_type_of(POPUP)) {
             popups.push_back(item);
         }
     }
@@ -40,16 +40,9 @@ void view_input_list(view_item_list& list, view_item_ptr item)
 }
 
 view_item::view_item()
-    : view_item("view")
-{
-}
-
-view_item::view_item(std::string type)
-    : type(type)
-    , cached_image(0)
+    : cached_image(0)
     , cache_enabled(false)
-{
-}
+{}
 
 view_item::~view_item()
 {
@@ -97,7 +90,6 @@ layout_item_ptr view_item::layout()
     if (!_layout) {
         _layout = std::make_shared<layout_item>();
         _layout->view = this;
-        _layout->name = type;
     }
     return _layout;
 }
@@ -236,7 +228,7 @@ int view_item::on(event_type_e event_type, event_callback_t callback)
 
 void view_item::propagate_event(event_t& event)
 {
-    if (parent && type != "popup" && type != "panel") {
+    if (parent && !is_type_of(POPUP) && !is_type_of(PANEL)) {
         ((view_item*)parent)->propagate_event(event);
     }
     for (auto c : callbacks[event.type]) {

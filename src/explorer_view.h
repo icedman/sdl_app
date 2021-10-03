@@ -9,6 +9,8 @@ struct fileitem_t;
 struct explorer_view : list_view {
     explorer_view();
 
+    DECLAR_VIEW_TYPE(CUSTOM, list_view)
+    
     void update(int millis) override;
     void select_item(list_item_view* item) override;
 };

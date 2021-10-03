@@ -2,13 +2,13 @@
 #include "renderer.h"
 
 scrollarea_view::scrollarea_view()
-    : view_item("scrollarea")
+    : view_item()
     , move_factor_x(8)
     , move_factor_y(8)
 {
     interactive = true;
     layout()->fit_children = false;
-    content = std::make_shared<view_item>("content");
+    content = std::make_shared<view_item>();
     content->layout()->fit_children = true;
     content->layout()->wrap = true;
     add_child(content);

@@ -2,7 +2,7 @@
 #include "renderer.h"
 
 button_view::button_view(std::string t)
-    : view_item("button")
+    : view_item()
 {
     interactive = true;
 

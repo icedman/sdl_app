@@ -6,6 +6,8 @@
 struct scrollarea_view : view_item {
     scrollarea_view();
 
+    DECLAR_VIEW_TYPE(SCROLLAREA, view_item)
+
     virtual bool mouse_wheel(int x, int y) override;
 
     view_item_ptr content;

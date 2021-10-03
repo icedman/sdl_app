@@ -288,7 +288,6 @@ editor_view::editor_view()
     , showMinimap(true)
     , showGutter(true)
 {
-    type = "editor";
     font = "editor";
     interactive = true;
     focusable = true;

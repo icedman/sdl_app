@@ -2,7 +2,7 @@
 #include "renderer.h"
 
 icon_view::icon_view()
-    : view_item("icon")
+    : view_item()
     , icon(0)
 {
     layout()->width = 32;

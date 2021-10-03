@@ -8,6 +8,8 @@
 struct icon_view : view_item {
     icon_view();
 
+    DECLAR_VIEW_TYPE(IMAGE, view_item)
+
     void render() override;
 
     RenImage* icon;

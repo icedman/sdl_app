@@ -12,6 +12,8 @@
 struct popup_view : panel_view {
     popup_view();
 
+    DECLAR_VIEW_TYPE(POPUP, panel_view)
+
     int direction;
     view_item* pm;
 

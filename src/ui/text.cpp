@@ -3,7 +3,7 @@
 #include "style.h"
 
 text_view::text_view(std::string text)
-    : view_item("text")
+    : view_item()
     , text(text)
 {
     layout()->height = 40;

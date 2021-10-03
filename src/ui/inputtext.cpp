@@ -3,11 +3,9 @@
 
 #include "app.h";
 
-inputtext_view::inputtext_view()
+inputtext_view::inputtext_view(std::string text)
     : horizontal_container()
 {
-    type = "inputtext";
-
     int h = 26;
     int m = 4;
 
@@ -18,6 +16,7 @@ inputtext_view::inputtext_view()
     layout()->height = h + m + (m / 2);
 
     set_editor(std::make_shared<editor_view>());
+    set_value(text);
 }
 
 void inputtext_view::render()

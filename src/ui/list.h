@@ -22,6 +22,9 @@ struct list_view;
 struct list_item_view : horizontal_container {
 
     list_item_view();
+
+    DECLAR_VIEW_TYPE(LIST_ITEM, view_item)
+
     bool mouse_click(int x, int y, int button) override;
     void render() override;
     void prerender() override;
@@ -37,6 +40,8 @@ struct list_item_view : horizontal_container {
 struct list_view : panel_view {
     list_view(std::vector<list_item_data_t> items);
     list_view();
+
+    DECLAR_VIEW_TYPE(LIST, panel_view)
 
     virtual void prelayout() override;
     virtual void update(int millis = 0) override;

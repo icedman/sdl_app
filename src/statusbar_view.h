@@ -7,6 +7,8 @@
 struct statusbar_view : horizontal_container {
     statusbar_view();
 
+    DECLAR_VIEW_TYPE(CUSTOM, horizontal_container)
+
     void update(int millis) override;
     void render() override;
 

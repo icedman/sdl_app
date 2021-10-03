@@ -5,6 +5,8 @@
 
 struct tabbar_view : list_view {
     tabbar_view();
+
+    DECLAR_VIEW_TYPE(SCROLLBAR, list_view)
 };
 
 #endif // TABBAR_VIEW_H

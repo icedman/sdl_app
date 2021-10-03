@@ -6,20 +6,27 @@
 #include "renderer.h"
 #include "style.h"
 
+#include "view_types.h"
+
 #include <map>
 
 struct view_item;
 typedef std::shared_ptr<view_item> view_item_ptr;
 typedef std::vector<view_item_ptr> view_item_list;
 
+#define DECLAR_VIEW_TYPE(T, P) \
+    virtual view_type type_of() override { return T; } \
+    virtual bool is_type_of(view_type t) override { return t == T || P::is_type_of(t); }
+
 struct view_item : layout_view, event_object_t {
-    view_item(std::string type);
     view_item();
     ~view_item();
 
     std::string uid;
     std::string name;
-    std::string type;
+
+    virtual view_type type_of() { return CONTAINER; }
+    virtual bool is_type_of(view_type t) { return t == CONTAINER; }
 
     layout_item_ptr layout() override;
     void update(int ticks) override;
@@ -71,7 +78,7 @@ struct view_item : layout_view, event_object_t {
 
 struct vertical_container : view_item {
     vertical_container()
-        : view_item("container")
+        : view_item()
     {
         layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
     }
@@ -79,7 +86,7 @@ struct vertical_container : view_item {
 
 struct horizontal_container : view_item {
     horizontal_container()
-        : view_item("container")
+        : view_item()
     {
         layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
     }

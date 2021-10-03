@@ -6,6 +6,8 @@
 struct text_view : view_item {
     text_view(std::string text);
 
+    DECLAR_VIEW_TYPE(TEXT, view_item)
+
     void prelayout() override;
     void render() override;
 

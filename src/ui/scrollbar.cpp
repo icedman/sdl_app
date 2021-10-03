@@ -15,7 +15,7 @@ scrollbar_view::scrollbar_view()
     interactive = true;
     layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
 
-    content->type = "thumb";
+    // content->class_name = "scrollbar_thumb";
     content->layout()->rgb = { 255, 255, 0 };
 
     on(EVT_MOUSE_CLICK, [this](event_t& evt) {

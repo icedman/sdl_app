@@ -11,7 +11,6 @@
 list_item_view::list_item_view()
     : horizontal_container()
 {
-    type = "list";
     interactive = true;
 
     on(EVT_MOUSE_CLICK, [this](event_t& evt) {

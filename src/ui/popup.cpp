@@ -5,12 +5,11 @@ popup_view::popup_view()
     : panel_view()
     , direction(POPUP_DIRECTION_DOWN)
 {
-    type = "popup";
     layout()->stack = true;
 }
 
 popup_manager::popup_manager()
-    : view_item("popup_manager")
+    : view_item()
 {
     layout()->stack = true;
 }
@@ -42,7 +41,7 @@ void popup_manager::push(view_item_ptr popup)
 {
     view_item::cast<popup_view>(popup)->pm = this;
     popup->layout()->stack = true;
-    popup->type = "popup";
+
     add_child(popup);
     layout_request();
 }

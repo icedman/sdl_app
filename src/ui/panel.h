@@ -6,6 +6,8 @@
 struct panel_view : vertical_container {
     panel_view();
 
+    DECLAR_VIEW_TYPE(PANEL, vertical_container)
+
     view_item_ptr v_scroll;
     view_item_ptr h_scroll;
     view_item_ptr scrollarea;

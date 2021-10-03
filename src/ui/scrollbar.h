@@ -7,6 +7,8 @@
 struct scrollbar_view : scrollarea_view {
     scrollbar_view();
 
+    DECLAR_VIEW_TYPE(SCROLLBAR, scrollarea_view)
+
     void prelayout() override;
     void postlayout() override;
     void render() override;

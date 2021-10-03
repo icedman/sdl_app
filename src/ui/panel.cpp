@@ -4,7 +4,6 @@
 
 panel_view::panel_view()
 {
-    type = "panel";
     int scrollbar_size = 14;
 
     if (Renderer::instance()->is_terminal()) {
