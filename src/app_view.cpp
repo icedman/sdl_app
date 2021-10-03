@@ -174,9 +174,8 @@ bool app_view::input_sequence(std::string keySequence)
         layout_request();
         return true;
 
-    case TOGGLE_TABBAR:
-        app_t::instance()->showTabbar = !app_t::instance()->showTabbar;
-        layout_request();
+    case CYCLE_TABS:
+        // cycle tabs
         return true;
 
     default:

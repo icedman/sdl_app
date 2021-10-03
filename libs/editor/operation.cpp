@@ -22,6 +22,8 @@ static const operation_name operation_names[] = {
     { "TAB_7", TAB_7, "alt+7" },
     { "TAB_8", TAB_8, "alt+8" },
     { "TAB_9", TAB_9, "alt+9" },
+    { "CYCLE_TABS", CYCLE_TABS, "ctrl+shift+tab" },
+    { "CYCLE_TABS", CYCLE_TABS, "alt+shift+tab" },
 
     { "TAB", TAB, "tab" },
     { "ENTER", ENTER, "return" },
@@ -96,7 +98,8 @@ static const operation_name operation_names[] = {
     { "MOVE_FOCUS_DOWN", MOVE_FOCUS_DOWN, "alt+j" },
 
     { "SPLIT_VIEW", SPLIT_VIEW, "" },
-    { "TOGGLE_FOLD", TOGGLE_FOLD, "alt+-" },
+    { "TOGGLE_FOLD", TOGGLE_FOLD, "ctrl+shift+]" },
+    { "TOGGLE_FOLD", TOGGLE_FOLD, "alt+shift+]" },
 
     { "OPEN", OPEN, "" },
     { "SAVE", SAVE, "ctrl+s" },
@@ -116,8 +119,6 @@ static const operation_name operation_names[] = {
 
     { "TOGGLE_SIDEBAR", TOGGLE_SIDEBAR, "ctrl+shift+b" },
     { "TOGGLE_SIDEBAR", TOGGLE_SIDEBAR, "shift+alt+b" },
-    { "TOGGLE_TABBAR", TOGGLE_TABBAR, "ctrl+shift+tab" },
-    { "TOGGLE_TABBAR", TOGGLE_TABBAR, "shift+alt+tab" },
 
     { 0 }
 };

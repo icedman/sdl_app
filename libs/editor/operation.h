@@ -44,6 +44,7 @@ enum operation_e {
     TAB_7,
     TAB_8,
     TAB_9,
+    CYCLE_TABS,
 
     MOVE_CURSOR,
     MOVE_CURSOR_LEFT,
@@ -103,7 +104,6 @@ enum operation_e {
     POPUP_COMPLETION,
 
     TOGGLE_SIDEBAR,
-    TOGGLE_TABBAR,
     TOGGLE_MINIMAP,
     TOGGLE_GUTTER,
 };
