@@ -219,6 +219,8 @@ void Renderer::get_window_size(int* w, int* h)
     *h = window_buffer->height;
 }
 
+std::string previousKeySequence;
+
 void Renderer::listen_events(event_list* events)
 {
     {
@@ -293,6 +295,8 @@ void Renderer::listen_events(event_list* events)
             return;
 
         case SDL_KEYDOWN: {
+
+            std::string expandedSequence;
             std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
             std::string mod = to_mods(e.key.keysym.mod);
 
@@ -305,6 +309,19 @@ void Renderer::listen_events(event_list* events)
 
             if (keySequence.length() && mod.length()) {
                 keySequence = mod + "+" + keySequence;
+            }
+
+            if (previousKeySequence.length() && keySequence.length()) {
+                expandedSequence = previousKeySequence + "+" + keySequence;
+            }
+
+            previousKeySequence = keySequence;
+            if (expandedSequence.length()) {
+                if (operationFromKeys(expandedSequence) != UNKNOWN) {
+                    keySequence = expandedSequence;
+                    previousKeySequence = "";
+                }
+                expandedSequence = "";
             }
 
             if (keySequence.length() > 1) {
