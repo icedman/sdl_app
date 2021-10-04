@@ -527,19 +527,19 @@ void Renderer::invalidate()
 
 void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
-    bool render = false;
+    // bool render = false;
 
-    for (auto d : Renderer::instance()->damage_rects) {
-        bool o = rects_overlap(d, rect);
-        if (o) {
-            render = true;
-            break;
-        }
-    }
+    // for (auto d : Renderer::instance()->damage_rects) {
+    //     bool o = rects_overlap(d, rect);
+    //     if (o) {
+    //         render = true;
+    //         break;
+    //     }
+    // }
 
-    if (!render) {
-        return;
-    }
+    // if (!render) {
+    //     return;
+    // }
 
     items_drawn++;
     cairo_save(cairo_context);
@@ -567,19 +567,19 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 
 void Renderer::draw_underline(RenRect rect, RenColor color)
 {
-    bool render = false;
+    // bool render = false;
 
-    for (auto d : Renderer::instance()->damage_rects) {
-        bool o = rects_overlap(d, rect);
-        if (o) {
-            render = true;
-            break;
-        }
-    }
+    // for (auto d : Renderer::instance()->damage_rects) {
+    //     bool o = rects_overlap(d, rect);
+    //     if (o) {
+    //         render = true;
+    //         break;
+    //     }
+    // }
 
-    if (!render) {
-        return;
-    }
+    // if (!render) {
+    //     return;
+    // }
 
     rect.y += rect.height - 1;
     rect.height = 1;
@@ -588,19 +588,19 @@ void Renderer::draw_underline(RenRect rect, RenColor color)
 
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
 {
-    bool render = false;
+    // bool render = false;
 
-    for (auto d : Renderer::instance()->damage_rects) {
-        bool o = rects_overlap(d, rect);
-        if (o) {
-            render = true;
-            break;
-        }
-    }
+    // for (auto d : Renderer::instance()->damage_rects) {
+    //     bool o = rects_overlap(d, rect);
+    //     if (o) {
+    //         render = true;
+    //         break;
+    //     }
+    // }
 
-    if (!render) {
-        return;
-    }
+    // if (!render) {
+    //     return;
+    // }
 
     items_drawn++;
     double border = (double)stroke / 2;

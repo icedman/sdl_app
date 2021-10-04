@@ -19,6 +19,8 @@ void popup_manager::push_at(view_item_ptr popup, layout_rect attach, int directi
     push(popup);
 
     layout_item_ptr lo = popup->layout();
+    ((view_item*)lo->view)->prev_visibility = false;
+
     lo->x = attach.x;
     lo->y = attach.y;
     if (direction & POPUP_DIRECTION_DOWN) {
@@ -50,6 +52,7 @@ void popup_manager::pop()
 {
     if (_views.size()) {
         remove_child(_views.back());
+        damage();
     }
 }
 

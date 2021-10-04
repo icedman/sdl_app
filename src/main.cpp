@@ -146,7 +146,7 @@ int main(int argc, char** argv)
             renderer->render_view_tree((view_item*)root->view);
             renderer->state_restore();
 
-            {
+            #if 1
                 static int count = 0;
                 static int damages = 0;
                 if (renderer->draw_count() > 0) {
@@ -161,10 +161,11 @@ int main(int argc, char** argv)
                 renderer->get_font_extents(NULL, &fw, &fh, tmp, strlen(tmp));
                 int fx = renderer->is_terminal() ? 2 : 20;
                 int fy = renderer->is_terminal() ? 1 : 20;
+
                 renderer->damage({fx,fy,fw,fh});
                 renderer->draw_rect({fx,fy,fw,fh}, {50,50,50}, true);
                 renderer->draw_text(NULL, tmp, fx, fy, { 255, 255, 255 });
-            }
+            #endif
 
             renderer->end_frame();
 

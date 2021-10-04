@@ -271,6 +271,25 @@ void editor_view::render()
         offscreen = (block->y + alo->scroll_y > fh * rows || block->y + (block->lineCount * fh) < -alo->scroll_y);
         offscreen = offscreen || (block->lineCount == 0);
 
+        // damaged?
+        RenRect cr = {
+                        alo->render_rect.x,
+                        block->y + alo->scroll_y + lo->render_rect.y,
+                        alo->render_rect.w,
+                        block->lineCount * fh
+                    };
+        bool render = false;
+        for (auto d : Renderer::instance()->damage_rects) {
+            bool o = rects_overlap(d, cr);
+            if (o) {
+                render = true;
+                break;
+            }
+        }
+        if (!render) {
+            offscreen = true;
+        }
+
         for (auto& s : blockData->rendered_spans) {
             if (s.length == 0)
                 continue;

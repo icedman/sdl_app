@@ -142,6 +142,7 @@ void list_view::update(int millis)
             view_item_ptr item = *it++;
             list_item_view* iv = view_item::cast<list_item_view>(item);
             item->layout()->visible = true;
+            iv->prev_visibility = false;
         }
 
         panel_view::update(millis);
