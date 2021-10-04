@@ -7,7 +7,7 @@ struct app_tabbar_view : tabbar_view {
     app_tabbar_view();
 
     DECLAR_VIEW_TYPE(CUSTOM, tabbar_view)
-    
+
     void update(int millis) override;
     void select_item(list_item_view* item) override;
 };

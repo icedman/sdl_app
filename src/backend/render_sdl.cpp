@@ -15,14 +15,15 @@ static SDL_Surface* window_surface;
 
 static RenRect* update_rects = 0;
 static int update_rects_count = 0;
+static int idle_counter = 0;
 
 int items_drawn = 0;
 
-static inline bool rects_overlap(RenRect a, RenRect b)
-{
-    return b.x + b.width >= a.x && b.x <= a.x + a.width
-        && b.y + b.height >= a.y && b.y <= a.y + a.height;
-}
+// static inline bool rects_overlap(RenRect a, RenRect b)
+// {
+//     return b.x + b.width >= a.x && b.x <= a.x + a.width
+//         && b.y + b.height >= a.y && b.y <= a.y + a.height;
+// }
 
 struct RenImage {
     int width;
@@ -100,14 +101,34 @@ void _set_context_from_stack()
     }
 }
 
+#define MAX_DAMAGE_RECTS 1028
+RenRect rects[MAX_DAMAGE_RECTS];
 void _blit_to_window()
 {
+    if (!Renderer::instance()->damage_rects.size()) {
+        return;
+    }
+
     SDL_Surface* window_surface = SDL_GetWindowSurface(window);
     SDL_BlitSurface(target_buffer->sdl_surface, nullptr, window_surface, nullptr);
+
+    if (Renderer::instance()->damage_rects.size()) {
+        int i = 0;
+        for (auto d : Renderer::instance()->damage_rects) {
+            rects[i++] = d;
+            if (i == MAX_DAMAGE_RECTS)
+                break;
+        }
+        SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)rects, i);
+        return;
+    }
+
+    // printf("?\n");
 
     if (update_rects_count) {
         SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)update_rects, update_rects_count);
         update_rects_count = 0;
+        return;
     }
 
     SDL_UpdateWindowSurface(window);
@@ -223,156 +244,158 @@ std::string previousKeySequence;
 
 void Renderer::listen_events(event_list* events)
 {
-    {
-        events->clear();
+    SDL_Event e;
+    if (!SDL_PollEvent(&e)) {
+        idle_counter++;
+        return;
+    }
 
-        SDL_Event e;
-        if (!SDL_PollEvent(&e)) {
+    // todo ...
+    // if (is_throttle_up_events()) {
+    //     if (!SDL_PollEvent(&e)) {
+    //         return;
+    //     }
+    // } else {
+    //     if (!SDL_WaitEvent(&e)) {
+    //         return;
+    //     }
+    // }
+
+    switch (e.type) {
+    case SDL_QUIT:
+        shouldEnd = true;
+        return;
+
+    case SDL_MOUSEBUTTONDOWN:
+        events->push_back({
+            type : EVT_MOUSE_DOWN,
+            x : e.button.x,
+            y : e.button.y,
+            button : e.button.button,
+            clicks : e.button.clicks
+        });
+        idle_counter = 0;
+        return;
+
+    case SDL_MOUSEBUTTONUP:
+        events->push_back({
+            type : EVT_MOUSE_UP,
+            x : e.button.x,
+            y : e.button.y,
+            button : e.button.button
+        });
+        idle_counter = 0;
+        return;
+
+    case SDL_MOUSEMOTION:
+        events->push_back({
+            type : EVT_MOUSE_MOTION,
+            x : e.motion.x,
+            y : e.motion.y,
+            button : e.button.button
+        });
+        idle_counter = 20;
+        return;
+
+    case SDL_MOUSEWHEEL:
+        events->push_back({
+            type : EVT_MOUSE_WHEEL,
+            x : e.wheel.x,
+            y : e.wheel.y
+        });
+
+        throttle_up_events(24);
+        idle_counter = 0;
+        return;
+
+    case SDL_KEYUP:
+        to_mods(e.key.keysym.mod);
+        events->push_back({
+            type : EVT_KEY_UP,
+            key : e.key.keysym.sym,
+            mod : keyMods
+        });
+        idle_counter = 0;
+        return;
+
+    case SDL_KEYDOWN: {
+
+        std::string expandedSequence;
+        std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
+        std::string mod = to_mods(e.key.keysym.mod);
+
+        // printf("%s : %s\n",
+        //      SDL_GetScancodeName(e.key.keysym.scancode),
+        //      SDL_GetKeyName(e.key.keysym.sym));
+
+        std::transform(keySequence.begin(), keySequence.end(), keySequence.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+
+        if (keySequence.length() && mod.length()) {
+            keySequence = mod + "+" + keySequence;
+        }
+
+        if (previousKeySequence.length() && keySequence.length()) {
+            expandedSequence = previousKeySequence + "+" + keySequence;
+        }
+
+        previousKeySequence = keySequence;
+        if (expandedSequence.length()) {
+            if (operationFromKeys(expandedSequence) != UNKNOWN) {
+                keySequence = expandedSequence;
+                previousKeySequence = "";
+            }
+            expandedSequence = "";
+        }
+
+        if (keySequence.length() > 1) {
+            events->push_back({
+                type : EVT_KEY_SEQUENCE,
+                text : keySequence
+            });
+
+            if (keySequence == "ctrl+q") {
+                quit();
+            }
             return;
         }
 
-        // todo ...
-        // if (is_throttle_up_events()) {
-        //     if (!SDL_PollEvent(&e)) {
-        //         return;
-        //     }
-        // } else {
-        //     if (!SDL_WaitEvent(&e)) {
-        //         return;
-        //     }
-        // }
+        events->push_back({
+            type : EVT_KEY_DOWN,
+            key : e.key.keysym.sym,
+            mod : keyMods
+        });
 
-        // throttle_up_events(12);
+        idle_counter = 0;
+        return;
+    }
+    case SDL_TEXTINPUT:
+        events->push_back({
+            type : EVT_KEY_TEXT,
+            text : e.text.text
+        });
 
-        switch (e.type) {
-        case SDL_QUIT:
-            shouldEnd = true;
-            return;
+        idle_counter = 0;
+        return;
 
-        case SDL_MOUSEBUTTONDOWN:
-            events->push_back({
-                type : EVT_MOUSE_DOWN,
-                x : e.button.x,
-                y : e.button.y,
-                button : e.button.button,
-                clicks : e.button.clicks
-            });
-            return;
-
-        case SDL_MOUSEBUTTONUP:
-            events->push_back({
-                type : EVT_MOUSE_UP,
-                x : e.button.x,
-                y : e.button.y,
-                button : e.button.button
-            });
-            return;
-
-        case SDL_MOUSEMOTION:
-            events->push_back({
-                type : EVT_MOUSE_MOTION,
-                x : e.motion.x,
-                y : e.motion.y,
-                button : e.button.button
-            });
-            return;
-
-        case SDL_MOUSEWHEEL:
-            events->push_back({
-                type : EVT_MOUSE_WHEEL,
-                x : e.wheel.x,
-                y : e.wheel.y
-            });
-
-            throttle_up_events(24);
-            return;
-
-        case SDL_KEYUP:
-            to_mods(e.key.keysym.mod);
-            events->push_back({
-                type : EVT_KEY_UP,
-                key : e.key.keysym.sym,
-                mod : keyMods
-            });
-
-            return;
-
-        case SDL_KEYDOWN: {
-
-            std::string expandedSequence;
-            std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
-            std::string mod = to_mods(e.key.keysym.mod);
-
-            // printf("%s : %s\n",
-            //      SDL_GetScancodeName(e.key.keysym.scancode),
-            //      SDL_GetKeyName(e.key.keysym.sym));
-
-            std::transform(keySequence.begin(), keySequence.end(), keySequence.begin(),
-                [](unsigned char c) { return std::tolower(c); });
-
-            if (keySequence.length() && mod.length()) {
-                keySequence = mod + "+" + keySequence;
+    case SDL_WINDOWEVENT:
+        if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+            if (e.window.data1 && e.window.data2) {
+                event_t evt = {
+                    type : EVT_WINDOW_RESIZE,
+                    w : e.window.data1,
+                    h : e.window.data2
+                };
+                window_buffer->width = evt.w;
+                window_buffer->height = evt.h;
+                _create_cairo_context(evt.w, evt.h);
+                events->push_back(evt);
             }
-
-            if (previousKeySequence.length() && keySequence.length()) {
-                expandedSequence = previousKeySequence + "+" + keySequence;
-            }
-
-            previousKeySequence = keySequence;
-            if (expandedSequence.length()) {
-                if (operationFromKeys(expandedSequence) != UNKNOWN) {
-                    keySequence = expandedSequence;
-                    previousKeySequence = "";
-                }
-                expandedSequence = "";
-            }
-
-            if (keySequence.length() > 1) {
-                events->push_back({
-                    type : EVT_KEY_SEQUENCE,
-                    text : keySequence
-                });
-
-                if (keySequence == "ctrl+q") {
-                    quit();
-                }
-                return;
-            }
-
-            events->push_back({
-                type : EVT_KEY_DOWN,
-                key : e.key.keysym.sym,
-                mod : keyMods
-            });
-
-            return;
         }
-        case SDL_TEXTINPUT:
-            events->push_back({
-                type : EVT_KEY_TEXT,
-                text : e.text.text
-            });
-            return;
-
-        case SDL_WINDOWEVENT:
-            if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-                if (e.window.data1 && e.window.data2) {
-                    event_t evt = {
-                        type : EVT_WINDOW_RESIZE,
-                        w : e.window.data1,
-                        h : e.window.data2
-                    };
-                    window_buffer->width = evt.w;
-                    window_buffer->height = evt.h;
-                    _create_cairo_context(evt.w, evt.h);
-                    events->push_back(evt);
-                }
-            }
-            if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-                SDL_FlushEvent(SDL_KEYDOWN);
-            }
-            return;
+        if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+            SDL_FlushEvent(SDL_KEYDOWN);
         }
+        return;
     }
 }
 
@@ -504,6 +527,20 @@ void Renderer::invalidate()
 
 void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
+    bool render = false;
+
+    for (auto d : Renderer::instance()->damage_rects) {
+        bool o = rects_overlap(d, rect);
+        if (o) {
+            render = true;
+            break;
+        }
+    }
+
+    if (!render) {
+        return;
+    }
+
     items_drawn++;
     cairo_save(cairo_context);
     cairo_translate(cairo_context, rect.x, rect.y);
@@ -530,6 +567,20 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 
 void Renderer::draw_underline(RenRect rect, RenColor color)
 {
+    bool render = false;
+
+    for (auto d : Renderer::instance()->damage_rects) {
+        bool o = rects_overlap(d, rect);
+        if (o) {
+            render = true;
+            break;
+        }
+    }
+
+    if (!render) {
+        return;
+    }
+
     rect.y += rect.height - 1;
     rect.height = 1;
     draw_rect(rect, color, true, 1.0f);
@@ -537,6 +588,20 @@ void Renderer::draw_underline(RenRect rect, RenColor color)
 
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
 {
+    bool render = false;
+
+    for (auto d : Renderer::instance()->damage_rects) {
+        bool o = rects_overlap(d, rect);
+        if (o) {
+            render = true;
+            break;
+        }
+    }
+
+    if (!render) {
+        return;
+    }
+
     items_drawn++;
     double border = (double)stroke / 2;
     if (clr.a > 0) {
@@ -587,11 +652,19 @@ void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
     context_stack.push_back(image);
     _set_context_from_stack();
     items_drawn = 0;
+
     // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
+
+    // damage_rects.clear();
+    // damage_rects.push_back({0,0,window_buffer->width, window_buffer->height });
 }
 
 void Renderer::end_frame()
 {
+    for (auto d : damage_rects) {
+        draw_rect(d, { 255, 0, 255 }, false, 1.0f);
+    }
+
     _set_context_from_stack();
 
     if (target_buffer == window_buffer) {
@@ -603,6 +676,8 @@ void Renderer::end_frame()
 
     context_stack.pop_back();
     _set_context_from_stack();
+
+    damage_rects.clear();
 }
 
 void Renderer::state_save()
@@ -678,4 +753,9 @@ void Renderer::update_colors()
         color_map[it->second.index] = fg;
         it++;
     }
+}
+
+bool Renderer::is_idle()
+{
+    return idle_counter > 30;
 }

@@ -5,6 +5,8 @@
 text_view::text_view(std::string text)
     : view_item()
     , text(text)
+    , prev_width(-1)
+    , prev_height(-1)
 {
     layout()->height = 40;
     pad = 2;
@@ -21,8 +23,24 @@ void text_view::prelayout()
 {
     Renderer::instance()->get_font_extents(Renderer::instance()->font("ui-small"), &text_width, &text_height, text.c_str(), text.length());
     layout()->width = text_width + pad * 2;
+
+    // request layout?
+
     if (Renderer::instance()->is_terminal()) {
         layout()->width = text.length();
+    }
+}
+
+void text_view::prerender()
+{
+    view_item::prerender();
+
+    if (prev_width != text_width || prev_height != text_height || prev_text != text) {
+        damage();
+
+        prev_width = text_width;
+        prev_height = text_height;
+        prev_text = text;
     }
 }
 

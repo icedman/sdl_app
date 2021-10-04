@@ -25,7 +25,7 @@
 #include <set>
 #include <vector>
 
-#define FRAME_RENDER_INTERVAL 16
+#define FRAME_RENDER_INTERVAL 32
 
 struct sdl_backend_t : backend_t {
     void setClipboardText(std::string text) override
@@ -39,69 +39,10 @@ struct sdl_backend_t : backend_t {
     }
 };
 
-
 int main(int argc, char** argv)
 {
-    sdl_backend_t backend;
-    app_t app;
-    keybinding_t keybinding;
-
-    Renderer* renderer = Renderer::instance();
-
-    app.configure(argc, argv);
-    app.setupColors(!renderer->is_terminal());
-    
-    renderer->init();
-
-    color_info_t bg = { 150, 150, 150 };
-
-    event_list events;
-
-    int idle = 0;
-    const int fps = 30;
-    const int max_elapsed = 1000/fps;
-    while(renderer->is_running()) {
-        backend.begin();
-        renderer->listen_events(&events);
-
-        int w, h;
-        renderer->get_window_size(&w, &h);
-        renderer->begin_frame();
-        renderer->draw_rect({ 0,0,w,h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
-        renderer->end_frame();
-        printf("draw\n");
-
-        // update
-        bool hasInput = false;
-        for(auto e : events) {
-            printf("event: %d\n", e.type);
-            if (e.type != EVT_MOUSE_MOTION) {
-                hasInput = true;
-            }
-        }
-
-        // idle counter
-        if (!hasInput) idle++; else idle = 0;
-        
-        printf("update");
-        while(backend.elapsed() < max_elapsed) {
-            printf(".");
-            backend.delay(2);
-        }
-        printf("\n");
-        
-
-        printf("idle: %d elapsed %d\n", idle, backend.elapsed());
-    }
-
-    renderer->shutdown();
-    return 0;
-}
-
-int _main(int argc, char** argv)
-{
     style_init();
-    
+
     sdl_backend_t backend;
     app_t app;
     keybinding_t keybinding;
@@ -154,17 +95,15 @@ int _main(int argc, char** argv)
     renderer->set_default_font(font);
 
     int frames = FRAME_RENDER_INTERVAL;
-    while (renderer->is_running()) {
-        int elapsed = renderer->ticks();
-        if (app_t::instance()->currentEditor) {
-            app_t::instance()->currentEditor->runAllOps();
-        }
 
-        scripting->update(elapsed);
-        root_view->update(elapsed);
-        if (animation::has_animations()) {
-            renderer->throttle_up_events();
-        }
+    float fps = 0;
+    const int target_fps = 120;
+    const int max_elapsed = 1000 / target_fps;
+    while (renderer->is_running()) {
+        backend.begin();
+        renderer->listen_events(&events);
+
+        bool skip_frames = renderer->is_idle() || renderer->is_throttle_up_events();
 
         int pw = w;
         int ph = h;
@@ -172,38 +111,73 @@ int _main(int argc, char** argv)
         if (layout_should_run() || pw != w || ph != h) {
             layout_run(root, { 0, 0, w, h });
             render_list.clear();
-            layout_render_list(render_list, root); // << this positions items on the screen
+            layout_render_list(render_list, root);
             frames = FRAME_RENDER_INTERVAL;
         }
 
-        // todo implement frame rate throttling
-        bool skip_render = renderer->is_throttle_up_events();
-        if (skip_render) {
+        // input based updates
+        view_input_events(view_list, events);
+        events.clear();
+
+        scripting->update(0);
+        root_view->update(0);
+
+        if (pw != w || ph != h) {
+            renderer->damage_rects.clear();
+            renderer->damage({ 0, 0, w, h });
+        }
+
+        if (skip_frames) {
             if (frames++ > FRAME_RENDER_INTERVAL) {
-                skip_render = false;
+                skip_frames = false;
                 frames = 0;
             }
         }
 
-        if (!skip_render) {
+        // make draw efficient
+        if (!skip_frames) {
+
+            renderer->prerender_view_tree((view_item*)root->view);
+
             renderer->begin_frame(NULL, w, h);
+
             renderer->state_save();
-
             renderer->render_view_tree((view_item*)root->view);
-
             renderer->state_restore();
+
+            char tmp[32];
+            sprintf(tmp, "fps: %d drawn: %d", (int)fps, renderer->draw_count());
+            int fx = renderer->is_terminal() ? 2 : 20;
+            int fy = renderer->is_terminal() ? 1 : 20;
+            renderer->draw_text(NULL, tmp, fx, fy, { 255, 255, 255 });
+
             renderer->end_frame();
 
             view_list.clear();
             view_input_list(view_list, root_view);
         }
 
-        renderer->listen_events(&events);
-        view_input_events(view_list, events);
+        do {
+            if (renderer->is_terminal())
+                break;
+
+            renderer->listen_events(&events);
+            if (renderer->is_throttle_up_events()) {
+                break;
+            }
+
+            if (renderer->is_idle()) {
+                backend.delay(20);
+            }
+        } while (backend.elapsed() < max_elapsed);
+
+        if (!skip_frames)
+            fps = 1000.0f / backend.elapsed();
     }
 
     renderer->shutdown();
     scripting->shutdown();
 
     app.shutdown();
+    return 0;
 }

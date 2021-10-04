@@ -175,10 +175,9 @@ view_item_ptr test3()
     view_style_t vs;
     style_clear(vs);
 
-    vs.bg = { 150,0,150,255 };
+    vs.bg = { 150, 0, 150, 255 };
     vs.filled = true;
     style_register(vs, "default.button");
-
 
     view_item_ptr root = std::make_shared<view_item>();
     root->class_name = "default";

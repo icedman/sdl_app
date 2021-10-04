@@ -43,6 +43,7 @@ struct list_view : panel_view {
 
     DECLAR_VIEW_TYPE(LIST, panel_view)
 
+    virtual void prerender() override;
     virtual void prelayout() override;
     virtual void update(int millis = 0) override;
     virtual void render() override;
@@ -70,6 +71,7 @@ struct list_view : panel_view {
     list_item_view* _focused_value;
 
     bool autoscroll;
+    bool has_changes;
 
     static bool compare_item(struct list_item_data_t& f1, struct list_item_data_t& f2);
 };

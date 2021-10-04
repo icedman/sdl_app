@@ -9,7 +9,13 @@ struct gutter_view : view_item {
 
     DECLAR_VIEW_TYPE(CUSTOM, view_item)
 
+    void prerender() override;
     void render() override;
+
+    int first;
+    int last;
+    int prev_first;
+    int prev_last;
 };
 
 #endif // GUTTER_VIEW_H

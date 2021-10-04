@@ -128,7 +128,7 @@ void layout_position_items(layout_item_ptr item)
 
         int ww = 0;
         int hh = 0;
-        
+
         for (auto child : group) {
             child->rect.x = (xx * hd) + ((offsetStart + offset) * wd);
             child->rect.y = (yy * wd) + ((offsetStart + offset) * hd);
@@ -148,8 +148,10 @@ void layout_position_items(layout_item_ptr item)
             offset += child->rect.h * hd;
             offset += offsetInc;
 
-            if (child->rect.w > ww) ww = child->rect.w;
-            if (child->rect.h > hh) hh = child->rect.h;
+            if (child->rect.w > ww)
+                ww = child->rect.w;
+            if (child->rect.h > hh)
+                hh = child->rect.h;
         }
 
         xx += ww;

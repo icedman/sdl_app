@@ -14,6 +14,10 @@
 
 minimap_view::minimap_view()
     : view_item()
+    , prev_scroll_y(-1)
+    , prev_sliding_y(-1)
+    , prev_start_row(-1)
+    , prev_end_row(-1)
 {
     class_name = "minimap";
     interactive = true;
@@ -352,5 +356,17 @@ void minimap_view::render_terminal()
         if (y >= lo->render_rect.h) {
             break;
         }
+    }
+}
+
+void minimap_view::prerender()
+{
+    view_item::prerender();
+    if (prev_scroll_y != scroll_y || prev_sliding_y != prev_sliding_y || prev_start_row != start_row || prev_end_row != end_row) {
+        prev_start_row = start_row;
+        prev_end_row = end_row;
+        prev_scroll_y = scroll_y;
+        prev_sliding_y = sliding_y;
+        damage();
     }
 }

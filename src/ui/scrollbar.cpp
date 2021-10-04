@@ -9,6 +9,7 @@ scrollbar_view::scrollbar_view()
     , index(0)
     , window(12)
     , count(11)
+    , prev_thumbsize(-1)
 {
     class_name = "scrollbar";
 
@@ -280,4 +281,15 @@ int scrollbar_view::scroll_pos()
         return layout()->scroll_x;
     }
     return layout()->scroll_y;
+}
+
+void scrollbar_view::prerender()
+{
+    scrollarea_view::prerender();
+
+    layout_item_ptr alo = layout();
+    if (prev_thumbsize != thumb_size()) {
+        prev_thumbsize = thumb_size();
+        damage();
+    }
 }

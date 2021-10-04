@@ -60,7 +60,8 @@ void view_input_list(view_item_list& list, view_item_ptr item)
 view_item::view_item()
     : cached_image(0)
     , cache_enabled(false)
-{}
+{
+}
 
 view_item::~view_item()
 {
@@ -273,6 +274,21 @@ void view_item::propagate_event(event_t& event)
         if (event.cancelled)
             break;
     }
+}
+
+void view_item::damage()
+{
+    layout_item_ptr lo = layout();
+    RenRect r = {
+        lo->render_rect.x,
+        lo->render_rect.y,
+        lo->render_rect.w,
+        lo->render_rect.h
+    };
+
+    Renderer::instance()->damage(r);
+
+    // printf("damage %s!\n", type_name().c_str());
 }
 
 view_item_ptr view_find_xy(view_item_ptr item, int x, int y)

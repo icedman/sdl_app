@@ -362,6 +362,7 @@ void editor_view::update(int millis)
         return;
     }
 
+    editor->runAllOps();
     document_t* doc = &editor->document;
 
     if (doc->columns != cols || doc->rows != rows) {
@@ -538,7 +539,6 @@ bool editor_view::input_text(std::string text)
     if (!editor->singleLineEdit) {
         view_item::cast<completer_view>(completer)->show_completer(editor);
     }
-
     return true;
 }
 

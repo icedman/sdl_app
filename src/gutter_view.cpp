@@ -8,8 +8,20 @@
 
 gutter_view::gutter_view()
     : view_item()
+    , prev_first(-1)
+    , prev_last(-1)
 {
     class_name = "gutter";
+}
+
+void gutter_view::prerender()
+{
+    view_item::prerender();
+    if (prev_first != first || prev_last != last) {
+        prev_first = first;
+        prev_last = last;
+        damage();
+    }
 }
 
 void gutter_view::render()
@@ -47,6 +59,9 @@ void gutter_view::render()
 
     block_list& snapBlocks = editor->snapshots[0].snapshot;
 
+    first = -1;
+    last = -1;
+
     int l = 0;
     while (it != doc->blocks.end() && l < view_height) {
         block_ptr block = *it++;
@@ -79,6 +94,10 @@ void gutter_view::render()
             { (uint8_t)vs.fg.green, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue,
                 (uint8_t)(Renderer::instance()->is_terminal() ? vs.fg.index : 125) });
 
+        if (first == -1) {
+            first = block->lineNumber;
+        }
+        last = block->lineNumber;
         // log(">line:%d %d %d\n", block->lineNumber + 1, lo->render_rect.x + lo->render_rect.w - ((ln.length() + 1) * fw), y);
         l++;
     }

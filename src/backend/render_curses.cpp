@@ -1069,3 +1069,8 @@ void Renderer::update_colors()
         it++;
     }
 }
+
+bool Renderer::is_idle()
+{
+    return false;
+}

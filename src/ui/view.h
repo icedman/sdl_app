@@ -14,7 +14,7 @@ struct view_item;
 typedef std::shared_ptr<view_item> view_item_ptr;
 typedef std::vector<view_item_ptr> view_item_list;
 
-#define DECLAR_VIEW_TYPE(T, P) \
+#define DECLAR_VIEW_TYPE(T, P)                         \
     virtual view_type type_of() override { return T; } \
     virtual bool is_type_of(view_type t) override { return t == T || P::is_type_of(t); }
 
@@ -36,7 +36,7 @@ struct view_item : layout_view, event_object_t {
     void update(int ticks) override;
     void prerender() override;
     void render() override;
-    
+
     virtual void render_frame();
 
     void add_child(view_item_ptr view);
@@ -75,8 +75,11 @@ struct view_item : layout_view, event_object_t {
 
     view_style_t style;
     std::string class_name;
+    std::string prev_class_name;
 
     std::string computed_class();
+
+    virtual void damage();
 
     template <class T>
     static T* cast(view_item_ptr v) { return (T*)(v.get()); };

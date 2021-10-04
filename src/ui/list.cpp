@@ -37,6 +37,11 @@ void list_item_view::prerender()
     }
     class_name = "item" + mod;
     view_item::prerender();
+
+    if (prev_class_name != class_name) {
+        prev_class_name = class_name;
+        damage();
+    }
 }
 
 void list_item_view::render()
@@ -68,6 +73,7 @@ list_view::list_view(std::vector<list_item_data_t> items)
 list_view::list_view()
     : panel_view()
     , autoscroll(false)
+    , has_changes(false)
     , _value(0)
     , _prev_value(0)
     , _focused_value(0)
@@ -109,7 +115,7 @@ void list_view::update(int millis)
         }
     }
 
-    bool hasChanges = false;
+    has_changes = false;
     if (data.size() == content()->_views.size()) {
         view_item_list::iterator it = content()->_views.begin();
         for (auto f : data) {
@@ -118,15 +124,15 @@ void list_view::update(int millis)
             if (item->data.equals(f)) {
                 continue;
             }
-            hasChanges = true;
+            has_changes = true;
             break;
         }
     } else {
-        hasChanges = true;
+        has_changes = true;
     }
 
     view_item_list::iterator it;
-    if (!hasChanges) {
+    if (!has_changes) {
         it = content()->_views.begin();
         for (auto d : data) {
             view_item_ptr item = *it++;
@@ -215,6 +221,14 @@ bool list_view::is_item_selected(list_item_view* item)
 bool list_view::is_item_focused(list_item_view* item)
 {
     return _focused_value == item;
+}
+
+void list_view::prerender()
+{
+    panel_view::prerender();
+    if (has_changes) {
+        damage();
+    }
 }
 
 void list_view::render()

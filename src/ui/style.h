@@ -6,8 +6,7 @@
 
 #include <string>
 
-struct borders_t
-{
+struct borders_t {
     uint8_t width;
     uint8_t left;
     uint8_t top;

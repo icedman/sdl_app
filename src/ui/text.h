@@ -9,6 +9,8 @@ struct text_view : view_item {
     DECLAR_VIEW_TYPE(TEXT, view_item)
 
     void prelayout() override;
+
+    void prerender() override;
     void render() override;
 
     std::string text;
@@ -16,6 +18,10 @@ struct text_view : view_item {
     int text_width;
     int text_height;
     int pad;
+
+    int prev_width;
+    int prev_height;
+    std::string prev_text;
 };
 
 #endif // TEXT_VIEW_H

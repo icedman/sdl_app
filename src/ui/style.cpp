@@ -23,11 +23,11 @@ void style_clear(view_style_t& style)
     style.bold = false;
     style.underline = false;
 
-    style.fg = { 0,0,0,0 };
-    style.bg = { 0,0,0,0 };
+    style.fg = { 0, 0, 0, 0 };
+    style.bg = { 0, 0, 0, 0 };
     style.filled = false;
 
-    style.border_color = { 0,0,0,0 };
+    style.border_color = { 0, 0, 0, 0 };
     memset(&style.border, 0, sizeof(borders_t));
     memset(&style.border_radius, 0, sizeof(borders_t));
     memset(&style.margin, 0, sizeof(borders_t));

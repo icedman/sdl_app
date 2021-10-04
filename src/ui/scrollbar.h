@@ -9,6 +9,7 @@ struct scrollbar_view : scrollarea_view {
 
     DECLAR_VIEW_TYPE(SCROLLBAR, scrollarea_view)
 
+    void prerender() override;
     void prelayout() override;
     void postlayout() override;
     void render() override;
@@ -39,6 +40,8 @@ struct scrollbar_view : scrollarea_view {
 
     bool dragging;
     int drag_offset;
+
+    int prev_thumbsize;
 };
 
 struct vscrollbar_view : scrollbar_view {

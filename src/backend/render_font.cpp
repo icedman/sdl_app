@@ -231,6 +231,20 @@ void Renderer::get_font_extents(RenFont* font, int* w, int* h, const char* text,
 
 static inline void draw_char_image(RenImage* image, RenRect rect, RenColor clr, bool italic = false, bool underline = false)
 {
+    bool render = false;
+
+    for (auto d : Renderer::instance()->damage_rects) {
+        bool o = rects_overlap(d, rect);
+        if (o) {
+            render = true;
+            break;
+        }
+    }
+
+    if (!render) {
+        return;
+    }
+
     items_drawn++;
 
     cairo_t* cairo_context = ren_context();

@@ -23,6 +23,8 @@ typedef struct {
     int x, y, width, height;
 } RenRect;
 
+bool rects_overlap(RenRect a, RenRect b);
+
 struct view_item;
 struct Renderer {
     static Renderer* instance();
@@ -40,6 +42,9 @@ struct Renderer {
     bool is_throttle_up_events();
     void wake();
 
+    bool is_idle();
+
+    void prerender_view_tree(view_item* root);
     void render_view_tree(view_item* root);
 
     int key_mods();
@@ -87,6 +92,10 @@ struct Renderer {
 
     color_info_t color_for_index(int index);
     void update_colors();
+
+    void damage(RenRect rect);
+
+    std::vector<RenRect> damage_rects;
 };
 
 #endif // RENDERER_H

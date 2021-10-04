@@ -5,6 +5,8 @@ scrollarea_view::scrollarea_view()
     : view_item()
     , move_factor_x(32)
     , move_factor_y(32)
+    , prev_scroll_x(-1)
+    , prev_scroll_y(-1)
 {
     interactive = true;
     layout()->fit_children = false;
@@ -32,4 +34,16 @@ bool scrollarea_view::mouse_wheel(int x, int y)
     layout()->scroll_x += x * move_factor_x;
     layout()->scroll_y += y * move_factor_y;
     return true;
+}
+
+void scrollarea_view::prerender()
+{
+    view_item::prerender();
+
+    layout_item_ptr alo = layout();
+    if (prev_scroll_x != alo->scroll_x || prev_scroll_y != alo->scroll_y) {
+        damage();
+        prev_scroll_x = alo->scroll_x;
+        prev_scroll_y = alo->scroll_y;
+    }
 }

@@ -135,6 +135,7 @@ struct layout_item {
         , justify(LAYOUT_JUSTIFY_FLEX_START)
         , direction(LAYOUT_FLEX_DIRECTION_COLUMN)
         , constraint({ 0, 0, 0, 0 })
+        , rect({ 0, 0, 0, 0 })
         , render_rect({ 0, 0, 0, 0 })
         , view(0)
     {
