@@ -145,11 +145,21 @@ int main(int argc, char** argv)
             renderer->render_view_tree((view_item*)root->view);
             renderer->state_restore();
 
-            char tmp[32];
-            sprintf(tmp, "fps: %d drawn: %d", (int)fps, renderer->draw_count());
-            int fx = renderer->is_terminal() ? 2 : 20;
-            int fy = renderer->is_terminal() ? 1 : 20;
-            renderer->draw_text(NULL, tmp, fx, fy, { 255, 255, 255 });
+            {
+                static int count = 0;
+                if (renderer->draw_count() > 0) {
+                    count = renderer->draw_count();
+                }
+                char tmp[32];
+                sprintf(tmp, "fps: %04d drawn: %04d", (int)fps, count);
+                int fw, fh;
+                renderer->get_font_extents(NULL, &fw, &fh, tmp, strlen(tmp));
+                int fx = renderer->is_terminal() ? 2 : 20;
+                int fy = renderer->is_terminal() ? 1 : 20;
+                renderer->damage({fx,fy,fw,fh});
+                renderer->draw_rect({fx,fy,fw,fh}, {50,50,50}, true);
+                renderer->draw_text(NULL, tmp, fx, fy, { 255, 255, 255 });
+            }
 
             renderer->end_frame();
 

@@ -16,8 +16,9 @@
 
 bool _span_from_cursor(cursor_t& cursor, span_info_t& span, int& span_pos);
 
-void editor_view::render()
+void editor_view::prerender()
 {
+    view_item::prerender();
     if (!editor) {
         return;
     }
@@ -30,6 +31,150 @@ void editor_view::render()
 
     bool wrap = app->lineWrap && !editor->singleLineEdit;
     int indent = app->tabSize;
+
+    layout_item_ptr plo = layout();
+
+    scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
+    layout_item_ptr alo = area->layout();
+    layout_item_ptr lo = layout(); // content()->layout();
+
+    int fw, fh;
+    renderer->get_font_extents(_font, &fw, &fh, NULL, 1);
+    cols = (area->layout()->render_rect.w / fw);
+    rows = (area->layout()->render_rect.h / fh) + 1;
+
+    document_t* doc = &editor->document;
+    cursor_t cursor = doc->cursor();
+    cursor_list cursors = doc->cursors;
+    cursor_t mainCursor = doc->cursor();
+
+    start_row = -alo->scroll_y / fh;
+    if (start_row < 0) {
+        start_row = 0;
+    }
+    int pre_line = start_row - 0.5f * rows;
+    if (pre_line < 0)
+        pre_line = 0;
+
+    block_list::iterator it = doc->blocks.begin();
+    it += pre_line;
+
+    block_ptr prev_longest = longest_block;
+    if (longest_block && !longest_block->isValid()) {
+        longest_block = 0;
+    }
+
+    int offset_y = (*it)->lineNumber * fh;
+    bool offscreen = false;
+    int l = 0;
+    while (it != doc->blocks.end() && l < 2.0f * rows) {
+        block_ptr block = *it++;
+
+        int hl = false;
+        if (!block->data || block->data->dirty) {
+            hl = editor->highlighter.highlightBlock(block);
+        }
+
+        editor->highlighter.updateBrackets(block);
+        blockdata_ptr blockData = block->data;
+
+        if (!longest_block) {
+            longest_block = block;
+        }
+        if (longest_block->length() < block->length()) {
+            longest_block = block;
+        }
+
+        std::string text = block->text() + " ";
+
+        blockData->rendered_spans = block->layoutSpan(cols, wrap, indent);
+        if (blockData->folded) {
+            block->lineCount = blockData->foldedBy ? 0 : 1;
+        }
+
+        block->lineHeight = fh;
+        block->y = offset_y;
+        offset_y += block->lineCount * fh;
+
+        offscreen = (block->y + alo->scroll_y > fh * rows || block->y + (block->lineCount * fh) < -alo->scroll_y);
+        offscreen = offscreen || (block->lineCount == 0);
+
+        bool dmg = hl || mainCursor.block() == block;
+        if (!offscreen && dmg) {
+            RenRect cr = {
+                        alo->render_rect.x,
+                        block->y + alo->scroll_y + lo->render_rect.y,
+                        alo->render_rect.w,
+                        block->lineCount * fh
+                    };
+            // printf("blk %d %d %d %d\n", cr.x, cr.y, cr.width, cr.height);
+            renderer->damage(cr);
+        }
+
+        for (auto& s : blockData->rendered_spans) {
+            if (s.length == 0)
+                continue;
+
+            if (s.start + s.length >= utf8_length(text)) {
+                s.length = utf8_length(text) - s.start;
+                if (s.length <= 0) {
+                    s.length = 0;
+                    continue;
+                }
+            }
+
+            std::string span_text = utf8_substr(text, s.start, s.length);
+
+            s.x = alo->render_rect.x + (s.start * fw);
+            s.x += alo->scroll_x;
+            s.y = block->y;
+
+            if (s.line > 0) {
+                s.x -= s.start * fw;
+                s.x += s.line_x * fw;
+            }
+
+            s.y += (s.line * fh);
+
+            if (s.line == 0) {
+                block->x = alo->render_rect.x;
+            }
+        }
+
+        l++;
+    }
+
+    int ww = area->layout()->render_rect.w;
+    if (!wrap && longest_block) {
+        ww = longest_block->length() * fw;
+    }
+    content()->layout()->width = ww;
+
+    if (prev_longest != longest_block) {
+        layout_request();
+    }
+
+    // compute document height
+    computed_lines = editor->document.blocks.size();
+    int c = rows * 2;
+    block_ptr b = editor->document.blockAtLine(start_row);
+    while (b && c-- > 0) {
+        computed_lines += b->lineCount - 1;
+        b = b->next();
+    }
+}
+
+void editor_view::render()
+{
+    if (!editor) {
+        return;
+    }
+
+    Renderer* renderer = Renderer::instance();
+    RenFont* _font = renderer->font((char*)font.c_str());
+
+    app_t* app = app_t::instance();
+    view_style_t vs = style;
 
     layout_item_ptr plo = layout();
 
@@ -66,10 +211,6 @@ void editor_view::render()
 
     bool hlMainCursor = cursors.size() == 1 && !mainCursor.hasSelection();
 
-    start_row = -alo->scroll_y / fh;
-    if (start_row < 0) {
-        start_row = 0;
-    }
     int pre_line = start_row - 0.5f * rows;
     if (pre_line < 0)
         pre_line = 0;
@@ -95,29 +236,13 @@ void editor_view::render()
     while (it != doc->blocks.end() && l < 2.0f * rows) {
         block_ptr block = *it++;
         if (!block->data || block->data->dirty) {
-            editor->highlighter.highlightBlock(block);
+            // with prerender -- this shouldn't have happened
+            return;
         }
 
-        editor->highlighter.updateBrackets(block);
         blockdata_ptr blockData = block->data;
 
-        if (!longest_block) {
-            longest_block = block;
-        }
-        if (longest_block->length() < block->length()) {
-            longest_block = block;
-        }
-
         std::string text = block->text() + " ";
-
-        blockData->rendered_spans = block->layoutSpan(cols, wrap, indent);
-        if (blockData->folded) {
-            block->lineCount = blockData->foldedBy ? 0 : 1;
-        }
-
-        block->lineHeight = fh;
-        block->y = offset_y;
-        offset_y += block->lineCount * fh;
 
         offscreen = (block->y + alo->scroll_y > fh * rows || block->y + (block->lineCount * fh) < -alo->scroll_y);
         offscreen = offscreen || (block->lineCount == 0);
@@ -222,21 +347,6 @@ void editor_view::render()
                 }
             }
 
-            s.x = alo->render_rect.x + (s.start * fw);
-            s.x += alo->scroll_x;
-            s.y = block->y;
-
-            if (s.line > 0) {
-                s.x -= s.start * fw;
-                s.x += s.line_x * fw;
-            }
-
-            s.y += (s.line * fh);
-
-            if (s.line == 0) {
-                block->x = alo->render_rect.x;
-            }
-
             if (!offscreen) {
 #if 0
                 renderer->draw_rect({ s.x,
@@ -258,27 +368,6 @@ void editor_view::render()
     }
 
     renderer->state_restore();
-
-    int ww = area->layout()->render_rect.w;
-    if (!wrap && longest_block) {
-        ww = longest_block->length() * fw;
-    }
-    content()->layout()->width = ww;
-
-    if (prev_longest != longest_block) {
-        layout_request();
-    }
-
-    // compute document height
-    computed_lines = editor->document.blocks.size();
-    int c = rows * 2;
-    block_ptr b = editor->document.blockAtLine(start_row);
-    while (b && c-- > 0) {
-        computed_lines += b->lineCount - 1;
-        b = b->next();
-    }
-
-    // app_t::log("%d %d", computed_lines, editor->document.blocks.size());
 }
 
 editor_view::editor_view()

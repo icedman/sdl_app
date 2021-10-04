@@ -24,6 +24,7 @@ struct editor_view : panel_view {
     bool input_text(std::string text) override;
     bool input_sequence(std::string text) override;
 
+    void prerender() override;
     void render() override;
     void update(int millis) override;
 
