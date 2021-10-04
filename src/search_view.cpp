@@ -64,7 +64,6 @@ struct custom_editor_view_t : editor_view {
         if (lv->data.size()) {
             lv->clear();
             layout_request();
-            Renderer::instance()->throttle_up_events();
         }
 
         return editor_view::input_sequence(text);
@@ -119,7 +118,6 @@ void search_view::show_search(int m, std::string value)
     lv->layout()->visible = false;
 
     layout_request();
-    Renderer::instance()->throttle_up_events();
 
     view_set_focused(view_item::cast<inputtext_view>(input)->editor.get());
     mode = m;
@@ -287,7 +285,6 @@ void search_view::update_list_indexer()
 
     if (lv->data.size() != prev_size) {
         layout_request();
-        Renderer::instance()->throttle_up_events();
     }
 }
 
@@ -340,6 +337,5 @@ void search_view::update_list_files()
 
     if (lv->data.size() != prev_size) {
         layout_request();
-        Renderer::instance()->throttle_up_events();
     }
 }

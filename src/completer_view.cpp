@@ -140,7 +140,6 @@ void completer_view::show_completer(editor_ptr e)
             py > area->layout()->render_rect.h / 2 ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN);
 
         layout_request();
-        Renderer::instance()->throttle_up_events();
     }
 }
 

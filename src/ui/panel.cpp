@@ -101,9 +101,6 @@ bool panel_view::scrollbar_move(view_item* source)
     }
 
     _validate();
-
-    // printf("%d\n", (int)rand());
-    Renderer::instance()->invalidate();
     return true;
 }
 

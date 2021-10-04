@@ -14,7 +14,6 @@
 
 typedef struct RenImage RenImage;
 typedef struct RenFont RenFont;
-typedef struct RenCache RenCache;
 
 typedef struct {
     uint8_t r, g, b, a;
@@ -24,6 +23,8 @@ typedef struct {
 } RenRect;
 
 bool rects_overlap(RenRect a, RenRect b);
+RenRect intersect_rects(RenRect a, RenRect b);
+RenRect merge_rects(RenRect a, RenRect b);
 
 struct view_item;
 struct Renderer {
@@ -66,7 +67,6 @@ struct Renderer {
     void set_default_font(RenFont* font);
     void get_font_extents(RenFont* font, int* w, int* h, const char* text = 0, int len = 0);
 
-    void update_rects(RenRect* rects, int count);
     void set_clip_rect(RenRect rect);
     void invalidate_rect(RenRect rect);
     void draw_image(RenImage* image, RenRect rect, RenColor clr = { 255, 255, 255, 255 });
@@ -76,7 +76,7 @@ struct Renderer {
     int draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor color, bool bold = false, bool italic = false, bool underline = false);
     int draw_char(RenFont* font, char ch, int x, int y, RenColor color, bool bold = false, bool italic = false, bool underline = false);
     void invalidate();
-    void begin_frame(RenImage* image = 0, int w = 0, int h = 0, RenCache* cache = 0);
+    void begin_frame(RenImage* image = 0, int w = 0, int h = 0);
     void end_frame();
     void state_save();
     void state_restore();

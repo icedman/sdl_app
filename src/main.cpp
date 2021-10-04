@@ -26,7 +26,7 @@
 #include <vector>
 
 #define FRAME_SKIP_INTERVAL 32
-#define FRAME_RATE 120
+#define FRAME_RATE 60
 
 struct sdl_backend_t : backend_t {
     void setClipboardText(std::string text) override

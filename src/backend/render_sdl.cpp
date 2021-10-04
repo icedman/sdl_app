@@ -13,8 +13,6 @@ static int keyMods = 0;
 static SDL_Window* window;
 static SDL_Surface* window_surface;
 
-static RenRect* update_rects = 0;
-static int update_rects_count = 0;
 static int idle_counter = 0;
 
 int items_drawn = 0;
@@ -101,7 +99,7 @@ void _set_context_from_stack()
     }
 }
 
-#define MAX_DAMAGE_RECTS 1028
+#define MAX_DAMAGE_RECTS (1028*4)
 RenRect rects[MAX_DAMAGE_RECTS];
 void _blit_to_window()
 {
@@ -110,24 +108,17 @@ void _blit_to_window()
     }
 
     SDL_Surface* window_surface = SDL_GetWindowSurface(window);
-    SDL_BlitSurface(target_buffer->sdl_surface, nullptr, window_surface, nullptr);
+    // SDL_BlitSurface(target_buffer->sdl_surface, nullptr, window_surface, nullptr);
 
     if (Renderer::instance()->damage_rects.size()) {
         int i = 0;
         for (auto d : Renderer::instance()->damage_rects) {
             rects[i++] = d;
+            SDL_BlitSurface(target_buffer->sdl_surface, (SDL_Rect*)&d, window_surface, (SDL_Rect*)&d);
             if (i == MAX_DAMAGE_RECTS)
                 break;
         }
         SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)rects, i);
-        return;
-    }
-
-    // printf("?\n");
-
-    if (update_rects_count) {
-        SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)update_rects, update_rects_count);
-        update_rects_count = 0;
         return;
     }
 
@@ -205,14 +196,11 @@ void Renderer::init()
     _create_cairo_context(width, height);
     shouldEnd = false;
 
-    // rencache_init();
     update_colors();
 }
 
 void Renderer::shutdown()
 {
-    // rencache_shutdown();
-
     destroy_images();
     destroy_fonts();
 
@@ -249,17 +237,6 @@ void Renderer::listen_events(event_list* events)
         idle_counter++;
         return;
     }
-
-    // todo ...
-    // if (is_throttle_up_events()) {
-    //     if (!SDL_PollEvent(&e)) {
-    //         return;
-    //     }
-    // } else {
-    //     if (!SDL_WaitEvent(&e)) {
-    //         return;
-    //     }
-    // }
 
     switch (e.type) {
     case SDL_QUIT:
@@ -304,8 +281,8 @@ void Renderer::listen_events(event_list* events)
             y : e.wheel.y
         });
 
-        throttle_up_events(24);
         idle_counter = 0;
+        throttle_up_events(240);
         return;
 
     case SDL_KEYUP:
@@ -320,6 +297,8 @@ void Renderer::listen_events(event_list* events)
 
     case SDL_KEYDOWN: {
 
+        throttle_up_events(240);
+        
         std::string expandedSequence;
         std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
         std::string mod = to_mods(e.key.keysym.mod);
@@ -503,44 +482,14 @@ void Renderer::set_default_font(RenFont* font)
     default_font = font;
 }
 
-void Renderer::update_rects(RenRect* rects, int count)
-{
-    ::update_rects = rects;
-    update_rects_count = count;
-}
-
 void Renderer::set_clip_rect(RenRect rect)
 {
     cairo_rectangle(cairo_context, rect.x, rect.y, rect.width, rect.height);
     cairo_clip(cairo_context);
 }
 
-void Renderer::invalidate_rect(RenRect rect)
-{
-    // cache
-}
-
-void Renderer::invalidate()
-{
-    // cache
-}
-
 void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 {
-    // bool render = false;
-
-    // for (auto d : Renderer::instance()->damage_rects) {
-    //     bool o = rects_overlap(d, rect);
-    //     if (o) {
-    //         render = true;
-    //         break;
-    //     }
-    // }
-
-    // if (!render) {
-    //     return;
-    // }
-
     items_drawn++;
     cairo_save(cairo_context);
     cairo_translate(cairo_context, rect.x, rect.y);
@@ -567,20 +516,6 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
 
 void Renderer::draw_underline(RenRect rect, RenColor color)
 {
-    // bool render = false;
-
-    // for (auto d : Renderer::instance()->damage_rects) {
-    //     bool o = rects_overlap(d, rect);
-    //     if (o) {
-    //         render = true;
-    //         break;
-    //     }
-    // }
-
-    // if (!render) {
-    //     return;
-    // }
-
     rect.y += rect.height - 1;
     rect.height = 1;
     draw_rect(rect, color, true, 1.0f);
@@ -588,20 +523,6 @@ void Renderer::draw_underline(RenRect rect, RenColor color)
 
 void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int rad)
 {
-    // bool render = false;
-
-    // for (auto d : Renderer::instance()->damage_rects) {
-    //     bool o = rects_overlap(d, rect);
-    //     if (o) {
-    //         render = true;
-    //         break;
-    //     }
-    // }
-
-    // if (!render) {
-    //     return;
-    // }
-
     items_drawn++;
     double border = (double)stroke / 2;
     if (clr.a > 0) {
@@ -643,7 +564,7 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor color, bo
     return 0;
 }
 
-void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
+void Renderer::begin_frame(RenImage* image, int w, int h)
 {
     if (!color_map.size()) {
         update_colors();
@@ -662,7 +583,7 @@ void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
 void Renderer::end_frame()
 {
     for (auto d : damage_rects) {
-        draw_rect(d, { 255, 0, 255 }, false, 1.0f);
+        draw_rect(d, { 150, 150, 150, 20 }, false, 1.0f);
     }
 
     _set_context_from_stack();

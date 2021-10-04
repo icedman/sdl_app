@@ -32,6 +32,7 @@ struct editor_view : panel_view {
     void scroll_to_cursor(cursor_t c, bool centered = false);
 
     int start_row;
+    int end_row;
     int v_scroll_index;
 
     int target_start_row;
@@ -55,6 +56,12 @@ struct editor_view : panel_view {
 
     bool showMinimap;
     bool showGutter;
+
+    block_ptr start_block;
+    block_ptr end_block;
+    block_ptr prev_start_block;
+    block_ptr prev_end_block;
+    int prev_doc_size;
 
     std::vector<RenRect> previous_block_damages;
 };

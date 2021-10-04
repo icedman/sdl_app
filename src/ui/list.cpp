@@ -101,7 +101,6 @@ void list_view::update(int millis)
         if (!ensure_visible_cursor()) {
             _prev_value = _value;
         }
-        Renderer::instance()->throttle_up_events(240);
     }
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
@@ -142,7 +141,6 @@ void list_view::update(int millis)
             view_item_ptr item = *it++;
             list_item_view* iv = view_item::cast<list_item_view>(item);
             item->layout()->visible = true;
-            iv->prev_visibility = false;
         }
 
         panel_view::update(millis);

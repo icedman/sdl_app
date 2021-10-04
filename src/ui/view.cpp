@@ -60,7 +60,6 @@ void view_input_list(view_item_list& list, view_item_ptr item)
 view_item::view_item()
     : cached_image(0)
     , cache_enabled(false)
-    , visibility(false)
     , prev_visibility(false)
 {
 }
@@ -195,13 +194,6 @@ bool view_item::is_clicked()
 
 void view_item::update(int ticks)
 {
-    if( !layout()->visible) {
-        prev_visibility = false;
-        visibility = false;
-    } else {
-        visibility = true;
-    }
-
     for (auto v : _views) {
         v->update(ticks);
     }
@@ -234,8 +226,8 @@ void view_item::render_frame()
 
 void view_item::prerender()
 {
-    if (prev_visibility != visibility) {
-        prev_visibility = visibility;
+    if (prev_visibility != layout()->visible) {
+        prev_visibility = layout()->visible;
         damage();
     }
 

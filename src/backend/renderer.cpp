@@ -14,6 +14,27 @@ bool rects_overlap(RenRect a, RenRect b)
     return true;
 }
 
+static inline int min(int a, int b) { return a < b ? a : b; }
+static inline int max(int a, int b) { return a > b ? a : b; }
+
+RenRect intersect_rects(RenRect a, RenRect b)
+{
+    int x1 = max(a.x, b.x);
+    int y1 = max(a.y, b.y);
+    int x2 = min(a.x + a.width, b.x + b.width);
+    int y2 = min(a.y + a.height, b.y + b.height);
+    return (RenRect){ x1, y1, max(0, x2 - x1), max(0, y2 - y1) };
+}
+
+RenRect merge_rects(RenRect a, RenRect b)
+{
+    int x1 = min(a.x, b.x);
+    int y1 = min(a.y, b.y);
+    int x2 = max(a.x + a.width, b.x + b.width);
+    int y2 = max(a.y + a.height, b.y + b.height);
+    return (RenRect){ x1, y1, x2 - x1, y2 - y1 };
+}
+
 void Renderer::throttle_up_events(int frames)
 {
     if (throttle_up_events_counter < frames) {

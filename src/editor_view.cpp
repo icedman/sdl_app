@@ -26,6 +26,13 @@ void editor_view::prerender()
     Renderer* renderer = Renderer::instance();
     RenFont* _font = renderer->font((char*)font.c_str());
 
+    if (prev_start_block != start_block || prev_end_block != end_block ||
+        prev_doc_size != editor->document.blocks.size()) {
+        prev_start_block = start_block;
+        prev_end_block = end_block;
+        prev_doc_size = editor->document.blocks.size();
+        damage();
+    }
     for(auto d : previous_block_damages) {
         renderer->damage(d);
     }
@@ -271,7 +278,7 @@ void editor_view::render()
         offscreen = (block->y + alo->scroll_y > fh * rows || block->y + (block->lineCount * fh) < -alo->scroll_y);
         offscreen = offscreen || (block->lineCount == 0);
 
-        // damaged?
+        // check if damaged?
         RenRect cr = {
                         alo->render_rect.x,
                         block->y + alo->scroll_y + lo->render_rect.y,
@@ -404,6 +411,8 @@ void editor_view::render()
                     { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue,
                         (uint8_t)(renderer->is_terminal() ? clr.index : 255) },
                     s.bold, s.italic);
+            } else {
+                end_row = block->lineNumber;
             }
         }
 
@@ -411,6 +420,9 @@ void editor_view::render()
     }
 
     renderer->state_restore();
+
+    start_block = doc->blockAtLine(start_row);
+    end_block = doc->blockAtLine(end_row);
 }
 
 editor_view::editor_view()
@@ -419,6 +431,7 @@ editor_view::editor_view()
     , computed_lines(0)
     , showMinimap(true)
     , showGutter(true)
+    , prev_doc_size(-1)
 {
     font = "editor";
     interactive = true;
@@ -805,12 +818,10 @@ bool editor_view::input_sequence(std::string text)
     case UNDO:
     case CUT:
     case PASTE:
-        Renderer::instance()->throttle_up_events();
         break;
 
     case MOVE_CURSOR_NEXT_PAGE:
     case MOVE_CURSOR_PREVIOUS_PAGE:
-        Renderer::instance()->throttle_up_events();
         break;
     }
 

@@ -18,11 +18,11 @@ minimap_view::minimap_view()
     , prev_sliding_y(-1)
     , prev_start_row(-1)
     , prev_end_row(-1)
+    , render_y(0)
+    , sliding_y(0)
 {
     class_name = "minimap";
     interactive = true;
-    sliding_y = 0;
-    render_y = 0;
 
     spacing = 2;
 
@@ -68,7 +68,7 @@ bool minimap_view::mouse_click(int x, int y, int button)
     cursor.setPosition(editor->document.blockAtLine(line), 0);
     ev->scroll_to_cursor(cursor, true);
 
-    Renderer::instance()->throttle_up_events();
+    Renderer::instance()->throttle_up_events(240);
     return true;
 }
 
@@ -85,9 +85,12 @@ void minimap_view::update(int millis)
     }
 
     int d = render_y - sliding_y;
-    if (d * d > 4) {
-        sliding_y += (float)d / 200;
-        Renderer::instance()->throttle_up_events();
+    if (render_y != sliding_y) {
+        Renderer::instance()->throttle_up_events(240);
+        damage();
+    }
+    if (d * d >= 36) {
+        sliding_y += (float)d / 80;
     } else {
         sliding_y = render_y;
     }

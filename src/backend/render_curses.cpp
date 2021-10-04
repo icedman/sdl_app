@@ -730,44 +730,9 @@ void Renderer::get_font_extents(RenFont* font, int* w, int* h, const char* text,
     *h = 1;
 }
 
-void Renderer::update_rects(RenRect* rects, int count)
-{
-}
-
-static inline int min(int a, int b) { return a < b ? a : b; }
-static inline int max(int a, int b) { return a > b ? a : b; }
-
-static RenRect intersect_rects(RenRect a, RenRect b)
-{
-    int x1 = max(a.x, b.x);
-    int y1 = max(a.y, b.y);
-    int x2 = min(a.x + a.width, b.x + b.width);
-    int y2 = min(a.y + a.height, b.y + b.height);
-    return (RenRect){ x1, y1, max(0, x2 - x1), max(0, y2 - y1) };
-}
-
-static RenRect merge_rects(RenRect a, RenRect b)
-{
-    int x1 = min(a.x, b.x);
-    int y1 = min(a.y, b.y);
-    int x2 = max(a.x + a.width, b.x + b.width);
-    int y2 = max(a.y + a.height, b.y + b.height);
-    return (RenRect){ x1, y1, x2 - x1, y2 - y1 };
-}
-
 void Renderer::set_clip_rect(RenRect rect)
 {
     clip_rect = intersect_rects(rect, clip_rect);
-}
-
-void Renderer::invalidate_rect(RenRect rect)
-{
-    // cache
-}
-
-void Renderer::invalidate()
-{
-    // cache
 }
 
 void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
@@ -961,7 +926,7 @@ int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool
     return 1;
 }
 
-void Renderer::begin_frame(RenImage* image, int w, int h, RenCache* cache)
+void Renderer::begin_frame(RenImage* image, int w, int h)
 {
     if (!color_map.size()) {
         update_colors();
