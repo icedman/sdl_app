@@ -227,17 +227,20 @@ void Renderer::listen_events(event_list* events)
         events->clear();
 
         SDL_Event e;
+        if (!SDL_PollEvent(&e)) {
+            return;
+        }
 
         // todo ...
-        if (is_throttle_up_events()) {
-            if (!SDL_PollEvent(&e)) {
-                return;
-            }
-        } else {
-            if (!SDL_WaitEvent(&e)) {
-                return;
-            }
-        }
+        // if (is_throttle_up_events()) {
+        //     if (!SDL_PollEvent(&e)) {
+        //         return;
+        //     }
+        // } else {
+        //     if (!SDL_WaitEvent(&e)) {
+        //         return;
+        //     }
+        // }
 
         // throttle_up_events(12);
 

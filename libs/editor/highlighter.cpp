@@ -516,7 +516,7 @@ void highlighter_t::run(editor_t* _editor)
 
     log("threads: %d per threads: %d\n", thread_count, per_thread);
 
-    backend_t::instance()->ticks();
+    backend_t::instance()->begin();
     
     running_threads = 0;
 
@@ -561,6 +561,6 @@ void highlighter_t::run(editor_t* _editor)
         editor->highlight(threads[i].start, 10);
     }
 
-    log("whole document highlighting done in %fs\n", (float)backend_t::instance()->ticks() / 1000);
+    log("whole document highlighting done in %fs\n", (float)backend_t::instance()->elapsed() / 1000);
 #endif
 }

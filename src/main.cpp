@@ -39,7 +39,66 @@ struct sdl_backend_t : backend_t {
     }
 };
 
+
 int main(int argc, char** argv)
+{
+    sdl_backend_t backend;
+    app_t app;
+    keybinding_t keybinding;
+
+    Renderer* renderer = Renderer::instance();
+
+    app.configure(argc, argv);
+    app.setupColors(!renderer->is_terminal());
+    
+    renderer->init();
+
+    color_info_t bg = { 150, 150, 150 };
+
+    event_list events;
+
+    int idle = 0;
+    const int fps = 30;
+    const int max_elapsed = 1000/fps;
+    while(renderer->is_running()) {
+        backend.begin();
+        renderer->listen_events(&events);
+
+        int w, h;
+        renderer->get_window_size(&w, &h);
+        renderer->begin_frame();
+        renderer->draw_rect({ 0,0,w,h }, { (uint8_t)bg.red, (uint8_t)bg.green, (uint8_t)bg.blue });
+        renderer->end_frame();
+        printf("draw\n");
+
+        // update
+        bool hasInput = false;
+        for(auto e : events) {
+            printf("event: %d\n", e.type);
+            if (e.type != EVT_MOUSE_MOTION) {
+                hasInput = true;
+            }
+        }
+
+        // idle counter
+        if (!hasInput) idle++; else idle = 0;
+        
+        printf("update");
+        while(backend.elapsed() < max_elapsed) {
+            printf(".");
+            backend.delay(2);
+        }
+        printf("\n");
+        
+
+        printf("idle: %d elapsed %d\n", idle, backend.elapsed());
+    }
+
+    renderer->shutdown();
+    return 0;
+}
+
+int _main(int argc, char** argv)
 {
     style_init();
     

@@ -10,7 +10,10 @@ struct backend_t {
     virtual void setClipboardText(std::string text){};
     virtual std::string getClipboardText(){};
 
-    int ticks();
+    int now();
+    void begin();
+    void delay(int millis);
+    int elapsed();
 
     static backend_t* instance();
 };
