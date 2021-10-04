@@ -55,6 +55,8 @@ struct editor_view : panel_view {
 
     bool showMinimap;
     bool showGutter;
+
+    std::vector<RenRect> previous_block_damages;
 };
 
 #endif // EDITOR_VIEW_H

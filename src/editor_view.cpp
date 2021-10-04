@@ -26,6 +26,11 @@ void editor_view::prerender()
     Renderer* renderer = Renderer::instance();
     RenFont* _font = renderer->font((char*)font.c_str());
 
+    for(auto d : previous_block_damages) {
+        renderer->damage(d);
+    }
+    previous_block_damages.clear();
+
     app_t* app = app_t::instance();
     view_style_t vs = style;
 
@@ -70,9 +75,9 @@ void editor_view::prerender()
     while (it != doc->blocks.end() && l < 2.0f * rows) {
         block_ptr block = *it++;
 
-        int hl = false;
+        int hltd = false;
         if (!block->data || block->data->dirty) {
-            hl = editor->highlighter.highlightBlock(block);
+            hltd = editor->highlighter.highlightBlock(block);
         }
 
         editor->highlighter.updateBrackets(block);
@@ -92,6 +97,7 @@ void editor_view::prerender()
             block->lineCount = blockData->foldedBy ? 0 : 1;
         }
 
+        // position blocks
         block->lineHeight = fh;
         block->y = offset_y;
         offset_y += block->lineCount * fh;
@@ -99,7 +105,23 @@ void editor_view::prerender()
         offscreen = (block->y + alo->scroll_y > fh * rows || block->y + (block->lineCount * fh) < -alo->scroll_y);
         offscreen = offscreen || (block->lineCount == 0);
 
-        bool dmg = hl || mainCursor.block() == block;
+        bool dmg = hltd;
+        for (auto& c : cursors) {
+            if (dmg) break;
+            if (block == c.block() || block == c.anchorBlock()) {
+                dmg = true;
+                break;
+            }
+            if (c.isMultiBlockSelection()) {
+                for(auto b : c.selectedBlocks()) {
+                    if (block == b) {
+                        dmg = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         if (!offscreen && dmg) {
             RenRect cr = {
                         alo->render_rect.x,
@@ -108,9 +130,11 @@ void editor_view::prerender()
                         block->lineCount * fh
                     };
             // printf("blk %d %d %d %d\n", cr.x, cr.y, cr.width, cr.height);
+            previous_block_damages.push_back(cr);
             renderer->damage(cr);
         }
 
+        // position spans
         for (auto& s : blockData->rendered_spans) {
             if (s.length == 0)
                 continue;
