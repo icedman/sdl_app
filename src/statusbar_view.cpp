@@ -45,6 +45,8 @@ statusbar_view::statusbar_view()
 void statusbar_view::update(int millis)
 {
     statusbar_t* statusbar = statusbar_t::instance();
+    current_status = "";
+
     if (statusbar) {
         statusbar->update(1);
         editor_ptr editor = app_t::instance()->currentEditor;
@@ -61,8 +63,10 @@ void statusbar_view::update(int millis)
 
         sprintf(tmp, "Line: %d", 1 + (int)(block->lineNumber));
         statusbar->setText(tmp, -3);
+
         sprintf(tmp, "Col: %d", 1 + (int)(cursor.position()));
         statusbar->setText(tmp, -2);
+
         if (editor->highlighter.lang) {
             statusbar->setText(editor->highlighter.lang->id, -1);
         } else {
@@ -79,10 +83,21 @@ void statusbar_view::update(int millis)
             text->text = " " + statusbar->text[i++] + " ";
             text->prelayout();
             text->layout()->rect.w = text->layout()->width;
+
+            current_status += text->text;
         }
     }
 
     view_item::update(millis);
+}
+
+void statusbar_view::prerender()
+{
+    horizontal_container::prerender();
+    if (previous_status != current_status) {
+        previous_status = current_status;
+        // damage();
+    }
 }
 
 void statusbar_view::render()
@@ -101,6 +116,4 @@ void statusbar_view::render()
                                             lo->render_rect.h },
             { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue }, true);
     }
-
-    // view_item::render();
 }

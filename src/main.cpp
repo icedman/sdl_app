@@ -25,7 +25,8 @@
 #include <set>
 #include <vector>
 
-#define FRAME_RENDER_INTERVAL 32
+#define FRAME_SKIP_INTERVAL 32
+#define FRAME_RATE 120
 
 struct sdl_backend_t : backend_t {
     void setClipboardText(std::string text) override
@@ -94,10 +95,10 @@ int main(int argc, char** argv)
     renderer->create_font("Source Code Pro 10", "ui-small");
     renderer->set_default_font(font);
 
-    int frames = FRAME_RENDER_INTERVAL;
+    int frames = FRAME_SKIP_INTERVAL;
 
     float fps = 0;
-    const int target_fps = 120;
+    const int target_fps = FRAME_RATE;
     const int max_elapsed = 1000 / target_fps;
     while (renderer->is_running()) {
         backend.begin();
@@ -112,7 +113,7 @@ int main(int argc, char** argv)
             layout_run(root, { 0, 0, w, h });
             render_list.clear();
             layout_render_list(render_list, root);
-            frames = FRAME_RENDER_INTERVAL;
+            frames = FRAME_SKIP_INTERVAL;
         }
 
         // input based updates
@@ -128,7 +129,7 @@ int main(int argc, char** argv)
         }
 
         if (skip_frames) {
-            if (frames++ > FRAME_RENDER_INTERVAL) {
+            if (frames++ > FRAME_SKIP_INTERVAL) {
                 skip_frames = false;
                 frames = 0;
             }
@@ -147,11 +148,15 @@ int main(int argc, char** argv)
 
             {
                 static int count = 0;
+                static int damages = 0;
                 if (renderer->draw_count() > 0) {
                     count = renderer->draw_count();
                 }
-                char tmp[32];
-                sprintf(tmp, "fps: %04d drawn: %04d", (int)fps, count);
+                if (renderer->damage_rects.size() > 0) {
+                    damages = renderer->damage_rects.size();
+                }
+                char tmp[64];
+                sprintf(tmp, "fps: %04d damages: %04d drawn: %04d", (int)fps, damages, count);
                 int fw, fh;
                 renderer->get_font_extents(NULL, &fw, &fh, tmp, strlen(tmp));
                 int fx = renderer->is_terminal() ? 2 : 20;
@@ -177,7 +182,7 @@ int main(int argc, char** argv)
             }
 
             if (renderer->is_idle()) {
-                backend.delay(20);
+                backend.delay(30);
             }
         } while (backend.elapsed() < max_elapsed);
 

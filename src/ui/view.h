@@ -77,6 +77,9 @@ struct view_item : layout_view, event_object_t {
     std::string class_name;
     std::string prev_class_name;
 
+    bool visibility;
+    bool prev_visibility;
+
     std::string computed_class();
 
     virtual void damage();

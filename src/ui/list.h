@@ -71,7 +71,7 @@ struct list_view : panel_view {
     list_item_view* _focused_value;
 
     bool autoscroll;
-    bool has_changes;
+    int previous_size;
 
     static bool compare_item(struct list_item_data_t& f1, struct list_item_data_t& f2);
 };

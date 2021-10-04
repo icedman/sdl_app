@@ -73,7 +73,7 @@ list_view::list_view(std::vector<list_item_data_t> items)
 list_view::list_view()
     : panel_view()
     , autoscroll(false)
-    , has_changes(false)
+    , previous_size(-1)
     , _value(0)
     , _prev_value(0)
     , _focused_value(0)
@@ -115,7 +115,7 @@ void list_view::update(int millis)
         }
     }
 
-    has_changes = false;
+    bool has_changes = false;
     if (data.size() == content()->_views.size()) {
         view_item_list::iterator it = content()->_views.begin();
         for (auto f : data) {
@@ -131,6 +131,10 @@ void list_view::update(int millis)
         has_changes = true;
     }
 
+    if (has_changes) {
+        previous_size = -1;
+    }
+
     view_item_list::iterator it;
     if (!has_changes) {
         it = content()->_views.begin();
@@ -139,6 +143,8 @@ void list_view::update(int millis)
             list_item_view* iv = view_item::cast<list_item_view>(item);
             item->layout()->visible = true;
         }
+
+        panel_view::update(millis);
         return;
     }
 
@@ -226,7 +232,8 @@ bool list_view::is_item_focused(list_item_view* item)
 void list_view::prerender()
 {
     panel_view::prerender();
-    if (has_changes) {
+    if (previous_size != data.size()) {
+        previous_size = data.size();
         damage();
     }
 }
