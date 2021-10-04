@@ -288,7 +288,7 @@ void view_item::damage()
 
     Renderer::instance()->damage(r);
 
-    // printf("damage %s!\n", type_name().c_str());
+    printf("damage %s!\n", type_name().c_str());
 }
 
 view_item_ptr view_find_xy(view_item_ptr item, int x, int y)
