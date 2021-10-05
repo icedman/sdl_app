@@ -13,7 +13,6 @@
 
 void initAsteroids();
 int asteroidDrawChar(float x, float y, char c, float size, RenColor clr, bool extentsOnly = false);
-int asteroidDrawString(float x, float y, char *str, float size, RenColor clr, bool extentsOnly = false);
-
+int asteroidDrawString(float x, float y, char* str, float size, RenColor clr, bool extentsOnly = false);
 
 #endif // FALLBACK_FONT_H

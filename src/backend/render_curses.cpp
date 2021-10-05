@@ -17,6 +17,7 @@
 #include "utf8.h"
 
 static int last_millis = 0;
+int items_drawn = 0;
 
 #define CTRL_KEY(k) ((k)&0x1f)
 
@@ -768,6 +769,7 @@ void Renderer::draw_line(int x, int y, int x2, int y2, RenColor, int stroke)
 
 void Renderer::draw_underline(RenRect rect, RenColor color)
 {
+    items_drawn++;
     screen_meta[rect.x + rect.y * bg_w].underline = 1;
 }
 
@@ -775,6 +777,8 @@ void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int 
 {
     if (!fill)
         return;
+
+    items_drawn++;
 
     int clr_index = clr.a;
 
@@ -796,6 +800,7 @@ void Renderer::draw_rect(RenRect rect, RenColor clr, bool fill, int stroke, int 
 
 int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
+    items_drawn++;
     int clr_index = clr.a ? clr.a : -1;
 
     if (bold) {
@@ -853,6 +858,7 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
 int Renderer::draw_char(RenFont* font, char ch, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
+    items_drawn++;
     int clr_index = clr.a ? clr.a : -1;
 
     int _ch = ch;
@@ -952,12 +958,13 @@ void Renderer::begin_frame(RenImage* image, int w, int h)
 
     erase();
     state_save();
+
+    items_drawn = 0;
 }
 
 void Renderer::end_frame()
 {
     refresh();
-
     state_restore();
 }
 
@@ -978,7 +985,7 @@ void Renderer::state_restore()
 
 int Renderer::draw_count()
 {
-    return 0;
+    return items_drawn;
 }
 
 int Renderer::ticks()

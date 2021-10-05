@@ -37,6 +37,7 @@ struct view_item : layout_view, event_object_t {
     void prerender() override;
     void render() override;
 
+    virtual bool worker(int ticks);
     virtual void render_frame();
 
     void add_child(view_item_ptr view);

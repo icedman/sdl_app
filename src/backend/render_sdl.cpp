@@ -17,12 +17,6 @@ static int idle_counter = 0;
 
 int items_drawn = 0;
 
-// static inline bool rects_overlap(RenRect a, RenRect b)
-// {
-//     return b.x + b.width >= a.x && b.x <= a.x + a.width
-//         && b.y + b.height >= a.y && b.y <= a.y + a.height;
-// }
-
 struct RenImage {
     int width;
     int height;
@@ -99,7 +93,7 @@ void _set_context_from_stack()
     }
 }
 
-#define MAX_DAMAGE_RECTS (1028*4)
+#define MAX_DAMAGE_RECTS (1028 * 4)
 RenRect rects[MAX_DAMAGE_RECTS];
 void _blit_to_window()
 {
@@ -114,8 +108,10 @@ void _blit_to_window()
     if (Renderer::instance()->damage_rects.size()) {
         int i = 0;
         for (auto d : Renderer::instance()->damage_rects) {
-            if (d.x >= window_surface->w) continue;
-            if (d.y >= window_surface->h) continue;
+            if (d.x >= window_surface->w)
+                continue;
+            if (d.y >= window_surface->h)
+                continue;
             if (d.x + d.width > window_surface->w) {
                 d.width = window_surface->w - d.x;
             }
@@ -124,7 +120,7 @@ void _blit_to_window()
             }
             rects[i++] = d;
 
-            // printf("{ %d %d } { %d %d } { %d %d %d %d }\n", 
+            // printf("{ %d %d } { %d %d } { %d %d %d %d }\n",
             //         window_surface->w, window_surface->h,
             //         window_buffer->width, window_buffer->height, d.x,d.y,d.width,d.height);
 
@@ -310,7 +306,7 @@ int Renderer::listen_events(event_list* events)
     case SDL_KEYDOWN: {
 
         throttle_up_events(240);
-        
+
         std::string expandedSequence;
         std::string keySequence = SDL_GetKeyName(e.key.keysym.sym);
         std::string mod = to_mods(e.key.keysym.mod);
@@ -608,7 +604,10 @@ void Renderer::begin_frame(RenImage* image, int w, int h)
 
     context_stack.push_back(image);
     _set_context_from_stack();
-    items_drawn = 0;
+
+    if (target_buffer == window_buffer) {
+        items_drawn = 0;
+    }
 
     // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
 }

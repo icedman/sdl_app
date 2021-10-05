@@ -228,8 +228,7 @@ void view_item::render_frame()
 void view_item::prerender()
 {
     layout_rect r = layout()->rect;
-    if (_should_damage || prev_visibility != layout()->visible || 
-        (prev_rect.x != r.x || prev_rect.y != r.y || prev_rect.w != r.w || prev_rect.h != r.h)) {
+    if (_should_damage || prev_visibility != layout()->visible || (prev_rect.x != r.x || prev_rect.y != r.y || prev_rect.w != r.w || prev_rect.h != r.h)) {
         prev_rect = r;
         prev_visibility = layout()->visible;
         _should_damage = false;
@@ -290,6 +289,15 @@ void view_item::propagate_event(event_t& event)
         if (event.cancelled)
             break;
     }
+}
+
+bool view_item::worker(int ticks)
+{
+    bool res = false;
+    for (auto v : _views) {
+        res = res || v->worker(ticks);
+    }
+    return res;
 }
 
 void view_item::should_damage()

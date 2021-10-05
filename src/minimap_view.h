@@ -17,6 +17,7 @@ struct minimap_view : view_item {
 
     void buildUpDotsForBlock(block_ptr block, float textCompress, int bufferWidth);
     void render_terminal();
+    bool worker(int ticks);
 
     view_item_ptr scrollbar;
 
@@ -33,6 +34,8 @@ struct minimap_view : view_item {
     int prev_scroll_y;
     int prev_start_row;
     int prev_end_row;
+
+    std::vector<block_ptr> hl;
 };
 
 #endif // MINIMAP_VIEW_H

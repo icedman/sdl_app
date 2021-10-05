@@ -14,8 +14,8 @@
 #include "scrollbar.h"
 #include <unistd.h>
 
-std::string _space   = "·";
-std::string _tab     = "‣";
+std::string _space = "·";
+std::string _tab = "‣";
 std::string _newline = "¬";
 
 bool _span_from_cursor(cursor_t& cursor, span_info_t& span, int& span_pos);
@@ -30,14 +30,13 @@ void editor_view::prerender()
     Renderer* renderer = Renderer::instance();
     RenFont* _font = renderer->font((char*)font.c_str());
 
-    if (prev_start_block != start_block || prev_end_block != end_block ||
-        prev_doc_size != editor->document.blocks.size()) {
+    if (prev_start_block != start_block || prev_end_block != end_block || prev_doc_size != editor->document.blocks.size()) {
         prev_start_block = start_block;
         prev_end_block = end_block;
         prev_doc_size = editor->document.blocks.size();
         damage();
     }
-    for(auto d : previous_block_damages) {
+    for (auto d : previous_block_damages) {
         renderer->damage(d);
     }
     previous_block_damages.clear();
@@ -120,13 +119,14 @@ void editor_view::prerender()
 
         bool dmg = hltd;
         for (auto& c : cursors) {
-            if (dmg) break;
+            if (dmg)
+                break;
             if (block == c.block() || block == c.anchorBlock()) {
                 dmg = true;
                 break;
             }
             if (c.isMultiBlockSelection()) {
-                for(auto b : c.selectedBlocks()) {
+                for (auto b : c.selectedBlocks()) {
                     if (block == b) {
                         dmg = true;
                         break;
@@ -137,11 +137,11 @@ void editor_view::prerender()
 
         if (!offscreen && dmg) {
             RenRect cr = {
-                        alo->render_rect.x,
-                        block->y + alo->scroll_y + lo->render_rect.y,
-                        alo->render_rect.w,
-                        block->lineCount * fh
-                    };
+                alo->render_rect.x,
+                block->y + alo->scroll_y + lo->render_rect.y,
+                alo->render_rect.w,
+                block->lineCount * fh
+            };
             // printf("blk %d %d %d %d\n", cr.x, cr.y, cr.width, cr.height);
             previous_block_damages.push_back(cr);
             renderer->damage(cr);
@@ -213,7 +213,6 @@ void editor_view::prerender()
                         cr.width += 2;
                         renderer->damage(cr);
                         previous_block_damages.push_back(cr);
-
                     }
                 }
             }
@@ -342,11 +341,11 @@ void editor_view::render()
 
         // check if damaged?
         RenRect cr = {
-                        alo->render_rect.x,
-                        block->y + alo->scroll_y + lo->render_rect.y,
-                        alo->render_rect.w,
-                        block->lineCount * fh
-                    };
+            alo->render_rect.x,
+            block->y + alo->scroll_y + lo->render_rect.y,
+            alo->render_rect.w,
+            block->lineCount * fh
+        };
         bool render = false;
         for (auto d : Renderer::instance()->damage_rects) {
             bool o = rects_overlap(d, cr);
@@ -485,7 +484,6 @@ void editor_view::render()
 
     start_block = doc->blockAtLine(start_row);
     end_block = doc->blockAtLine(end_row);
-
 }
 
 editor_view::editor_view()

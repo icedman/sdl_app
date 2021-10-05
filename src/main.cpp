@@ -80,7 +80,7 @@ int main(int argc, char** argv)
 
     // first created font will be the default
     // renderer->create_font("asteroids");
-    renderer->create_font("Fira Code 16", "editor");
+    renderer->create_font("Fira Code 14", "editor");
     // renderer->create_font("Source Code Pro 12", "editor");
     // renderer->register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
     // renderer->create_font("Source Code Pro 12", "ui");
@@ -145,26 +145,26 @@ int main(int argc, char** argv)
             renderer->render_view_tree((view_item*)root->view);
             renderer->state_restore();
 
-            #if 1
-                static int count = 0;
-                static int damages = 0;
-                if (renderer->draw_count() > 0) {
-                    count = renderer->draw_count();
-                }
-                if (renderer->damage_rects.size() > 0) {
-                    damages = renderer->damage_rects.size();
-                }
-                char tmp[64];
-                sprintf(tmp, "fps: %04d damages: %04d drawn: %04d", (int)fps, damages, count);
-                int fw, fh;
-                renderer->get_font_extents(NULL, &fw, &fh, tmp, strlen(tmp));
-                int fx = 0;//renderer->is_terminal() ? 2 : 20;
-                int fy = 0;//renderer->is_terminal() ? 1 : 20;
+#if 1
+            static int count = 0;
+            static int damages = 0;
+            if (renderer->draw_count() > 0) {
+                count = renderer->draw_count();
+            }
+            if (renderer->damage_rects.size() > 0) {
+                damages = renderer->damage_rects.size();
+            }
+            char tmp[64];
+            sprintf(tmp, "fps: %04d damages: %04d drawn: %04d", (int)fps, damages, count);
+            int fw, fh;
+            renderer->get_font_extents(NULL, &fw, &fh, tmp, strlen(tmp));
+            int fx = 0; //renderer->is_terminal() ? 2 : 20;
+            int fy = 0; //renderer->is_terminal() ? 1 : 20;
 
-                renderer->damage({fx,fy,fw,fh});
-                renderer->draw_rect({fx,fy,fw,fh}, {50,50,50}, true);
-                renderer->draw_text(NULL, tmp, fx, fy, { 255, 255, 255 });
-            #endif
+            renderer->damage({ fx, fy, fw, fh });
+            renderer->draw_rect({ fx, fy, fw, fh }, { 50, 50, 50 }, true);
+            renderer->draw_text(NULL, tmp, fx, fy, { 255, 255, 255 });
+#endif
 
             renderer->end_frame();
 
@@ -173,10 +173,6 @@ int main(int argc, char** argv)
         }
 
         do {
-            if (renderer->is_terminal()) {
-                break;
-            }
-
             if (renderer->is_throttle_up_events()) {
                 break;
             }
@@ -185,9 +181,14 @@ int main(int argc, char** argv)
                 break;
             }
 
-            if (renderer->is_idle()) {
+            bool didWork = root_view->worker(0);
+            if (!didWork && renderer->is_idle()) {
+                if (renderer->is_terminal()) {
+                    break;
+                }
                 backend.delay(30);
             }
+
         } while (backend.elapsed() < max_elapsed);
 
         if (!skip_frames) {

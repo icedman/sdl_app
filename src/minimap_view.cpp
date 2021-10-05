@@ -12,6 +12,8 @@
 #define TEXT_COMPRESS 5
 #define TEXT_BUFFER 25
 
+#define WORKER_HL_WINDOW 128
+
 minimap_view::minimap_view()
     : view_item()
     , prev_scroll_y(-1)
@@ -93,14 +95,39 @@ void minimap_view::update(int millis)
     }
 }
 
+bool minimap_view::worker(int ticks)
+{
+    if (!hl.size()) {
+        return false;
+    }
+
+    // printf("%d %d\n", ticks, hl.size());
+
+    while (hl.size() > WORKER_HL_WINDOW) {
+        hl.erase(hl.begin());
+    }
+
+    editor_view* ev = (editor_view*)(parent->parent);
+    editor_ptr editor = ev->editor;
+
+    for (int i = 0; i < 4; i++) {
+        block_ptr block = hl.front();
+        hl.erase(hl.begin());
+        editor->highlighter.highlightBlock(block);
+        if (!hl.size())
+            break;
+    }
+
+    should_damage();
+    return true;
+}
+
 void minimap_view::render()
 {
     if (Renderer::instance()->is_terminal()) {
         render_terminal();
         return;
     }
-
-    return;
 
     layout_item_ptr lo = layout();
 
@@ -155,7 +182,7 @@ void minimap_view::render()
         it++;
 
         if (!block->data || block->data->dirty) {
-            editor->highlighter.highlightBlock(block);
+            hl.push_back(block);
         }
 
         blockdata_ptr blockData = block->data;

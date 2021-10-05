@@ -10,8 +10,8 @@
 #include <map>
 #include <vector>
 
-#include "utf8.h"
 #include "fallback_font.h"
+#include "utf8.h"
 
 #define MAX_GLYPHSET 256
 
@@ -118,7 +118,7 @@ RenFont* Renderer::create_font(char* fdsc, char* alias)
 
     if (std::string("asteroids") == fdsc) {
         float sz = 1.2f;
-        RenFont *fnt = &asteroids;
+        RenFont* fnt = &asteroids;
         fnt->font_width = 12 * sz;
         fnt->font_height = 18 * sz;
         fnt->asteroids = true;
@@ -356,11 +356,11 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
 
     if (font->asteroids) {
         std::string str = text;
-        std::transform(str.begin(), str.end(),str.begin(), ::toupper);
+        std::transform(str.begin(), str.end(), str.begin(), ::toupper);
 
-        const char *p = str.c_str();
+        const char* p = str.c_str();
         int offset = 0;
-        while(*p) {
+        while (*p) {
             asteroidDrawChar(x + offset, y, *p, 1, clr, false);
             p++;
             offset += font->font_width;

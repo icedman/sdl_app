@@ -140,9 +140,7 @@ void Renderer::damage(RenRect rect)
 {
     if (is_terminal()) {
         damage_rects.clear();
-        damage_rects.push_back({
-            0,0,1000,1000
-        });
+        damage_rects.push_back({ 0, 0, 1000, 1000 });
         return;
     }
     damage_rects.push_back(rect);

@@ -32,12 +32,11 @@ void explorer_view::update(int millis)
     explorer_t* explorer = explorer_t::instance();
     ((list_view*)this)->_value = ((list_view*)this)->item_from_value(app_t::instance()->currentEditor->document.fullPath);
 
-    bool hasChanges = explorer->regenerateList;
-
-    if (!Renderer::instance()->is_throttle_up_events() || !data.size()) {
-        explorer->update(millis); // did change?
+    if (!data.size()) {
+        explorer->update(0);
     }
 
+    bool hasChanges = explorer->regenerateList;
     hasChanges = hasChanges || explorer->renderList.size() != data.size();
 
     if (!hasChanges) {
@@ -99,4 +98,14 @@ void explorer_view::select_item(list_item_view* item)
         bool multi = (Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
         ((app_view*)(app->view))->show_editor(app->openEditor(file->fullPath), !multi);
     }
+}
+
+bool explorer_view::worker(int millis)
+{
+    explorer_t* explorer = explorer_t::instance();
+    explorer->update(millis);
+
+    bool hasChanges = explorer->regenerateList;
+    hasChanges = hasChanges || explorer->renderList.size() != data.size();
+    return hasChanges;
 }

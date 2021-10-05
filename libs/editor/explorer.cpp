@@ -12,8 +12,8 @@
 #include "explorer.h"
 #include "util.h"
 
-#define PRELOAD_LOOP 8
-#define MAX_PRELOAD_DEPTH 3
+#define PRELOAD_LOOP 1
+#define MAX_PRELOAD_DEPTH 4
 
 static bool compareFile(std::shared_ptr<struct fileitem_t> f1, std::shared_ptr<struct fileitem_t> f2)
 {
