@@ -104,7 +104,7 @@ int main(int argc, char** argv)
         backend.begin();
         renderer->listen_events(&events);
 
-        bool skip_frames = renderer->is_idle() || renderer->is_throttle_up_events();
+        bool skip_frames = (renderer->is_idle() || renderer->is_throttle_up_events()) && !renderer->is_terminal();
 
         int pw = w;
         int ph = h;
@@ -159,8 +159,8 @@ int main(int argc, char** argv)
                 sprintf(tmp, "fps: %04d damages: %04d drawn: %04d", (int)fps, damages, count);
                 int fw, fh;
                 renderer->get_font_extents(NULL, &fw, &fh, tmp, strlen(tmp));
-                int fx = renderer->is_terminal() ? 2 : 20;
-                int fy = renderer->is_terminal() ? 1 : 20;
+                int fx = 0;//renderer->is_terminal() ? 2 : 20;
+                int fy = 0;//renderer->is_terminal() ? 1 : 20;
 
                 renderer->damage({fx,fy,fw,fh});
                 renderer->draw_rect({fx,fy,fw,fh}, {50,50,50}, true);
@@ -187,8 +187,9 @@ int main(int argc, char** argv)
             }
         } while (backend.elapsed() < max_elapsed);
 
-        if (!skip_frames)
+        if (!skip_frames) {
             fps = 1000.0f / backend.elapsed();
+        }
     }
 
     renderer->shutdown();

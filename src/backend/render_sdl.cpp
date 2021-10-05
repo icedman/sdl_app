@@ -108,21 +108,33 @@ void _blit_to_window()
     }
 
     SDL_Surface* window_surface = SDL_GetWindowSurface(window);
-    // SDL_BlitSurface(target_buffer->sdl_surface, nullptr, window_surface, nullptr);
+    // SDL_BlitSurface(target_buffer->sdl_surface, NULL, window_surface, NULL);
+    // SDL_UpdateWindowSurface(window);
 
     if (Renderer::instance()->damage_rects.size()) {
         int i = 0;
         for (auto d : Renderer::instance()->damage_rects) {
+            if (d.x > window_surface->w) continue;
+            if (d.y > window_surface->h) continue;
+            if (d.x + d.width > window_surface->w) {
+                d.width = window_surface->w - d.x;
+            }
+            if (d.y + d.height > window_surface->h) {
+                d.height = window_surface->h - d.y;
+            }
             rects[i++] = d;
+
+            // printf("{ %d %d } { %d %d } { %d %d %d %d }\n", 
+            //         window_surface->w, window_surface->h,
+            //         window_buffer->width, window_buffer->height, d.x,d.y,d.width,d.height);
+
             SDL_BlitSurface(target_buffer->sdl_surface, (SDL_Rect*)&d, window_surface, (SDL_Rect*)&d);
-            if (i == MAX_DAMAGE_RECTS)
+            if (i >= MAX_DAMAGE_RECTS)
                 break;
         }
         SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)rects, i);
         return;
     }
-
-    SDL_UpdateWindowSurface(window);
 }
 
 static bool is_firable(char c)
@@ -191,7 +203,7 @@ void Renderer::init()
 
     window = SDL_CreateWindow(
         "", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
-        SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE | SDL_WINDOW_OPENGL);
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE);
 
     _create_cairo_context(width, height);
     shouldEnd = false;
@@ -360,15 +372,19 @@ void Renderer::listen_events(event_list* events)
     case SDL_WINDOWEVENT:
         if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
             if (e.window.data1 && e.window.data2) {
+
                 event_t evt = {
                     type : EVT_WINDOW_RESIZE,
                     w : e.window.data1,
                     h : e.window.data2
                 };
+
                 window_buffer->width = evt.w;
                 window_buffer->height = evt.h;
                 _create_cairo_context(evt.w, evt.h);
                 events->push_back(evt);
+
+                throttle_up_events(240);
             }
         }
         if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
@@ -575,9 +591,6 @@ void Renderer::begin_frame(RenImage* image, int w, int h)
     items_drawn = 0;
 
     // cairo_set_antialias(cairo_context, CAIRO_ANTIALIAS_BEST);
-
-    // damage_rects.clear();
-    // damage_rects.push_back({0,0,window_buffer->width, window_buffer->height });
 }
 
 void Renderer::end_frame()
@@ -593,12 +606,11 @@ void Renderer::end_frame()
             printf("warning: states stack at %d\n", _state);
         }
         _blit_to_window();
+        damage_rects.clear();
     }
 
     context_stack.pop_back();
     _set_context_from_stack();
-
-    damage_rects.clear();
 }
 
 void Renderer::state_save()

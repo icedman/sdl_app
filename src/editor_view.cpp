@@ -60,6 +60,8 @@ void editor_view::prerender()
     cursor_list cursors = doc->cursors;
     cursor_t mainCursor = doc->cursor();
 
+    bool hlMainCursor = cursors.size() == 1 && !mainCursor.hasSelection();
+
     start_row = -alo->scroll_y / fh;
     if (start_row < 0) {
         start_row = 0;
@@ -155,6 +157,62 @@ void editor_view::prerender()
             }
 
             std::string span_text = utf8_substr(text, s.start, s.length);
+
+            // damage the carret
+            if (!offscreen && hlMainCursor) {
+                for (int pos = s.start; pos < s.start + s.length; pos++) {
+                    bool hl = false;
+                    bool ul = false;
+                    bool hasSelection = false;
+
+                    RenRect cr = {
+                        alo->render_rect.x + (pos * fw),
+                        block->y + alo->scroll_y + lo->render_rect.y,
+                        fw, fh
+                    };
+
+                    for (auto& c : cursors) {
+                        if (pos == c.position() && block == c.block()) {
+                            hasSelection |= c.hasSelection();
+                            hl = true;
+                            ul = c.hasSelection();
+                            break;
+                        }
+                        if (!c.hasSelection())
+                            continue;
+
+                        cursor_position_t start = c.selectionStart();
+                        cursor_position_t end = c.selectionEnd();
+
+                        if (block->lineNumber < start.block->lineNumber || block->lineNumber > end.block->lineNumber)
+                            continue;
+                        if (block == start.block && pos < start.position)
+                            continue;
+                        if (block == end.block && pos > end.position)
+                            continue;
+
+                        hl = true;
+                        break;
+                    }
+
+                    if (hl || hasSelection) {
+
+                        if (s.line > 0) {
+                            cr.x -= pos * fw;
+                            cr.x += s.line_x * fw;
+                            cr.x += (pos - s.start) * fw;
+                        }
+
+                        cr.y += (s.line * fh);
+                        cr.y -= 4;
+                        cr.height += 8;
+                        cr.width += 2;
+                        renderer->damage(cr);
+                        previous_block_damages.push_back(cr);
+
+                    }
+                }
+            }
 
             s.x = alo->render_rect.x + (s.start * fw);
             s.x += alo->scroll_x;
@@ -423,6 +481,7 @@ void editor_view::render()
 
     start_block = doc->blockAtLine(start_row);
     end_block = doc->blockAtLine(end_row);
+
 }
 
 editor_view::editor_view()

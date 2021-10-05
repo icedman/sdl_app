@@ -61,6 +61,7 @@ view_item::view_item()
     : cached_image(0)
     , cache_enabled(false)
     , prev_visibility(false)
+    , _should_damage(true)
 {
 }
 
@@ -226,8 +227,12 @@ void view_item::render_frame()
 
 void view_item::prerender()
 {
-    if (prev_visibility != layout()->visible) {
+    layout_rect r = layout()->rect;
+    if (_should_damage || prev_visibility != layout()->visible || 
+        (prev_rect.x != r.x || prev_rect.y != r.y || prev_rect.w != r.w || prev_rect.h != r.h)) {
+        prev_rect = r;
         prev_visibility = layout()->visible;
+        _should_damage = false;
         damage();
     }
 
@@ -241,6 +246,11 @@ void view_item::prerender()
 
     style = style_get(computed_class_name);
     style.class_name = computed_class_name;
+
+    if (prev_class_name != class_name) {
+        prev_class_name = class_name;
+        damage();
+    }
 }
 
 std::string view_item::computed_class()
@@ -282,6 +292,11 @@ void view_item::propagate_event(event_t& event)
     }
 }
 
+void view_item::should_damage()
+{
+    _should_damage = true;
+}
+
 void view_item::damage()
 {
     layout_item_ptr lo = layout();
@@ -294,7 +309,7 @@ void view_item::damage()
 
     Renderer::instance()->damage(r);
 
-    printf("damage %s!\n", type_name().c_str());
+    // printf("damage %s!\n", type_name().c_str());
 }
 
 view_item_ptr view_find_xy(view_item_ptr item, int x, int y)

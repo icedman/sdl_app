@@ -45,19 +45,16 @@ statusbar_view::statusbar_view()
 void statusbar_view::update(int millis)
 {
     statusbar_t* statusbar = statusbar_t::instance();
-    current_status = "";
 
     if (statusbar) {
         statusbar->update(1);
         editor_ptr editor = app_t::instance()->currentEditor;
+
         document_t* doc = &editor->document;
         cursor_t cursor = doc->cursor();
         block_ptr block = cursor.block();
 
         static char tmp[512];
-        // sprintf(tmp, "History %d/%d", (int)doc->snapShots.size(), (int)doc->snapShots.back().edits.size());
-        // setText(tmp, -5);
-
         sprintf(tmp, "%s", doc->windowsLineEnd ? "CR/LF" : "LF");
         statusbar->setText(tmp, -4);
 
@@ -78,26 +75,16 @@ void statusbar_view::update(int millis)
         text->prelayout();
         text->layout()->rect.w = text->layout()->width;
         int i = 0;
+
         for (auto v : items->_views) {
             text_view* text = view_item::cast<text_view>(v);
             text->text = " " + statusbar->text[i++] + " ";
             text->prelayout();
             text->layout()->rect.w = text->layout()->width;
-
-            current_status += text->text;
         }
     }
 
     view_item::update(millis);
-}
-
-void statusbar_view::prerender()
-{
-    horizontal_container::prerender();
-    if (previous_status != current_status) {
-        previous_status = current_status;
-        // damage();
-    }
 }
 
 void statusbar_view::render()

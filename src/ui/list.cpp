@@ -37,11 +37,6 @@ void list_item_view::prerender()
     }
     class_name = "item" + mod;
     view_item::prerender();
-
-    if (prev_class_name != class_name) {
-        prev_class_name = class_name;
-        damage();
-    }
 }
 
 void list_item_view::render()
@@ -132,6 +127,7 @@ void list_view::update(int millis)
 
     if (has_changes) {
         previous_size = -1;
+        should_damage();
     }
 
     view_item_list::iterator it;
