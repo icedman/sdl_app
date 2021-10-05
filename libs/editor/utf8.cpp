@@ -1,5 +1,7 @@
 #include "utf8.h"
 
+// Ⱥ Ⱥ Ⱥ Ⱥ
+
 const char* utf8_to_codepoint(const char* p, unsigned* dst)
 {
     unsigned res, n;
@@ -120,6 +122,8 @@ std::string utf8_substr(std::string &text, size_t pos, size_t len)
 
     if (!s) s = p;
     if (!e) e = p;
+
+    if (s - t >= text.length()) return "";
     return text.substr(s - t, e - s);
 }
 

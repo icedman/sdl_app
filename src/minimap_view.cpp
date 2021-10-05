@@ -101,8 +101,6 @@ bool minimap_view::worker(int ticks)
         return false;
     }
 
-    // printf("%d %d\n", ticks, hl.size());
-
     while (hl.size() > WORKER_HL_WINDOW) {
         hl.erase(hl.begin());
     }
@@ -181,13 +179,17 @@ void minimap_view::render()
         block_ptr block = *it;
         it++;
 
+        uint8_t alpha = 80;
+
         if (!block->data || block->data->dirty) {
+            if (hl.size() > WORKER_HL_WINDOW * 2) {
+                hl.clear();
+            }
             hl.push_back(block);
         }
 
         blockdata_ptr blockData = block->data;
 
-        uint8_t alpha = 80;
         if (block == current_block) {
             alpha = 250;
         }
@@ -231,7 +233,7 @@ void minimap_view::render()
 
                 if (r.width > 0) {
                     Renderer::instance()->draw_rect(r,
-                        { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, (uint8_t)alpha },
+                        { clr.red, clr.green, clr.blue, alpha },
                         false, 1);
                 }
             }

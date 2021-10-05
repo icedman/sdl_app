@@ -1,6 +1,7 @@
 #include "editor.h"
 #include "indexer.h"
 #include "util.h"
+#include "utf8.h"
 
 #include "backend.h"
 #include "app.h"
@@ -401,8 +402,10 @@ void editor_t::runOp(operation_t op)
                     cur.moveStartOfLine();
                 }
                 cur.insertText(t);
-                if (t.length())
-                cur.moveRight(t.length());
+                int len = utf8_length(t);
+                if (len) {
+                    cur.moveRight(len);
+                }
                 first = false;
             }
             cursor_t e = cur;
@@ -553,14 +556,8 @@ void editor_t::runOp(operation_t op)
             break;
         case INSERT:
             cur.insertText(strParam);
-            cursor_util::advanceBlockCursors(cursors, cur, strParam.length());
-            cur.moveRight(strParam.length());
-
-            // todo move to editor_view
-            // if (view && view->inputListener) {
-            //     view->inputListener->onInput();
-            // }
-
+            cursor_util::advanceBlockCursors(cursors, cur, utf8_length(strParam));
+            cur.moveRight(utf8_length(strParam));
             break;
 
         default:

@@ -212,7 +212,7 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
                 _s.line_x = indent + line_x;
                 line_x += _s.length;
             }
-            std::string span_text = utf8_substr(text, _s.start, _s.length);
+            // std::string span_text = utf8_substr(text, _s.start, _s.length);
         }
     } else {
         spans = data->spans;

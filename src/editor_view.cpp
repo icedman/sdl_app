@@ -102,7 +102,7 @@ void editor_view::prerender()
             longest_block = block;
         }
 
-        std::string text = block->text() + " ";
+        std::string text = block->text() + " \n";
 
         blockData->rendered_spans = block->layoutSpan(cols, wrap, indent);
         if (blockData->folded) {
@@ -917,6 +917,10 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
     int fw, fh;
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
+    // if (block->y < block->lineNumber * fh) {
+    //     block->y = block->lineNumber * fh;
+    // }
+
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
 
@@ -940,23 +944,20 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
     int pos;
 
     if (_span_from_cursor(c, ss, pos)) {
-        int uy = -(c.block()->y - (ss.line + 2) * fh);
+        int uy = -(block->y - (ss.line + 2) * fh);
         if (area->layout()->scroll_y < uy) {
             area->layout()->scroll_y = uy;
         }
 
-        int ly = -(c.block()->y - (ss.line + 2) * fh) + ((rows - 3) * fh);
+        int ly = -(block->y - (ss.line + 2) * fh) + ((rows - 3) * fh);
         if (area->layout()->scroll_y > ly) {
             area->layout()->scroll_y = ly;
         }
     } else {
-        int d = start_row - block->lineNumber;
-        if (d * d > rows * rows) {
-            area->layout()->scroll_y = -block->lineNumber * fh;
-        }
+        area->layout()->scroll_y = -block->lineNumber * fh;
     }
 
-    // printf("scroll: %d %d\n", area->layout()->scroll_y, l);
+    printf("scroll: %d %d %d\n", area->layout()->scroll_y, start_row, l);
 
     update_scrollbars();
 }
