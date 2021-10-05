@@ -30,7 +30,6 @@ struct minimap_view : view_item {
     int render_y;
     int render_h;
 
-    float prev_sliding_y;
     int prev_scroll_y;
     int prev_start_row;
     int prev_end_row;

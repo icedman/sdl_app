@@ -60,6 +60,7 @@ void view_input_list(view_item_list& list, view_item_ptr item)
 view_item::view_item()
     : cached_image(0)
     , cache_enabled(false)
+    , _damage(false)
     , prev_visibility(false)
 {
 }
@@ -226,8 +227,9 @@ void view_item::render_frame()
 
 void view_item::prerender()
 {
-    if (prev_visibility != layout()->visible) {
+    if (_damage || prev_visibility != layout()->visible) {
         prev_visibility = layout()->visible;
+        _damage = false;
         damage();
     }
 
@@ -280,6 +282,11 @@ void view_item::propagate_event(event_t& event)
         if (event.cancelled)
             break;
     }
+}
+
+void view_item::should_damage()
+{
+    _damage = true;
 }
 
 void view_item::damage()
