@@ -38,7 +38,7 @@ struct Renderer {
     bool is_running();
     void get_window_size(int* w, int* h);
 
-    void listen_events(event_list* events);
+    int listen_events(event_list* events);
     void throttle_up_events(int frames = 120);
     bool is_throttle_up_events();
     void wake();
@@ -71,6 +71,7 @@ struct Renderer {
     void invalidate_rect(RenRect rect);
     void draw_image(RenImage* image, RenRect rect, RenColor clr = { 255, 255, 255, 255 });
     void draw_underline(RenRect rect, RenColor color);
+    void draw_line(int x, int y, int x2, int y2, RenColor, int stroke = 1);
     void draw_rect(RenRect rect, RenColor color, bool fill = true, int stroke = 1, int radius = 0);
     int draw_text(RenFont* font, const char* text, int x, int y, RenColor color, bool bold = false, bool italic = false, bool underline = false);
     int draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenColor color, bool bold = false, bool italic = false, bool underline = false);

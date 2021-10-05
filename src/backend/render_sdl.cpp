@@ -114,8 +114,8 @@ void _blit_to_window()
     if (Renderer::instance()->damage_rects.size()) {
         int i = 0;
         for (auto d : Renderer::instance()->damage_rects) {
-            if (d.x > window_surface->w) continue;
-            if (d.y > window_surface->h) continue;
+            if (d.x >= window_surface->w) continue;
+            if (d.y >= window_surface->h) continue;
             if (d.x + d.width > window_surface->w) {
                 d.width = window_surface->w - d.x;
             }
@@ -203,7 +203,7 @@ void Renderer::init()
 
     window = SDL_CreateWindow(
         "", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
-        SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE);
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE | SDL_WINDOW_HIDDEN);
 
     _create_cairo_context(width, height);
     shouldEnd = false;
@@ -242,18 +242,18 @@ void Renderer::get_window_size(int* w, int* h)
 
 std::string previousKeySequence;
 
-void Renderer::listen_events(event_list* events)
+int Renderer::listen_events(event_list* events)
 {
     SDL_Event e;
     if (!SDL_PollEvent(&e)) {
         idle_counter++;
-        return;
+        return 0;
     }
 
     switch (e.type) {
     case SDL_QUIT:
         shouldEnd = true;
-        return;
+        return 1;
 
     case SDL_MOUSEBUTTONDOWN:
         events->push_back({
@@ -264,7 +264,7 @@ void Renderer::listen_events(event_list* events)
             clicks : e.button.clicks
         });
         idle_counter = 0;
-        return;
+        return 1;
 
     case SDL_MOUSEBUTTONUP:
         events->push_back({
@@ -274,7 +274,7 @@ void Renderer::listen_events(event_list* events)
             button : e.button.button
         });
         idle_counter = 0;
-        return;
+        return 1;
 
     case SDL_MOUSEMOTION:
         events->push_back({
@@ -284,7 +284,7 @@ void Renderer::listen_events(event_list* events)
             button : e.button.button
         });
         idle_counter = 20;
-        return;
+        return 1;
 
     case SDL_MOUSEWHEEL:
         events->push_back({
@@ -295,7 +295,7 @@ void Renderer::listen_events(event_list* events)
 
         idle_counter = 0;
         throttle_up_events(240);
-        return;
+        return 1;
 
     case SDL_KEYUP:
         to_mods(e.key.keysym.mod);
@@ -305,7 +305,7 @@ void Renderer::listen_events(event_list* events)
             mod : keyMods
         });
         idle_counter = 0;
-        return;
+        return 1;
 
     case SDL_KEYDOWN: {
 
@@ -348,7 +348,7 @@ void Renderer::listen_events(event_list* events)
             if (keySequence == "ctrl+q") {
                 quit();
             }
-            return;
+            return 1;
         }
 
         events->push_back({
@@ -358,7 +358,7 @@ void Renderer::listen_events(event_list* events)
         });
 
         idle_counter = 0;
-        return;
+        return 1;
     }
     case SDL_TEXTINPUT:
         events->push_back({
@@ -367,7 +367,7 @@ void Renderer::listen_events(event_list* events)
         });
 
         idle_counter = 0;
-        return;
+        return 1;
 
     case SDL_WINDOWEVENT:
         if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
@@ -390,8 +390,10 @@ void Renderer::listen_events(event_list* events)
         if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
             SDL_FlushEvent(SDL_KEYDOWN);
         }
-        return;
+        return 1;
     }
+
+    return 0;
 }
 
 void Renderer::wake()
@@ -490,6 +492,9 @@ void Renderer::save_image(RenImage* image, char* filename)
 
 RenFont* Renderer::get_default_font()
 {
+    if (!default_font) {
+        set_default_font(create_font("asteroids"));
+    }
     return default_font;
 }
 
@@ -528,6 +533,21 @@ void Renderer::draw_image(RenImage* image, RenRect rect, RenColor clr)
         */
     }
     cairo_restore(cairo_context);
+}
+
+void Renderer::draw_line(int x, int y, int x2, int y2, RenColor clr, int stroke)
+{
+    if (clr.a > 0) {
+        cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, clr.a / 255.0f);
+    } else {
+        cairo_set_source_rgb(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f);
+    }
+
+    double border = (double)stroke / 2;
+    cairo_set_line_width(cairo_context, border);
+    cairo_move_to(cairo_context, x, y);
+    cairo_line_to(cairo_context, x2, y2);
+    cairo_stroke(cairo_context);
 }
 
 void Renderer::draw_underline(RenRect rect, RenColor color)
@@ -607,6 +627,12 @@ void Renderer::end_frame()
         }
         _blit_to_window();
         damage_rects.clear();
+
+        static bool firstShow = false;
+        if (!firstShow) {
+            SDL_ShowWindow(window);
+            firstShow = true;
+        }
     }
 
     context_stack.pop_back();

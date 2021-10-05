@@ -86,6 +86,7 @@ else
 endif
 
 sdl_files = [
+    'src/backend/fallback_font.cpp',
     'src/backend/render_font.cpp',
     'src/backend/render_sdl.cpp'
 ]

@@ -629,7 +629,6 @@ static stack_ptr parse(char const* first, char const* last, stack_ptr stack,
 
         // D(DBF_Parser, bug("%zu rules before collecting\n", rules.size()););
         collect_rules(first, last, i, firstLine, stack, rules, match_cache);
-
         // D(DBF_Parser, bug("%zu rules after collecting\n", rules.size()););
     }
 

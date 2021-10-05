@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "utf8.h"
+#include "fallback_font.h"
 
 #define MAX_GLYPHSET 256
 
@@ -40,6 +41,7 @@ struct RenFont {
     int font_width;
     int font_height;
     bool firable;
+    bool asteroids;
 
     GlyphSet regular[MAX_GLYPHSET];
     GlyphSet italic[MAX_GLYPHSET];
@@ -100,15 +102,41 @@ GlyphSet bake_glyph(RenFont* fnt, char* c)
     return glyph;
 }
 
+bool first_created_font = true;
+RenFont asteroids;
+
 RenFont* Renderer::create_font(char* fdsc, char* alias)
 {
     for (auto fnt : fonts) {
-        if (fnt->alias == alias) {
+        if (alias && fnt->alias == alias) {
             return fnt;
         }
-        if (fnt->desc == fdsc) {
+        if (fdsc && fnt->desc == fdsc) {
             return fnt;
         }
+    }
+
+    if (std::string("asteroids") == fdsc) {
+        float sz = 1.2f;
+        RenFont *fnt = &asteroids;
+        fnt->font_width = 12 * sz;
+        fnt->font_height = 18 * sz;
+        fnt->asteroids = true;
+        fnt->alias = "asteroids";
+        if (alias) {
+            fnt->alias = alias;
+        }
+        fonts.push_back(fnt);
+
+        if (alias && alias[0] != 0) {
+            font_alias[alias] = fnt;
+        }
+
+        if (first_created_font) {
+            set_default_font(fnt);
+            first_created_font = false;
+        }
+        return fnt;
     }
 
     RenFont* fnt = new RenFont();
@@ -117,6 +145,7 @@ RenFont* Renderer::create_font(char* fdsc, char* alias)
     fnt->layout = pango_layout_new(fnt->context);
     fnt->desc = fdsc;
     fnt->firable = true;
+    fnt->asteroids = false;
 
     fnt->font_width = 0;
     fnt->font_height = 0;
@@ -181,14 +210,14 @@ RenFont* Renderer::create_font(char* fdsc, char* alias)
         break; // no bold/italic glyphs
     }
 
-    // fnt->font_width -= 1;
     fonts.push_back(fnt);
-    if (alias[0] != 0) {
+    if (alias && alias[0] != 0) {
         font_alias[alias] = fnt;
     }
 
-    if (!get_default_font()) {
+    if (first_created_font) {
         set_default_font(fnt);
+        first_created_font = false;
     }
     return fnt;
 }
@@ -207,7 +236,9 @@ void Renderer::destroy_font(RenFont* font)
     std::vector<RenFont*>::iterator it = std::find(fonts.begin(), fonts.end(), font);
     if (it != fonts.end()) {
         fonts.erase(it);
-        delete font;
+        if (!font->asteroids) {
+            delete font;
+        }
     }
 }
 
@@ -276,7 +307,10 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
     cairo_t* cairo_context = ren_context();
 
-    GlyphSet* set = font->regular;
+    GlyphSet* set = 0;
+    if (font) {
+        set = font->regular;
+    }
 
     wchar_t* p = (wchar_t*)text;
 
@@ -316,8 +350,26 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
 
 int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor clr, bool bold, bool italic, bool underline)
 {
+    if (!font) {
+        font = get_default_font();
+    }
+
+    if (font->asteroids) {
+        std::string str = text;
+        std::transform(str.begin(), str.end(),str.begin(), ::toupper);
+
+        const char *p = str.c_str();
+        int offset = 0;
+        while(*p) {
+            asteroidDrawChar(x + offset, y, *p, 1, clr, false);
+            p++;
+            offset += font->font_width;
+        }
+        return 1;
+    }
+
     std::wstring w = utf8string_to_wstring(text);
-    draw_wtext(font, w.c_str(), x, y, clr, bold, italic, underline);
+    return draw_wtext(font, w.c_str(), x, y, clr, bold, italic, underline);
 }
 
 void Renderer::register_font(char* path)

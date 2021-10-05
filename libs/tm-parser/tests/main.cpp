@@ -201,7 +201,6 @@ void test_markdown()
     for (int i = 0; i < 1; i++) {
         fseek(fp, 0, SEEK_SET);
         bool firstLine = true;
-
         parse::stack_ptr parser_state = gm->seed();
         while (fgets(str, 1000, fp)) {
 
@@ -226,6 +225,50 @@ void test_markdown()
     fclose(fp);
 }
 
+void test_stream()
+{
+    grammar_ptr gm;
+    gm = load("extensions/cpp/syntaxes/cpp.tmLanguage.json");
+
+    Json::Value root = parse::loadJson("test-cases/themes/light_vs.json");
+    theme_ptr theme = parse_theme(root);
+
+    std::ifstream file = std::ifstream("tests/cases/test.cpp", std::ifstream::in);
+
+    int lines[32];
+
+    std::string content;
+    std::string line;
+    size_t pos = file.tellg();
+    size_t lineNo = 0;
+    while (std::getline(file, line)) {
+        lines[lineNo++] = pos;
+        pos = file.tellg();
+        content += line + "\n";
+    }
+    content += "\n\n";
+    lines[lineNo]=pos;
+
+    bool firstLine = true;
+    parse::stack_ptr parser_state = gm->seed();
+
+    const char *cstr = content.c_str();
+    for(int i=0;i<lineNo;i++) {
+        const char* start = cstr + lines[i];
+        size_t len = (cstr + lines[i+1]) - start;
+        std::string test = std::string(start, len);
+        
+        std::cout << test << std::endl;
+
+        std::map<size_t, scope::scope_t> scopes;
+        parser_state = parse::parse(start, start+len, parser_state, scopes, firstLine);
+        dump_tokens(scopes);
+
+        firstLine = false;
+    }
+    // printf("%s\n", content.c_str());
+}
+
 int main(int argc, char** argv)
 {
     clock_t start, end;
@@ -235,7 +278,10 @@ int main(int argc, char** argv)
     // test_read_and_parse();
     // test_hello();
     // test_coffee();
-    test_c();
+    // test_c();
+
+    test_stream();
+
     // test_markdown();
     // test_plist();
 

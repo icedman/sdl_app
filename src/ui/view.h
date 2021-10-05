@@ -83,8 +83,8 @@ struct view_item : layout_view, event_object_t {
 
     std::string computed_class();
 
+    virtual void should_damage();
     virtual void damage();
-    void should_damage();
 
     template <class T>
     static T* cast(view_item_ptr v) { return (T*)(v.get()); };

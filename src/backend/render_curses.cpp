@@ -542,7 +542,7 @@ void Renderer::get_window_size(int* w, int* h)
 
 std::string previousKeySequence;
 
-void Renderer::listen_events(event_list* events)
+int Renderer::listen_events(event_list* events)
 {
     events->clear();
 
@@ -562,7 +562,7 @@ void Renderer::listen_events(event_list* events)
     }
 
     if (ch == -1)
-        return;
+        return 0;
 
     previousKeySequence = keySequence;
     if (expandedSequence.length()) {
@@ -590,7 +590,7 @@ void Renderer::listen_events(event_list* events)
             int y = std::stoi(strings[3]);
 
             if (strings[4] == "m")
-                return;
+                return 0;
 
             events->push_back({
                 type : EVT_MOUSE_DOWN,
@@ -617,14 +617,14 @@ void Renderer::listen_events(event_list* events)
             });
 
             // app_t::log("%s", keySequence.c_str());
-            return;
+            return 0;
         }
 
         events->push_back({
             type : EVT_KEY_SEQUENCE,
             text : keySequence
         });
-        return;
+        return 1;
     }
 
     if (!isprint(ch)) {
@@ -636,7 +636,7 @@ void Renderer::listen_events(event_list* events)
             });
             break;
         }
-        return;
+        return 1;
     }
 
     std::string c;
@@ -648,6 +648,8 @@ void Renderer::listen_events(event_list* events)
         type : EVT_KEY_TEXT,
         text : c
     });
+
+    return 1;
 }
 
 void Renderer::wake()
@@ -758,6 +760,10 @@ static bool is_clipped(int x, int y)
             return true;
     }
     return false;
+}
+
+void Renderer::draw_line(int x, int y, int x2, int y2, RenColor, int stroke)
+{
 }
 
 void Renderer::draw_underline(RenRect rect, RenColor color)

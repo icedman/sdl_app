@@ -71,6 +71,22 @@ int main(int argc, char** argv)
 
     color_info_t bg = renderer->color_for_index(app.bgApp);
 
+    view_item_ptr root_view = test_root();
+    layout_item_ptr root = root_view->layout();
+
+    view_item_list view_list;
+    layout_item_list render_list;
+    event_list events;
+
+    // first created font will be the default
+    // renderer->create_font("asteroids");
+    renderer->create_font("Fira Code 16", "editor");
+    // renderer->create_font("Source Code Pro 12", "editor");
+    // renderer->register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
+    // renderer->create_font("Source Code Pro 12", "ui");
+    // renderer->create_font("Source Code Pro 10", "ui-small");
+    // renderer->set_default_font(font);
+
     // quick draw
     int w, h;
     renderer->get_window_size(&w, &h);
@@ -80,23 +96,7 @@ int main(int argc, char** argv)
     w = 0;
     h = 0;
 
-    view_item_ptr root_view = test_root();
-    layout_item_ptr root = root_view->layout();
-
-    view_item_list view_list;
-    layout_item_list render_list;
-    event_list events;
-
-    // RenFont *font = renderer->create_font("Monaco 12");
-    RenFont* font = renderer->create_font("Fira Code 12", "editor");
-    // RenFont* font = renderer->create_font("Source Code Pro 12", "editor");
-    // renderer->register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
-    renderer->create_font("Source Code Pro 12", "ui");
-    renderer->create_font("Source Code Pro 10", "ui-small");
-    renderer->set_default_font(font);
-
-    int frames = FRAME_SKIP_INTERVAL;
-
+    int frames = 0;
     float fps = 0;
     const int target_fps = FRAME_RATE;
     const int max_elapsed = 1000 / target_fps;
@@ -139,7 +139,6 @@ int main(int argc, char** argv)
         if (!skip_frames) {
 
             renderer->prerender_view_tree((view_item*)root->view);
-
             renderer->begin_frame(NULL, w, h);
 
             renderer->state_save();
@@ -174,11 +173,15 @@ int main(int argc, char** argv)
         }
 
         do {
-            if (renderer->is_terminal())
+            if (renderer->is_terminal()) {
                 break;
+            }
 
-            renderer->listen_events(&events);
             if (renderer->is_throttle_up_events()) {
+                break;
+            }
+
+            if (renderer->listen_events(&events)) {
                 break;
             }
 

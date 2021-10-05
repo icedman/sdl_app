@@ -14,6 +14,10 @@
 #include "scrollbar.h"
 #include <unistd.h>
 
+std::string _space   = "·";
+std::string _tab     = "‣";
+std::string _newline = "¬";
+
 bool _span_from_cursor(cursor_t& cursor, span_info_t& span, int& span_pos);
 
 void editor_view::prerender()
