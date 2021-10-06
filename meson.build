@@ -105,10 +105,14 @@ endif
 
 if get_option('enable_scripting')
     dl_dep = cc.find_library('dl', required : true) 
-    quickjs_lib = cc.find_library('quickjs', required: false, dirs:['/usr/lib/quickjs', '/usr/local/lib/quickjs'])
     if build_machine.system() == 'darwin'
+        quickjs_lib = cc.find_library('quickjs', required: false, dirs:['/usr/lib/quickjs', '/usr/local/lib/quickjs'])
         quickjs_dep = declare_dependency(dependencies: [ dl_dep, quickjs_lib ], include_directories: ['/usr/local/include/quickjs'])
+    elif build_machine.system() == 'windows'
+        quickjs_lib = cc.find_library('quickjs', required: false, dirs:['c:/msys64/home/iceman/app/libs/quickjs'])
+        quickjs_dep = declare_dependency(dependencies: [ dl_dep, quickjs_lib ], include_directories: ['c:/msys64/home/iceman/app/libs/quickjs'])
     else
+        quickjs_lib = cc.find_library('quickjs', required: false, dirs:['/usr/lib/quickjs', '/usr/local/lib/quickjs'])
         quickjs_dep = declare_dependency(dependencies: [ dl_dep, quickjs_lib ], include_directories: ['/usr/include/quickjs'])
     endif
 endif
