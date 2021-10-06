@@ -1,0 +1,55 @@
+{
+   "extensions_paths": [
+      "~/.vscode/extensions/",
+      "/opt/visual-studio-code/resources/app/extensions/"
+   ],
+   
+   "extensions": {
+       "hello-world": {},
+       "search": {},
+       "fuzzy": {}
+   },
+   
+   "debug_scopes": true,
+   "smooth_scroll": true,
+   
+   "_theme": "Monokai",
+   "_theme": "Bluloco Light",
+   "_theme": "Bluloco Dark",
+   "theme": "Dracula",
+   "_theme": "Atom One Dark",
+   "_theme": "Shades of Purple",
+   "_theme": "Slack Theme Aubergine Dark",
+   "_theme": "Slack Theme Monument",
+   "_theme": "GitHub Dark Default",
+
+   "ui_theme": "vs-dark",
+   
+   "_icon_theme": "vs-seti",
+   "icon_theme": "material-icon-theme",
+   
+   "default_icons": "editor-icons",
+
+   "gutter": true,
+   "mini_map": true,
+   
+   "font_size": 16,
+   // "font": "Source Code Pro for Powerline",
+   "font": "FiraCode-Regular",
+   
+   "tab_size": 4,
+   "tab_to_spaces": true,
+
+   "word_wrap": false,
+   
+   "sidebar": true,
+   "statusbar": true,
+   "menubar": true,
+   "tabbar": true,
+
+   /* copied from sublime */
+   "folder_exclude_patterns": [".svn", ".git", ".hg", "CVS", "node_modules"],
+   "file_exclude_patterns": ["*.pyc", "*.pyo", "*.exe", "*.dll", "*.obj","*.o", "*.a", "*.lib", "*.so", "*.dylib", "*.ncb", "*.sdf", "*.suo", "*.pdb", "*.idb", ".DS_Store", "*.class", "*.psd", "*.db"],
+   "binary_file_patterns": ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.ttf", "*.tga", "*.dds", "*.ico", "*.eot", "*.pdf", "*.swf", "*.jar", "*.zip"]
+}
+
