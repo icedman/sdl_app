@@ -320,6 +320,9 @@ void minimap_view::render_terminal()
 {
     layout_item_ptr lo = layout();
 
+    int fw, fh;
+    Renderer::instance()->get_font_extents(NULL, &fw, &fh, NULL, 1);
+
     app_t* app = app_t::instance();
     view_style_t vs = style;
 
@@ -371,9 +374,9 @@ void minimap_view::render_terminal()
         for (int x = 0; x < TEXT_BUFFER; x++) {
             if (b->data && b->data->dots) {
                 Renderer::instance()->draw_wtext(NULL, wcharFromDots(b->data->dots[x]),
-                    lo->render_rect.x + x,
+                    lo->render_rect.x + (x * fw),
                     lo->render_rect.y + y,
-                    { 255, 255, 255, (uint8_t)ci });
+                    { vs.fg.red, vs.fg.blue, vs.fg.green, ci });
             }
 
             if (x >= lo->render_rect.w - 2) {
@@ -381,7 +384,7 @@ void minimap_view::render_terminal()
             }
         }
 
-        y++;
+        y += fh;
         if (y >= lo->render_rect.h) {
             break;
         }

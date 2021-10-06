@@ -77,7 +77,6 @@ endif
 
 pthread_dep = cc.find_library('pthread', required : true, disabler: true)
 sdl2_dep = dependency('SDL2', required: false, disabler: true)
-sdl2ttf_dep = dependency('SDL2_ttf', required: false, disabler: true) 
 cairo_dep = dependency('cairo', required: false, disabler: true)
 pango_dep = dependency('pangocairo', required: false, disabler: true)
 fontconfig_dep = dependency('fontconfig', required: false, disabler: true)
