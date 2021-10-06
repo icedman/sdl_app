@@ -29,6 +29,8 @@ void explorer_view::update(int millis)
         _focused_value = _value;
     }
 
+    if (!app_t::instance()->currentEditor) return;
+
     explorer_t* explorer = explorer_t::instance();
     ((list_view*)this)->_value = ((list_view*)this)->item_from_value(app_t::instance()->currentEditor->document.fullPath);
 

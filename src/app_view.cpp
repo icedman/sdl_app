@@ -240,6 +240,8 @@ void app_view::destroy_editor_view(editor_ptr editor)
     app->closeEditor(editor);
     layout_request();
 
+    app_t::instance()->currentEditor = nullptr;
+
     if (!app->editors.size()) {
         Renderer::instance()->quit();
         return;

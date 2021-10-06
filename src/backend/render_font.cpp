@@ -14,6 +14,7 @@
 #include "utf8.h"
 
 #define MAX_GLYPHSET 256
+#define MAX_CODEPOINT 0xffff
 
 extern int items_drawn;
 
@@ -312,6 +313,7 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
     if (font) {
         set = font->regular;
     }
+    if (!set) return 0;
 
     wchar_t* p = (wchar_t*)text;
 
@@ -319,11 +321,16 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
     while (*p) {
         clr.a = 0;
 
+        int cp = *p;
         GlyphSet glyph;
-        if (*p < MAX_GLYPHSET) {
-            glyph = set[*p];
+        if (cp > MAX_CODEPOINT) {
+            cp = '?';
+        }
+
+        if (cp < MAX_GLYPHSET) {
+            glyph = set[cp];
         } else {
-            glyph = font->utf8[*p];
+            glyph = font->utf8[cp];
             if (glyph.cp != *p) {
                 char u[3];
 

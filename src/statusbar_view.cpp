@@ -45,10 +45,11 @@ statusbar_view::statusbar_view()
 void statusbar_view::update(int millis)
 {
     statusbar_t* statusbar = statusbar_t::instance();
+    editor_ptr editor = app_t::instance()->currentEditor;
+    if (!editor) return;
 
     if (statusbar) {
         statusbar->update(1);
-        editor_ptr editor = app_t::instance()->currentEditor;
 
         document_t* doc = &editor->document;
         cursor_t cursor = doc->cursor();

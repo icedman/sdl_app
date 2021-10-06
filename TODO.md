@@ -1,6 +1,6 @@
 ## Layout ##
 
-* min/max, width/heights, flexbasis
+    * min/max, width/heights, flexbasis
 
 ## document ##
 
