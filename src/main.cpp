@@ -154,6 +154,8 @@ extern "C" int main(int argc, char** argv)
             if (renderer->damage_rects.size() > 0) {
                 damages = renderer->damage_rects.size();
             }
+            if (fps < 0) fps = 0;
+            if (fps > 1000 ) fps = 0;
             char tmp[64];
             sprintf(tmp, "fps: %04d damages: %04d drawn: %04d", (int)fps, damages, count);
             int fw, fh;

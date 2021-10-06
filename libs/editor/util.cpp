@@ -7,7 +7,8 @@
 #include <strings.h>
 
 #ifdef WIN64
-
+#include "utf8.h"
+#include <shlobj.h>
 #else
 #include <wordexp.h>
 #endif
@@ -100,7 +101,20 @@ char* join_args(char** argv, int argc)
 
 bool expand_path(char** path)
 {
-#ifndef WIN64
+#ifdef WIN64
+    std::string home = getenv("USERPROFILE");
+    // std::string home = "c:/msys64/home/iceman";
+
+    std::string tmp = *path;
+    if (tmp.length() && tmp[0] == '~') {
+        tmp = home + tmp.substr(1);
+    }
+    
+    *path = (char*)realloc(*path, tmp.length() + 1);
+    strcpy(*path, tmp.c_str());
+    
+#else
+
     wordexp_t p = { 0 };
     while (strstr(*path, "  ")) {
         *path = (char*)realloc(*path, strlen(*path) + 2);
@@ -116,15 +130,6 @@ bool expand_path(char** path)
     *path = join_args(p.we_wordv, p.we_wordc);
     wordfree(&p);
 
-#else
-    std::string home = "c:/msys64/home/iceman";
-    std::string tmp = *path;
-    if (tmp.length() && tmp[0] == '~') {
-        tmp = home + ((*path)+1);
-    }
-    
-    *path = (char*)realloc(*path, tmp.length() + 2);
-    strcpy(*path, tmp.c_str());
 #endif
     return true;
 }
