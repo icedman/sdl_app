@@ -105,7 +105,7 @@ void completer_view::show_completer(editor_ptr e)
 
     if (!pm->_views.size() && list->data.size()) {
         int fw, fh;
-        Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)ev->font.c_str()), &fw, &fh, NULL, 1);
+        Renderer::instance()->get_font_extents(Renderer::instance()->font("ui-small"), &fw, &fh, NULL, 1);
 
         blockdata_ptr blockData = current_cursor.block()->data;
         span_info_t s = spanAtBlock(blockData.get(), current_cursor.position(), true);
@@ -117,13 +117,16 @@ void completer_view::show_completer(editor_ptr e)
         if (list_size > 4)
             list_size = 4;
 
-        layout()->width = completerItemsWidth * fw;
+        if (completerItemsWidth > 20) {
+            completerItemsWidth = 20;
+        }
 
         if (Renderer::instance()->is_terminal()) {
-            layout()->width += 2;
+            layout()->width = completerItemsWidth;
             layout()->height = list_size;
         } else {
-            layout()->height = list_size * 24;
+            layout()->width = completerItemsWidth * (fw + 2);
+            layout()->height = list_size * (fh + 4);
         }
 
         list->focus_next();

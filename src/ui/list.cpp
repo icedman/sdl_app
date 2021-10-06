@@ -85,7 +85,7 @@ list_view::list_view()
 void list_view::prelayout()
 {
     int fw, fh;
-    Renderer::instance()->get_font_extents(Renderer::instance()->font("ui-small"), &fw, &fh, "A", 1);
+    Renderer::instance()->get_font_extents(Renderer::instance()->font("ui-small"), &fw, &fh, NULL, 1);
     ((scrollarea_view*)(scrollarea.get()))->move_factor_x = fw;
     ((scrollarea_view*)(scrollarea.get()))->move_factor_y = fh;
 }
@@ -226,11 +226,11 @@ bool list_view::is_item_focused(list_item_view* item)
 
 void list_view::prerender()
 {
-    panel_view::prerender();
     if (previous_size != data.size()) {
         previous_size = data.size();
-        damage();
+        should_damage();
     }
+    panel_view::prerender();
 }
 
 void list_view::render()
@@ -250,21 +250,7 @@ void list_view::render()
             { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue },
             vs.filled,
             0);
-
-        // if (is_focused()) {
-        //     Renderer::instance()->draw_rect(
-        //     { lo->render_rect.x,
-        //         lo->render_rect.y,
-        //         lo->render_rect.w,
-        //         lo->render_rect.h
-        //     },
-        //     { (uint8_t)vs.fg.red, (uint8_t)vs.fg.green, (uint8_t)vs.fg.blue } ,
-        //     false, 4, 0);
-        // }
     }
-
-    // layout_rect r = lo->render_rect;
-    // Renderer::instance()->draw_rect({ r.x, r.y, r.w - 20, r.h - 4 }, { 255,0,255,150 }, false, 1);
 }
 
 int focused_index(std::vector<list_item_data_t>& data, list_item_view* item)
@@ -345,14 +331,17 @@ void list_view::clear()
 
 view_item_ptr list_view::create_item()
 {
+    int fw, fh;
+    Renderer::instance()->get_font_extents(Renderer::instance()->font("ui-small"), &fw, &fh, NULL, 1);
+
     view_item_ptr item = std::make_shared<list_item_view>();
     list_item_view* iv = view_item::cast<list_item_view>(item);
     item->layout()->align = LAYOUT_ALIGN_CENTER;
-    item->layout()->height = 24;
+    item->layout()->height = fh + 4;
 
     iv->icon = std::make_shared<icon_view>();
     iv->icon->layout()->width = 32;
-    iv->icon->layout()->height = 24;
+    iv->icon->layout()->height = fh;
 
     iv->text = std::make_shared<text_view>("...");
 

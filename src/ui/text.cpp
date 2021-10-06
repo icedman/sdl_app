@@ -25,7 +25,6 @@ void text_view::prelayout()
     layout()->width = text_width + pad * 2;
 
     // request layout?
-
     if (Renderer::instance()->is_terminal()) {
         layout()->width = text.length();
     }

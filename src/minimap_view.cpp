@@ -101,8 +101,8 @@ bool minimap_view::worker(int ticks)
         return false;
     }
 
-    while (hl.size() > WORKER_HL_WINDOW) {
-        hl.erase(hl.begin());
+    if (hl.size() > WORKER_HL_WINDOW) {
+        hl.erase(hl.begin(), hl.begin() + hl.size() - WORKER_HL_WINDOW);
     }
 
     editor_view* ev = (editor_view*)(parent->parent);
@@ -112,11 +112,12 @@ bool minimap_view::worker(int ticks)
         block_ptr block = hl.front();
         hl.erase(hl.begin());
         editor->highlighter.highlightBlock(block);
-        if (!hl.size())
+        if (!hl.size()) {
+            should_damage();
             break;
+        }
     }
 
-    should_damage();
     return true;
 }
 
@@ -182,9 +183,6 @@ void minimap_view::render()
         uint8_t alpha = 80;
 
         if (!block->data || block->data->dirty) {
-            if (hl.size() > WORKER_HL_WINDOW * 2) {
-                hl.clear();
-            }
             hl.push_back(block);
         }
 
