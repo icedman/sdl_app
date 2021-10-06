@@ -183,9 +183,6 @@ void minimap_view::render()
         uint8_t alpha = 80;
 
         if (!block->data || block->data->dirty) {
-            // if (hl.size() > WORKER_HL_WINDOW * 2) {
-            //     hl.clear();
-            // }
             hl.push_back(block);
         }
 

@@ -226,11 +226,11 @@ bool list_view::is_item_focused(list_item_view* item)
 
 void list_view::prerender()
 {
-    panel_view::prerender();
     if (previous_size != data.size()) {
         previous_size = data.size();
-        damage();
+        should_damage();
     }
+    panel_view::prerender();
 }
 
 void list_view::render()

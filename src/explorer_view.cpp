@@ -94,6 +94,7 @@ void explorer_view::select_item(list_item_view* item)
         file->expanded = !file->expanded;
         explorer_t::instance()->regenerateList = true;
         layout_request();
+        should_damage();
     } else {
         bool multi = (Renderer::instance()->key_mods() & K_MOD_CTRL) == K_MOD_CTRL;
         ((app_view*)(app->view))->show_editor(app->openEditor(file->fullPath), !multi);

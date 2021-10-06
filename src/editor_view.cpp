@@ -917,9 +917,15 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
     int fw, fh;
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
-    // if (block->y < block->lineNumber * fh) {
-    //     block->y = block->lineNumber * fh;
-    // }
+    if (block->y == -1) {
+        block_ptr prev = block->previous();
+        if (prev && prev->y != 0) {
+            block->y = prev->y + prev->lineCount * fh;
+        } else {
+            block->y = block->lineNumber * fh;
+        }
+        printf("%d\n", block->y);
+    }
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
@@ -940,9 +946,8 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
         area->layout()->scroll_x = scroll_x_col * fw;
     }
 
-    bool offscreen = (block->y + alo->scroll_y > fh * rows || block->y + (block->lineCount * fh) < -alo->scroll_y);
-    offscreen = offscreen || (block->lineCount == 0);
-    if (!offscreen && block->y != 0) {
+    bool offscreen = (block->y + alo->scroll_y >= fh * rows || block->y + (block->lineCount * fh) <= -alo->scroll_y);
+    if (!offscreen) {
         update_scrollbars();
         return;
     }

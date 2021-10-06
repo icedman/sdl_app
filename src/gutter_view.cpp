@@ -16,12 +16,12 @@ gutter_view::gutter_view()
 
 void gutter_view::prerender()
 {
-    view_item::prerender();
     if (prev_first != first || prev_last != last) {
         prev_first = first;
         prev_last = last;
-        damage();
+        should_damage();
     }
+    view_item::prerender();
 }
 
 void gutter_view::render()

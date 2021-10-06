@@ -231,6 +231,7 @@ void view_item::prerender()
     if (_should_damage || prev_visibility != layout()->visible || (prev_rect.x != r.x || prev_rect.y != r.y || prev_rect.w != r.w || prev_rect.h != r.h)) {
         prev_rect = r;
         prev_visibility = layout()->visible;
+
         _should_damage = false;
         damage();
     }
