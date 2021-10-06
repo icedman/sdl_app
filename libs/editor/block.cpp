@@ -202,7 +202,8 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
         int line = 0;
         int line_x = 0;
         for (auto& _s : spans) {
-            if (_s.start - (line * cols) + _s.length > cols - (indent*line)) {
+            if (_s.start - (line * cols) + _s.length >= cols - (indent*line) ||
+                _s.start - (line * cols) + 4 >= cols - (indent*line)) {
                 lineCount++;
                 line++;
                 line_x = 0;

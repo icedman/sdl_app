@@ -25,7 +25,7 @@
 #include <set>
 #include <vector>
 
-#define FRAME_SKIP_INTERVAL 32
+#define FRAME_SKIP_INTERVAL 8
 #define FRAME_RATE 60
 
 struct sdl_backend_t : backend_t {
