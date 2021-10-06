@@ -5,6 +5,7 @@ project('app', 'cpp',
 
 add_global_arguments([
         '-w',
+        '-Wno-c++11-narrowing',
         '-D_XOPEN_SOURCE_EXTENDED'
     ], language: 'cpp')
 
