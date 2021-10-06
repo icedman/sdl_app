@@ -178,6 +178,13 @@ bool app_view::input_sequence(std::string keySequence)
         // cycle tabs
         return true;
 
+    case ASTEROIDS:
+        Renderer::instance()->create_font("asteroids", "editor");
+        Renderer::instance()->create_font("asteroids", "ui");
+        Renderer::instance()->create_font("asteroids", "ui-small");
+        should_damage();
+        return true;
+
     default:
         break;
     }

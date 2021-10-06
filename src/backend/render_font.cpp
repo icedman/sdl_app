@@ -109,7 +109,8 @@ RenFont* Renderer::create_font(char* fdsc, char* alias)
 {
     for (auto fnt : fonts) {
         if (alias && fnt->alias == alias) {
-            return fnt;
+            fnt->alias = "";
+            // return fnt;
         }
         if (fdsc && fnt->desc == fdsc) {
             return fnt;

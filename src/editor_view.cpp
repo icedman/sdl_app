@@ -954,6 +954,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
             area->layout()->scroll_y = ly;
         }
     } else {
+        // todo!
         area->layout()->scroll_y = -block->lineNumber * fh;
     }
 

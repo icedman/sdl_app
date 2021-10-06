@@ -108,6 +108,8 @@ enum operation_e {
     TOGGLE_MINIMAP,
     TOGGLE_GUTTER,
 
+    ASTEROIDS,
+    
     DEBUG_SCOPES
 };
 
