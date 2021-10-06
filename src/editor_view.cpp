@@ -940,6 +940,13 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
         area->layout()->scroll_x = scroll_x_col * fw;
     }
 
+    bool offscreen = (block->y + alo->scroll_y > fh * rows || block->y + (block->lineCount * fh) < -alo->scroll_y);
+    offscreen = offscreen || (block->lineCount == 0);
+    if (!offscreen && block->y != 0) {
+        update_scrollbars();
+        return;
+    }
+
     span_info_t ss;
     int pos;
 
@@ -957,7 +964,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
         area->layout()->scroll_y = -block->lineNumber * fh;
     }
 
-    printf("scroll: %d %d %d\n", area->layout()->scroll_y, start_row, l);
+    // printf("scroll: %d %d %d\n", area->layout()->scroll_y, start_row, l);
 
     update_scrollbars();
 }
