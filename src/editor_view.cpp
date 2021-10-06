@@ -30,10 +30,14 @@ void editor_view::prerender()
     Renderer* renderer = Renderer::instance();
     RenFont* _font = renderer->font((char*)font.c_str());
 
-    if (prev_start_block != start_block || prev_end_block != end_block || prev_doc_size != editor->document.blocks.size()) {
+    if (prev_start_block != start_block ||
+        prev_end_block != end_block ||
+        prev_doc_size != editor->document.blocks.size() ||
+        prev_computed_lines != computed_lines) {
         prev_start_block = start_block;
         prev_end_block = end_block;
         prev_doc_size = editor->document.blocks.size();
+        prev_computed_lines = computed_lines;
         damage();
     }
     for (auto d : previous_block_damages) {
@@ -466,6 +470,12 @@ void editor_view::render()
                                                     fh },
                     { (uint8_t)clr.red, (uint8_t)clr.green, (uint8_t)clr.blue, 50 }, false, 1.0f);
 #endif
+
+                // todo decorations
+                if (blockData->folded && s.start + s.length >= block->length()) {
+                    span_text += " …";
+                }
+
                 renderer->draw_text(_font, span_text.c_str(),
                     s.x,
                     s.y + alo->scroll_y + lo->render_rect.y,
@@ -492,6 +502,7 @@ editor_view::editor_view()
     , computed_lines(0)
     , showMinimap(true)
     , showGutter(true)
+    , prev_computed_lines(-1)
     , prev_doc_size(-1)
 {
     font = "editor";
@@ -654,9 +665,23 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         std::string text = block->text();
         const char* line = text.c_str();
 
-        bool hitLine = false;
+        // printf(">>%d\n", block->y);
+
+        bool hitBlock = false;
         bool hitSpan = false;
         int hitPos = 0;
+
+        int block_y = block->y + alo->scroll_y + lo->render_rect.y;
+        if (y >= block_y && y < block_y + block->lineCount * fh) {
+            hitBlock = true;
+        }
+
+        if (!hitBlock) {
+            l++;
+            if (l > 1.5f * rows)
+                break;
+        }
+
         for (auto& s : blockData->rendered_spans) {
             layout_rect r = {
                 s.x,
@@ -665,12 +690,11 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
                 fh
             };
             if (y > r.y && y <= r.y + r.h) {
-                hitLine = true;
                 int pos = (x - s.x) / fw;
                 hitPos = pos + s.start;
                 if (x > r.x && x <= r.x + r.w) {
-                    // std::string span_text = utf8_substr(text, s.start, s.length);
-                    // printf("%s\n", span_text.c_str());
+                    std::string span_text = utf8_substr(text, s.start, s.length);
+                    // printf("?%s\n", span_text.c_str());
                     break;
                 } else {
                     hitPos = pos + s.start + s.length;
@@ -678,7 +702,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
             }
         }
 
-        if (!hitSpan && hitLine) {
+        if (!hitSpan && hitBlock) {
             hitSpan = true;
         }
 
@@ -702,7 +726,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         }
 
         l++;
-        if (l > 38)
+        if (l > 1.5f * rows)
             break;
     }
     return true;
@@ -924,7 +948,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
         } else {
             block->y = block->lineNumber * fh;
         }
-        printf("%d\n", block->y);
+        // printf("%d\n", block->y);
     }
 
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);

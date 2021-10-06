@@ -62,6 +62,7 @@ struct editor_view : panel_view {
     block_ptr prev_start_block;
     block_ptr prev_end_block;
     int prev_doc_size;
+    int prev_computed_lines;
 
     std::vector<RenRect> previous_block_damages;
 };
