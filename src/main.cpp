@@ -79,8 +79,12 @@ extern "C" int main(int argc, char** argv)
     event_list events;
 
     // first created font will be the default
+    std::string fnt = app.font + " " + std::to_string(app.fontSize > 8 ? app.fontSize : 8);
+    printf("%s\n", fnt.c_str());
+    renderer->create_font((char*)fnt.c_str());
+
     // renderer->create_font("asteroids");
-    renderer->create_font("Fira Code 14", "editor");
+    // renderer->create_font("Fira Code 14", "editor");
     // renderer->create_font("Source Code Pro 12", "editor");
     // renderer->register_font("/home/iceman/.ashlar/fonts/monospace.ttf");
     // renderer->create_font("Source Code Pro 12", "ui");
