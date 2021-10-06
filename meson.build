@@ -54,11 +54,13 @@ editor_files = [
     'libs/editor/util.cpp'
 ]
 
+if get_option('build_curses')
 curses_dep = dependency('ncursesw', required: false, disabler: true)
 if not curses_dep.found()
   curses_root = get_option('curses_root')
   curses_lib = cc.find_library('cursesw', dirs : curses_root, required : false, disabler: true)
   curses_dep = declare_dependency(include_directories: curses_root, dependencies: curses_lib)
+endif
 endif
 
 pthread_dep = cc.find_library('pthread', required : true, disabler: true)
@@ -69,20 +71,22 @@ pango_dep = dependency('pangocairo', required: false, disabler: true)
 fontconfig_dep = dependency('fontconfig', required: false, disabler: true)
 jsoncpp_dep = dependency('jsoncpp', required: true)
 onigmo_dep = dependency('onigmo', required: true)
-dl_dep = cc.find_library('dl', required : true) 
 
 rsvg_lib = cc.find_library('rsvg-2', required: false, dirs:['/usr/lib/', '/usr/local/lib/'])
 if build_machine.system() == 'darwin'
-    rsvg_dep = declare_dependency(dependencies: [ dl_dep, rsvg_lib ], include_directories: ['/usr/local/include/librsvg-2.0', '/usr/local/include/gdk-pixbuf-2.0'])
+    rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['/usr/local/include/librsvg-2.0', '/usr/local/include/gdk-pixbuf-2.0'])
 else
-    rsvg_dep = declare_dependency(dependencies: [ dl_dep, rsvg_lib ], include_directories: ['/usr/include/librsvg-2.0', '/usr/include/gdk-pixbuf-2.0'])
+    rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['/usr/include/librsvg-2.0', '/usr/include/gdk-pixbuf-2.0'])
 endif
 
+if get_option('enable_scripting')
+dl_dep = cc.find_library('dl', required : true) 
 quickjs_lib = cc.find_library('quickjs', required: false, dirs:['/usr/lib/quickjs', '/usr/local/lib/quickjs'])
 if build_machine.system() == 'darwin'
     quickjs_dep = declare_dependency(dependencies: [ dl_dep, quickjs_lib ], include_directories: ['/usr/local/include/quickjs'])
 else
     quickjs_dep = declare_dependency(dependencies: [ dl_dep, quickjs_lib ], include_directories: ['/usr/include/quickjs'])
+endif
 endif
 
 sdl_files = [
@@ -125,14 +129,20 @@ ui_files = [
     'src/tests.cpp'
 ]
 
+if get_option('enable_scripting')
 scripting_inc = [
     'src/scripting'
 ]
-
 scripting_files = [
     'src/scripting/scripting.cpp',
     'src/scripting/js_app.cpp'
 ]
+scripting_dep = [quickjs_dep]
+else
+scripting_inc = []
+scripting_files = []
+scripting_dep = []
+endif
 
 tmparser_lib = static_library('tmparser',
     textmate_files, 
@@ -150,22 +160,26 @@ editor_lib = static_library('editor',
 
 editor_dep = declare_dependency(link_with: editor_lib, include_directories: [ editor_inc ])
 
+if get_option('build_sdl')
 executable('ashlar',
     'src/main.cpp',
     sdl_files,
     ui_files,
     scripting_files,
     include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing', scripting_inc ],
-    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep, quickjs_dep ],
+    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep, scripting_dep ],
     install : true
 )
+endif
 
+if get_option('build_curses')
 executable('ashlr',
     'src/main.cpp',
     curses_files,
     ui_files,
     scripting_files,
     include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing', scripting_inc ],
-    dependencies: [ tmparser_dep, editor_dep, curses_dep, quickjs_dep ],
+    dependencies: [ tmparser_dep, editor_dep, curses_dep, scripting_dep ],
     install : true
 )
+endif
