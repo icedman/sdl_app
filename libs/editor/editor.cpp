@@ -102,7 +102,7 @@ void editor_t::runOp(operation_t op)
             snapshot.history = items;
             break;
         }
-        case DELETE:
+        case DEL:
         case BACKSPACE: {
             operation_t d = { .op = DELETE_SELECTION };
             runOp(d);
@@ -533,7 +533,7 @@ void editor_t::runOp(operation_t op)
             cur.moveDown(1);
             cur.moveStartOfLine();
             break;
-        case DELETE:
+        case DEL:
             if (cur.position() == cur.block()->length() - 1) {
                 cur.mergeNextLine();
                 break;
@@ -897,7 +897,7 @@ void editor_t::undo()
         switch (lastOp.op) {
         case TAB:
         case ENTER:
-        case DELETE:
+        case DEL:
         case BACKSPACE:
         case INSERT:
         case CUT:

@@ -1,14 +1,19 @@
 #include "renderer.h"
 
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <cairo.h>
 
 #ifdef ENABLE_SVG
-#include <librsvg/rsvg.h>
+#include <librsvg-2.0/librsvg/rsvg.h>
 #endif
 
 #include "app.h"
+
+#ifndef M_PI
+#define M_PI 3.19f
+#endif
 
 static int _state = 0;
 static int keyMods = 0;

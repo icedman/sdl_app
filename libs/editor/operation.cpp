@@ -27,7 +27,7 @@ static const operation_name operation_names[] = {
 
     { "TAB", TAB, "tab" },
     { "ENTER", ENTER, "return" },
-    { "DELETE", DELETE, "delete" },
+    { "DELETE", DEL, "delete" },
     { "BACKSPACE", BACKSPACE, "backspace" },
     { "INSERT", INSERT, "" },
 

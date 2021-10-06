@@ -5,11 +5,16 @@
 #include <stdbool.h>
 #include <string.h>
 #include <strings.h>
+
+#ifdef WIN64
+
+#else
 #include <wordexp.h>
+#endif
 
 #include "util.h"
 
-#define LOG_FILE "/tmp/ashlar.log"
+#define LOG_FILE "./ashlar.log"
 static bool log_initialized = false;
 
 std::vector<std::string> split_path(const std::string& str, const std::set<char> delimiters)
@@ -95,6 +100,7 @@ char* join_args(char** argv, int argc)
 
 bool expand_path(char** path)
 {
+#ifndef WIN64
     wordexp_t p = { 0 };
     while (strstr(*path, "  ")) {
         *path = (char*)realloc(*path, strlen(*path) + 2);
@@ -109,6 +115,17 @@ bool expand_path(char** path)
     free(*path);
     *path = join_args(p.we_wordv, p.we_wordc);
     wordfree(&p);
+
+#else
+    std::string home = "c:/msys64/home/iceman";
+    std::string tmp = *path;
+    if (tmp.length() && tmp[0] == '~') {
+        tmp = home + ((*path)+1);
+    }
+    
+    *path = (char*)realloc(*path, tmp.length() + 2);
+    strcpy(*path, tmp.c_str());
+#endif
     return true;
 }
 

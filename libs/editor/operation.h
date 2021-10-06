@@ -94,7 +94,7 @@ enum operation_e {
 
     TAB,
     ENTER,
-    DELETE,
+    DEL,
     BACKSPACE,
     INSERT,
 

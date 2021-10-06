@@ -918,7 +918,7 @@ bool editor_view::input_sequence(std::string text)
     case PASTE:
     case ENTER:
     case BACKSPACE:
-    case DELETE:
+    case DEL:
     case DUPLICATE_LINE:
     case DUPLICATE_SELECTION:
     case DELETE_SELECTION:

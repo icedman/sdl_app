@@ -1,7 +1,14 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef WIN64
+#include <windows.h>
+#include <winioctl.h>
+#else
 #include <sys/ioctl.h>
+#endif
+
 #include <unistd.h>
 
 #include <algorithm>
@@ -11,6 +18,7 @@
 #include "editor.h"
 #include "explorer.h"
 #include "util.h"
+
 
 #define PRELOAD_LOOP 1
 #define MAX_PRELOAD_DEPTH 4
@@ -102,7 +110,18 @@ void fileitem_t::load(std::string p)
                 fullPath.replace(fullPath.begin() + pos, fullPath.begin() + pos + 2, "/");
             }
             std::shared_ptr<struct fileitem_t> file = std::make_shared<struct fileitem_t>(fullPath);
+
+            #ifdef WIN64
+            file->isDirectory = false;
+            DIR *sub = opendir(fullPath.c_str());
+            if (sub) {
+                file->isDirectory = true;
+                closedir(sub);
+            }
+            #else
             file->isDirectory = ent->d_type == DT_DIR;
+            #endif
+
             file->canLoadMore = file->isDirectory;
 
             bool exclude = false;

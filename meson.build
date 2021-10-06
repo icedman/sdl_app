@@ -6,8 +6,14 @@ project('app', 'cpp',
 add_global_arguments([
         '-w',
         '-Wno-c++11-narrowing',
-        '-D_XOPEN_SOURCE_EXTENDED'
+        '-D_XOPEN_SOURCE_EXTENDED',
     ], language: 'cpp')
+
+if host_machine.system() == 'windows'
+add_global_arguments([
+        '-DWIN64',
+    ], language: 'cpp')
+endif
 
 if get_option('enable_scripting')
 add_global_arguments([
@@ -77,6 +83,7 @@ endif
 
 pthread_dep = cc.find_library('pthread', required : true, disabler: true)
 sdl2_dep = dependency('SDL2', required: false, disabler: true)
+sdl2main_dep = cc.find_library('SDL2main', required: false, disabler: true)
 cairo_dep = dependency('cairo', required: false, disabler: true)
 pango_dep = dependency('pangocairo', required: false, disabler: true)
 fontconfig_dep = dependency('fontconfig', required: false, disabler: true)
@@ -84,12 +91,14 @@ jsoncpp_dep = dependency('jsoncpp', required: true)
 onigmo_dep = dependency('onigmo', required: true)
 
 if get_option('enable_svg')
-rsvg_lib = cc.find_library('rsvg-2', required: false, dirs:['/usr/lib/', '/usr/local/lib/'])
-if build_machine.system() == 'darwin'
-    rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['/usr/local/include/librsvg-2.0', '/usr/local/include/gdk-pixbuf-2.0'])
-else
-    rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['/usr/include/librsvg-2.0', '/usr/include/gdk-pixbuf-2.0'])
-endif
+    rsvg_lib = cc.find_library('rsvg-2', required: false)
+    if build_machine.system() == 'darwin'
+        rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['/usr/local/include/librsvg-2.0', '/usr/local/include/gdk-pixbuf-2.0'])
+    elif build_machine.system() == 'windows'
+        rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['c:/msys64/mingw64/include/librsvg-2.0', 'c:/msys64/mingw64/include/gdk-pixbuf-2.0'])
+    else
+        rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['/usr/include/librsvg-2.0', '/usr/include/gdk-pixbuf-2.0'])
+    endif
 else
     rsvg_dep = []
 endif
@@ -186,7 +195,8 @@ executable('ashlar',
     ui_files,
     scripting_files,
     include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing', scripting_inc ],
-    dependencies: [ tmparser_dep, editor_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep, scripting_dep ],
+    dependencies: [ tmparser_dep, editor_dep, sdl2main_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep, scripting_dep ],
+    win_subsystem: 'windows',
     install : true
 )
 endif

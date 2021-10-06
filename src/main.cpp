@@ -40,7 +40,7 @@ struct sdl_backend_t : backend_t {
     }
 };
 
-int main(int argc, char** argv)
+extern "C" int main(int argc, char** argv)
 {
     style_init();
 
