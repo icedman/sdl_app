@@ -2,8 +2,18 @@
 #include "app.h"
 
 #include <iostream>
-
+#ifdef ENABLE_SCRIPTING
 #include "js_app.h"
+#endif
+
+static Scripting scriptingEngine;
+
+Scripting* Scripting::instance()
+{
+    return &scriptingEngine;
+}
+
+#ifdef ENABLE_SCRIPTING
 
 static JSRuntime* rt = 0;
 static JSContext* ctx = 0;
@@ -19,13 +29,6 @@ static JSContext* JS_NewCustomContext(JSRuntime* rt)
     js_init_module_std(ctx, "std");
     js_init_module_os(ctx, "os");
     return ctx;
-}
-
-static Scripting scriptingEngine;
-
-Scripting* Scripting::instance()
-{
-    return &scriptingEngine;
 }
 
 bool Scripting::init()
@@ -105,3 +108,13 @@ void Scripting::restart()
     shutdown();
     init();
 }
+
+#else
+
+bool Scripting::init() { return true; }
+void Scripting::shutdown() {}
+void Scripting::update(int ticks) {}
+int Scripting::execute(std::string script) { return 0; }
+void Scripting::restart() {}
+
+#endif

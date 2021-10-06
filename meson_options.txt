@@ -21,3 +21,9 @@ option(
   type: 'boolean', value: true,
   description: 'build with scripting'
 )
+
+option(
+  'enable_svg',
+  type: 'boolean', value: true,
+  description: 'build with svg'
+)

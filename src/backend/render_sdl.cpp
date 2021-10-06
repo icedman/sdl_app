@@ -3,7 +3,10 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <cairo.h>
+
+#ifdef ENABLE_SVG
 #include <librsvg/rsvg.h>
+#endif
 
 #include "app.h"
 
@@ -440,11 +443,14 @@ RenImage* Renderer::create_image_from_svg(char* filename, int w, int h)
     RenImage* img = create_image(w, h);
     img->path = filename;
 
+#ifdef ENABLE_SVG
     RsvgHandle* svg = rsvg_handle_new_from_file(filename, 0);
     if (svg) {
         rsvg_handle_render_cairo(svg, img->cairo_context);
         rsvg_handle_free(svg);
     }
+#endif
+
     return img;
 }
 

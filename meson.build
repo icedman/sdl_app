@@ -8,6 +8,17 @@ add_global_arguments([
         '-D_XOPEN_SOURCE_EXTENDED'
     ], language: 'cpp')
 
+if get_option('enable_scripting')
+add_global_arguments([
+        '-DENABLE_SCRIPTING'
+    ], language: 'cpp')
+endif
+if get_option('enable_svg')
+add_global_arguments([
+        '-DENABLE_SVG'
+    ], language: 'cpp')
+endif
+
 pwd = meson.current_source_dir()
 cc = meson.get_compiler('cpp')
 
@@ -72,11 +83,15 @@ fontconfig_dep = dependency('fontconfig', required: false, disabler: true)
 jsoncpp_dep = dependency('jsoncpp', required: true)
 onigmo_dep = dependency('onigmo', required: true)
 
+if get_option('enable_svg')
 rsvg_lib = cc.find_library('rsvg-2', required: false, dirs:['/usr/lib/', '/usr/local/lib/'])
 if build_machine.system() == 'darwin'
     rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['/usr/local/include/librsvg-2.0', '/usr/local/include/gdk-pixbuf-2.0'])
 else
     rsvg_dep = declare_dependency(dependencies: [ rsvg_lib ], include_directories: ['/usr/include/librsvg-2.0', '/usr/include/gdk-pixbuf-2.0'])
+endif
+else
+    rsvg_dep = []
 endif
 
 if get_option('enable_scripting')
@@ -139,8 +154,12 @@ scripting_files = [
 ]
 scripting_dep = [quickjs_dep]
 else
-scripting_inc = []
-scripting_files = []
+scripting_inc = [
+    'src/scripting'
+]
+scripting_files = [
+    'src/scripting/scripting.cpp'
+]
 scripting_dep = []
 endif
 

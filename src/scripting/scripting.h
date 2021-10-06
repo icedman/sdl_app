@@ -1,10 +1,12 @@
 #ifndef SCRIPTING_H
 #define SCRIPTING_H
 
+#ifdef ENABLE_SCRIPTING
 extern "C" {
 #include "quickjs-libc.h"
 #include "quickjs.h"
 }
+#endif
 
 #include <string>
 
