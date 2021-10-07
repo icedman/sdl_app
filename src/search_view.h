@@ -9,6 +9,7 @@ struct search_view : popup_view {
     search_view();
 
     DECLAR_VIEW_TYPE(CUSTOM, popup_view)
+    std::string type_name() override { return "search"; }
 
     void prelayout() override;
     void show_search(int mode, std::string value = "");

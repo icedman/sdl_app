@@ -34,6 +34,7 @@ struct language_info_t {
 };
 
 struct icon_theme_t {
+    std::string path;
     std::string icons_path;
     Json::Value definition;
 };

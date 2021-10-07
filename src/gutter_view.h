@@ -8,6 +8,7 @@ struct gutter_view : view_item {
     gutter_view();
 
     DECLAR_VIEW_TYPE(CUSTOM, view_item)
+    std::string type_name() override { return "gutter"; }
 
     void prerender() override;
     void render() override;

@@ -312,8 +312,7 @@ icon_theme_ptr icon_theme_from_name(const std::string path, std::vector<struct e
             if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
                 theme_path = ext.path + "/" + theme["path"].asString();
                 icons_path = ext.path + "/icons/";
-                // icons_path = ext.path.toStdString() + "/icons/";
-                // icons_path = QFileInfo(QString(theme_path.c_str())).path().toStdString() + "/";
+                icons->path = ext.path;
                 found = true;
                 break;
             }
@@ -409,63 +408,48 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
     std::string _suffix = spath.back();
     std::string cacheId = _suffix;
 
-    if (spath.size() == 1) {
-        if (file_exists(std::string(icons->icons_path + "/file.svg").c_str())) {
-            res.path = icons->icons_path + "/file.svg";
-            res.svg = true;
-            // printf(">> %s --- %s\n", filename.c_str(), _suffix.c_str());
-            return res;
-        }
-    }
-
     static std::map<std::string, icon_t> cache;
-    auto it = cache.find(cacheId);
-    if (it != cache.end()) {
-        // std::cout << "cached icon.." << std::endl;
-        return it->second;
-    }
 
-    std::string svg = icons->icons_path + "/" + _suffix + ".svg";
-    if (!file_exists(svg.c_str())) {
-        language_info_ptr lang = language_from_file(filename, _extensions);
-        if (lang) {
-            svg = icons->icons_path + "/" + lang->id + ".svg";
-            if (!file_exists(svg.c_str())) {
-                svg = icons->icons_path + "/file.svg";
-            }
-        }
-    }
-
-    res.path = svg;
-    res.svg = true;
-    cache.emplace(cacheId, res);
-
-    // printf("%s\n", svg.c_str());
-
-#if 1 // font based icons
     Json::Value definitions = icons->definition["iconDefinitions"];
-    
+
+    if (definitions.isMember(_suffix)) {
+        Json::Value iconDef = definitions[_suffix];
+        res.path = icons->icons_path + "/" + iconDef["iconPath"].asString();
+        res.svg = true;
+        cache.emplace(_suffix, res);
+        return res;
+    }
+
     std::string iconName;
     std::string fontCharacter = "x";
     std::string fontColor;
 
-    printf("finding font %s\n", filename.c_str());
+    printf("finding icon %s\n", filename.c_str());
 
-    // if (icons->definition.isMember(filename)) {
-    //     // iconName = icons->definition[filename].asString();
-    //     printf("definition %s\n", iconName.c_str());
-    // }
-
-    Json::Value extensions = icons->definition["fileExtensions"];
-    if (!iconName.length() && extensions.isMember(_suffix)) {
-        // iconName = extensions[_suffix].asString();
-        printf("extensions %s\n", iconName.c_str());
+    auto it = cache.find(filename);
+    if (it != cache.end()) {
+        return it->second;
     }
 
     Json::Value fileNames = icons->definition["fileNames"];
-    if (!iconName.length() && fileNames.isMember(_suffix)) {
-        // iconName = fileNames[filename].asString();
+    if (!iconName.length() && fileNames.isMember(filename)) {
+        iconName = fileNames[filename].asString();
+        cacheId = filename;
         printf("fileNames %s\n", iconName.c_str());
+    }
+
+    if (!iconName.length()) {
+        it = cache.find(_suffix);
+        if (it != cache.end()) {
+            return it->second;
+        }
+    }
+
+    Json::Value extensions = icons->definition["fileExtensions"];
+    if (!iconName.length() && extensions.isMember(_suffix)) {
+        iconName = extensions[_suffix].asString();
+        cacheId = _suffix;
+        // printf("extensions %s\n", iconName.c_str());
     }
 
     if (!iconName.length()) {
@@ -486,12 +470,23 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
     }
 
     if (!iconName.length()) {
-        std::string res = icons->definition["file"].asString();
-        // cache.emplace(cacheId, res);
-        // return res;
+        if (file_exists(std::string(icons->icons_path + "/file.svg").c_str())) {
+            res.path = icons->icons_path + "/file.svg";
+            res.svg = true;
+            return res;
+        }
     }
-#endif
 
+    if (definitions.isMember(iconName)) {
+        Json::Value iconDef = definitions[iconName];
+        res.path = icons->icons_path + "/" + iconDef["iconPath"].asString();
+        res.svg = true;
+        cache.emplace(cacheId, res);
+        printf("[%s] [%s]\n", cacheId.c_str(), res.path.c_str());
+        return res;
+    }
+
+    printf("not found %s\n", iconName.c_str());
     return res;
 }
 

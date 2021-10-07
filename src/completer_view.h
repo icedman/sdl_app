@@ -13,6 +13,7 @@ struct completer_view : popup_view {
     completer_view();
 
     DECLAR_VIEW_TYPE(CUSTOM, popup_view)
+    std::string type_name() override { return "completer"; }
 
     view_item_ptr list;
     editor_ptr editor;

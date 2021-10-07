@@ -8,6 +8,7 @@ struct app_view : vertical_container {
     app_view();
 
     DECLAR_VIEW_TYPE(CUSTOM, vertical_container)
+    std::string type_name() override { return "app"; }
 
     view_item_ptr tabbar;
     view_item_ptr tabcontent;

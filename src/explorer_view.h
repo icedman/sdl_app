@@ -10,6 +10,7 @@ struct explorer_view : list_view {
     explorer_view();
 
     DECLAR_VIEW_TYPE(CUSTOM, list_view)
+    std::string type_name() override { return "explorer"; }
 
     bool worker(int millis) override;
     void update(int millis) override;

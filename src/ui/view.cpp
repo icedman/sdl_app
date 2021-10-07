@@ -232,7 +232,7 @@ void view_item::prerender()
 
     bool rect_changed = (prev_rect.x != r.x || prev_rect.y != r.y || prev_rect.w != r.w || prev_rect.h != r.h);
     bool visibility_changed = prev_visibility != layout()->visible;
-    
+
     if (_should_damage || visibility_changed || rect_changed) {
         if (visibility_changed || (rect_changed && prev_rect.w && prev_rect.h)) {
             damage_t::instance()->damage({prev_rect.x, prev_rect.y, prev_rect.w, prev_rect.h});
@@ -326,7 +326,7 @@ void view_item::damage()
 
     damage_t::instance()->damage(r);
 
-    // printf("damage %s!\n", type_name().c_str());
+    // printf("damage %s\n", type_name().c_str());
 }
 
 view_item_ptr view_find_xy(view_item_ptr item, int x, int y)

@@ -9,6 +9,7 @@ struct minimap_view : view_item {
     minimap_view();
 
     DECLAR_VIEW_TYPE(CUSTOM, view_item)
+    std::string type_name() override { return "minimap"; }
 
     void prerender() override;
     void update(int millis) override;

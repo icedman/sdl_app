@@ -13,6 +13,7 @@ struct editor_view : panel_view {
     editor_view();
 
     DECLAR_VIEW_TYPE(CUSTOM, panel_view)
+    std::string type_name() override { return "editor"; }
 
     void prelayout() override;
 

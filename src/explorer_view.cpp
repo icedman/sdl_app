@@ -84,8 +84,10 @@ void explorer_view::update(int millis)
 
     list_view::update(millis);
 
-    layout_recompute(layout());
-    should_damage();
+    // if (hasChanges) {
+        // layout_recompute(layout());
+        // should_damage();
+    // }
 }
 
 void explorer_view::select_item(list_item_view* item)

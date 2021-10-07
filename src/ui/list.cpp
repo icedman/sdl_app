@@ -121,11 +121,6 @@ void list_view::update(int millis)
         has_changes = true;
     }
 
-    if (has_changes) {
-        previous_size = -1;
-        should_damage();
-    }
-
     view_item_list::iterator it;
     if (!has_changes) {
         it = content()->_views.begin();
