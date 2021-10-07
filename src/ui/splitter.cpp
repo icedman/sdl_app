@@ -27,8 +27,8 @@ splitter_view::splitter_view()
 
 bool splitter_view::mouse_drag_start(int x, int y)
 {
-    if (!left) return true;
-    start_width = left->layout()->width;
+    if (!target) return true;
+    start_width = target->layout()->width;
     drag_start_x = x;
     drag_start_y = y;
     dragging = true;
@@ -44,9 +44,8 @@ bool splitter_view::mouse_drag_end(int x, int y)
 bool splitter_view::mouse_drag(int x, int y)
 {
     if (dragging) {
-        left->layout()->width = start_width + x - drag_start_x;
-        // layout_recompute(container->layout());
-        // container->damage();
+        bool prior = target->layout()->render_rect.x <= layout()->render_rect.x;
+        target->layout()->width = start_width + (prior ? (x - drag_start_x) : -(x - drag_start_x));
         layout_request();
         Renderer::instance()->throttle_up_events();
     }

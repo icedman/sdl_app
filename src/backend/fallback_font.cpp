@@ -111,6 +111,14 @@ int asteroidDrawChar(float x, float y, char c, float size, RenColor clr, bool ex
         didInit = true;
     }
 
+    float size_y = size;
+    if (c >= 'a' && c <= 'z') {
+        c = 'A' + c - 'a';
+        size_y *= 0.8f;
+    } else {
+        size_y *= 1.25f;
+    }
+    
     unsigned char* pts = asteroids_font[(int)c - ' '].points;
     int next_moveto = 1;
 
@@ -128,7 +136,7 @@ int asteroidDrawChar(float x, float y, char c, float size, RenColor clr, bool ex
         }
 
         float dx = ((delta >> 4) & 0xF) * size;
-        float dy = -((delta >> 0) & 0xF) * size;
+        float dy = -((delta >> 0) & 0xF) * size_y;
 
         if (next_moveto != 0) {
             startPosition = { x + dx, y + dy };

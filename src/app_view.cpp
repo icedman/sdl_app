@@ -41,14 +41,11 @@ app_view::app_view()
     main->add_child(tabbar);
     main->add_child(tabcontent);
 
-    explorer_main_splitter = std::make_shared<splitter_view>();
-
-    view_item::cast<splitter_view>(explorer_main_splitter)->container = content;
-    view_item::cast<splitter_view>(explorer_main_splitter)->left = explorer;
-
     content->add_child(explorer);
-
     if (!Renderer::instance()->is_terminal()) {
+        explorer_main_splitter = std::make_shared<splitter_view>();
+        view_item::cast<splitter_view>(explorer_main_splitter)->container = content;
+        view_item::cast<splitter_view>(explorer_main_splitter)->target = explorer;
         content->add_child(explorer_main_splitter);
     }
     content->add_child(main);
@@ -118,12 +115,25 @@ bool app_view::input_sequence(std::string keySequence)
     }
 
     case MOVE_FOCUS_LEFT:
-        view_set_focused(explorer.get());
+        if (explorer->layout()->render_rect.x < 10) {
+            view_set_focused(explorer.get());
+        } else {
+            show_editor(app_t::instance()->currentEditor);
+        }
         return true;
+
+    case MOVE_FOCUS_RIGHT:
+        if (explorer->layout()->render_rect.x < 10) {
+            show_editor(app_t::instance()->currentEditor);
+        } else {
+            view_set_focused(explorer.get());
+        }
+        return true;
+
     case MOVE_FOCUS_UP:
         view_set_focused(tabbar.get());
         return true;
-    case MOVE_FOCUS_RIGHT:
+
     case MOVE_FOCUS_DOWN:
         show_editor(app_t::instance()->currentEditor);
         return true;

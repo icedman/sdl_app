@@ -21,7 +21,7 @@ struct splitter_view : view_item {
     int start_width;
 
     view_item_ptr container;
-    view_item_ptr left;
+    view_item_ptr target;
 };
 
 #endif // SPLITTER_H

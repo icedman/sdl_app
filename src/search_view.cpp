@@ -290,6 +290,15 @@ void search_view::update_list_indexer()
     }
 }
 
+bool _compare_prefix(std::string s1, std::string s2, int len)
+{
+    if (s1.length() < len || s2.length() < len) {
+        return true;
+    }
+
+    return s1.substr(0,len) == s2.substr(0,len);
+}
+
 void search_view::update_list_files()
 {
     explorer_t* explorer = explorer_t::instance();
@@ -316,7 +325,7 @@ void search_view::update_list_files()
                 continue;
             }
 
-            if (f->name[0] != inputtext[0]) {
+            if (!_compare_prefix(f->name, inputtext, 3)) {
                 continue;
             }
 

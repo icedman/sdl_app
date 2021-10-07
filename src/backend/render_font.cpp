@@ -363,10 +363,7 @@ int Renderer::draw_text(RenFont* font, const char* text, int x, int y, RenColor 
     }
 
     if (font->asteroids) {
-        std::string str = text;
-        std::transform(str.begin(), str.end(), str.begin(), ::toupper);
-
-        const char* p = str.c_str();
+        const char* p = text;
         int offset = 0;
         while (*p) {
             asteroidDrawChar(x + offset, y, *p, 1, clr, false);
