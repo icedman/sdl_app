@@ -196,6 +196,7 @@ struct layout_item {
 };
 
 void layout_run(layout_item_ptr item, layout_constraint constraint);
+void layout_recompute(layout_item_ptr item);
 void layout_sort(layout_item_ptr item);
 void layout_render_list(layout_item_list& list, layout_item_ptr item);
 void layout_request();

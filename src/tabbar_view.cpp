@@ -80,6 +80,9 @@ void app_tabbar_view::update(int millis)
         btn->layout()->justify = LAYOUT_JUSTIFY_CENTER;
         btn->layout()->align = LAYOUT_ALIGN_CENTER;
     }
+
+    layout_recompute(layout());
+    should_damage();
 }
 
 void app_tabbar_view::select_item(list_item_view* item)

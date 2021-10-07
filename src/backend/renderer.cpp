@@ -87,7 +87,7 @@ static inline void render_item(layout_item_ptr item)
     };
 
     bool render = false;
-    for (auto d : Renderer::instance()->damage_rects) {
+    for (auto d : damage_t::instance()->damage_rects) {
         bool o = rects_overlap(d, r);
         if (o) {
             render = true;
@@ -134,14 +134,4 @@ void Renderer::render_view_tree(view_item* root)
 void Renderer::prerender_view_tree(view_item* root)
 {
     prerender_item(root->layout());
-}
-
-void Renderer::damage(RenRect rect)
-{
-    if (is_terminal()) {
-        damage_rects.clear();
-        damage_rects.push_back({ 0, 0, 1000, 1000 });
-        return;
-    }
-    damage_rects.push_back(rect);
 }

@@ -41,7 +41,7 @@ void editor_view::prerender()
         damage();
     }
     for (auto d : previous_block_damages) {
-        renderer->damage(d);
+        damage_t::instance()->damage(d);
     }
     previous_block_damages.clear();
 
@@ -148,7 +148,7 @@ void editor_view::prerender()
             };
             // printf("blk %d %d %d %d\n", cr.x, cr.y, cr.width, cr.height);
             previous_block_damages.push_back(cr);
-            renderer->damage(cr);
+            damage_t::instance()->damage(cr);
         }
 
         // position spans
@@ -215,7 +215,7 @@ void editor_view::prerender()
                         cr.y -= 4;
                         cr.height += 8;
                         cr.width += 2;
-                        renderer->damage(cr);
+                        damage_t::instance()->damage(cr);
                         previous_block_damages.push_back(cr);
                     }
                 }
@@ -247,7 +247,7 @@ void editor_view::prerender()
     content()->layout()->width = ww;
 
     if (prev_longest != longest_block) {
-        layout_request();
+        layout_recompute(layout());
     }
 
     // compute document height
@@ -351,7 +351,7 @@ void editor_view::render()
             block->lineCount * fh
         };
         bool render = false;
-        for (auto d : Renderer::instance()->damage_rects) {
+        for (auto d : damage_t::instance()->damage_rects) {
             bool o = rects_overlap(d, cr);
             if (o) {
                 render = true;

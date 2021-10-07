@@ -5,6 +5,7 @@
 #include "layout.h"
 #include "renderer.h"
 #include "style.h"
+#include "damage.h"
 
 #include "view_types.h"
 

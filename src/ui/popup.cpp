@@ -45,7 +45,7 @@ void popup_manager::push(view_item_ptr popup)
     popup->layout()->stack = true;
 
     add_child(popup);
-    layout_request();
+    layout_recompute(layout());
 }
 
 void popup_manager::pop()

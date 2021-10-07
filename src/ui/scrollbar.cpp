@@ -200,7 +200,7 @@ void scrollbar_view::set_size(int c, int w)
         // todo compute rects
 
         layout()->visible = count > window;
-        layout_request();
+        layout_recompute(layout());
     }
 }
 

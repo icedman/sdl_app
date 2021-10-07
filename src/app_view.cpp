@@ -278,7 +278,9 @@ void app_view::show_editor(editor_ptr editor, bool sole)
         view_set_focused((view_item*)(editor->view));
         ((view_item*)(editor->view))->layout()->visible = true;
         app_t::instance()->currentEditor = editor;
-        layout_request();
+        // layout_recompute(main->layout());
+        // Renderer::instance()->prerender_view_tree(main.get());
+        main->should_damage();
     }
 }
 

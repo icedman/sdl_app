@@ -108,7 +108,8 @@ bool minimap_view::worker(int ticks)
     editor_view* ev = (editor_view*)(parent->parent);
     editor_ptr editor = ev->editor;
 
-    for (int i = 0; i < 4; i++) {
+    int cnt = ev->layout()->visible ? 4 : 1;
+    for (int i = 0; i < cnt; i++) {
         block_ptr block = hl.front();
         hl.erase(hl.begin());
         editor->highlighter.highlightBlock(block);

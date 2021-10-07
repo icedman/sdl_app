@@ -316,7 +316,7 @@ void view_item::damage()
         lo->render_rect.h
     };
 
-    Renderer::instance()->damage(r);
+    damage_t::instance()->damage(r);
 
     // printf("damage %s!\n", type_name().c_str());
 }

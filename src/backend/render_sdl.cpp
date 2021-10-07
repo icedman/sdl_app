@@ -10,6 +10,7 @@
 #endif
 
 #include "app.h"
+#include "damage.h"
 
 #ifndef M_PI
 #define M_PI 3.19f
@@ -105,7 +106,7 @@ void _set_context_from_stack()
 RenRect rects[MAX_DAMAGE_RECTS];
 void _blit_to_window()
 {
-    if (!Renderer::instance()->damage_rects.size()) {
+    if (!damage_t::instance()->damage_rects.size()) {
         return;
     }
 
@@ -113,32 +114,29 @@ void _blit_to_window()
     // SDL_BlitSurface(target_buffer->sdl_surface, NULL, window_surface, NULL);
     // SDL_UpdateWindowSurface(window);
 
-    if (Renderer::instance()->damage_rects.size()) {
-        int i = 0;
-        for (auto d : Renderer::instance()->damage_rects) {
-            if (d.x >= window_surface->w)
-                continue;
-            if (d.y >= window_surface->h)
-                continue;
-            if (d.x + d.width > window_surface->w) {
-                d.width = window_surface->w - d.x;
-            }
-            if (d.y + d.height > window_surface->h) {
-                d.height = window_surface->h - d.y;
-            }
-            rects[i++] = d;
-
-            // printf("{ %d %d } { %d %d } { %d %d %d %d }\n",
-            //         window_surface->w, window_surface->h,
-            //         window_buffer->width, window_buffer->height, d.x,d.y,d.width,d.height);
-
-            SDL_BlitSurface(target_buffer->sdl_surface, (SDL_Rect*)&d, window_surface, (SDL_Rect*)&d);
-            if (i >= MAX_DAMAGE_RECTS)
-                break;
+    int i = 0;
+    for (auto d : damage_t::instance()->damage_rects) {
+        if (d.x >= window_surface->w)
+            continue;
+        if (d.y >= window_surface->h)
+            continue;
+        if (d.x + d.width > window_surface->w) {
+            d.width = window_surface->w - d.x;
         }
-        SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)rects, i);
-        return;
+        if (d.y + d.height > window_surface->h) {
+            d.height = window_surface->h - d.y;
+        }
+        rects[i++] = d;
+
+        // printf("{ %d %d } { %d %d } { %d %d %d %d }\n",
+        //         window_surface->w, window_surface->h,
+        //         window_buffer->width, window_buffer->height, d.x,d.y,d.width,d.height);
+
+        SDL_BlitSurface(target_buffer->sdl_surface, (SDL_Rect*)&d, window_surface, (SDL_Rect*)&d);
+        if (i >= MAX_DAMAGE_RECTS)
+            break;
     }
+    SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)rects, i);
 }
 
 static bool is_firable(char c)
@@ -625,7 +623,7 @@ void Renderer::begin_frame(RenImage* image, int w, int h)
 
 void Renderer::end_frame()
 {
-    for (auto d : damage_rects) {
+    for (auto d : damage_t::instance()->damage_rects) {
         draw_rect(d, { 150, 150, 150, 20 }, false, 1.0f);
     }
 
@@ -636,7 +634,7 @@ void Renderer::end_frame()
             printf("warning: states stack at %d\n", _state);
         }
         _blit_to_window();
-        damage_rects.clear();
+        damage_t::instance()->reset();
 
         static bool firstShow = false;
         if (!firstShow) {

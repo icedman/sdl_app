@@ -132,6 +132,7 @@ ui_files = [
     'libs/PennerEasing/Cubic.cpp',
     'src/ui/animation.cpp',
     'src/ui/button.cpp',
+    'src/ui/damage.cpp',
     'src/ui/events.cpp',
     'src/ui/image.cpp',
     'src/ui/inputtext.cpp',

@@ -439,6 +439,15 @@ void layout_run(layout_item_ptr item, layout_constraint constraint)
     item->render_rect = item->rect; // root
 }
 
+void layout_recompute(layout_item_ptr item)
+{
+    layout_rect r = item->rect;
+    layout_rect rr = item->render_rect;
+    layout_run(item, { 0,0,r.w,r.h });
+    item->rect = r;
+    item->render_rect = rr;
+}
+
 void layout_request()
 {
     run_requested = true;

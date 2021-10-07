@@ -128,8 +128,8 @@ extern "C" int main(int argc, char** argv)
         root_view->update(0);
 
         if (pw != w || ph != h) {
-            renderer->damage_rects.clear();
-            renderer->damage({ 0, 0, w, h });
+            damage_t::instance()->reset();
+            damage_t::instance()->damage({ 0, 0, w, h });
         }
 
         if (skip_frames) {
@@ -155,8 +155,8 @@ extern "C" int main(int argc, char** argv)
             if (renderer->draw_count() > 0) {
                 count = renderer->draw_count();
             }
-            if (renderer->damage_rects.size() > 0) {
-                damages = renderer->damage_rects.size();
+            if (damage_t::instance()->damage_rects.size() > 0) {
+                damages = damage_t::instance()->damage_rects.size();
             }
             if (fps < 0) fps = 0;
             if (fps > 1000 ) fps = 0;
@@ -167,7 +167,8 @@ extern "C" int main(int argc, char** argv)
             int fx = 0; //renderer->is_terminal() ? 2 : 20;
             int fy = 0; //renderer->is_terminal() ? 1 : 20;
 
-            renderer->damage({ fx, fy, fw, fh });
+            damage_t::instance()->damage({ fx, fy, fw, fh });
+
             renderer->draw_rect({ fx, fy, fw, fh }, { 50, 50, 50 }, true);
             renderer->draw_text(NULL, tmp, fx, fy, { 255, 255, 255 });
 #endif
