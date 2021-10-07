@@ -10,6 +10,7 @@ struct inputtext_view : horizontal_container {
 
     DECLAR_VIEW_TYPE(INPUTTEXT, horizontal_container)
 
+    void prelayout() override;
     void render() override;
 
     std::string value();

@@ -26,6 +26,7 @@ const char* view_type_names[] = {
     "scrollarea",
     "scrollbar",
     "tabbar",
+    "splitter",
     "custom"
 };
 

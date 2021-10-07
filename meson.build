@@ -142,6 +142,7 @@ ui_files = [
     'src/ui/popup.cpp',
     'src/ui/scrollarea.cpp',
     'src/ui/scrollbar.cpp',
+    'src/ui/splitter.cpp',
     'src/ui/style.cpp',
     'src/ui/tabbar.cpp',
     'src/ui/text.cpp',

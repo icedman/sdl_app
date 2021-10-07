@@ -8,17 +8,21 @@ inputtext_view::inputtext_view(std::string text)
 {
     class_name = "inputtext";
 
-    int h = 26;
-    int m = 4;
+    view_item_ptr editor = std::make_shared<editor_view>();
+    view_item::cast<editor_view>(editor)->font = "ui-small";
+    set_editor(editor);
+    set_value(text);
+}
 
+void inputtext_view::prelayout()
+{
+    int fw, fh;
+    Renderer::instance()->get_font_extents(NULL, &fw, &fh, NULL, 1);
+    int m = 4;
     if (Renderer::instance()->is_terminal()) {
-        h = 1;
         m = 0;
     }
-    layout()->height = h + m + (m / 2);
-
-    set_editor(std::make_shared<editor_view>());
-    set_value(text);
+    layout()->height = (1.5f * fh) + (m * 2);
 }
 
 void inputtext_view::render()

@@ -15,6 +15,7 @@ struct app_view : vertical_container {
     view_item_ptr main;
     view_item_ptr menu;
     view_item_ptr statusbar;
+    view_item_ptr explorer_main_splitter;
 
     view_item_ptr search;
     view_item_ptr commands;

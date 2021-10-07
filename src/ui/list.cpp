@@ -48,10 +48,6 @@ void list_item_view::render()
 
     RenColor clr = { (uint8_t)vs.bg.red, (uint8_t)vs.bg.green, (uint8_t)vs.bg.blue, 255 };
     Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, clr, vs.filled, 0);
-
-    if (is_hovered() || container->is_item_focused(this)) {
-        // Renderer::instance()->draw_rect({ r.x, r.y, r.w, r.h }, {255,0,0}, false, 1);
-    }
 }
 
 list_view::list_view(std::vector<list_item_data_t> items)

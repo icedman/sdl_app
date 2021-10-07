@@ -6,6 +6,7 @@
 #include "scripting.h"
 #include "statusbar.h"
 
+#include "splitter.h"
 #include "editor_view.h"
 #include "explorer_view.h"
 #include "search_view.h"
@@ -40,7 +41,13 @@ app_view::app_view()
     main->add_child(tabbar);
     main->add_child(tabcontent);
 
+    explorer_main_splitter = std::make_shared<splitter_view>();
+
+    view_item::cast<splitter_view>(explorer_main_splitter)->container = content;
+    view_item::cast<splitter_view>(explorer_main_splitter)->left = explorer;
+
     content->add_child(explorer);
+    content->add_child(explorer_main_splitter);
     content->add_child(main);
 
     menu = std::make_shared<horizontal_container>();
@@ -321,6 +328,13 @@ void app_view::setup_style()
 
     vs = vs_default;
     style_register(vs, "gutter");
+    vs.filled = Renderer::instance()->is_terminal() ? false : true;
+    style_register(vs, "splitter");
+    vs_item = vs;
+    vs_item.bg = vs.fg;
+    vs_item.fg = vs.bg;
+    vs_item.filled = Renderer::instance()->is_terminal() ? false : true;
+    style_register(vs_item, "splitter:hovered");
 
     vs = vs_default;
     vs.bg = darker(Renderer::instance()->color_for_index(app->bgApp), 5);

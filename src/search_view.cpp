@@ -234,6 +234,8 @@ bool search_view::commit()
 void search_view::prelayout()
 {
     list_view* lv = view_item::cast<list_view>(list);
+    view_item_ptr ev = view_item::cast<inputtext_view>(input)->editor;
+    custom_editor_view_t* cev = view_item::cast<custom_editor_view_t>(ev);
 
     int fw, fh;
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)style.font.c_str()), &fw, &fh, NULL, 1);
@@ -243,8 +245,8 @@ void search_view::prelayout()
         list_size = 10;
     }
 
-    int list_height = list_size * (Renderer::instance()->is_terminal() ? 1 : 24);
-    int input_height = Renderer::instance()->is_terminal() ? 1 : 28;
+    int list_height = list_size * (Renderer::instance()->is_terminal() ? 1 : fh);
+    int input_height = Renderer::instance()->is_terminal() ? 1 : (fh + 8);
     int search_width = 30;
     layout()->width = search_width * fw;
     layout()->height = input_height + list_height;
