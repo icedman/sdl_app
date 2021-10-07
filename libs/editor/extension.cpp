@@ -449,7 +449,7 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
     if (!iconName.length() && extensions.isMember(_suffix)) {
         iconName = extensions[_suffix].asString();
         cacheId = _suffix;
-        // printf("extensions %s\n", iconName.c_str());
+        printf("extensions %s\n", iconName.c_str());
     }
 
     if (!iconName.length()) {
