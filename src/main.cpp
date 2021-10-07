@@ -80,7 +80,6 @@ extern "C" int main(int argc, char** argv)
 
     // first created font will be the default
     std::string fnt = app.font + " " + std::to_string(app.fontSize > 8 ? app.fontSize : 8);
-    printf("%s\n", fnt.c_str());
     renderer->create_font((char*)fnt.c_str());
 
     // renderer->create_font("asteroids");

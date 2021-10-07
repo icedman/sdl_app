@@ -286,6 +286,7 @@ void view_item::propagate_event(event_t& event)
     if (parent && !is_type_of(POPUP) && !is_type_of(PANEL)) {
         ((view_item*)parent)->propagate_event(event);
     }
+
     for (auto c : callbacks[event.type]) {
         c(event);
         if (event.cancelled)

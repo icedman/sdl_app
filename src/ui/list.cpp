@@ -177,8 +177,8 @@ void list_view::update(int millis)
 
         if (iv->text) {
             view_item::cast<text_view>(iv->text)->text = d.text;
-            iv->text->prelayout();
-            iv->text->layout()->rect.w = iv->text->layout()->width;
+            // iv->text->prelayout();
+            // iv->text->layout()->rect.w = iv->text->layout()->width;
         }
     }
 
@@ -191,12 +191,12 @@ void list_view::update(int millis)
         }
     }
 
+    layout_recompute(layout());
     panel_view::update(millis);
 }
 
 void list_view::select_item(list_item_view* item)
 {
-    // if (item->data.value != value) {
     if (item != _value) {
         _value = item;
 

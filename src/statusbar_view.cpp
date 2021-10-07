@@ -73,15 +73,15 @@ void statusbar_view::update(int millis)
 
         text_view* text = view_item::cast<text_view>(status);
         text->text = statusbar->status;
-        text->prelayout();
-        text->layout()->rect.w = text->layout()->width;
+        // text->prelayout();
+        // text->layout()->rect.w = text->layout()->width;
         int i = 0;
 
         for (auto v : items->_views) {
             text_view* text = view_item::cast<text_view>(v);
             text->text = " " + statusbar->text[i++] + " ";
-            text->prelayout();
-            text->layout()->rect.w = text->layout()->width;
+            // text->prelayout();
+            // text->layout()->rect.w = text->layout()->width;`
         }
     }
 

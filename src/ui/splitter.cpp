@@ -45,8 +45,9 @@ bool splitter_view::mouse_drag(int x, int y)
 {
     if (dragging) {
         left->layout()->width = start_width + x - drag_start_x;
-        layout_recompute(container->layout());
-        container->damage();
+        // layout_recompute(container->layout());
+        // container->damage();
+        layout_request();
         Renderer::instance()->throttle_up_events();
     }
     return true;

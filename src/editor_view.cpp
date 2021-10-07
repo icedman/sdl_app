@@ -655,7 +655,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
     Renderer::instance()->get_font_extents(Renderer::instance()->font((char*)font.c_str()), &fw, &fh, NULL, 1);
 
     int l = 0;
-    while (it != editor->document.blocks.end()) {
+    while (it != editor->document.blocks.end() && l < 3.0f * rows) {
         block_ptr block = *it++;
         if (!block->data) {
             break;
@@ -665,7 +665,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         std::string text = block->text();
         const char* line = text.c_str();
 
-        // printf(">>%d\n", block->y);
+        // printf(">>%d %d\n", block->y, block->lineNumber);
 
         bool hitBlock = false;
         bool hitSpan = false;
@@ -678,8 +678,7 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
 
         if (!hitBlock) {
             l++;
-            if (l > 1.5f * rows)
-                break;
+            continue;
         }
 
         for (auto& s : blockData->rendered_spans) {
@@ -726,8 +725,6 @@ bool editor_view::mouse_down(int x, int y, int button, int clicks)
         }
 
         l++;
-        if (l > 1.5f * rows)
-            break;
     }
     return true;
 }

@@ -17,7 +17,7 @@ completer_view::completer_view()
     content()->add_child(list);
     interactive = true;
 
-    on(EVT_ITEM_SELECT, [this](event_t& e) {
+    list->on(EVT_ITEM_SELECT, [this](event_t& e) {
         e.cancelled = true;
         list_item_view* item = (list_item_view*)e.target;
         return this->commit(item->data.value);
