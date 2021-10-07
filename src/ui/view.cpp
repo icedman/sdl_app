@@ -229,10 +229,16 @@ void view_item::render_frame()
 void view_item::prerender()
 {
     layout_rect r = layout()->rect;
-    if (_should_damage || prev_visibility != layout()->visible || (prev_rect.x != r.x || prev_rect.y != r.y || prev_rect.w != r.w || prev_rect.h != r.h)) {
+
+    bool rect_changed = (prev_rect.x != r.x || prev_rect.y != r.y || prev_rect.w != r.w || prev_rect.h != r.h);
+    bool visibility_changed = prev_visibility != layout()->visible;
+    
+    if (_should_damage || visibility_changed || rect_changed) {
+        if (visibility_changed || (rect_changed && prev_rect.w && prev_rect.h)) {
+            damage_t::instance()->damage({prev_rect.x, prev_rect.y, prev_rect.w, prev_rect.h});
+        }
         prev_rect = r;
         prev_visibility = layout()->visible;
-
         _should_damage = false;
         damage();
     }
