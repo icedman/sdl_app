@@ -410,10 +410,12 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
     std::string cacheId = _suffix;
 
     if (spath.size() == 1) {
-        res.path = icons->icons_path + "/file.svg";
-        res.svg = true;
-        // printf(">> %s --- %s\n", filename.c_str(), _suffix.c_str());
-        return res;
+        if (file_exists(std::string(icons->icons_path + "/file.svg").c_str())) {
+            res.path = icons->icons_path + "/file.svg";
+            res.svg = true;
+            // printf(">> %s --- %s\n", filename.c_str(), _suffix.c_str());
+            return res;
+        }
     }
 
     static std::map<std::string, icon_t> cache;
@@ -424,7 +426,6 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
     }
 
     std::string svg = icons->icons_path + "/" + _suffix + ".svg";
-
     if (!file_exists(svg.c_str())) {
         language_info_ptr lang = language_from_file(filename, _extensions);
         if (lang) {
@@ -438,30 +439,37 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
     res.path = svg;
     res.svg = true;
     cache.emplace(cacheId, res);
-    return res;
 
     // printf("%s\n", svg.c_str());
 
-#if 0 // font based icons
+#if 1 // font based icons
     Json::Value definitions = icons->definition["iconDefinitions"];
-
+    
     std::string iconName;
     std::string fontCharacter = "x";
     std::string fontColor;
 
-    Json::Value extensions = icons->definition["fileExtensions"];
+    printf("finding font %s\n", filename.c_str());
 
-    if (icons->definition.isMember(filename)) {
-        iconName = icons->definition[filename].asString();
+    // if (icons->definition.isMember(filename)) {
+    //     // iconName = icons->definition[filename].asString();
+    //     printf("definition %s\n", iconName.c_str());
+    // }
+
+    Json::Value extensions = icons->definition["fileExtensions"];
+    if (!iconName.length() && extensions.isMember(_suffix)) {
+        // iconName = extensions[_suffix].asString();
+        printf("extensions %s\n", iconName.c_str());
     }
 
-    if (!iconName.length(), extensions.isMember(_suffix)) {
-        iconName = extensions[_suffix].asString();
+    Json::Value fileNames = icons->definition["fileNames"];
+    if (!iconName.length() && fileNames.isMember(_suffix)) {
+        // iconName = fileNames[filename].asString();
+        printf("fileNames %s\n", iconName.c_str());
     }
 
     if (!iconName.length()) {
         Json::Value languageIds = icons->definition["languageIds"];
-
         std::string _fileName = "file." + _suffix;
         language_info_ptr lang = language_from_file(_fileName.c_str(), _extensions);
         if (lang) {
@@ -479,10 +487,12 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
 
     if (!iconName.length()) {
         std::string res = icons->definition["file"].asString();
-        cache.emplace(cacheId, res);
-        return res;
+        // cache.emplace(cacheId, res);
+        // return res;
     }
 #endif
+
+    return res;
 }
 
 icon_t icon_for_folder(icon_theme_ptr icons, std::string folder, std::vector<struct extension_t>& _extensions)
