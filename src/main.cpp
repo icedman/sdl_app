@@ -188,10 +188,11 @@ extern "C" int main(int argc, char** argv)
             }
 
             bool didWork = root_view->worker(0);
+            if (renderer->is_terminal()) {
+                break;
+            }
+
             if (!didWork && renderer->is_idle()) {
-                if (renderer->is_terminal()) {
-                    break;
-                }
                 backend.delay(30);
             }
 

@@ -47,7 +47,10 @@ app_view::app_view()
     view_item::cast<splitter_view>(explorer_main_splitter)->left = explorer;
 
     content->add_child(explorer);
-    content->add_child(explorer_main_splitter);
+
+    if (!Renderer::instance()->is_terminal()) {
+        content->add_child(explorer_main_splitter);
+    }
     content->add_child(main);
 
     menu = std::make_shared<horizontal_container>();

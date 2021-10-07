@@ -545,8 +545,6 @@ std::string previousKeySequence;
 
 int Renderer::listen_events(event_list* events)
 {
-    events->clear();
-
     std::string expandedSequence;
     std::string keySequence;
 
@@ -557,7 +555,7 @@ int Renderer::listen_events(event_list* events)
             expandedSequence = previousKeySequence + "+" + keySequence;
         }
 
-        if (ch != -1 || is_throttle_up_events()) {
+        if (ch != -1) {
             break;
         }
     }
