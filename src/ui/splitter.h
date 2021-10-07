@@ -19,9 +19,15 @@ struct splitter_view : view_item {
     int drag_start_x;
     int drag_start_y;
     int start_width;
+    int start_height;
 
     view_item_ptr container;
     view_item_ptr target;
+};
+
+struct vertical_splitter_view : splitter_view {};
+struct horizontal_splitter_view : splitter_view {
+    horizontal_splitter_view();
 };
 
 #endif // SPLITTER_H
