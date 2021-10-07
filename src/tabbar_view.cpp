@@ -46,9 +46,6 @@ void app_tabbar_view::update(int millis)
 
     // printf("repopulate explorer\n");
 
-    std::string folder_icon_path = icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);
-    std::string folder_close_icon_path = icon_for_file(app_t::instance()->icons, ".folder", app_t::instance()->extensions);
-
     data.clear();
     for (auto f : app->editors) {
         list_item_data_t item = {

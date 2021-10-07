@@ -167,7 +167,6 @@ void list_view::update(int millis)
         }
 
         if (iv->icon) {
-            std::string icon_path = icon_for_file(app_t::instance()->icons, d.icon, app_t::instance()->extensions);
             ((icon_view*)(iv->icon.get()))->icon = Renderer::instance()->create_image_from_svg((char*)d.icon.c_str(), 24, 24);
             if (d.icon != "") {
                 hasIcons = true;

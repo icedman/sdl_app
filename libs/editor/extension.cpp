@@ -159,7 +159,7 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
     std::string suffix = ".";
     suffix += sfile.back();
 
-    // log("%s file %s suffix %s", path.c_str(), fileName.c_str(), suffix.c_str());
+    log("%s file: %s suffix: %s", path.c_str(), fileName.c_str(), suffix.c_str());
 
     auto it = cache.find(suffix);
     if (it != cache.end()) {
@@ -274,7 +274,7 @@ language_info_ptr language_from_file(const std::string path, std::vector<struct 
                     // std::cout << path << std::endl;
 
                     // don't cache..? causes problem with highlighter thread
-                    // cache.emplace(suffix, lang);
+                    cache.emplace(suffix, lang);
                     return lang;
                 }
             }
@@ -396,11 +396,13 @@ theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t
     return theme;
 }
 
-std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<struct extension_t>& _extensions)
+icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<struct extension_t>& _extensions)
 {
+    icon_t res;
     if (!icons) {
-        return "";
+        return res;
     }
+
     std::set<char> delims = { '.' };
     std::vector<std::string> spath = split_path(filename, delims);
 
@@ -408,11 +410,13 @@ std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vecto
     std::string cacheId = _suffix;
 
     if (spath.size() == 1) {
+        res.path = icons->icons_path + "/file.svg";
+        res.svg = true;
         // printf(">> %s --- %s\n", filename.c_str(), _suffix.c_str());
-        return icons->icons_path + "/file.svg";
+        return res;
     }
 
-    static std::map<std::string, std::string> cache;
+    static std::map<std::string, icon_t> cache;
     auto it = cache.find(cacheId);
     if (it != cache.end()) {
         // std::cout << "cached icon.." << std::endl;
@@ -431,8 +435,10 @@ std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vecto
         }
     }
 
-    cache.emplace(cacheId, svg);
-    return svg;
+    res.path = svg;
+    res.svg = true;
+    cache.emplace(cacheId, res);
+    return res;
 
     // printf("%s\n", svg.c_str());
 
@@ -477,13 +483,12 @@ std::string icon_for_file(icon_theme_ptr icons, std::string filename, std::vecto
         return res;
     }
 #endif
-
-    return "";
 }
 
-std::string icon_for_folder(icon_theme_ptr icons, std::string folder, std::vector<struct extension_t>& _extensions)
+icon_t icon_for_folder(icon_theme_ptr icons, std::string folder, std::vector<struct extension_t>& _extensions)
 {
-    return "";
+    icon_t res;
+    return res;
 }
 
 bool theme_is_dark(theme_ptr theme)

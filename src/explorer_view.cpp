@@ -51,8 +51,11 @@ void explorer_view::update(int millis)
 
     // printf("repopulate explorer\n");
 
-    std::string folder_icon_path = icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);
-    std::string folder_close_icon_path = icon_for_file(app_t::instance()->icons, ".folder", app_t::instance()->extensions);
+    icon_t ico;
+    ico = icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);
+    std::string folder_icon_path = ico.path;
+    ico = icon_for_file(app_t::instance()->icons, ".folder", app_t::instance()->extensions);
+    std::string folder_close_icon_path = ico.path;
 
     data.clear();
     for (auto f : explorer->renderList) {
@@ -65,7 +68,8 @@ void explorer_view::update(int millis)
             }
         } else {
             if (app_t::instance()->icons) {
-                icon = icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
+                ico = icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
+                icon = ico.path;
             }
         }
         list_item_data_t item = {
