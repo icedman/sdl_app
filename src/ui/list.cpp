@@ -11,6 +11,9 @@
 list_item_view::list_item_view()
     : horizontal_container()
 {
+    data.data = 0;
+    data.score = 0;
+
     interactive = true;
     layout()->fit_children = true;
 
@@ -105,10 +108,19 @@ void list_view::update(int millis)
         }
     }
 
-    bool has_changes = false;
-    if (data.size() == content()->_views.size()) {
+    int visibleViews = 0;
+    for(auto v : content()->_views) {
+        if (v->layout()->visible) {
+            visibleViews ++;
+        } else {
+            break;
+        }
+    }
+    bool has_changes = data.size() != visibleViews;
+    if (!has_changes) {
         view_item_list::iterator it = content()->_views.begin();
         for (auto f : data) {
+            if (it == content()->_views.end()) break;
             view_item_ptr iv = *it++;
             list_item_view* item = view_item::cast<list_item_view>(iv);
             if (item->data.equals(f)) {
@@ -117,14 +129,13 @@ void list_view::update(int millis)
             has_changes = true;
             break;
         }
-    } else {
-        has_changes = true;
     }
 
     view_item_list::iterator it;
     if (!has_changes) {
         it = content()->_views.begin();
         for (auto d : data) {
+            if (it == content()->_views.end()) break;
             view_item_ptr item = *it++;
             list_item_view* iv = view_item::cast<list_item_view>(item);
             item->layout()->visible = true;

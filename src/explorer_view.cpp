@@ -83,11 +83,6 @@ void explorer_view::update(int millis)
     }
 
     list_view::update(millis);
-
-    // if (hasChanges) {
-        // layout_recompute(layout());
-        // should_damage();
-    // }
 }
 
 void explorer_view::select_item(list_item_view* item)
@@ -114,8 +109,5 @@ bool explorer_view::worker(int millis)
 {
     explorer_t* explorer = explorer_t::instance();
     explorer->update(millis);
-
-    bool hasChanges = explorer->regenerateList;
-    hasChanges = hasChanges || explorer->renderList.size() != data.size();
-    return hasChanges;
+    return explorer->renderList.size() != data.size();
 }
