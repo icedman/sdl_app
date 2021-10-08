@@ -1,11 +1,11 @@
 #ifndef VIEW_H
 #define VIEW_H
 
+#include "damage.h"
 #include "events.h"
 #include "layout.h"
 #include "renderer.h"
 #include "style.h"
-#include "damage.h"
 
 #include "view_types.h"
 

@@ -1,10 +1,10 @@
 #include "editor.h"
 #include "indexer.h"
-#include "util.h"
 #include "utf8.h"
+#include "util.h"
 
-#include "backend.h"
 #include "app.h"
+#include "backend.h"
 
 #include <algorithm>
 #include <iostream>
@@ -27,18 +27,14 @@ editor_t::editor_t()
 editor_t::~editor_t()
 {
     if (indexer) {
-        indexer->cancel();
         delete indexer;
     }
 }
 
 void editor_t::enableIndexer()
 {
-    if (!indexer) {
-        indexer = new indexer_t();
-        indexer->editor = this;
-        indexer->run();
-    }
+    indexer = new indexer_t();
+    indexer->editor = this;
 }
 
 void editor_t::pushOp(std::string op, std::string params)
@@ -127,14 +123,14 @@ void editor_t::runOp(operation_t op)
     case DEBUG_SCOPES: {
         blockdata_ptr data = mainCursor.block()->data;
         log("-------------\n%s", mainCursor.block()->text().c_str());
-        for(auto s : data->spans) {
+        for (auto s : data->spans) {
             log("scope: %s", s.scope.c_str());
         }
         struct span_info_t span = spanAtBlock(data.get(), mainCursor.position());
         log("scope: %s", span.scope.c_str());
         return;
     }
-    
+
     case CANCEL:
         operations.clear();
         return;
@@ -257,7 +253,7 @@ void editor_t::runOp(operation_t op)
             document.cursors.pop_back();
         } else {
             mainCursor.clearSelection();
-            document.setCursor(mainCursor, true);    
+            document.setCursor(mainCursor, true);
         }
         break;
 
@@ -395,7 +391,7 @@ void editor_t::runOp(operation_t op)
             cur.moveEndOfSelection();
             cursor_t s = cur;
             bool first = true;
-            for(auto t : text) {
+            for (auto t : text) {
                 if (!first) {
                     cur.splitLine();
                     cur.moveDown(1);
@@ -862,7 +858,8 @@ void editor_t::toggleFold(size_t line)
     block = block->next();
     while (block) {
         blockdata_ptr targetData = block->data;
-        if (!targetData) break;
+        if (!targetData)
+            break;
 
         targetData->folded = blockData->folded;
         targetData->foldable = false;
@@ -881,7 +878,8 @@ void editor_t::undo()
     snapshot_t& snapshot = snapshots.back();
     operation_list items = snapshot.history;
 
-    if (items.size() == 0) return;
+    if (items.size() == 0)
+        return;
 
     // for (auto op : items) {
     //     std::string on = nameFromOperation(op.op);

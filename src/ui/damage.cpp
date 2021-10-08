@@ -11,7 +11,7 @@ void damage_t::damage(RenRect rect)
 {
     if (Renderer::instance()->is_terminal()) {
         damage_rects.clear();
-        damage_rects.push_back({ 0, 0, 1000, 1000 });
+        damage_rects.push_back({ 0, 0, 2000, 2000 });
         return;
     }
     damage_rects.push_back(rect);

@@ -118,7 +118,7 @@ int asteroidDrawChar(float x, float y, char c, float size, RenColor clr, bool ex
     } else {
         size_y *= 1.25f;
     }
-    
+
     unsigned char* pts = asteroids_font[(int)c - ' '].points;
     int next_moveto = 1;
 

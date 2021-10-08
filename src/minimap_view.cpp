@@ -97,6 +97,9 @@ void minimap_view::update(int millis)
 
 bool minimap_view::worker(int ticks)
 {
+    if (layout()->visible)
+        return false;
+
     if (!hl.size()) {
         return false;
     }

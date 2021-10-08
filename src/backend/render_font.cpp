@@ -313,7 +313,8 @@ int Renderer::draw_wtext(RenFont* font, const wchar_t* text, int x, int y, RenCo
     if (font) {
         set = font->regular;
     }
-    if (!set) return 0;
+    if (!set)
+        return 0;
 
     wchar_t* p = (wchar_t*)text;
 

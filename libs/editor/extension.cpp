@@ -424,7 +424,7 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
     std::string fontCharacter = "x";
     std::string fontColor;
 
-    printf("finding icon %s\n", filename.c_str());
+    // printf("finding icon %s\n", filename.c_str());
 
     auto it = cache.find(filename);
     if (it != cache.end()) {

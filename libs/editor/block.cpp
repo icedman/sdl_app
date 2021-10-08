@@ -50,7 +50,7 @@ block_t::~block_t()
 std::string block_t::text()
 {
     if (dirty) {
-        // ... 
+        // ...
     }
     return content;
 }
@@ -154,7 +154,6 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
         return data->rendered_spans;
     }
 
-
     std::string text = this->text() + " \n";
     columns = cols;
 
@@ -202,8 +201,7 @@ std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
         int line = 0;
         int line_x = 0;
         for (auto& _s : spans) {
-            if (_s.start - (line * cols) + _s.length >= cols - (indent*line) ||
-                _s.start - (line * cols) + 4 >= cols - (indent*line)) {
+            if (_s.start - (line * cols) + _s.length >= cols - (indent * line) || _s.start - (line * cols) + 4 >= cols - (indent * line)) {
                 lineCount++;
                 line++;
                 line_x = 0;

@@ -30,10 +30,7 @@ void editor_view::prerender()
     Renderer* renderer = Renderer::instance();
     RenFont* _font = renderer->font((char*)font.c_str());
 
-    if (prev_start_block != start_block ||
-        prev_end_block != end_block ||
-        prev_doc_size != editor->document.blocks.size() ||
-        prev_computed_lines != computed_lines) {
+    if (prev_start_block != start_block || prev_end_block != end_block || prev_doc_size != editor->document.blocks.size() || prev_computed_lines != computed_lines) {
         prev_start_block = start_block;
         prev_end_block = end_block;
         prev_doc_size = editor->document.blocks.size();
@@ -67,7 +64,7 @@ void editor_view::prerender()
     cursor_list cursors = doc->cursors;
     cursor_t mainCursor = doc->cursor();
 
-    bool hlMainCursor = cursors.size() == 1 && !mainCursor.hasSelection();
+    bool hl_main_cursor = cursors.size() == 1 && !mainCursor.hasSelection();
 
     start_row = -alo->scroll_y / fh;
     if (start_row < 0) {
@@ -91,7 +88,7 @@ void editor_view::prerender()
     while (it != doc->blocks.end() && l < 2.0f * rows) {
         block_ptr block = *it++;
 
-        int hltd = false;
+        int hltd = 0;
         if (!block->data || block->data->dirty) {
             hltd = editor->highlighter.highlightBlock(block);
         }
@@ -167,7 +164,7 @@ void editor_view::prerender()
             std::string span_text = utf8_substr(text, s.start, s.length);
 
             // damage the carret
-            if (!offscreen && hlMainCursor) {
+            if (!offscreen && hl_main_cursor) {
                 for (int pos = s.start; pos < s.start + s.length; pos++) {
                     bool hl = false;
                     bool ul = false;
@@ -305,7 +302,7 @@ void editor_view::render()
     cursor_list cursors = doc->cursors;
     cursor_t mainCursor = doc->cursor();
 
-    bool hlMainCursor = cursors.size() == 1 && !mainCursor.hasSelection();
+    bool hl_main_cursor = cursors.size() == 1 && !mainCursor.hasSelection();
 
     int pre_line = start_row - 0.5f * rows;
     if (pre_line < 0)
@@ -431,7 +428,7 @@ void editor_view::render()
 
                         cr.y += (s.line * fh);
                         color_info_t cur = sel;
-                        if (hlMainCursor) {
+                        if (hl_main_cursor) {
                             int cursor_pad = 4;
                             cr.width = 1;
                             if (!renderer->is_terminal()) {
@@ -893,7 +890,7 @@ bool editor_view::input_sequence(std::string text)
     editor->runAllOps();
 
     if (op != UNKNOWN) {
-        ensure_visible_cursor();
+        // ensure_visible_cursor(false);
     }
 
     switch (op) {
@@ -973,21 +970,20 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
         return;
     }
 
+    int _cy = centered ? (rows * fh / 2) : 0;
     span_info_t ss;
     int pos;
-
     if (_span_from_cursor(c, ss, pos)) {
         int uy = -(block->y - (ss.line + 2) * fh);
         if (area->layout()->scroll_y < uy) {
-            area->layout()->scroll_y = uy;
+            area->layout()->scroll_y = uy + _cy;
         }
 
         int ly = -(block->y - (ss.line + 2) * fh) + ((rows - 3) * fh);
         if (area->layout()->scroll_y > ly) {
-            area->layout()->scroll_y = ly;
+            area->layout()->scroll_y = ly - _cy;
         }
     } else {
-        // todo!
         area->layout()->scroll_y = -block->lineNumber * fh;
     }
 
@@ -996,7 +992,7 @@ void editor_view::scroll_to_cursor(cursor_t c, bool centered)
     update_scrollbars();
 }
 
-void editor_view::ensure_visible_cursor()
+void editor_view::ensure_visible_cursor(bool centered)
 {
     scrollarea_view* area = view_item::cast<scrollarea_view>(scrollarea);
     layout_item_ptr alo = area->layout();
@@ -1013,5 +1009,5 @@ void editor_view::ensure_visible_cursor()
     doc->setRows(rows);
 
     cursor_t mainCursor = doc->cursor();
-    scroll_to_cursor(mainCursor);
+    scroll_to_cursor(mainCursor, centered);
 }

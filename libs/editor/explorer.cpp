@@ -19,7 +19,6 @@
 #include "explorer.h"
 #include "util.h"
 
-
 #define PRELOAD_LOOP 1
 #define MAX_PRELOAD_DEPTH 4
 
@@ -111,16 +110,16 @@ void fileitem_t::load(std::string p)
             }
             std::shared_ptr<struct fileitem_t> file = std::make_shared<struct fileitem_t>(fullPath);
 
-            #ifdef WIN64
+#ifdef WIN64
             file->isDirectory = false;
-            DIR *sub = opendir(fullPath.c_str());
+            DIR* sub = opendir(fullPath.c_str());
             if (sub) {
                 file->isDirectory = true;
                 closedir(sub);
             }
-            #else
+#else
             file->isDirectory = ent->d_type == DT_DIR;
-            #endif
+#endif
 
             file->canLoadMore = file->isDirectory;
 

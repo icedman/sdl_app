@@ -235,7 +235,7 @@ void view_item::prerender()
 
     if (_should_damage || visibility_changed || rect_changed) {
         if (visibility_changed || (rect_changed && prev_rect.w && prev_rect.h)) {
-            damage_t::instance()->damage({prev_rect.x, prev_rect.y, prev_rect.w, prev_rect.h});
+            damage_t::instance()->damage({ prev_rect.x, prev_rect.y, prev_rect.w, prev_rect.h });
         }
         prev_rect = r;
         prev_visibility = layout()->visible;

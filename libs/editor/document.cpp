@@ -427,7 +427,7 @@ void document_t::setRows(int r)
 
 bool document_t::lineNumberingIntegrity()
 {
-    for(int i=0;i<blocks.size();i++) {
+    for (int i = 0; i < blocks.size(); i++) {
         if (blocks[i]->lineNumber != i) {
             return false;
         }

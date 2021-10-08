@@ -99,6 +99,8 @@ extern "C" int main(int argc, char** argv)
     w = 0;
     h = 0;
 
+    renderer->throttle_up_events();
+
     int frames = 0;
     float fps = 0;
     const int target_fps = FRAME_RATE;
@@ -157,8 +159,10 @@ extern "C" int main(int argc, char** argv)
             if (damage_t::instance()->damage_rects.size() > 0) {
                 damages = damage_t::instance()->damage_rects.size();
             }
-            if (fps < 0) fps = 0;
-            if (fps > 1000 ) fps = 0;
+            if (fps < 0)
+                fps = 0;
+            if (fps > 1000)
+                fps = 0;
             char tmp[64];
             sprintf(tmp, "fps: %04d damages: %04d drawn: %04d", (int)fps, damages, count);
             int fw, fh;

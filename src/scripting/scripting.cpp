@@ -111,7 +111,10 @@ void Scripting::restart()
 
 #else
 
-bool Scripting::init() { return true; }
+bool Scripting::init()
+{
+    return true;
+}
 void Scripting::shutdown() {}
 void Scripting::update(int ticks) {}
 int Scripting::execute(std::string script) { return 0; }

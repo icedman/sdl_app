@@ -25,7 +25,8 @@ struct splitter_view : view_item {
     view_item_ptr target;
 };
 
-struct vertical_splitter_view : splitter_view {};
+struct vertical_splitter_view : splitter_view {
+};
 struct horizontal_splitter_view : splitter_view {
     horizontal_splitter_view();
 };

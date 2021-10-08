@@ -109,10 +109,10 @@ bool expand_path(char** path)
     if (tmp.length() && tmp[0] == '~') {
         tmp = home + tmp.substr(1);
     }
-    
+
     *path = (char*)realloc(*path, tmp.length() + 1);
     strcpy(*path, tmp.c_str());
-    
+
 #else
 
     wordexp_t p = { 0 };

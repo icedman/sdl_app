@@ -1,6 +1,5 @@
 #include "indexer.h"
 #include "app.h"
-#include "editor.h"
 #include "highlighter.h"
 #include "search.h"
 #include "util.h"
@@ -16,13 +15,8 @@
 #define INDEXED_LINE_LENGTH_LIMIT 256
 
 indexer_t::indexer_t()
-    : threadId(0)
-    , hasInvalidBlocks(false)
-    , requestIdx(0)
+// , hasInvalidBlocks(false)
 {
-    for (int i = 0; i < INDEX_REQUEST_SIZE; i++) {
-        indexingRequests[i] = nullptr;
-    }
 }
 
 indexer_t::~indexer_t()
@@ -40,33 +34,14 @@ void indexer_t::addEntry(block_ptr block, std::string prefix)
         // log("add %s", prefix.c_str());
     }
 }
-
-void indexer_t::requestIndexBlock(block_ptr block)
-{
-    // request indexing service
-    if (!block->data) {
-        return;
-    }
-
-    for (int i = 0; i < INDEX_REQUEST_SIZE; i++) {
-        if (indexingRequests[i] == block) {
-            // already pending
-            return;
-        }
-    }
-
-    indexingRequests[requestIdx++] = block;
-    if (requestIdx >= INDEX_REQUEST_SIZE)
-        requestIdx = 0;
-}
-
-void indexer_t::_updateBlock(block_ptr block)
+void indexer_t::indexBlock(block_ptr block)
 {
     if (!block->isValid() || !block->data) {
         return;
     }
 
-    if (!block->content.length()) return;
+    if (!block->content.length())
+        return;
 
     std::string text = block->text().substr(0, INDEXED_LINE_LENGTH_LIMIT);
     if (text.length() < 4) {
@@ -130,53 +105,4 @@ std::vector<std::string> indexer_t::findWords(std::string prefix)
     }
 
     return res;
-}
-
-void* indexerThread(void* arg)
-{
-    indexer_t* indexer = (indexer_t*)arg;
-    editor_t* editor = indexer->editor;
-
-    static struct timespec time_to_wait = { 0, 0 };
-
-    usleep(200000);
-
-    while (true) {
-        time_to_wait.tv_sec = time(NULL) + 2L;
-
-        for (int i = 0; i < INDEX_REQUEST_SIZE; i++) {
-            if (indexer->indexingRequests[i]) {
-                // todo make thread safe
-                block_ptr block = indexer->indexingRequests[i];
-                if (!block) {
-                    indexer->indexingRequests[i] = nullptr;
-                    continue;
-                }
-                indexer->_updateBlock(block);
-                indexer->indexingRequests[i] = nullptr;
-                // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
-                usleep(5000);
-            }
-        }
-
-        usleep(500000);
-
-        // time_to_wait.tv_sec = time(NULL) + 4L;
-        // pthread_cond_timedwait(&dummy_cond, &dummy_lock, &time_to_wait);
-    }
-
-    return NULL;
-}
-
-void indexer_t::run()
-{
-    pthread_create(&threadId, NULL, &indexerThread, this);
-}
-
-void indexer_t::cancel()
-{
-    if (threadId) {
-        pthread_cancel(threadId);
-        threadId = 0;
-    }
 }

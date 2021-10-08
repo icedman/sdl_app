@@ -93,7 +93,6 @@ struct Renderer {
 
     color_info_t color_for_index(int index);
     void update_colors();
-
 };
 
 #endif // RENDERER_H

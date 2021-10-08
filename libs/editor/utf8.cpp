@@ -83,28 +83,28 @@ std::string wstring_to_utf8string(std::wstring text)
 std::wstring utf8string_to_wstring(std::string text)
 {
     std::wstring res;
-    char *p = (char*)text.c_str();
+    char* p = (char*)text.c_str();
     while (*p) {
         unsigned cp;
         p = (char*)utf8_to_codepoint(p, &cp);
         res += (wchar_t)cp;
     }
-    
+
     return res;
 }
 
-std::string utf8_substr(std::string &text, size_t pos, size_t len)
+std::string utf8_substr(std::string& text, size_t pos, size_t len)
 {
     if (len == 0) {
         return "";
     }
-    
-    char *t = (char*)text.c_str();
-    char *p = t;
-    char *s = 0;
-    char *e = 0;
+
+    char* t = (char*)text.c_str();
+    char* p = t;
+    char* s = 0;
+    char* e = 0;
     unsigned cp;
-    
+
     size_t idx = 0;
     while (*p) {
         unsigned cp;
@@ -117,23 +117,27 @@ std::string utf8_substr(std::string &text, size_t pos, size_t len)
             e = p;
         }
 
-        if (s && e) break;
+        if (s && e)
+            break;
     }
 
-    if (!s) s = p;
-    if (!e) e = p;
+    if (!s)
+        s = p;
+    if (!e)
+        e = p;
 
-    if (s - t >= text.length()) return "";
+    if (s - t >= text.length())
+        return "";
     return text.substr(s - t, e - s);
 }
 
-std::string utf8_insert(std::string &text, size_t pos, std::string &str)
+std::string utf8_insert(std::string& text, size_t pos, std::string& str)
 {
-    char *t = (char*)text.c_str();
-    char *p = t;
-    char *s = 0;
+    char* t = (char*)text.c_str();
+    char* p = t;
+    char* s = 0;
     unsigned cp;
-    
+
     size_t idx = 0;
     while (*p) {
         unsigned cp;
@@ -142,21 +146,23 @@ std::string utf8_insert(std::string &text, size_t pos, std::string &str)
         }
         p = (char*)utf8_to_codepoint(p, &cp);
         idx++;
-        if (s) break;
+        if (s)
+            break;
     }
 
-    if (!s) s = p;
+    if (!s)
+        s = p;
     return text.insert(s - t, str);
 }
 
-std::string utf8_erase(std::string &text, size_t pos, size_t len)
+std::string utf8_erase(std::string& text, size_t pos, size_t len)
 {
-    char *t = (char*)text.c_str();
-    char *p = t;
-    char *s = 0;
-    char *e = 0;
+    char* t = (char*)text.c_str();
+    char* p = t;
+    char* s = 0;
+    char* e = 0;
     unsigned cp;
-    
+
     size_t idx = 0;
     while (*p) {
         unsigned cp;
@@ -169,17 +175,20 @@ std::string utf8_erase(std::string &text, size_t pos, size_t len)
             e = p;
         }
 
-        if (s && e) break;
+        if (s && e)
+            break;
     }
 
-    if (!s) s = p;
-    if (!e) e = p;
+    if (!s)
+        s = p;
+    if (!e)
+        e = p;
     return text.erase(s - t, e - s);
 }
 
-size_t utf8_length(std::string &text)
+size_t utf8_length(std::string& text)
 {
-    char *p = (char*)text.c_str();
+    char* p = (char*)text.c_str();
     size_t idx = 0;
     while (*p) {
         unsigned cp;

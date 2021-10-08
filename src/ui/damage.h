@@ -4,10 +4,9 @@
 #include "renderer.h"
 #include <vector>
 
-struct damage_t
-{
+struct damage_t {
     static damage_t* instance();
-    
+
     void damage(RenRect rect);
     void reset();
     std::vector<RenRect> damage_rects;

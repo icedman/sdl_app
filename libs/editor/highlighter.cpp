@@ -83,7 +83,8 @@ static void addCommentSpan(std::vector<span_info_t>& spans, span_info_t comment)
 
 static void gatherBrackets(block_ptr block, char* first, char* last, language_info_ptr lang)
 {
-    if (!lang) return;
+    if (!lang)
+        return;
 
     blockdata_ptr blockData = block->data;
     if (!block->data) {
@@ -157,9 +158,10 @@ static void gatherBrackets(block_ptr block, char* first, char* last, language_in
 void highlighter_t::updateBrackets(block_ptr block)
 {
     blockdata_ptr blockData = block->data;
-    if (!block->data) return;
+    if (!block->data)
+        return;
 
-    for(auto& b : blockData->brackets) {
+    for (auto& b : blockData->brackets) {
         b.line = block->lineNumber;
     }
 
@@ -226,7 +228,7 @@ int highlighter_t::highlightBlock(block_ptr block)
 
     // hack.. cpp/c (highlighter probably needs a contiguous buffer)
     str += ";\n";
-    
+
     //--------------
     // for minimap line cache
     //--------------
@@ -427,9 +429,9 @@ int highlighter_t::highlightBlock(block_ptr block)
         }
     }
 
-    if (editor && editor->indexer) {
-        editor->indexer->requestIndexBlock(block);
-    }
+    // if (editor->indexer) {
+    //     editor->indexer->indexBlock(block);
+    // }
 
     return 1;
 }

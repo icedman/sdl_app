@@ -27,7 +27,7 @@ struct highlighter_t {
     void run(editor_t* editor);
 
     static bool hasRunningThreads();
-    
+
     editor_t* editor;
 
     highlight_callback_t callback;

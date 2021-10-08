@@ -46,7 +46,8 @@ void statusbar_view::update(int millis)
 {
     statusbar_t* statusbar = statusbar_t::instance();
     editor_ptr editor = app_t::instance()->currentEditor;
-    if (!editor) return;
+    if (!editor)
+        return;
 
     if (statusbar) {
         statusbar->update(1);

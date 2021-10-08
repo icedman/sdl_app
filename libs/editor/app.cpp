@@ -484,11 +484,6 @@ void app_t::closeEditor(editor_ptr editor)
 
 void app_t::shutdown()
 {
-    for (auto e : editors) {
-        if (e->indexer) {
-            e->indexer->cancel();
-        }
-    }
 }
 
 void app_t::log(const char* format, ...)

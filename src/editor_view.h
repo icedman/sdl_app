@@ -29,8 +29,8 @@ struct editor_view : panel_view {
     void render() override;
     void update(int millis) override;
 
-    void ensure_visible_cursor();
-    void scroll_to_cursor(cursor_t c, bool centered = false);
+    void ensure_visible_cursor(bool centered = false);
+    void scroll_to_cursor(cursor_t c, bool centered = true);
 
     int start_row;
     int end_row;

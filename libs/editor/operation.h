@@ -109,7 +109,7 @@ enum operation_e {
     TOGGLE_GUTTER,
 
     ASTEROIDS,
-    
+
     DEBUG_SCOPES
 };
 

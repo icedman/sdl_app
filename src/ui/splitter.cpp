@@ -24,10 +24,10 @@ splitter_view::splitter_view()
     });
 }
 
-
 bool splitter_view::mouse_drag_start(int x, int y)
 {
-    if (!target) return true;
+    if (!target)
+        return true;
     start_width = target->layout()->width;
     start_height = target->layout()->height;
     drag_start_x = x;
@@ -85,5 +85,4 @@ horizontal_splitter_view::horizontal_splitter_view()
 {
     layout()->height = 4;
     layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
-
 }

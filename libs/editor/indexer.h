@@ -9,28 +9,18 @@
 
 #include "editor.h"
 
-#define INDEX_REQUEST_SIZE 256
-
 struct indexer_t {
 
     indexer_t();
     ~indexer_t();
 
     void addEntry(block_ptr block, std::string prefix);
-    void requestIndexBlock(block_ptr block);
-    void _updateBlock(block_ptr block);
+    void indexBlock(block_ptr block);
     void clear();
 
     std::map<std::string, block_list> indexMap;
 
     std::vector<std::string> findWords(std::string prefix);
-
-    block_ptr indexingRequests[INDEX_REQUEST_SIZE];
-    size_t requestIdx;
-
-    void run();
-    void cancel();
-    pthread_t threadId;
 
     editor_t* editor;
     bool hasInvalidBlocks;

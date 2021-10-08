@@ -6,10 +6,10 @@
 #include "scripting.h"
 #include "statusbar.h"
 
-#include "splitter.h"
 #include "editor_view.h"
 #include "explorer_view.h"
 #include "search_view.h"
+#include "splitter.h"
 #include "statusbar_view.h"
 #include "tabbar_view.h"
 
@@ -233,7 +233,10 @@ void app_view::create_editor_view(editor_ptr editor)
     editor->view = ev.get();
     tabcontent->add_child(ev);
 
-    layout_request();
+    layout_recompute(ev->layout());
+    Renderer::instance()->prerender_view_tree(ev.get());
+    should_damage();
+
     view_set_focused((view_item*)editor->view);
 }
 

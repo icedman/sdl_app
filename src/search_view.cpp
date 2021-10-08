@@ -181,7 +181,7 @@ bool search_view::commit()
         ss << 0;
         editor->pushOp(MOVE_CURSOR, ss.str());
         editor->runAllOps();
-        ((editor_view*)editor->view)->ensure_visible_cursor();
+        ((editor_view*)editor->view)->ensure_visible_cursor(true);
         return true;
     }
 
@@ -296,7 +296,7 @@ bool _compare_prefix(std::string s1, std::string s2, int len)
         return true;
     }
 
-    return s1.substr(0,len) == s2.substr(0,len);
+    return s1.substr(0, len) == s2.substr(0, len);
 }
 
 void search_view::update_list_files()

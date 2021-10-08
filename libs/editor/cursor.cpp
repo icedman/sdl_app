@@ -221,7 +221,9 @@ std::vector<std::string> cursor_t::selectedTextArray()
 
     block_ptr block = start.block;
 
+    bool addEmptyBlock = false;
     while (block) {
+        addEmptyBlock = false;
         std::string t = block->text();
         if (block == start.block) {
             t = utf8_substr(t, start.position);
@@ -233,15 +235,17 @@ std::vector<std::string> cursor_t::selectedTextArray()
                 t = utf8_substr(t, 0, end.position + 1);
             }
         }
-
+        addEmptyBlock = (end.position + 1 == block->length());
         res.push_back(t);
-
         if (block == end.block) {
             break;
         }
         block = block->next();
     }
 
+    if (addEmptyBlock) {
+        res.push_back("");
+    }
     return res;
 }
 
@@ -272,7 +276,7 @@ bool cursor_t::eraseSelection()
 
     std::string start_text = start.block->text();
     std::string end_text = end.block->text();
-    
+
     std::string t = utf8_substr(start_text, 0, start.position);
     if (end.position + 1 < end.block->length()) {
         t += utf8_substr(end_text, end.position + 1);

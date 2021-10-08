@@ -79,24 +79,26 @@ void completer_view::show_completer(editor_ptr e)
     list->clear();
 
     int completerItemsWidth = 0;
-    std::vector<std::string> words = editor->indexer->findWords(_prefix);
-    for (auto w : words) {
-        if (w.length() <= prefix.length()) {
-            continue;
-        }
-        int score = levenshtein_distance((char*)prefix.c_str(), (char*)(w.c_str()));
+    if (editor->indexer) {
+        std::vector<std::string> words = editor->indexer->findWords(_prefix);
+        for (auto w : words) {
+            if (w.length() <= prefix.length()) {
+                continue;
+            }
+            int score = levenshtein_distance((char*)prefix.c_str(), (char*)(w.c_str()));
 
-        if (completerItemsWidth < w.length()) {
-            completerItemsWidth = w.length();
-        }
+            if (completerItemsWidth < w.length()) {
+                completerItemsWidth = w.length();
+            }
 
-        list_item_data_t item = {
-            text : w,
-            value : w,
-            score : score
-        };
-        list->data.push_back(item);
-        list->_value = 0;
+            list_item_data_t item = {
+                text : w,
+                value : w,
+                score : score
+            };
+            list->data.push_back(item);
+            list->_value = 0;
+        }
     }
 
     if (list->data.size()) {
