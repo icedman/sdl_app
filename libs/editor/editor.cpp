@@ -507,11 +507,11 @@ void editor_t::runOp(operation_t op)
             break;
         case MOVE_CURSOR_NEXT_PAGE:
         case MOVE_CURSOR_NEXT_PAGE_ANCHORED:
-            cur.moveNextBlock(document.rows, _op == MOVE_CURSOR_NEXT_PAGE_ANCHORED);
+            // cur.moveNextBlock(document.rows, _op == MOVE_CURSOR_NEXT_PAGE_ANCHORED);
             break;
         case MOVE_CURSOR_PREVIOUS_PAGE:
         case MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED:
-            cur.movePreviousBlock(document.rows, _op == MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED);
+            // cur.movePreviousBlock(document.rows, _op == MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED);
             break;
 
         case TAB: {

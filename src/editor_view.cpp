@@ -866,7 +866,7 @@ bool editor_view::input_sequence(std::string text)
         return false;
     }
 
-    // navigate wrapped lines
+    // special navigation
     switch (op) {
     case MOVE_CURSOR_UP:
     case MOVE_CURSOR_DOWN: {
@@ -884,6 +884,13 @@ bool editor_view::input_sequence(std::string text)
             }
         }
     } break;
+
+    case MOVE_CURSOR_NEXT_PAGE:
+        case MOVE_CURSOR_NEXT_PAGE_ANCHORED:
+            break;
+        case MOVE_CURSOR_PREVIOUS_PAGE:
+        case MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED:
+        break;
     }
 
     editor->input(-1, text);

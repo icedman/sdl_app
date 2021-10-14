@@ -30,7 +30,6 @@ struct view_item : layout_view, event_object_t {
 
     virtual view_type type_of() { return CONTAINER; }
     virtual bool is_type_of(view_type t) { return t == CONTAINER; }
-
     virtual std::string type_name();
 
     layout_item_ptr layout() override;
@@ -90,6 +89,12 @@ struct view_item : layout_view, event_object_t {
 
     template <class T>
     static T* cast(view_item_ptr v) { return (T*)(v.get()); };
+
+    template <class T>
+    static T* cast(view_item* v) { return (T*)(v); };
+
+    template <class T>
+    T* cast() { return (T*)this; }
 };
 
 struct vertical_container : view_item {

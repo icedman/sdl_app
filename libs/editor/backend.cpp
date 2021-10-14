@@ -36,10 +36,8 @@ int backend_t::elapsed()
 void backend_t::delay(int ms)
 {
     struct timespec waittime;
-
     waittime.tv_sec = (ms / 1000);
     ms = ms % 1000;
     waittime.tv_nsec = ms * 1000 * 1000;
-
     nanosleep(&waittime, NULL);
 }

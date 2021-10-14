@@ -44,8 +44,10 @@ app_view::app_view()
     content->add_child(explorer);
     if (!Renderer::instance()->is_terminal()) {
         explorer_main_splitter = std::make_shared<splitter_view>();
-        view_item::cast<splitter_view>(explorer_main_splitter)->container = content;
-        view_item::cast<splitter_view>(explorer_main_splitter)->target = explorer;
+        // view_item::cast<splitter_view>(explorer_main_splitter)->container = content;
+        // view_item::cast<splitter_view>(explorer_main_splitter)->target = explorer;
+        explorer_main_splitter->cast<splitter_view>()->container = content;
+        explorer_main_splitter->cast<splitter_view>()->target = explorer;
         content->add_child(explorer_main_splitter);
     }
     content->add_child(main);

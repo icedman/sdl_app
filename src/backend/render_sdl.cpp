@@ -624,7 +624,7 @@ void Renderer::begin_frame(RenImage* image, int w, int h)
 void Renderer::end_frame()
 {
     for (auto d : damage_t::instance()->damage_rects) {
-        // draw_rect(d, { 150, 150, 150, 20 }, false, 1.0f);
+        draw_rect(d, { 150, 150, 150, 20 }, false, 1.0f);
     }
 
     _set_context_from_stack();
