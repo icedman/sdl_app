@@ -415,40 +415,42 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, 
     int start = renderer->text_span_idx;
     text_span_t prev;
     prev.start = 0;
+    prev.length = 0;
 
-    for (auto s : renderer->text_spans) {
-        if (s.start + s.length < start)
-            continue;
+    int last_start = -1;
+    for (int i = 0; i < clen; i++) {
 
-        if (color_is_set(s.bg)) {
-            rect_t rect = { x + (start + s.start) * fnt->width, y, s.length * fnt->width, fnt->height };
-            renderer->draw_rect(rect, s.bg, true);
+        text_span_t bgc = span_from_index(renderer->text_spans, renderer->text_span_idx + i, true);
+        // background & caret
+
+        if (bgc.length) {
+            if (color_is_set(bgc.bg)) {
+                rect_t r = { x + i * fnt->width, y, fnt->width, fnt->height };
+                renderer->draw_rect(r, bgc.bg, true);
+            }
         }
 
-        if (s.caret && s.length == 1) {
-            rect_t r = { x + (start + s.start) * fnt->width, y, s.length * fnt->width, fnt->height };
-            if (s.caret == 2) {
+        if (bgc.caret && bgc.length == 1) {
+            rect_t r = { x + i * fnt->width, y, fnt->width, fnt->height };
+            if (bgc.caret == 2) {
                 r.x += r.w - CARET_WIDTH;
             }
             r.w = CARET_WIDTH;
             renderer->draw_rect(r, clr);
         }
-    }
 
-    for (int i = 0; i < clen + 1; i++) {
-
-        text_span_t res = span_from_index(renderer->text_spans, renderer->text_span_idx + i);
+        // text run
+        text_span_t res = span_from_index(renderer->text_spans, renderer->text_span_idx + i, false);
+        if (i == 0) {
+            prev = res;
+            prev.start = i;
+        }
 
         if (!res.equals(prev)) {
             prev.length = start + i - prev.start;
             pango_font_draw_span(renderer, fnt, _s, x, y, prev, clr, bold, italic, underline);
             prev = res;
             prev.start = i;
-        }
-
-        if (i == 0) {
-            prev = res;
-            prev.start = 0;
         }
     }
 

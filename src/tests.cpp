@@ -22,18 +22,46 @@
 #include "explorer.h"
 #include "rich_text.h"
 
+#define TEST test6
+
 explorer_t explorer;
 
-view_ptr test1();
-view_ptr test2();
-view_ptr test3();
-view_ptr test4();
-view_ptr test5();
-view_ptr test6();
+view_ptr test1(int argc, char **argv);
+view_ptr test2(int argc, char **argv);
+view_ptr test2b(int argc, char **argv);
+view_ptr test3(int argc, char **argv);
+view_ptr test4(int argc, char **argv);
+view_ptr test5(int argc, char **argv);
+view_ptr test6(int argc, char **argv);
 
-view_ptr test()
+std::string inputFile;
+std::string themeFile;
+
+view_ptr test(int argc, char **argv)
 {
-    return test6();
+    themeFile = "./tests/themes/dracula.json";
+
+    const char* argTheme = 0;
+    const char* argScript = 0;
+    const char* defaultTheme = "Monokai";
+
+    std::string lastArg;
+    for (int i = 0; i < argc - 1; i++) {
+        if (strcmp(argv[i], "-t") == 0) {
+            argTheme = argv[i + 1];
+            lastArg = argTheme;
+            themeFile = argTheme;
+        }
+    }
+
+    if (argc > 1) {
+        inputFile = argv[argc - 1];
+        if (inputFile == lastArg) {
+            inputFile = "";
+        }
+    }
+
+    return TEST(argc, argv);
 }
 
 parse::grammar_ptr load(std::string path)
@@ -57,11 +85,14 @@ void set_sidebar_data(view_ptr sidebar)
     sidebar->cast<list_t>()->update_data(data);
 }
 
-view_ptr test6()
+view_ptr test6(int argc, char **argv)
 {
     std::string filename = "./src/main.cpp";
-    // std::string filename = "./tests/main.cpp";
-    // std::string filename = "./tests/utf8_test1.txt";
+    if (inputFile.length()) {
+        filename = inputFile;
+    }
+    // std::string filename = "./tests/test.c";
+    // std::string filename = "./tests/utf8_test2.txt";
     // std::string filename = "./tests/tinywl.c";
     // std::string filename = "./tests/sqlite3.c";
 
@@ -95,7 +126,6 @@ view_ptr test6()
             set_sidebar_data(sidebar);
             sidebar->parent->relayout();
         }
-
         return true;
     });
 
@@ -109,8 +139,7 @@ view_ptr test6()
     editor_ptr editor = std::make_shared<editor_t>();
     editor->highlighter.lang = std::make_shared<language_info_t>();
     editor->highlighter.lang->grammar = load("./tests/syntaxes/c.json");
-    Json::Value root = parse::loadJson("./tests/themes/dracula.json");
-    // Json::Value root = parse::loadJson("./tests/themes/bluloco.json");
+    Json::Value root = parse::loadJson(themeFile);
     editor->highlighter.theme = parse_theme(root);
 
     editor->pushOp("OPEN", filename);
@@ -121,14 +150,17 @@ view_ptr test6()
 
     ev->editor = editor;
 
+    view_ptr vsplitter = std::make_shared<vertical_splitter_t>(sidebar, root_view);
+    
     root_view->add_child(sidebar);
+    root_view->add_child(vsplitter);
     root_view->add_child(view);
 
     view_t::set_focused(view.get());
     return root_view;
 }
 
-view_ptr test5()
+view_ptr test5(int argc, char **argv)
 {
     bool wrapped = true;
 
@@ -222,7 +254,7 @@ view_ptr test5()
     return view;
 }
 
-view_ptr test4()
+view_ptr test4(int argc, char **argv)
 {
     view_ptr view = std::make_shared<vertical_container_t>();
     view->layout()->margin = 20;
@@ -293,7 +325,7 @@ view_ptr create_submenu()
     return submenu;
 }
 
-view_ptr test3()
+view_ptr test3(int argc, char **argv)
 {
     view_ptr view = std::make_shared<view_t>();
     view->layout()->margin = 20;
@@ -415,7 +447,71 @@ view_ptr test3()
     return view;
 }
 
-view_ptr test2()
+view_ptr test2b(int argc, char **argv)
+{
+    view_ptr inner = std::make_shared<view_t>();
+    layout_item_ptr root = inner->layout();
+
+    view_ptr view = std::make_shared<view_t>();
+    view->layout()->margin = 20;
+    view->add_child(inner);
+
+    // root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
+    root->direction = LAYOUT_FLEX_DIRECTION_ROW;
+
+    // root->justify = LAYOUT_JUSTIFY_FLEX_END;
+    root->justify = LAYOUT_JUSTIFY_CENTER;
+    // root->justify = LAYOUT_JUSTIFY_SPACE_BETWEEN;
+    // root->justify = LAYOUT_JUSTIFY_SPACE_AROUND;
+
+    root->align = LAYOUT_ALIGN_FLEX_START;
+    // root->align = LAYOUT_ALIGN_FLEX_END;
+    // root->align = LAYOUT_ALIGN_CENTER;
+    // root->align = LAYOUT_ALIGN_STRETCH;
+
+    root->wrap = true;
+
+    view_ptr item_a = std::make_shared<view_t>();
+    view_ptr item_b = std::make_shared<view_t>();
+    view_ptr item_c = std::make_shared<view_t>();
+    view_ptr item_d = std::make_shared<view_t>();
+    view_ptr item_e = std::make_shared<view_t>();
+    view_ptr item_f = std::make_shared<view_t>();
+    view_ptr item_g = std::make_shared<view_t>();
+    view_ptr item_h = std::make_shared<view_t>();
+
+    view_style_t style = {
+        .bg = { 150,150,150 },
+        .filled = true,
+        .border = { 2 },
+        .border_color = { 255,0,255,255 },
+        .margin = { 8 }
+    };
+    item_a->set_style(style);
+
+    inner->add_child(item_a);
+    style.border_radius = { 16 };
+    item_b->set_style(style);
+
+    inner->add_child(item_b);
+    inner->add_child(item_c);
+    inner->add_child(item_d);
+    inner->add_child(item_e);
+    inner->add_child(item_f);
+    inner->add_child(item_g);
+    inner->add_child(item_h);
+
+    int i = 0;
+    for (auto child : root->children) {
+        child->name = 'a' + i++;
+        child->width = 200;
+        child->height = 200;
+    }
+
+    return view;
+}
+
+view_ptr test2(int argc, char **argv)
 {
     view_ptr inner = std::make_shared<view_t>();
     layout_item_ptr root = inner->layout();
@@ -466,7 +562,7 @@ view_ptr test2()
     return view;
 }
 
-view_ptr test1()
+view_ptr test1(int argc, char **argv)
 {
     view_ptr inner = std::make_shared<view_t>();
     layout_item_ptr root = inner->layout();

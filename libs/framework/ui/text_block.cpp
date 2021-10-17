@@ -33,6 +33,7 @@ static std::vector<std::string> split_string(const std::string& str)
         if (delimiters.find(*pch) != delimiters.end()) {
             // if (strchr((char*)delimiters, (int)*pch) != NULL) {
             if (pch != start) {
+                if (pch - start)
                 result.push_back(std::string(start, pch - start));
             }
             result.push_back(std::string(pch, 1));
@@ -41,32 +42,10 @@ static std::vector<std::string> split_string(const std::string& str)
         }
     }
 
-    std::string s = std::string(start, pch - start);
-    result.push_back(s);
-
-#if 1
-    std::vector<std::string> result_filtered;
-    std::string pending;
-    for (auto s : result) {
-        if (s.length() == 1) {
-            pending += s;
-            if (pending.length() > 8) {
-                result_filtered.push_back(pending);
-                pending = "";
-            }
-            continue;
-        }
-        if (pending.length()) {
-            result_filtered.push_back(pending);
-            pending = "";
-        }
-        result_filtered.push_back(s);
+    if (pch - start) {
+        std::string s = std::string(start, pch - start);
+        result.push_back(s);
     }
-
-    if (pending.length()) {
-        result_filtered.push_back(pending);
-    }
-#endif
 
     return result;
 }
@@ -128,6 +107,12 @@ void text_block_t::prelayout()
     } else {
         words.push_back(_text);
     }
+
+    // printf("***************\n<<%s>>\n", _text.c_str());
+    // for(auto w : words) {
+    //     printf("[%s]\n", w.c_str());
+    // }
+    // printf("---------------\n");
 
     while (lo->children.size() < words.size()) {
         lo->children.push_back(std::make_shared<layout_text_span_t>());

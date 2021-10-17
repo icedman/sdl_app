@@ -187,7 +187,9 @@ bool editor_view_t::handle_mouse_down(event_t& event)
         if (!clo->visible)
             continue;
         rect_t r = clo->render_rect;
-        r.w = lo->render_rect.w;
+        if (r.w < lo->render_rect.w) {
+            r.w = lo->render_rect.w;
+        }
         if (point_in_rect(p, r)) {
             text_block = c;
             break;

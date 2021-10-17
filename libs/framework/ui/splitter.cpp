@@ -2,8 +2,10 @@
 #include "renderer.h"
 #include "system.h"
 
-splitter_t::splitter_t()
+splitter_t::splitter_t(view_ptr target, view_ptr container)
     : view_t()
+    , target(target)
+    , container(container)
     , dragging(false)
 {
     layout()->width = 12;
@@ -62,8 +64,8 @@ void splitter_t::render(renderer_t* renderer)
     render_frame(renderer);
 }
 
-horizontal_splitter_t::horizontal_splitter_t()
-    : splitter_t()
+horizontal_splitter_t::horizontal_splitter_t(view_ptr target, view_ptr container)
+    : splitter_t(target, container)
 {
     layout()->height = layout()->width;
     layout()->width = 0;

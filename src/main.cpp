@@ -10,9 +10,9 @@
 
 #include "operation.h"
 
-#define FRAME_SKIP_INTERVAL 16
+#define FRAME_SKIP_INTERVAL 32
 
-view_ptr test();
+view_ptr test(int argc, char **argv);
 
 void render_layout_item(renderer_t* renderer, layout_item_ptr item)
 {
@@ -20,7 +20,7 @@ void render_layout_item(renderer_t* renderer, layout_item_ptr item)
         return;
 
     renderer->draw_rect(item->render_rect, { 255, 255, 255 }, false, 1.0f);
-    // renderer->draw_text(NULL, (char*)item->name.c_str(), item->render_rect.x, item->render_rect.y, { 255, 255, 255 });
+    renderer->draw_text(NULL, (char*)item->name.c_str(), item->render_rect.x, item->render_rect.y, { 255, 255, 255 });
     for (auto child : item->children) {
         render_layout_item(renderer, child);
     }
@@ -43,6 +43,8 @@ extern "C" int main(int argc, char** argv)
     const int target_fps = sys->target_fps();
     const int max_elapsed = 1000 / target_fps;
 
+    int skipped = 0;
+
     image_t* svg = renderer->create_image_from_svg("./tests/3d.svg", 40, 40);
     image_t* png = renderer->create_image_from_png("./tests/game.png");
     // font_t* fnt = renderer->create_font("Source Code Pro", 16);
@@ -52,7 +54,7 @@ extern "C" int main(int argc, char** argv)
 
     sys->init();
 
-    view_ptr root = test();
+    view_ptr root = test(argc, argv);
     root->add_child(popup_manager_t::instance());
 
     // quick first render
@@ -90,11 +92,6 @@ extern "C" int main(int argc, char** argv)
 
         // todo control skipping with actual framerate (throttling)
         bool skip_frames = true;
-        if (sys->is_caffeinated()) {
-            if (frames < FRAME_SKIP_INTERVAL / 8) {
-                frames = FRAME_SKIP_INTERVAL / 8;
-            }
-        }
         if (skip_frames) {
             if (frames++ > FRAME_SKIP_INTERVAL) {
                 skip_frames = false;
@@ -121,7 +118,7 @@ extern "C" int main(int argc, char** argv)
             view_render(renderer, root, dmg);
 
             if (dmg) {
-                printf("damages:%d rendered:%d\n", dmg->count(), renderer->draw_count());
+                // printf("damages:%d rendered:%d skipped:%d\n", dmg->count(), renderer->draw_count(), skipped);
                 // for(auto d : dmg->damage_rects) {
                 //     printf("%d %d %d %d\n", d.x,d.y,d.w,d.h);
                 // }
@@ -153,20 +150,24 @@ extern "C" int main(int argc, char** argv)
             if (dmg) {
                 dmg->clear();
             }
+
+            skipped = 0;
+        } else {
+            skipped ++;
         }
 
         do {
-            if (sys->is_caffeinated()) {
+            if (sys->poll_events(&events)) {
                 break;
             }
 
-            if (sys->poll_events(&events)) {
+            if (sys->is_caffeinated()) {
                 break;
             }
 
             // do work here
 
-            if (sys->is_idle()) {
+            if (!sys->is_caffeinated() && sys->is_idle()) {
                 sys->delay(30);
             }
 

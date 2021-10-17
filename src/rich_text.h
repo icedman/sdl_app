@@ -20,6 +20,7 @@ struct rich_text_t : panel_t {
     editor_ptr editor;
 
     DECLAR_VIEW_TYPE(CUSTOM, panel_t)
+    virtual std::string type_name() { return "rich_text"; }
 
     void render(renderer_t* renderer) override;
     void prelayout() override;

@@ -8,6 +8,7 @@ struct editor_view_t : rich_text_t {
     editor_view_t();
 
     DECLAR_VIEW_TYPE(CUSTOM, rich_text_t)
+    virtual std::string type_name() { return "editor"; }
 
     virtual bool handle_key_sequence(event_t& event);
     virtual bool handle_key_text(event_t& event);

@@ -96,6 +96,7 @@ framework_files = [
     'libs/framework/renderer/fallback_font.cpp',
     'libs/framework/ui/layout.cpp',
     'libs/framework/ui/view.cpp',
+    'libs/framework/ui/view_style.cpp',
     'libs/framework/ui/damage.cpp',
     'libs/framework/ui/button.cpp',
     'libs/framework/ui/image.cpp',

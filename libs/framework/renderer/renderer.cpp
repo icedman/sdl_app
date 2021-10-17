@@ -52,14 +52,26 @@ cairo_pattern_t* ctx_cairo_pattern(context_t* ctx)
     return c->pattern;
 }
 
-text_span_t span_from_index(std::vector<text_span_t>& spans, int idx)
+text_span_t span_from_index(std::vector<text_span_t>& spans, int idx, bool bg)
 {
     text_span_t res = { 0, 0, { 255, 255, 255, 0 }, { 0, 0, 0, 0 }, false, false, false, 0 };
     for (auto s : spans) {
         if (idx >= s.start && idx < s.start + s.length) {
 
-            if (s.caret != 0 || color_is_set(s.bg)) {
-                continue;
+            if (bg) {
+                if (s.caret == 0 && !color_is_set(s.bg)) {
+                    continue;
+                }
+                if (color_is_set(s.bg)) {
+                    res.bg = s.bg;
+                }
+                if (s.caret) {
+                    res.caret = s.caret;
+                }
+            } else {
+                if (s.caret != 0 || color_is_set(s.bg)) {
+                    continue;
+                }
             }
 
             res.start = s.start;
@@ -67,9 +79,6 @@ text_span_t span_from_index(std::vector<text_span_t>& spans, int idx)
             res.bold |= s.bold;
             res.italic |= s.italic;
             res.underline |= s.underline;
-            if (s.caret) {
-                res.caret = s.caret;
-            }
             if (color_is_set(s.fg)) {
                 res.fg = s.fg;
             }

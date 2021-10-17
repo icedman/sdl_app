@@ -5,6 +5,8 @@
 #include "renderer.h"
 #include "system.h"
 
+#include "text.h"
+
 #define DRAG_THRESHOLD 25 // distance squared
 
 view_ptr view_hovered;
@@ -48,6 +50,7 @@ view_t::view_t()
     , _state_hash(0)
     , _content_hash(0)
 {
+    state.style.available = false;
 }
 
 view_t::~view_t()
@@ -188,13 +191,14 @@ void view_t::prerender()
     state.scroll_y = item->scroll_y;
 }
 
-void view_t::render(renderer_t* renderer)
-{
-    // render_frame(renderer);
-}
-
 void view_t::render_frame(renderer_t* renderer)
 {
+    if (state.style.available) {
+        render_styled_frame(renderer, layout()->render_rect, state.style);
+        return;
+    }
+
+#if 1
     layout_item_ptr item = layout();
 
     color_t clr = { 255, 255, 255 };
@@ -210,6 +214,12 @@ void view_t::render_frame(renderer_t* renderer)
 
     // renderer->draw_rect(r, {50,50,50}, true, 1.0f);
     renderer->draw_rect(r, clr, false, 1.0f);
+#endif
+}
+
+void view_t::render(renderer_t* renderer)
+{
+    render_frame(renderer);
 }
 
 void view_t::propagate_event(event_t& event)
@@ -237,6 +247,12 @@ int view_t::content_hash(bool peek)
     return 0;
 }
 
+void view_t::set_style(view_style_t style)
+{
+    state.style = style;
+    state.style.available = true;
+}
+
 void view_t::rerender()
 {
     _state_hash = 1;
@@ -259,6 +275,7 @@ bool view_t::set_hovered(view_t* view)
             event.source = view_hovered.get();
             event.cancelled = false;
             view_hovered->propagate_event(event);
+            view_hovered->rerender();
         }
         view_hovered = view->ptr();
         event_t event;
@@ -266,6 +283,7 @@ bool view_t::set_hovered(view_t* view)
         event.source = view_hovered.get();
         event.cancelled = false;
         view_hovered->propagate_event(event);
+        view_hovered->rerender();
     }
 }
 
@@ -284,6 +302,7 @@ bool view_t::set_focused(view_t* view)
             event.source = view_focused.get();
             event.cancelled = false;
             view_focused->propagate_event(event);
+            view_focused->rerender();
         }
         view_focused = view->ptr();
         event_t event;
@@ -291,6 +310,7 @@ bool view_t::set_focused(view_t* view)
         event.source = view_focused.get();
         event.cancelled = false;
         view_focused->propagate_event(event);
+        view_focused->rerender();
     }
 }
 
@@ -301,17 +321,23 @@ bool view_t::is_dragged(view_t* view)
 
 view_ptr _view_from_xy(view_ptr view, int x, int y)
 {
-    // rect_t r = view->layout()->render_rect;
-    // printf("%s %d %d %d %d\n", view->type_name().c_str(), r.x,r.y,r.w,r.h);
+    rect_t r = view->layout()->render_rect;
 
     point_t p = { x, y };
     if (point_in_rect(p, view->layout()->render_rect)) {
+
+        // printf("%s %d %d %d %d\n", view->type_name().c_str(), r.x,r.y,r.w,r.h);
+        // if (view->is_type_of(view_type_e::TEXT)) {
+        //     printf("[%s]\n", view->cast<text_t>()->text().c_str());
+        // }
+
         for (auto v : view->children) {
             view_ptr res = _view_from_xy(v, x, y);
             if (res && res->layout()->visible) {
                 return res;
             }
         }
+
         return view;
     }
     return nullptr;
@@ -361,7 +387,6 @@ bool view_offer_hover(view_ptr view)
 void view_dispatch_mouse_event(event_t& event, view_list& views)
 {
     view_ptr view = view_from_xy(views, event.x, event.y);
-
     if (!view)
         return;
 

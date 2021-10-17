@@ -4,6 +4,7 @@
 #include "events.h"
 #include "layout.h"
 #include "view_types.h"
+#include "view_style.h"
 
 #include <memory>
 #include <string>
@@ -87,10 +88,12 @@ struct view_t : events_manager_t, event_object_t {
         rect_t rect;
         int scroll_x;
         int scroll_y;
+        view_style_t style;
     } state;
 
-    // hashes
+    void set_style(view_style_t style);
 
+    // hashes
     virtual int state_hash(bool peek = false);
     virtual int content_hash(bool peek = false);
     virtual void rerender();

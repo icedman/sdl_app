@@ -16,6 +16,15 @@ void damage_t::damage_whole()
 
 void damage_t::damage(rect_t r)
 {
+    if (r.x < 0) {
+        r.w += r.x;
+        r.x = 0;
+    }
+    if (r.y < 0) {
+        r.h += r.y;
+        r.y = 0;
+    }
+    if (r.w < 0 || r.h < 0) return;
     damage_rects.push_back(r);
 }
 

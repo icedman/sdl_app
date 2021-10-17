@@ -90,6 +90,6 @@ struct renderer_t {
     int text_span_idx;
 };
 
-text_span_t span_from_index(std::vector<text_span_t>& spans, int idx);
+text_span_t span_from_index(std::vector<text_span_t>& spans, int idx, bool bg = false);
 
 #endif // RENDERER_H

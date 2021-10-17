@@ -539,7 +539,7 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
 
     layout_compute_absolute_position(item);
 
-    _LOG("%s %d\n", item->name.c_str(), items_visited);
+    // _LOG("%s %d\n", item->name.c_str(), items_visited);
 }
 
 static bool compare_item_order(layout_item_ptr f1, layout_item_ptr f2)
