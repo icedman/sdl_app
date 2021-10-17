@@ -1,25 +1,21 @@
 #include "rich_text.h"
 #include "damage.h"
 #include "hash.h"
+#include "scrollarea.h"
 #include "system.h"
 #include "text.h"
-#include "scrollarea.h"
 
 #define VISIBLE_BLOCKS_PAD 4
 
 rich_text_block_t::rich_text_block_t()
     : text_block_t()
 {
-    // on(EVT_MOUSE_CLICK, [this](event_t& evt) {
-    //     printf("touched %s!\n", this->block->text().c_str());
-    //     return true;
-    // });
 }
 
 rich_text_t::rich_text_t()
     : panel_t()
     , visible_blocks(0)
-    , wrapped(false)
+    , wrapped(true)
 {
     layout()->prelayout = [this](layout_item_t* item) {
         this->prelayout();
@@ -48,7 +44,7 @@ void rich_text_t::update_block(view_ptr item, block_ptr block)
     editor_block->block = block;
     editor_block->set_text(block->text() + " ");
 
-    if (!block->data || block->data->dirty) {   
+    if (!block->data || block->data->dirty) {
         editor->highlight(block->lineNumber, 1);
     }
 
@@ -235,7 +231,6 @@ void rich_text_t::prelayout()
         }
     }
 
-    
     lead_spacer->layout()->height = (first_index * block_height);
     lead_spacer->layout()->visible = lead_spacer->layout()->height > 1;
     tail_spacer->layout()->height = 8 * block_height;
@@ -246,8 +241,6 @@ void rich_text_t::prelayout()
         tail_spacer->layout()->height += total_height - computed;
     }
     tail_spacer->layout()->visible = tail_spacer->layout()->height > 1;
-
-
 }
 
 void rich_text_t::render(renderer_t* renderer)

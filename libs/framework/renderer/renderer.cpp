@@ -1,8 +1,8 @@
 #include "renderer.h"
 
 #include <SDL2/SDL.h>
-#include <cairo.h>
 #include <algorithm>
+#include <cairo.h>
 
 #ifndef M_PI
 #define M_PI 3.14159f
@@ -57,6 +57,11 @@ text_span_t span_from_index(std::vector<text_span_t>& spans, int idx)
     text_span_t res = { 0, 0, { 255, 255, 255, 0 }, { 0, 0, 0, 0 }, false, false, false, 0 };
     for (auto s : spans) {
         if (idx >= s.start && idx < s.start + s.length) {
+
+            if (s.caret != 0 || color_is_set(s.bg)) {
+                continue;
+            }
+
             res.start = s.start;
             res.length = s.length;
             res.bold |= s.bold;
@@ -67,9 +72,6 @@ text_span_t span_from_index(std::vector<text_span_t>& spans, int idx)
             }
             if (color_is_set(s.fg)) {
                 res.fg = s.fg;
-            }
-            if (color_is_set(s.bg)) {
-                res.bg = s.bg;
             }
         }
     }
@@ -148,7 +150,7 @@ image_t* renderer_t::create_image(int w, int h)
 
 image_t* renderer_t::create_image_from_svg(std::string path, int w, int h)
 {
-    for(auto f : image_cache) {
+    for (auto f : image_cache) {
         if (f->path == path && f->width == w && f->height == h) {
             f->ref++;
             return f;
@@ -172,7 +174,7 @@ image_t* renderer_t::create_image_from_svg(std::string path, int w, int h)
 
 image_t* renderer_t::create_image_from_png(std::string path)
 {
-    for(auto f : image_cache) {
+    for (auto f : image_cache) {
         if (f->path == path) {
             f->ref++;
             return f;
@@ -202,7 +204,7 @@ void renderer_t::destroy_image(image_t* ctx)
 {
     bool delete_ctx = false;
     if (std::find(image_cache.begin(), image_cache.end(), ctx) != image_cache.end()) {
-        ctx->ref--;    
+        ctx->ref--;
         if (!ctx->ref) {
             image_cache.erase(std::find(image_cache.begin(), image_cache.end(), ctx));
             delete_ctx = true;
@@ -225,7 +227,7 @@ void renderer_t::destroy_image(image_t* ctx)
 
 font_t* renderer_t::create_font(std::string name, int size)
 {
-    for(auto f : font_cache) {
+    for (auto f : font_cache) {
         if (f->name == name && (int)f->size == size) {
             f->ref++;
             return f;
@@ -253,7 +255,7 @@ void renderer_t::destroy_font(font_t* font)
 {
     bool delete_font = false;
     if (std::find(font_cache.begin(), font_cache.end(), font) != font_cache.end()) {
-        font->ref--;    
+        font->ref--;
         if (!font->ref) {
             font_cache.erase(std::find(font_cache.begin(), font_cache.end(), font));
             delete_font = true;

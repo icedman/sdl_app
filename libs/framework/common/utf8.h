@@ -12,6 +12,6 @@ std::string utf8_insert(std::string& text, size_t pos, std::string& str);
 std::string utf8_erase(std::string& text, size_t pos, size_t len = std::string::npos);
 std::string utf8_substr(std::string& text, size_t pos, size_t len = std::string::npos);
 size_t utf8_length(std::string& text);
-size_t utf8_clength(char *text);
+size_t utf8_clength(char* text);
 
 #endif // UTF8_H

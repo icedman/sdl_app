@@ -40,8 +40,8 @@ struct pango_font_t : font_t {
     PangoContext* context;
     PangoLayout* layout;
 
-    pango_font_t *italic;
-    pango_font_t *bold;
+    pango_font_t* italic;
+    pango_font_t* bold;
 };
 
 void pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
@@ -154,7 +154,7 @@ font_t* pango_font_create(char* fdsc, char* alias)
 font_t* pango_font_create(std::string name, int size)
 {
     std::string desc = name + " " + std::to_string(size);
-    font_t *fnt = pango_font_create((char*)desc.c_str(), "");
+    font_t* fnt = pango_font_create((char*)desc.c_str(), "");
     fnt->name = name;
     fnt->size = size;
 
@@ -331,16 +331,61 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, wchar_t* text, int 
     return 0;
 }
 
+inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, int x, int y, text_span_t& span, color_t clr, bool bold, bool italic, bool underline)
+{
+    cairo_t* cairo_context = ctx_cairo_context(renderer->context);
+    pango_font_t* fnt = (pango_font_t*)font;
+
+    // text span
+    color_t _clr = clr;
+    color_t _bg = { 0, 0, 0, 0 };
+    bool _bold = bold;
+    bool _italic = italic;
+    bool _underline = underline;
+    int _caret = 0;
+
+    if (span.length) {
+        _clr = span.fg;
+        _bg = span.bg;
+        _bold = span.bold;
+        _italic = span.italic;
+        _underline = span.underline;
+        _caret = span.caret;
+    }
+
+    pango_font_t* _pf = fnt;
+    if (span.italic && fnt->italic) {
+        _pf = fnt->italic;
+    }
+    if (span.bold && fnt->bold) {
+        _pf = fnt->bold;
+    }
+
+    pango_layout_set_text(_pf->layout, text + span.start, span.length);
+    cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
+    cairo_move_to(cairo_context, x + span.start * fnt->width, y);
+    pango_cairo_show_layout(cairo_context, _pf->layout);
+
+    if (span.underline) {
+        rect_t r = { x + span.start * fnt->width, y, fnt->width, fnt->height };
+        r.y += r.h - (1 + UNDERLINE_WIDTH);
+        r.h = UNDERLINE_WIDTH;
+        r.w *= span.length;
+        renderer->draw_rect(r, clr);
+    }
+    return 0;
+}
+
 int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, int y, color_t clr, bool bold, bool italic, bool underline)
 {
     int l = utf8_clength(text);
 
-#ifdef FONT_PREBAKE_GLYPHS // define at build config
+#ifdef FONT_PREBAKE_GLYPHS
     bool draw_with_prebaked_glyphs = false;
-    
-    #ifdef FONT_FORCE_DRAW_PREBAKED_GLYPHS
+
+#ifdef FONT_FORCE_DRAW_PREBAKED_GLYPHS
     draw_with_prebaked_glyphs = true;
-    #endif
+#endif
 
     if (!draw_with_prebaked_glyphs && l != strlen(text)) {
         draw_with_prebaked_glyphs = true;
@@ -352,26 +397,76 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, 
     }
 #endif
 
-    char *_s = text;
+    char* _s = text;
 
     cairo_t* cairo_context = ctx_cairo_context(renderer->context);
-    pango_font_t *fnt = (pango_font_t*)font;
+    pango_font_t* fnt = (pango_font_t*)font;
 
     if (!renderer->text_spans.size()) {
         pango_layout_set_text(fnt->layout, _s, l);
-        cairo_set_source_rgb(cairo_context, (float)clr.r/255,(float)clr.g/255,(float)clr.b/255);
+        cairo_set_source_rgb(cairo_context, (float)clr.r / 255, (float)clr.g / 255, (float)clr.b / 255);
         cairo_move_to(cairo_context, x, y);
         pango_cairo_show_layout(cairo_context, fnt->layout);
         return l * fnt->width;
     }
 
-    for(auto s : renderer->text_spans) {
+#if 1
+    int clen = strlen(text);
+    int start = renderer->text_span_idx;
+    text_span_t prev;
+    prev.start = 0;
+
+    for (auto s : renderer->text_spans) {
+        if (s.start + s.length < start)
+            continue;
+
+        if (color_is_set(s.bg)) {
+            rect_t rect = { x + (start + s.start) * fnt->width, y, s.length * fnt->width, fnt->height };
+            renderer->draw_rect(rect, s.bg, true);
+        }
+
+        if (s.caret && s.length == 1) {
+            rect_t r = { x + (start + s.start) * fnt->width, y, s.length * fnt->width, fnt->height };
+            if (s.caret == 2) {
+                r.x += r.w - CARET_WIDTH;
+            }
+            r.w = CARET_WIDTH;
+            renderer->draw_rect(r, clr);
+        }
+    }
+
+    for (int i = 0; i < clen + 1; i++) {
+
+        text_span_t res = span_from_index(renderer->text_spans, renderer->text_span_idx + i);
+
+        if (!res.equals(prev)) {
+            prev.length = start + i - prev.start;
+            pango_font_draw_span(renderer, fnt, _s, x, y, prev, clr, bold, italic, underline);
+            prev = res;
+            prev.start = i;
+        }
+
+        if (i == 0) {
+            prev = res;
+            prev.start = 0;
+        }
+    }
+
+    renderer->text_span_idx += clen;
+
+    prev.length = start + clen - prev.start;
+    pango_font_draw_span(renderer, fnt, _s, x, y, prev, clr, bold, italic, underline);
+
+#else
+
+    // draw background and the caret first
+    for (auto s : renderer->text_spans) {
         if (color_is_set(s.bg)) {
             rect_t rect = { x + s.start * fnt->width, y, s.length * fnt->width, fnt->height };
             renderer->draw_rect(rect, s.bg, true);
-        }   
+        }
 
-        if (s.caret) {
+        if (s.caret && s.length == 1) {
             rect_t r = { x + s.start * fnt->width, y, s.length * fnt->width, fnt->height };
             if (s.caret == 2) {
                 r.x += r.w - CARET_WIDTH;
@@ -379,25 +474,18 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, 
             r.w = CARET_WIDTH;
             renderer->draw_rect(r, clr);
         }
-
     }
-    for(auto s : renderer->text_spans) {
-        if (s.underline) {
-            rect_t r = { x + s.start * fnt->width, y, fnt->width, fnt->height };
-            r.y += r.h - (1 + UNDERLINE_WIDTH);
-            r.h = UNDERLINE_WIDTH;
-            r.w *= s.length;
-            renderer->draw_rect(r, clr);
-        }
 
-        if (s.caret || color_is_set(s.bg)) continue;
+    for (auto s : renderer->text_spans) {
+        if (s.caret || color_is_set(s.bg))
+            continue;
 
         color_t _clr = clr;
         if (s.length && color_is_set(s.fg)) {
             _clr = s.fg;
         }
 
-        pango_font_t *_pf = fnt;
+        pango_font_t* _pf = fnt;
         if (s.italic) {
             _pf = fnt->italic;
         }
@@ -405,10 +493,19 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, 
             _pf = fnt->bold;
         }
         pango_layout_set_text(_pf->layout, _s + s.start, s.length);
-        cairo_set_source_rgb(cairo_context, (float)_clr.r/255,(float)_clr.g/255,(float)_clr.b/255);
+        cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
         cairo_move_to(cairo_context, x + s.start * fnt->width, y);
         pango_cairo_show_layout(cairo_context, _pf->layout);
+
+        if (s.underline) {
+            rect_t r = { x + s.start * fnt->width, y, fnt->width, fnt->height };
+            r.y += r.h - (1 + UNDERLINE_WIDTH);
+            r.h = UNDERLINE_WIDTH;
+            r.w *= s.length;
+            renderer->draw_rect(r, clr);
+        }
     }
+#endif
 
     return l * fnt->width;
 }

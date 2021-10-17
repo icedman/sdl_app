@@ -1,9 +1,9 @@
 #include "editor_view.h"
 #include "damage.h"
+#include "gutter.h"
 #include "hash.h"
 #include "system.h"
 #include "text.h"
-#include "gutter.h"
 
 editor_view_t::editor_view_t()
     : rich_text_t()

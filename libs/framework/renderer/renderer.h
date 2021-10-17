@@ -27,6 +27,11 @@ struct text_span_t {
     bool italic;
     bool underline;
     int caret;
+
+    bool equals(text_span_t& b)
+    {
+        return (fg.r == b.fg.r && fg.b == b.fg.b && fg.a == b.fg.a) && (bg.r == b.bg.r && bg.b == b.bg.b && bg.a == b.bg.a) && bold == b.bold && italic == b.italic && underline == b.underline;
+    }
 };
 
 struct renderer_t {

@@ -1,8 +1,8 @@
 #include "list.h"
+#include "hash.h"
+#include "scrollarea.h"
 #include "system.h"
 #include "text.h"
-#include "scrollarea.h"
-#include "hash.h"
 
 #define VISIBLE_ITEMS_PAD 4
 
@@ -83,9 +83,9 @@ void list_t::prelayout()
 
     visible_items = lo->render_rect.h / item_height + VISIBLE_ITEMS_PAD;
 
-    while(subcontent->children.size() < visible_items) {
+    while (subcontent->children.size() < visible_items) {
         view_ptr vi = create_item();
-        list_item_t *i = vi->cast<list_item_t>();
+        list_item_t* i = vi->cast<list_item_t>();
         subcontent->add_child(vi);
         vi->layout()->height = item_height;
     }
@@ -93,7 +93,8 @@ void list_t::prelayout()
 
 void list_t::render(renderer_t* renderer)
 {
-    if (!subcontent) return;
+    if (!subcontent)
+        return;
 
     layout_item_ptr lo = layout();
     layout_item_ptr slo = scrollarea->layout();
@@ -102,12 +103,14 @@ void list_t::render(renderer_t* renderer)
 
     int first_visible = -slo->scroll_y / item_height;
     std::vector<list_item_data_t>::iterator it = data.begin();
-    if (first_visible >= data.size()) first_visible = data.size() - 1;
-    if (first_visible < 0) first_visible = 0;
+    if (first_visible >= data.size())
+        first_visible = data.size() - 1;
+    if (first_visible < 0)
+        first_visible = 0;
     it += first_visible;
 
     int vc = 0;
-    for(auto c : subcontent->children) {
+    for (auto c : subcontent->children) {
         if (it != data.end()) {
             list_item_data_t d = *it++;
             update_item(c, d);
@@ -129,7 +132,6 @@ void list_t::render(renderer_t* renderer)
     }
 
     tail_spacer->layout()->visible = tail_spacer->layout()->height > 1;
-    
 
     relayout();
 

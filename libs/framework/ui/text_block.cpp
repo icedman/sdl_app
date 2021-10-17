@@ -44,10 +44,10 @@ static std::vector<std::string> split_string(const std::string& str)
     std::string s = std::string(start, pch - start);
     result.push_back(s);
 
-#if 0
+#if 1
     std::vector<std::string> result_filtered;
     std::string pending;
-    for(auto s : result) {
+    for (auto s : result) {
         if (s.length() == 1) {
             pending += s;
             if (pending.length() > 8) {
@@ -169,7 +169,7 @@ void text_block_t::render(renderer_t* renderer)
 
         rect_t r = span->render_rect;
 
-        // renderer->draw_rect(span->render_rect, { 255, 0, 255 }, false, 1);
+        // renderer->draw_rect(span->render_rect, { 255, 0, 255, 100 }, false, 1);
         renderer->draw_text(NULL, (char*)text_span->text.c_str(),
             r.x,
             r.y, { 255, 255, 255 });

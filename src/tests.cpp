@@ -182,18 +182,18 @@ view_ptr test5()
         // printf("%s\n", scopeName.c_str());
     }
 
-// struct text_span_t {
-//     int start;
-//     int length;
-//     color_t fg;
-//     color_t bg;
-//     bool bold;
-//     bool italic;
-//     bool underline;
-//     int caret;
-// };
+    // struct text_span_t {
+    //     int start;
+    //     int length;
+    //     color_t fg;
+    //     color_t bg;
+    //     bool bold;
+    //     bool italic;
+    //     bool underline;
+    //     int caret;
+    // };
 
-    spans.push_back({ 2, 15, { 0, 0, 0, 0 }, { 150, 150, 150, 60 }, false, false, false });
+    spans.push_back({ 2, 15, { 0, 0, 0, 0 }, { 150, 150, 150, 60 }, false, false, false, 0 });
 
     // spans.clear();
 

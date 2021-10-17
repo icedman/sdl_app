@@ -260,7 +260,7 @@ int asteroidDrawString(renderer_t* renderer, float x, float y, char* str, float 
             renderer->draw_rect({ x, y, (12 * size), (17 * size) }, _bg, true);
         }
 
-        int adv = asteroidDrawChar(renderer, x, y-1, str[i], size, _clr, _bold, _italic, _underline, false);
+        int adv = asteroidDrawChar(renderer, x, y - 1, str[i], size, _clr, _bold, _italic, _underline, false);
         x += adv;
     }
     return 0;
