@@ -1,71 +1,32 @@
 #ifndef EDITOR_VIEW_H
 #define EDITOR_VIEW_H
 
-#include "panel.h"
-#include "text.h"
-#include "view.h"
-
-#include "block.h"
-#include "cursor.h"
 #include "editor.h"
+#include "rich_text.h"
 
-struct editor_view : panel_view {
-    editor_view();
+struct editor_view_t : rich_text_t {
+    editor_view_t();
 
-    DECLAR_VIEW_TYPE(CUSTOM, panel_view)
-    std::string type_name() override { return "editor"; }
+    DECLAR_VIEW_TYPE(CUSTOM, rich_text_t)
 
-    void prelayout() override;
+    virtual bool handle_key_sequence(event_t& event);
+    virtual bool handle_key_text(event_t& event);
+    virtual bool handle_mouse_down(event_t& event);
+    virtual bool handle_mouse_move(event_t& event);
 
-    bool mouse_down(int x, int y, int button, int clicks = 0) override;
-    bool mouse_up(int x, int y, int button) override;
-    bool mouse_move(int x, int y, int button) override;
+    void update() override;
+    void ensure_visible_cursor();
+    void scroll_to_cursor(cursor_t cursor);
 
-    bool input_key(int k) override;
-    bool input_text(std::string text) override;
-    bool input_sequence(std::string text) override;
+    view_ptr gutter();
+    view_ptr minimap();
 
-    void prerender() override;
-    void render() override;
-    void update(int millis) override;
-
-    void ensure_visible_cursor(bool centered = false);
-    void scroll_to_cursor(cursor_t c, bool centered = true);
-
-    int start_row;
-    int end_row;
-    int v_scroll_index;
-
-    int target_start_row;
+    view_ptr _gutter;
+    view_ptr _minimap;
 
     int mouse_x;
     int mouse_y;
-    int rows;
-    int cols;
-
-    size_t computed_lines;
-
-    editor_ptr editor;
-    block_ptr longest_block;
-    view_item_ptr gutter;
-    view_item_ptr minimap;
-    view_item_ptr completer;
-    view_item_ptr popups;
-
-    std::string font;
-    int fw, fh;
-
-    bool showMinimap;
-    bool showGutter;
-
-    block_ptr start_block;
-    block_ptr end_block;
-    block_ptr prev_start_block;
-    block_ptr prev_end_block;
-    int prev_doc_size;
-    int prev_computed_lines;
-
-    std::vector<RenRect> previous_block_damages;
+    int scroll_to;
 };
 
-#endif // EDITOR_VIEW_H
+#endif EDITOR_VIEW_H

@@ -53,14 +53,10 @@ struct document_t {
 
     size_t cursorId;
     size_t blockId;
-    int columns;
-    int rows;
 
     bool windowsLineEnd;
 
     void updateBlocks(block_list& blocks, size_t lineNumber = 0, size_t count = 0);
-    void setColumns(int cols);
-    void setRows(int rows);
 
     bool lineNumberingIntegrity();
 };

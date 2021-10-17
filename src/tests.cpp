@@ -1,240 +1,427 @@
-#include "tests.h"
-
-#include "app.h"
-#include "app_view.h"
-
 #include "button.h"
-#include "explorer.h"
-#include "inputtext.h"
+#include "events.h"
+#include "image.h"
+#include "layout.h"
 #include "list.h"
 #include "panel.h"
 #include "popup.h"
+#include "scrollarea.h"
 #include "scrollbar.h"
-#include "tabbar.h"
+#include "splitter.h"
+#include "system.h"
 #include "text.h"
+#include "text_block.h"
+#include "view.h"
 
-#include "renderer.h"
+#include "grammar.h"
+#include "parse.h"
+#include "reader.h"
+#include "theme.h"
 
-view_item_ptr test_root()
+#include "editor_view.h"
+#include "explorer.h"
+#include "rich_text.h"
+
+explorer_t explorer;
+
+view_ptr test1();
+view_ptr test2();
+view_ptr test3();
+view_ptr test4();
+view_ptr test5();
+view_ptr test6();
+
+view_ptr test()
 {
-    return test5();
+    return test6();
 }
 
-view_item_ptr test6()
+parse::grammar_ptr load(std::string path)
 {
-    view_item_ptr root = std::make_shared<panel_view>();
-    root->class_name = "default";
-    root->layout()->margin = 40;
+    Json::Value json = parse::loadJson(path);
+    return parse::parse_grammar(json);
+}
 
-    panel_view* panel = view_item::cast<panel_view>(root);
-    panel->content()->add_child(std::make_shared<inputtext_view>());
-    panel->content()->add_child(std::make_shared<inputtext_view>());
+void set_sidebar_data(view_ptr sidebar)
+{
+    std::vector<list_item_data_t> data;
+    for (auto f : explorer_t::instance()->renderList) {
+        list_item_data_t d = {
+            value : f->fullPath,
+            text : f->name,
+            indent : f->depth * (sidebar->font()->width * 2),
+            data : f
+        };
+        data.push_back(d);
+    }
+    sidebar->cast<list_t>()->update_data(data);
+}
+
+view_ptr test6()
+{
+    std::string filename = "./src/main.cpp";
+    // std::string filename = "./tests/main.cpp";
+    // std::string filename = "./tests/utf8_test1.txt";
+    // std::string filename = "./tests/tinywl.c";
+    // std::string filename = "./tests/sqlite3.c";
+
+    view_ptr root_view = std::make_shared<horizontal_container_t>();
+
+    view_ptr sidebar = std::make_shared<list_t>();
+    sidebar->layout()->width = 300;
+
+    explorer_t::instance()->setRootFromFile("./src");
+    explorer_t::instance()->update(0);
+    explorer_t::instance()->print();
+
+    set_sidebar_data(sidebar);
+
+    sidebar->on(EVT_ITEM_SELECT, [sidebar](event_t& evt) {
+        evt.cancelled = true;
+        view_t* item = (view_t*)evt.source;
+        if (!item)
+            return false;
+        list_item_data_t d = item->cast<list_item_t>()->item_data;
+        fileitem_t* file = (fileitem_t*)d.data;
+        if (file->isDirectory) {
+            if (file->canLoadMore) {
+                explorer_t::instance()->loadFolder(file);
+                file->canLoadMore = false;
+            }
+            file->expanded = !file->expanded;
+            explorer_t::instance()->regenerateList = true;
+            explorer_t::instance()->update(0);
+            explorer_t::instance()->print();
+            set_sidebar_data(sidebar);
+            sidebar->parent->relayout();
+        }
+
+        return true;
+    });
+
+    root_view->layout()->margin_left = 20;
+    view_ptr view = std::make_shared<editor_view_t>();
+    editor_view_t* ev = view->cast<editor_view_t>();
+
+    ev->gutter()->layout()->width = 50;
+    ev->minimap()->layout()->width = 80;
+
+    editor_ptr editor = std::make_shared<editor_t>();
+    editor->highlighter.lang = std::make_shared<language_info_t>();
+    editor->highlighter.lang->grammar = load("./tests/syntaxes/c.json");
+    Json::Value root = parse::loadJson("./tests/themes/dracula.json");
+    // Json::Value root = parse::loadJson("./tests/themes/bluloco.json");
+    editor->highlighter.theme = parse_theme(root);
+
+    editor->pushOp("OPEN", filename);
+    editor->runAllOps();
+
+    editor->name = "editor:";
+    editor->name += filename;
+
+    ev->editor = editor;
+
+    root_view->add_child(sidebar);
+    root_view->add_child(view);
+
+    view_t::set_focused(view.get());
+    return root_view;
+}
+
+view_ptr test5()
+{
+    bool wrapped = true;
+
+    parse::grammar_ptr gm;
+    gm = load("./libs/tm-parser/test-cases/themes/syntaxes/c.json");
+
+    // Json::Value root = parse::loadJson("./libs/tm-parser/test-cases/themes/dark_vs.json");
+    Json::Value root = parse::loadJson("./libs/tm-parser/test-cases/themes/dracula.json");
+    theme_ptr theme = parse_theme(root);
+
+    view_ptr view = std::make_shared<panel_t>();
+    view->layout()->margin = 20;
+
+    view_ptr block = std::make_shared<text_block_t>();
+    block->cast<text_block_t>()->wrapped = wrapped;
+
+    std::string code = "extern \"C\" int main(int argc, char** argv);";
+    const char* first = code.c_str();
+    const char* last = first + code.length();
+    std::map<size_t, scope::scope_t> scopes;
+
+    parse::stack_ptr parser_state = gm->seed();
+    parser_state = parse::parse(first, last, parser_state, scopes, true);
+
+    std::vector<text_span_t> spans;
+
+    std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
+    size_t n = 0;
+    size_t l = code.length();
+    while (it != scopes.end()) {
+        size_t n = it->first;
+        scope::scope_t scope = it->second;
+        style_t s = theme->styles_for_scope(scope);
+
+        text_span_t ts = {
+            .start = (int)n,
+            .length = (int)(l - n),
+            .fg = { 255 * s.foreground.red, 255 * s.foreground.green, 255 * s.foreground.blue, 0 },
+            .bg = { 0, 0, 0, 0 },
+            .bold = false,
+            .italic = s.italic,
+            .underline = false,
+            .caret = 0
+        };
+
+        // printf("%f %f %f %f\n", s.foreground.red, s.foreground.green, s.foreground.blue, s.foreground.alpha);
+        spans.push_back(ts);
+        it++;
+
+        // std::string scopeName(scope);
+        // printf("%s\n", scopeName.c_str());
+    }
+
+// struct text_span_t {
+//     int start;
+//     int length;
+//     color_t fg;
+//     color_t bg;
+//     bool bold;
+//     bool italic;
+//     bool underline;
+//     int caret;
+// };
+
+    spans.push_back({ 2, 15, { 0, 0, 0, 0 }, { 150, 150, 150, 60 }, false, false, false });
+
+    // spans.clear();
+
+    text_span_t* prev = NULL;
+    for (auto& s : spans) {
+        if (prev) {
+            prev->length = s.start - prev->start;
+        }
+        prev = &s;
+    }
+
+    block->cast<text_block_t>()->_text_spans = spans;
+    block->cast<text_block_t>()->set_text(code);
+    view->cast<panel_t>()->content()->add_child(block);
+    view->cast<panel_t>()->content()->layout()->fit_children_x = !wrapped;
+
+    block->on(EVT_KEY_TEXT, [block](event_t& event) {
+        if (event.text == " ") {
+            block->cast<text_block_t>()->set_text("");
+        } else {
+            block->cast<text_block_t>()->set_text(block->cast<text_block_t>()->text() + event.text);
+        }
+        return true;
+    });
+
+    return view;
+}
+
+view_ptr test4()
+{
+    view_ptr view = std::make_shared<vertical_container_t>();
+    view->layout()->margin = 20;
+
+    view_ptr vc = std::make_shared<vertical_container_t>();
+    {
+        view_ptr button = std::make_shared<button_t>();
+        std::string text = "Button";
+        text_t* button_text = button->cast<button_t>()->text->cast<text_t>();
+        button_text->set_text(text);
+        vc->add_child(button);
+    }
+    view_ptr hc = std::make_shared<horizontal_container_t>();
+    {
+        view_ptr button = std::make_shared<button_t>();
+        std::string text = "Button";
+        text_t* button_text = button->cast<button_t>()->text->cast<text_t>();
+        button_text->set_text(text);
+        hc->add_child(button);
+    }
+
+    view->add_child(vc);
+    view->add_child(hc);
+
+    return view;
+}
+
+view_ptr menu;
+view_ptr submenu;
+view_ptr create_submenu();
+
+view_ptr create_popup()
+{
+    view_ptr popup = std::make_shared<popup_t>();
+
+    view_ptr btn = std::make_shared<button_t>("hello 1");
+    popup->cast<popup_t>()->content()->add_child(btn);
+    btn->cast<button_t>()->on(EVT_MOUSE_CLICK, [btn](event_t& evt) {
+        popup_manager_t::instance()->cast<popup_manager_t>()->push_at(create_submenu(), btn->layout()->render_rect, POPUP_DIRECTION_RIGHT);
+        return true;
+    });
+
+    btn = std::make_shared<button_t>("hello 2");
+    popup->cast<popup_t>()->content()->add_child(btn);
+    btn->cast<button_t>()->on(EVT_MOUSE_CLICK, [btn](event_t& evt) {
+        popup_manager_t::instance()->cast<popup_manager_t>()->push_at(create_submenu(), btn->layout()->render_rect, POPUP_DIRECTION_RIGHT);
+        return true;
+    });
+
+    popup->layout()->width = 300;
+    popup->layout()->height = 300;
+    return popup;
+}
+
+view_ptr create_menu()
+{
+    if (menu)
+        return menu;
+    menu = create_popup();
+    return menu;
+}
+
+view_ptr create_submenu()
+{
+    if (submenu)
+        return submenu;
+    submenu = create_popup();
+    return submenu;
+}
+
+view_ptr test3()
+{
+    view_ptr view = std::make_shared<view_t>();
+    view->layout()->margin = 20;
+
+    view_ptr top = std::make_shared<vertical_container_t>();
+    view_ptr text = std::make_shared<text_t>();
+    text->cast<text_t>()->set_text("Hello World");
+
+    std::vector<text_span_t> spans;
+    spans.push_back({
+        1,
+        4,
+        { 100, 0, 255 },
+        bold : true,
+        italic : true,
+        underline : true
+    });
+    text->cast<text_t>()->_text_spans = spans;
+
+    top->add_child(text);
+    top->layout()->grow = 1;
+
+    text->on(EVT_KEY_TEXT, [text](event_t& event) {
+        std::string t = event.text + event.text + event.text;
+        if (event.text == " ") {
+            text->cast<text_t>()->set_text("");
+        } else {
+            text->cast<text_t>()->set_text(t);
+        }
+        return true;
+    });
+
+    view_ptr toolbar = std::make_shared<horizontal_container_t>();
+    top->add_child(toolbar);
+    toolbar->layout()->height = 40;
+    toolbar->layout()->justify = LAYOUT_JUSTIFY_SPACE_BETWEEN;
+
+    view_ptr icon = std::make_shared<image_view_t>();
+    icon->cast<image_view_t>()->load_icon("./tests/3d.svg", 24, 24);
+    // toolbar->add_child(icon);
+
+    view->add_child(top);
+
+    view_ptr vsplitter = std::make_shared<horizontal_splitter_t>();
+    view->add_child(vsplitter);
+
+    view_ptr panel = std::make_shared<panel_t>();
+
+    view_ptr hcontainer = std::make_shared<horizontal_container_t>();
+
+    view->add_child(hcontainer);
+    hcontainer->layout()->grow = 7;
+
+    view_ptr hsplitter = std::make_shared<vertical_splitter_t>();
+
+    view_ptr list = std::make_shared<list_t>();
+    list->layout()->grow = 1;
+    hcontainer->add_child(list);
+    hcontainer->add_child(hsplitter);
+    hcontainer->add_child(panel);
+    panel->layout()->grow = 4;
+
+    hsplitter->cast<splitter_t>()->container = hcontainer;
+    hsplitter->cast<splitter_t>()->target = panel;
+
+    vsplitter->cast<splitter_t>()->container = view;
+    vsplitter->cast<splitter_t>()->target = hcontainer;
+
+    int item_count = 100;
+    for (int i = 0; i < item_count; i++) {
+        view_ptr text = std::make_shared<text_t>();
+        text->cast<text_t>()->set_text("Hello World " + std::to_string(i));
+        panel->cast<panel_t>()->content()->add_child(text);
+    }
 
     std::vector<list_item_data_t> data;
-    for (int i = 0; i < 20; i++) {
-        std::string text = "item ";
-        text += 'a' + i;
-        list_item_data_t item = {
-            text : text,
-            value : text
+    for (int i = 0; i < item_count * 100; i++) {
+        list_item_data_t d = {
+            value : "List Item " + std::to_string(i),
+            text : "List Item " + std::to_string(i)
         };
-        data.push_back(item);
+        data.push_back(d);
     }
-    view_item_ptr list = std::make_shared<list_view>(data);
-    list->layout()->width = 200;
-    list->layout()->height = 300;
-    panel->content()->add_child(list);
+    list->cast<list_t>()->update_data(data);
 
-    view_item_ptr popups = std::make_shared<popup_manager>();
-    popup_manager* pm = view_item::cast<popup_manager>(popups);
+    for (int i = 0; i < 8; i++) {
+        view_ptr button = std::make_shared<button_t>();
+        std::string text = "Button " + std::to_string(i);
+        text_t* button_text = button->cast<button_t>()->text->cast<text_t>();
+        button_text->set_text(text);
+        toolbar->add_child(button);
 
-    root->add_child(popups);
+        if (i == 0) {
+            button_text->on(EVT_KEY_TEXT, [button_text](event_t& event) {
+                if (event.text == " ") {
+                    button_text->set_text("");
+                } else {
+                    button_text->set_text(button_text->text() + event.text);
+                }
+                return true;
+            });
 
-    view_item_ptr pop;
-    {
-        pop = std::make_shared<popup_view>();
-        panel_view* pop_panel = view_item::cast<panel_view>(pop);
-
-        std::vector<list_item_data_t> data;
-        for (int i = 0; i < 20; i++) {
-            std::string text = "popup ";
-            text += 'a' + i;
-            list_item_data_t item = {
-                text : text,
-                value : text
-            };
-            data.push_back(item);
+            button->on(EVT_MOUSE_DOWN, [button_text](event_t& event) {
+                popup_manager_t::instance()->cast<popup_manager_t>()->push_at(create_menu(), button_text->layout()->render_rect);
+                return true;
+            });
+        } else {
+            button->on(EVT_MOUSE_DOWN, [text](event_t& event) {
+                printf("%s\n", text.c_str());
+                return true;
+            });
         }
-        view_item_ptr list = std::make_shared<list_view>(data);
-        list->layout()->width = 200;
-        list->layout()->height = 300;
-        pop->layout()->width = 200;
-        pop->layout()->height = 300;
-        pop_panel->content()->add_child(list);
-
-        pop->layout()->x = 300;
-        pop->layout()->y = 300;
-
-        // popups->add_child(pop);
     }
 
-    list->on(EVT_ITEM_SELECT, [pm, pop](event_t& evt) {
-        evt.cancelled = true;
-        view_item* item = (view_item*)evt.target;
+    // view_ptr spacer = std::make_shared<view_t>();
+    // spacer->layout()->grow = 40;
+    // list->add_child(spacer);
 
-        // printf("%s\n", pop->type.c_str());
-
-        layout_item_ptr lo = item->layout();
-
-        pm->push_at(pop,
-            { lo->render_rect.x, lo->render_rect.y, lo->render_rect.w, lo->render_rect.h },
-            POPUP_DIRECTION_RIGHT);
-        return true;
-    });
-
-    return root;
+    return view;
 }
 
-view_item_ptr test5()
+view_ptr test2()
 {
-    return std::make_shared<app_view>();
-}
-
-struct my_root : view_item {
-    void update(int millis) override
-    {
-        ((scrollbar_view*)v_scroll.get())->set_size(100, 10);
-        ((scrollbar_view*)h_scroll.get())->set_size(100, 10);
-    }
-
-    view_item_ptr v_scroll;
-    view_item_ptr h_scroll;
-    view_item_ptr scrollarea;
-};
-
-view_item_ptr test4()
-{
-    view_item_ptr root = std::make_shared<my_root>();
-    root->class_name = "default";
-
-    layout_item_ptr layout = root->layout();
-    layout->margin = 40;
-    layout->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
-
-    view_item_ptr h_layout = std::make_shared<view_item>();
-    h_layout->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
-
-    view_item_ptr v_scroll = std::make_shared<vscrollbar_view>();
-    v_scroll->layout()->width = 18;
-    view_item_ptr h_scroll = std::make_shared<hscrollbar_view>();
-    h_scroll->layout()->height = 18;
-
-    view_item_ptr scrollarea = std::make_shared<scrollarea_view>();
-    view_item_ptr content = ((scrollarea_view*)scrollarea.get())->content;
-    h_layout->add_child(scrollarea);
-    h_layout->add_child(v_scroll);
-
-    content->layout()->wrap = false;
-    content->layout()->fit_children = false;
-
-    my_root* _root = ((my_root*)root.get());
-    _root->scrollarea = scrollarea;
-    _root->v_scroll = v_scroll;
-    _root->h_scroll = h_scroll;
-
-    for (int i = 0; i < 10; i++) {
-        std::string t = "button ";
-        t += ('a' + i);
-        view_item_ptr button = std::make_shared<button_view>(t);
-        button->layout()->height = 120;
-        content->add_child(button);
-
-        button->on(EVT_MOUSE_CLICK, [i](event_t e) {
-            printf("click! %d\n", i);
-            return true;
-        });
-    }
-
-    root->add_child(h_layout);
-
-    view_item_ptr hv = std::make_shared<view_item>();
-    hv->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
-    hv->layout()->height = h_scroll->layout()->height;
-    hv->add_child(h_scroll);
-    view_item_ptr hvs = std::make_shared<view_item>();
-    hvs->layout()->width = 18;
-    hvs->layout()->height = 18;
-    hv->add_child(hvs);
-
-    root->add_child(hv);
-    return root;
-}
-
-view_item_ptr test3()
-{
-    view_style_t vs;
-    style_clear(vs);
-
-    vs.bg = { 150, 0, 150, 255 };
-    vs.filled = true;
-    style_register(vs, "default.button");
-
-    view_item_ptr root = std::make_shared<view_item>();
-    root->class_name = "default";
-
-    view_item_ptr item_a = std::make_shared<view_item>();
-    view_item_ptr item_b = std::make_shared<view_item>();
-    view_item_ptr item_c = std::make_shared<view_item>();
-    view_item_ptr item_d = std::make_shared<view_item>();
-    view_item_ptr item_e = std::make_shared<view_item>();
-    // view_item_ptr item_g = std::make_shared<view_item>();
-    // view_item_ptr item_h = std::make_shared<view_item>();
-
-    item_a->add_child(item_b);
-    item_a->add_child(item_c);
-
-    item_c->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
-    item_c->add_child(item_d);
-    item_c->add_child(item_e);
-    item_e->layout()->grow = 4;
-
-    view_item_ptr button = std::make_shared<button_view>("hey button");
-    button->class_name = "button";
-    button->add_child(std::make_shared<text_view>("hello world"));
-
-    // view_item_ptr button = std::make_shared<view_item>();
-
-    button->layout()->width = 200;
-    button->layout()->height = 40;
-    button->layout()->margin = 4;
-    button->layout()->wrap = true;
-    button->layout()->fit_children = false;
-
-    button->on(EVT_MOUSE_CLICK, [](event_t& evt) {
-        printf("click!\n");
-        return true;
-    });
-
-    item_b->add_child(button);
-    item_b->layout()->margin = 20;
-    // item_b->layout()->scroll_x = -80;
-    // item_b->layout()->scroll_y = 80;
-
-    view_item_ptr item_f = std::make_shared<text_view>("hello world");
-    item_b->add_child(item_f);
-
-    root->add_child(item_a);
-    return root;
-}
-
-view_item_ptr test2()
-{
-    view_item::debug_render = true;
-
-    view_item_ptr view = std::make_shared<view_item>();
-    view->class_name = "default";
-
-    layout_item_ptr root = view->layout();
+    view_ptr inner = std::make_shared<view_t>();
+    layout_item_ptr root = inner->layout();
+    view_ptr view = std::make_shared<view_t>();
+    view->layout()->margin = 20;
+    view->add_child(inner);
 
     // root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     root->direction = LAYOUT_FLEX_DIRECTION_ROW;
@@ -251,14 +438,14 @@ view_item_ptr test2()
 
     root->wrap = true;
 
-    layout_item_ptr item_a = std::make_shared<layout_item>();
-    layout_item_ptr item_b = std::make_shared<layout_item>();
-    layout_item_ptr item_c = std::make_shared<layout_item>();
-    layout_item_ptr item_d = std::make_shared<layout_item>();
-    layout_item_ptr item_e = std::make_shared<layout_item>();
-    layout_item_ptr item_f = std::make_shared<layout_item>();
-    layout_item_ptr item_g = std::make_shared<layout_item>();
-    layout_item_ptr item_h = std::make_shared<layout_item>();
+    layout_item_ptr item_a = std::make_shared<layout_item_t>();
+    layout_item_ptr item_b = std::make_shared<layout_item_t>();
+    layout_item_ptr item_c = std::make_shared<layout_item_t>();
+    layout_item_ptr item_d = std::make_shared<layout_item_t>();
+    layout_item_ptr item_e = std::make_shared<layout_item_t>();
+    layout_item_ptr item_f = std::make_shared<layout_item_t>();
+    layout_item_ptr item_g = std::make_shared<layout_item_t>();
+    layout_item_ptr item_h = std::make_shared<layout_item_t>();
 
     root->children.push_back(item_a);
     root->children.push_back(item_b);
@@ -279,26 +466,25 @@ view_item_ptr test2()
     return view;
 }
 
-view_item_ptr test1()
+view_ptr test1()
 {
-    view_item::debug_render = true;
-
-    view_item_ptr view = std::make_shared<view_item>();
-    view->class_name = "default";
-
-    layout_item_ptr root = view->layout();
+    view_ptr inner = std::make_shared<view_t>();
+    layout_item_ptr root = inner->layout();
+    view_ptr view = std::make_shared<view_t>();
+    view->layout()->margin = 20;
+    view->add_child(inner);
 
     root->direction = LAYOUT_FLEX_DIRECTION_COLUMN_REVERSE;
     root->margin = 20;
 
-    layout_item_ptr item_a = std::make_shared<layout_item>();
-    layout_item_ptr item_b = std::make_shared<layout_item>();
-    layout_item_ptr item_c = std::make_shared<layout_item>();
-    layout_item_ptr item_d = std::make_shared<layout_item>();
-    layout_item_ptr item_e = std::make_shared<layout_item>();
-    layout_item_ptr item_f = std::make_shared<layout_item>();
-    layout_item_ptr item_g = std::make_shared<layout_item>();
-    layout_item_ptr item_h = std::make_shared<layout_item>();
+    layout_item_ptr item_a = std::make_shared<layout_item_t>();
+    layout_item_ptr item_b = std::make_shared<layout_item_t>();
+    layout_item_ptr item_c = std::make_shared<layout_item_t>();
+    layout_item_ptr item_d = std::make_shared<layout_item_t>();
+    layout_item_ptr item_e = std::make_shared<layout_item_t>();
+    layout_item_ptr item_f = std::make_shared<layout_item_t>();
+    layout_item_ptr item_g = std::make_shared<layout_item_t>();
+    layout_item_ptr item_h = std::make_shared<layout_item_t>();
 
     item_a->rgb = { 255, 0, 255 };
     item_b->rgb = { 255, 255, 0 };
@@ -375,21 +561,21 @@ view_item_ptr test1()
     item_h->height = 200;
 
     if (item_a->children.size() == 0)
-        item_a->children.push_back(std::make_shared<layout_item>());
+        item_a->children.push_back(std::make_shared<layout_item_t>());
     if (item_b->children.size() == 0)
-        item_b->children.push_back(std::make_shared<layout_item>());
+        item_b->children.push_back(std::make_shared<layout_item_t>());
     if (item_c->children.size() == 0)
-        item_c->children.push_back(std::make_shared<layout_item>());
+        item_c->children.push_back(std::make_shared<layout_item_t>());
     if (item_d->children.size() == 0)
-        item_d->children.push_back(std::make_shared<layout_item>());
+        item_d->children.push_back(std::make_shared<layout_item_t>());
     if (item_e->children.size() == 0)
-        item_e->children.push_back(std::make_shared<layout_item>());
+        item_e->children.push_back(std::make_shared<layout_item_t>());
     if (item_f->children.size() == 0)
-        item_f->children.push_back(std::make_shared<layout_item>());
+        item_f->children.push_back(std::make_shared<layout_item_t>());
     if (item_g->children.size() == 0)
-        item_g->children.push_back(std::make_shared<layout_item>());
+        item_g->children.push_back(std::make_shared<layout_item_t>());
     if (item_h->children.size() == 0)
-        item_h->children.push_back(std::make_shared<layout_item>());
+        item_h->children.push_back(std::make_shared<layout_item_t>());
 
     return view;
 }

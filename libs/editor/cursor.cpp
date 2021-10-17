@@ -58,10 +58,8 @@ static void cursorAtPreviousUnfoldedBlock(cursor_t& cursor, bool keepAnchor)
 static void cursorAtNextUnfoldedBlock(cursor_t& cursor, bool keepAnchor)
 {
     block_ptr next = cursor.block()->next();
-    int columns = next->document->columns ? next->document->columns : 1000;
-
     while (next) {
-        cursor.setPosition(next, cursor.cursor.position % columns, keepAnchor);
+        cursor.setPosition(next, cursor.cursor.position, keepAnchor);
         if (next->data && next->data->folded && !next->data->foldable) {
             if (next->next()) {
                 next = next->next();
@@ -456,6 +454,10 @@ bool cursor_t::movePreviousWord(bool keepAnchor)
         }
     }
 
+    if (!found) {
+        moveStartOfLine(true);
+    }
+
     if (!keepAnchor) {
         clearSelection();
     }
@@ -471,9 +473,13 @@ bool cursor_t::moveNextWord(bool keepAnchor)
     for (auto i : search_results) {
         cursor.position = i.begin;
         if (i.begin > startPosition) {
-            // found = true;
+            found = true;
             break;
         }
+    }
+
+    if (!found) {
+        moveEndOfLine(true);
     }
 
     if (!keepAnchor) {

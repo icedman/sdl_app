@@ -82,27 +82,72 @@ void fileitem_t::setPath(std::string p)
     // log("fullPath: %s", fullPath.c_str());
 }
 
-void fileitem_t::load(std::string p)
+static struct explorer_t* explorerInstance = 0;
+
+struct explorer_t* explorer_t::instance()
+{
+    return explorerInstance;
+}
+
+explorer_t::explorer_t()
+    : currentItem(-1)
+    , regenerateList(true)
+{
+    loadDepth = 0;
+    allFilesLoaded = false;
+
+    explorerInstance = this;
+}
+
+void explorer_t::buildFileList(std::vector<struct fileitem_t*>& list, struct fileitem_t* files, int depth, bool deep)
+{
+    for (auto file : files->files) {
+        file->depth = depth;
+        file->lineNumber = list.size();
+        list.push_back(file.get());
+        if (file->expanded || deep) {
+            buildFileList(list, file.get(), depth + 1, deep);
+        }
+    }
+}
+
+std::vector<struct fileitem_t*> explorer_t::fileList()
+{
+    if (!allFiles.size()) {
+        buildFileList(allFiles, &files, 0, true);
+    }
+    return allFiles;
+}
+
+void explorer_t::setRootFromFile(std::string path)
+{
+    fileitem_t file;
+    file.setPath(path);
+    if (path.length() && path[path.length() - 1] != '/') {
+        path = path.erase(path.find(file.name));
+    }
+    loadFolder(&files, path);
+}
+
+void explorer_t::loadFolder(fileitem_t *fileitem, std::string p)
 {
     if (p != "") {
-        setPath(p);
+        fileitem->setPath(p);
     }
 
-    log("load %s", fullPath.c_str());
-    std::vector<std::string>& excludeFiles = app_t::instance()->excludeFiles;
-    std::vector<std::string>& excludeFolders = app_t::instance()->excludeFolders;
+    log("load %s", fileitem->fullPath.c_str());
 
     int safety = 0;
     DIR* dir;
     struct dirent* ent;
-    if ((dir = opendir(fullPath.c_str())) != NULL) {
+    if ((dir = opendir(fileitem->fullPath.c_str())) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
             if (ent->d_name[0] == '.') {
                 continue;
             }
 
             std::string filePath = ent->d_name;
-            std::string fullPath = path + "/" + filePath;
+            std::string fullPath = fileitem->path + "/" + filePath;
 
             size_t pos = fullPath.find("//");
             if (pos != std::string::npos) {
@@ -146,60 +191,12 @@ void fileitem_t::load(std::string p)
             if (exclude) {
                 continue;
             }
-            files.emplace_back(file);
+            fileitem->files.emplace_back(file);
         }
         closedir(dir);
     }
 
-    sort(files.begin(), files.end(), compareFile);
-}
-
-static struct explorer_t* explorerInstance = 0;
-
-struct explorer_t* explorer_t::instance()
-{
-    return explorerInstance;
-}
-
-explorer_t::explorer_t()
-    : currentItem(-1)
-    , regenerateList(true)
-    , view(0)
-{
-    loadDepth = 0;
-    allFilesLoaded = false;
-
-    explorerInstance = this;
-}
-
-void explorer_t::buildFileList(std::vector<struct fileitem_t*>& list, struct fileitem_t* files, int depth, bool deep)
-{
-    for (auto file : files->files) {
-        file->depth = depth;
-        file->lineNumber = list.size();
-        list.push_back(file.get());
-        if (file->expanded || deep) {
-            buildFileList(list, file.get(), depth + 1, deep);
-        }
-    }
-}
-
-std::vector<struct fileitem_t*> explorer_t::fileList()
-{
-    if (!allFiles.size()) {
-        buildFileList(allFiles, &files, 0, true);
-    }
-    return allFiles;
-}
-
-void explorer_t::setRootFromFile(std::string path)
-{
-    fileitem_t file;
-    file.setPath(path);
-    if (path.length() && path[path.length() - 1] != '/') {
-        path = path.erase(path.find(file.name));
-    }
-    files.load(path);
+    sort(fileitem->files.begin(), fileitem->files.end(), compareFile);
 }
 
 void explorer_t::preloadFolders()
@@ -215,9 +212,9 @@ void explorer_t::preloadFolders()
     int loaded = 0;
     for (auto item : allFiles) {
         if (item->isDirectory && item->canLoadMore && item->depth == loadDepth) {
-            item->load();
+            loadFolder(item);
 
-            // log("load more %d", item->depth);
+            // printf("load more %d\n", item->depth);
 
             item->canLoadMore = false;
             if (loaded++ >= PRELOAD_LOOP) {

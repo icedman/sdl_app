@@ -11,19 +11,20 @@ option(
 )
 
 option(
-  'build_curses',
+  'enable_svg',
   type: 'boolean', value: true,
+  description: 'build with svg'
+)
+
+option(
+  'build_curses',
+  type: 'boolean', value: false,
   description: 'build curses-based app'
 )
 
 option(
   'enable_scripting',
-  type: 'boolean', value: true,
+  type: 'boolean', value: false,
   description: 'build with scripting'
 )
 
-option(
-  'enable_svg',
-  type: 'boolean', value: true,
-  description: 'build with svg'
-)

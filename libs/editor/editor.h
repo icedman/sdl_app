@@ -33,7 +33,6 @@ struct editor_t {
 
     void toggleFold(size_t line);
 
-    void applyTheme();
     bool input(char ch, std::string keys);
 
     int highlight(int startingLine, int count);

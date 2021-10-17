@@ -19,10 +19,6 @@ struct app_t {
 
     static app_t* instance();
 
-    void setClipboard(std::string text);
-    std::string clipboard();
-    std::string clipText;
-
     void configure(int argc, char** argv);
     void setupColors(bool trueColors);
     void shutdown();

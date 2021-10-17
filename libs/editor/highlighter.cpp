@@ -11,15 +11,13 @@
 #include <unistd.h>
 
 #define LINE_LENGTH_LIMIT 500
-#define MAX_THREAD_COUNT 32
-#define LINES_PER_THREAD 400
 
 highlighter_t::highlighter_t()
     : editor(0)
 {
 }
 
-struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rendered)
+struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos)
 {
     span_info_t res;
     res.bold = false;
@@ -30,12 +28,7 @@ struct span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rend
         return res;
     }
 
-    std::vector<span_info_t>& spans = blockData->spans;
-    if (rendered) {
-        spans = blockData->rendered_spans;
-    }
-
-    for (auto span : spans) {
+    for (auto span : blockData->spans) {
         if (span.length == 0) {
             continue;
         }
@@ -210,7 +203,7 @@ int highlighter_t::highlightBlock(block_ptr block)
         return 0;
     }
 
-    // log("hl %d", block->lineNumber);
+    // printf("hl %d\n", block->lineNumber);
 
     blockdata_ptr blockData = block->data;
 
@@ -251,7 +244,6 @@ int highlighter_t::highlightBlock(block_ptr block)
     parse::stack_ptr parser_state = NULL;
     std::map<size_t, scope::scope_t> scopes;
     blockData->spans.clear();
-    blockData->rendered_spans.clear();
 
     const char* first = str.c_str();
     const char* last = first + str.length();
@@ -270,6 +262,7 @@ int highlighter_t::highlightBlock(block_ptr block)
         firstLine = true;
     }
 
+
     if (str.length() > LINE_LENGTH_LIMIT) {
         // too long to parse
         blockData->dirty = false;
@@ -281,6 +274,9 @@ int highlighter_t::highlightBlock(block_ptr block)
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
     size_t n = 0;
     size_t l = block->length();
+
+    // printf("hl %d %d %d \n", block->lineNumber, block->length(), scopes.size());
+
     while (it != scopes.end()) {
         n = it->first;
         scope::scope_t scope = it->second;
@@ -300,9 +296,15 @@ int highlighter_t::highlightBlock(block_ptr block)
         span_info_t span = {
             .start = (int)n,
             .length = (int)(l - n),
-            .colorIndex = style.foreground.index,
+            .fg = { style.foreground.red * 255,
+                    style.foreground.green * 255,
+                    style.foreground.blue * 255,
+                    0,
+            },
+            .bg = { 0,0,0,0 },
             .bold = style.bold == bool_true,
             .italic = style.italic == bool_true,
+            .underline = false,
             .state = state,
             .scope = scopeName
         };
@@ -312,13 +314,17 @@ int highlighter_t::highlightBlock(block_ptr block)
             prevSpan.length = n - prevSpan.start;
         }
 
-        span.x = 0;
-        span.y = 0;
-        span.line = 0;
-
-        blockData->spans.insert(blockData->spans.begin(), 1, span);
-        // blockData->spans.push_back(span);
+        // blockData->spans.insert(blockData->spans.begin(), 1, span);
+        blockData->spans.push_back(span);
         it++;
+    }
+
+    span_info_t *prev = NULL;
+    for(auto& s : blockData->spans) {
+        if (prev) {
+            prev->length = s.start - prev->start;
+        }
+        prev = &s;
     }
 
     //----------------------
@@ -341,9 +347,15 @@ int highlighter_t::highlightBlock(block_ptr block)
             span_info_t span = {
                 .start = b,
                 .length = e - b,
-                .colorIndex = s.foreground.index,
+                .fg = { s.foreground.red * 255,
+                    s.foreground.green * 255,
+                    s.foreground.blue * 255,
+                    255,
+                },
+                .bg = { 0,0,0,0 },
                 .bold = s.bold == bool_true,
                 .italic = s.italic == bool_true,
+                .underline = false,
                 .state = BLOCK_STATE_COMMENT,
                 .scope = "comment"
             };
@@ -359,9 +371,15 @@ int highlighter_t::highlightBlock(block_ptr block)
             span_info_t span = {
                 .start = b,
                 .length = e - b,
-                .colorIndex = s.foreground.index,
+                .fg = { s.foreground.red * 255,
+                    s.foreground.green * 255,
+                    s.foreground.blue * 255,
+                    255,
+                },
+                .bg = { 0,0,0,0 },
                 .bold = s.bold == bool_true,
                 .italic = s.italic == bool_true,
+                .underline = false,
                 .state = BLOCK_STATE_COMMENT,
                 .scope = "comment"
             };
@@ -376,9 +394,15 @@ int highlighter_t::highlightBlock(block_ptr block)
                 span_info_t span = {
                     .start = 0,
                     .length = (int)(endComment + lang->blockCommentEnd.length()),
-                    .colorIndex = s.foreground.index,
+                    .fg = { s.foreground.red * 255,
+                        s.foreground.green * 255,
+                        s.foreground.blue * 255,
+                        255,
+                    },
+                    .bg = { 0,0,0,0 },
                     .bold = s.bold == bool_true,
                     .italic = s.italic == bool_true,
+                    .underline = false,
                     .state = BLOCK_STATE_UNKNOWN,
                     .scope = "comment"
                 };
@@ -434,135 +458,4 @@ int highlighter_t::highlightBlock(block_ptr block)
     // }
 
     return 1;
-}
-
-struct highlight_thread_t {
-    int index;
-    pthread_t threadId;
-    editor_ptr editor;
-    size_t start;
-    size_t count;
-    bool done;
-};
-
-volatile int running_threads = 0;
-pthread_mutex_t running_mutex = PTHREAD_MUTEX_INITIALIZER;
-static highlight_thread_t threads[MAX_THREAD_COUNT];
-
-bool highlighter_t::hasRunningThreads()
-{
-    pthread_mutex_lock(&running_mutex);
-    bool res = running_threads > 0;
-    pthread_mutex_unlock(&running_mutex);
-    return res;
-}
-
-static void sleep(int ms)
-{
-    struct timespec waittime;
-
-    waittime.tv_sec = (ms / 1000);
-    ms = ms % 1000;
-    waittime.tv_nsec = ms * 1000 * 1000;
-
-    nanosleep(&waittime, NULL);
-}
-
-void* highlightThread(void* arg)
-{
-    highlight_thread_t* threadHl = (highlight_thread_t*)arg;
-    editor_ptr editor = threadHl->editor;
-
-    // log("start:%d count:%d\n", threadHl->start, threadHl->count);
-
-    // int lighted = 0;
-    // for (int i = 0; i < threadHl->count; i += 1000) {
-    //     int c = 1000;
-    //     if (i + c > threadHl->count) {
-    //         c = threadHl->count - i;
-    //     }
-    //     lighted += editor->highlight(threadHl->start + i, c);
-    //     sleep(10);
-    // }
-    // threadHl->count = lighted;
-
-    threadHl->count = editor->highlight(threadHl->start, threadHl->count);
-
-    pthread_mutex_lock(&running_mutex);
-    running_threads--;
-    pthread_mutex_unlock(&running_mutex);
-
-    // log("done %d %d\n", (int)threadHl->index, lighted);
-    return NULL;
-}
-
-void highlighter_t::run(editor_t* _editor)
-{
-#if 0
-    if (_editor->document.blocks.size() <= 20) {
-        return;
-    }
-
-    this->editor = _editor;
-
-    size_t lines = editor->document.blocks.size();
-
-    log("lines: %d\n", lines);
-    int per_thread = (float)lines / MAX_THREAD_COUNT;
-    if (per_thread < LINES_PER_THREAD) {
-        per_thread = LINES_PER_THREAD;
-    }
-
-    int thread_count = 0.5f + ((float)lines / per_thread);
-    if (thread_count == 0) thread_count = 1;
-
-    log("threads: %d per threads: %d\n", thread_count, per_thread);
-
-    backend_t::instance()->begin();
-    
-    running_threads = 0;
-
-    for (int i = 0; i < thread_count; i++) {
-        editor_ptr editor = std::make_shared<editor_t>();
-        editor->document.blocks = _editor->document.blocks;
-    
-        if (i % 8 == 0)
-        editor->highlighter.lang = language_from_file(_editor->document.fullPath, app_t::instance()->extensions);
-        else
-        editor->highlighter.lang = _editor->highlighter.lang;
-
-        editor->highlighter.theme = _editor->highlighter.theme;
-
-        threads[i].index = i;
-        threads[i].editor = editor;
-        threads[i].start = i * per_thread;
-        threads[i].count = per_thread;
-
-        if (i + 1 == thread_count) {
-            size_t total = (i  + 1) * per_thread;
-            threads[i].count += (lines - total);
-        }
-
-        editor->highlight(threads[i].start, 4);
-    }
-
-    for (int i = 0; i < thread_count; i++) {
-        pthread_create(&threads[i].threadId, NULL, &highlightThread, &threads[i]);
-        pthread_mutex_lock(&running_mutex);
-        running_threads++;
-        pthread_mutex_unlock(&running_mutex);
-    }
-
-    while (running_threads) {
-        sleep(10);
-    }
-
-    // re-highlight start of threads .. to reconsider previous block
-    for (int i = 0; i < thread_count; i++) {
-        editor->document.blockAtLine(threads[i].start)->data->dirty = true;
-        editor->highlight(threads[i].start, 10);
-    }
-
-    log("whole document highlighting done in %fs\n", (float)backend_t::instance()->elapsed() / 1000);
-#endif
 }

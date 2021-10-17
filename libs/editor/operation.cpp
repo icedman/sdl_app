@@ -158,16 +158,15 @@ std::string nameFromOperation(operation_e _op)
     return "unknown";
 }
 
-static struct keybinding_t* keybindingInstance = 0;
+static keybinding_t global_keybinding;
 
 struct keybinding_t* keybinding_t::instance()
 {
-    return keybindingInstance;
+    return &global_keybinding;
 }
 
 keybinding_t::keybinding_t()
 {
-    keybindingInstance = this;
     initialize();
 }
 

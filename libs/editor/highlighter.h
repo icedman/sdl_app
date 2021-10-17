@@ -8,7 +8,6 @@
 #include "theme.h"
 
 #include <functional>
-#include <pthread.h>
 #include <string>
 #include <vector>
 
@@ -24,7 +23,6 @@ struct highlighter_t {
     int highlightBlocks(block_ptr block, int count = 1);
     int highlightBlock(block_ptr block);
     void updateBrackets(block_ptr block);
-    void run(editor_t* editor);
 
     static bool hasRunningThreads();
 
@@ -33,6 +31,6 @@ struct highlighter_t {
     highlight_callback_t callback;
 };
 
-span_info_t spanAtBlock(struct blockdata_t* blockData, int pos, bool rendered = false);
+span_info_t spanAtBlock(struct blockdata_t* blockData, int pos);
 
 #endif // HIGHLIGHTER_H

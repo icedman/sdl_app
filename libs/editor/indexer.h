@@ -2,7 +2,6 @@
 #define INDEXER_H
 
 #include <map>
-#include <pthread.h>
 #include <queue>
 #include <string>
 #include <vector>

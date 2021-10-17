@@ -136,7 +136,6 @@ void editor_t::runOp(operation_t op)
         return;
     case OPEN:
         document.open(strParam);
-        highlighter.run(this);
         createSnapshot();
         return;
     case SAVE: {
@@ -164,17 +163,17 @@ void editor_t::runOp(operation_t op)
         return;
 
     case PASTE:
-        if (!app_t::instance()->clipboard().length()) {
+        if (!backend_t::instance()->getClipboard().length()) {
             return;
         }
 
-        inputBuffer = app_t::instance()->clipboard();
+        inputBuffer = backend_t::instance()->getClipboard();
         break;
 
     case CUT:
     case COPY: {
         if (mainCursor.hasSelection()) {
-            app_t::instance()->setClipboard(mainCursor.selectedText());
+            backend_t::instance()->setClipboard(mainCursor.selectedText());
         }
         if (_op == COPY) {
             return;
@@ -507,11 +506,13 @@ void editor_t::runOp(operation_t op)
             break;
         case MOVE_CURSOR_NEXT_PAGE:
         case MOVE_CURSOR_NEXT_PAGE_ANCHORED:
-            cur.moveNextBlock(document.rows, _op == MOVE_CURSOR_NEXT_PAGE_ANCHORED);
+            // implement in editor_view
+            // cur.moveNextBlock(document.blocks.size(), _op == MOVE_CURSOR_NEXT_PAGE_ANCHORED);
             break;
         case MOVE_CURSOR_PREVIOUS_PAGE:
         case MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED:
-            cur.movePreviousBlock(document.rows, _op == MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED);
+            // implement in editor_view
+            // cur.movePreviousBlock(document.blocks.size(), _op == MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED);
             break;
 
         case TAB: {
@@ -653,7 +654,6 @@ void editor_t::runAllOps()
     }
 
     if (snap) {
-        highlighter.run(this);
         createSnapshot();
     }
 }
@@ -977,23 +977,7 @@ bool editor_t::input(char ch, std::string keySequence)
     if (keySequence != "") {
         return true;
     }
-
-    // SDL_INPUTTEXT
-    // std::string s;
-    // s += (char)ch;
-    // editor->pushOp(INSERT, s);
     return true;
-}
-
-void editor_t::applyTheme()
-{
-    for (auto b : document.blocks) {
-        if (b->data) {
-            b->data->dirty = true;
-        }
-    }
-
-    // highlighter.theme = app_t::instance()->theme;
 }
 
 int editor_t::highlight(int startingLine, int count)

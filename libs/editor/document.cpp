@@ -19,8 +19,6 @@
 document_t::document_t()
     : cursorId(1)
     , blockId(1)
-    , columns(0)
-    , rows(0)
     , binary(false)
     , windowsLineEnd(false)
 {
@@ -30,13 +28,6 @@ document_t::~document_t()
 {
     cursors.clear();
     blocks.clear();
-
-    // delete all tmpPaths
-
-    // for (auto& b : blocks) {
-    // std::cout << ":<<" << b.use_count() << std::endl;
-    // }
-
     close();
 }
 
@@ -111,7 +102,7 @@ block_ptr document_t::previousBlock(block_t* block)
 
 std::string _tabsToSpaces(std::string line)
 {
-    int tabSize = app_t::instance()->tabSize;
+    int tabSize = app_t::instance() ? app_t::instance()->tabSize : 4;
     if (tabSize < 2) {
         return line;
     }
@@ -135,6 +126,7 @@ bool document_t::open(std::string path)
     std::set<char> delims_ext = { '.' };
     std::vector<std::string> spath_ext = split_path(path, delims_ext);
     std::string suffix = "*." + spath_ext.back();
+    if (app_t::instance())
     for (auto pat : app_t::instance()->binaryFiles) {
         if (suffix == pat) {
             binary = true;
@@ -159,7 +151,7 @@ bool document_t::open(std::string path)
         block_ptr b = std::make_shared<block_t>();
 
         // tabs to spaces
-        if (app_t::instance()->tabsToSpaces) {
+        if (app_t::instance() && app_t::instance()->tabsToSpaces) {
             line = _tabsToSpaces(line);
         }
 
@@ -174,9 +166,7 @@ bool document_t::open(std::string path)
         // b->data = std::make_shared<blockdata_t>();
         // b->data->dirty = true;
 
-        if (columns) {
-            b->lineCount = line.length() / columns;
-        }
+        b->lineCount = 1;
         if (line.length() && line[line.length() - 1] == '\r') {
             line.pop_back();
             offset++;
@@ -413,16 +403,6 @@ cursor_t document_t::findNextOccurence(cursor_t cur, std::string word)
         block = block->next();
     }
     return cursor_t();
-}
-
-void document_t::setColumns(int c)
-{
-    columns = c;
-}
-
-void document_t::setRows(int r)
-{
-    rows = r;
 }
 
 bool document_t::lineNumberingIntegrity()

@@ -9,6 +9,12 @@ add_global_arguments([
         '-D_XOPEN_SOURCE_EXTENDED',
     ], language: 'cpp')
 
+add_global_arguments('-DFONT_PREBAKE_GLYPHS', language: 'cpp')
+
+if build_machine.system() == 'darwin'
+    add_global_arguments('-DFONT_FORCE_DRAW_PREBAKED_GLYPHS', language: 'cpp')    
+endif
+
 if host_machine.system() == 'windows'
 add_global_arguments([
         '-DWIN64',
@@ -67,9 +73,40 @@ editor_files = [
     'libs/editor/operation.cpp',
     'libs/editor/search.cpp',
     'libs/editor/snapshot.cpp',
-    'libs/editor/statusbar.cpp',
     'libs/editor/utf8.cpp',
     'libs/editor/util.cpp'
+]
+
+framework_inc = [
+    'libs/framework',
+    'libs/framework/common',
+    'libs/framework/renderer',
+    'libs/framework/system',
+    'libs/framework/ui'
+]
+
+framework_files = [
+    'libs/framework/common/rect.cpp',
+    'libs/framework/common/utf8.cpp',
+    'libs/framework/common/hash.cpp',
+    'libs/framework/system/system.cpp',
+    'libs/framework/system/events.cpp',
+    'libs/framework/renderer/renderer.cpp',
+    'libs/framework/renderer/font.cpp',
+    'libs/framework/renderer/fallback_font.cpp',
+    'libs/framework/ui/layout.cpp',
+    'libs/framework/ui/view.cpp',
+    'libs/framework/ui/damage.cpp',
+    'libs/framework/ui/button.cpp',
+    'libs/framework/ui/image.cpp',
+    'libs/framework/ui/list.cpp',
+    'libs/framework/ui/panel.cpp',
+    'libs/framework/ui/popup.cpp',
+    'libs/framework/ui/scrollarea.cpp',
+    'libs/framework/ui/scrollbar.cpp',
+    'libs/framework/ui/splitter.cpp',
+    'libs/framework/ui/text.cpp',
+    'libs/framework/ui/text_block.cpp'
 ]
 
 if get_option('build_curses')
@@ -117,64 +154,9 @@ if get_option('enable_scripting')
     endif
 endif
 
-sdl_files = [
-    'src/backend/fallback_font.cpp',
-    'src/backend/render_font.cpp',
-    'src/backend/render_sdl.cpp'
-]
-
-curses_files = [
-    'src/backend/render_curses.cpp'
-]
-
-ui_files = [
-    'src/backend/renderer.cpp',
-    'libs/PennerEasing/Cubic.cpp',
-    'src/ui/animation.cpp',
-    'src/ui/button.cpp',
-    'src/ui/damage.cpp',
-    'src/ui/events.cpp',
-    'src/ui/image.cpp',
-    'src/ui/inputtext.cpp',
-    'src/ui/layout.cpp',
-    'src/ui/list.cpp',
-    'src/ui/panel.cpp',
-    'src/ui/popup.cpp',
-    'src/ui/scrollarea.cpp',
-    'src/ui/scrollbar.cpp',
-    'src/ui/splitter.cpp',
-    'src/ui/style.cpp',
-    'src/ui/tabbar.cpp',
-    'src/ui/text.cpp',
-    'src/ui/view.cpp',
-    'src/app_view.cpp',
-    'src/completer_view.cpp',
-    'src/editor_view.cpp',
-    'src/explorer_view.cpp',
-    'src/gutter_view.cpp',
-    'src/minimap_view.cpp',
-    'src/search_view.cpp',
-    'src/statusbar_view.cpp',
-    'src/tabbar_view.cpp',
-    'src/tests.cpp'
-]
-
 if get_option('enable_scripting')
-scripting_inc = [
-    'src/scripting'
-]
-scripting_files = [
-    'src/scripting/scripting.cpp',
-    'src/scripting/js_app.cpp'
-]
 scripting_dep = [quickjs_dep]
 else
-scripting_inc = [
-    'src/scripting'
-]
-scripting_files = [
-    'src/scripting/scripting.cpp'
-]
 scripting_dep = []
 endif
 
@@ -194,14 +176,39 @@ editor_lib = static_library('editor',
 
 editor_dep = declare_dependency(link_with: editor_lib, include_directories: [ editor_inc ])
 
+framework_lib = static_library('framework',
+    framework_files, 
+    include_directories: [ framework_inc ],
+    dependencies: [ cairo_dep, pango_dep, fontconfig_dep, rsvg_dep, jsoncpp_dep ]
+)
+
+framework_dep = declare_dependency(link_with: framework_lib, include_directories: [ framework_inc ])
+
+sdl_files = [
+]
+
 if get_option('build_sdl')
 executable('ashlar',
+    'src/rich_text.cpp',
+    'src/editor_view.cpp',
+    'src/gutter.cpp',
     'src/main.cpp',
+    'src/tests.cpp',
     sdl_files,
-    ui_files,
-    scripting_files,
-    include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing', scripting_inc ],
-    dependencies: [ tmparser_dep, editor_dep, sdl2main_dep, sdl2_dep, cairo_dep, pango_dep, fontconfig_dep, rsvg_dep, scripting_dep ],
+    framework_files,
+    include_directories: [ './src', 'libs/PennerEasing' ],
+    dependencies: [
+        tmparser_dep,
+        editor_dep,
+        framework_dep,
+        sdl2main_dep,
+        sdl2_dep,
+        cairo_dep,
+        pango_dep,
+        fontconfig_dep,
+        rsvg_dep,
+        scripting_dep
+    ],
     win_subsystem: 'windows',
     install : true
 )
@@ -211,9 +218,8 @@ if get_option('build_curses')
 executable('ashlr',
     'src/main.cpp',
     curses_files,
-    ui_files,
-    scripting_files,
-    include_directories: [ './src', './src/ui', './src/backend', 'libs/PennerEasing', scripting_inc ],
+    framework_files,
+    include_directories: [ './src' ],
     dependencies: [ tmparser_dep, editor_dep, curses_dep, scripting_dep ],
     install : true
 )

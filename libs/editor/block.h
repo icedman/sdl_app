@@ -23,20 +23,18 @@ enum block_state_e {
     BLOCK_STATE_STRING = 1 << 5
 };
 
+struct rgba_t { int r; int g; int b; int a; };
+    
 struct span_info_t {
     int start;
     int length;
-    int colorIndex;
+    rgba_t fg;
+    rgba_t bg;
     bool bold;
     bool italic;
+    bool underline;
     block_state_e state;
     std::string scope;
-
-    // for rendered span
-    int x;
-    int y;
-    int line;
-    int line_x;
 };
 
 struct bracket_info_t {
@@ -52,7 +50,6 @@ struct blockdata_t {
     ~blockdata_t();
 
     std::vector<span_info_t> spans;
-    std::vector<span_info_t> rendered_spans;
     std::vector<bracket_info_t> foldingBrackets;
     std::vector<bracket_info_t> brackets;
 
@@ -100,14 +97,7 @@ struct block_t {
     block_ptr next();
     block_ptr previous();
 
-    std::vector<span_info_t> layoutSpan(int cols, bool wrap, int indent = 0);
-
     blockdata_ptr data;
-
-    // rendered block position
-    int x;
-    int y;
-    int columns;
 
     size_t uid;
 };

@@ -7,8 +7,8 @@ struct backend_t {
 
     backend_t();
 
-    virtual void setClipboardText(std::string text){};
-    virtual std::string getClipboardText(){};
+    void setClipboard(std::string text);
+    std::string getClipboard();
 
     int now();
     void begin();
@@ -16,6 +16,8 @@ struct backend_t {
     int elapsed();
 
     static backend_t* instance();
+
+    std::string cliptext;
 };
 
 #endif // BACKEND_H

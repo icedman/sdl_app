@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-static struct search_t* searchInstance = 0;
+static struct search_t global_search;
 
 // https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
@@ -29,12 +29,11 @@ int levenshtein_distance(char* s1, char* s2)
 
 struct search_t* search_t::instance()
 {
-    return searchInstance;
+    return &global_search;
 }
 
 search_t::search_t()
 {
-    searchInstance = this;
     // words = regexp::pattern_t("\\w+", "is");
     words = regexp::pattern_t("[a-zA-Z0-9_]+", "is");
 }

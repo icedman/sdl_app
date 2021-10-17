@@ -89,26 +89,6 @@ bool app_t::isFresh()
     return false;
 }
 
-void app_t::setClipboard(std::string text)
-{
-    clipText = text;
-    if (backend_t::instance()) {
-        backend_t::instance()->setClipboardText(text);
-    }
-}
-
-std::string app_t::clipboard()
-{
-    std::string res;
-    if (backend_t::instance()) {
-        res = backend_t::instance()->getClipboardText();
-    }
-    if (res.length()) {
-        return res;
-    }
-    return res;
-}
-
 void app_t::configure(int argc, char** argv)
 {
     //-------------------

@@ -27,7 +27,6 @@ struct fileitem_t {
     int lineNumber;
 
     void setPath(std::string path);
-    void load(std::string path = "");
 };
 
 struct fileitem_t* parentItem(struct fileitem_t* item, std::vector<struct fileitem_t*>& list);
@@ -42,8 +41,9 @@ struct explorer_t {
     void setRootFromFile(std::string path);
 
     void preloadFolders();
+    void loadFolder(fileitem_t *fileitem, std::string p = "");
     void buildFileList(std::vector<struct fileitem_t*>& list, struct fileitem_t* files, int depth, bool deep = false);
-
+    
     void print();
 
     std::vector<struct fileitem_t*> fileList();
@@ -57,7 +57,8 @@ struct explorer_t {
     int currentItem;
     bool regenerateList;
 
-    void* view;
+    std::vector<std::string> excludeFiles;
+    std::vector<std::string> excludeFolders;
 };
 
 #endif // EXPLORER_H

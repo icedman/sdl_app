@@ -34,9 +34,6 @@ block_t::block_t()
     , data(0)
     , dirty(false)
     , cachedLength(0)
-    , x(-1)
-    , y(-1)
-    , columns(0)
 {
     uid = blockUID++;
     blocksCreated++;
@@ -141,81 +138,4 @@ static std::vector<span_info_t> splitSpan(span_info_t si, const std::string& str
 static bool compareSpan(span_info_t a, span_info_t b)
 {
     return a.start < b.start;
-}
-
-std::vector<span_info_t> block_t::layoutSpan(int cols, bool wrap, int indent)
-{
-    std::vector<span_info_t> spans;
-    if (!data) {
-        return spans;
-    }
-
-    if (data->rendered_spans.size() && cols == columns) {
-        return data->rendered_spans;
-    }
-
-    std::string text = this->text() + " \n";
-    columns = cols;
-
-    std::vector<span_info_t> source_spans = data->spans;
-
-    int spanLength = 0;
-    for (auto& s : source_spans) {
-        if (s.start + s.length > spanLength) {
-            spanLength = s.start + s.length;
-        }
-    }
-
-    if (!source_spans.size()) {
-        span_info_t span = {
-            start : 0,
-            length : utf8_length(text),
-            colorIndex : 0,
-            bold : false,
-            italic : false,
-            state : BLOCK_STATE_UNKNOWN,
-            scope : ""
-        };
-        source_spans.push_back(span);
-    }
-
-    lineCount = 1;
-
-    // wrap
-    if (wrap && utf8_length(text) > cols) {
-        spans.clear();
-        for (auto& s : source_spans) {
-            if (s.length == 0)
-                continue;
-
-            std::string span_text = utf8_substr(text, s.start, s.length);
-            std::vector<span_info_t> ss = splitSpan(s, span_text);
-            for (auto _s : ss) {
-                _s.start += s.start;
-                spans.push_back(_s);
-            }
-        }
-
-        std::sort(spans.begin(), spans.end(), compareSpan);
-
-        int line = 0;
-        int line_x = 0;
-        for (auto& _s : spans) {
-            if (_s.start - (line * cols) + _s.length >= cols - (indent * line) || _s.start - (line * cols) + 4 >= cols - (indent * line)) {
-                lineCount++;
-                line++;
-                line_x = 0;
-            }
-            _s.line = line;
-            if (_s.line > 0) {
-                _s.line_x = indent + line_x;
-                line_x += _s.length;
-            }
-            // std::string span_text = utf8_substr(text, _s.start, _s.length);
-        }
-    } else {
-        spans = data->spans;
-    }
-
-    return spans;
 }
