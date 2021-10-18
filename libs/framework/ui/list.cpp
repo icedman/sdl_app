@@ -29,6 +29,8 @@ list_t::list_t()
         this->prelayout();
         return true;
     };
+
+    layout()->name = "list";
 }
 
 view_ptr list_t::create_item()
@@ -68,8 +70,6 @@ void list_t::prelayout()
     layout_item_ptr lo = layout();
     layout_item_ptr slo = scrollarea->layout();
 
-    lo->name = "list";
-
     if (!subcontent) {
         lead_spacer = std::make_shared<spacer_t>();
         tail_spacer = std::make_shared<spacer_t>();
@@ -92,19 +92,14 @@ void list_t::prelayout()
         subcontent->add_child(vi);
         vi->layout()->height = item_height;
     }
-}
 
-void list_t::render(renderer_t* renderer)
-{
-    if (!subcontent)
-        return;
+    // layout_item_ptr lo = layout();
+    // layout_item_ptr slo = scrollarea->layout();
 
-    layout_item_ptr lo = layout();
-    layout_item_ptr slo = scrollarea->layout();
     scrollarea->cast<scrollarea_t>()->scroll_factor_x = font()->width;
     scrollarea->cast<scrollarea_t>()->scroll_factor_y = item_height / 2;
 
-    int first_visible = -slo->scroll_y / item_height;
+    first_visible = -slo->scroll_y / item_height;
     std::vector<list_item_data_t>::iterator it = data.begin();
     if (first_visible >= data.size())
         first_visible = data.size() - 1;
@@ -134,16 +129,21 @@ void list_t::render(renderer_t* renderer)
     }
 
     tail_spacer->layout()->visible = tail_spacer->layout()->height > 1;
+}
+
+void list_t::render(renderer_t* renderer)
+{
+    panel_t::render(renderer);
 
     layout_clear_hash(layout(), 6);
     relayout();
-
-    panel_t::render(renderer);
+    relayout();
 }
 
 void list_t::update_data(std::vector<list_item_data_t> _data)
 {
     data = _data;
+    _content_hash = 0;
 }
 
 bool list_t::handle_item_click(event_t& evt)
@@ -170,13 +170,4 @@ void list_t::select_item(view_ptr item)
 list_item_data_t list_t::value()
 {
     return selected_data;
-}
-
-int list_t::content_hash(bool peek)
-{
-    int hash = data.size() ? murmur_hash(&data[0], sizeof(list_item_data_t) * data.size(), CONTENT_HASH_SEED) : 0;
-    if (!peek) {
-        _content_hash = hash;
-    }
-    return hash;
 }

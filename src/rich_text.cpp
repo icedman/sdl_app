@@ -22,7 +22,7 @@ rich_text_t::rich_text_t()
         return true;
     };
 
-    layout()->name = "editor";
+    layout()->name = "rich_text";
 }
 
 view_ptr rich_text_t::create_block()
@@ -44,7 +44,11 @@ void rich_text_t::update_block(view_ptr item, block_ptr block)
     editor_block->block = block;
     editor_block->set_text(block->text() + " ");
 
-    if (!block->data || block->data->dirty) {
+    if (!block->data) {
+        block->data = std::make_shared<blockdata_t>();
+        block->data->dirty = true;
+    }
+    if (block->data->dirty) {
         editor->highlight(block->lineNumber, 1);
     }
 
@@ -171,23 +175,14 @@ void rich_text_t::prelayout()
     scrollarea->cast<scrollarea_t>()->scroll_factor_x = font()->width;
     scrollarea->cast<scrollarea_t>()->scroll_factor_y = font()->height * 1.25f;
 
-    int first_index = -slo->scroll_y / block_height;
-
-    // lead_spacer->layout()->height = first_index * block_height;
-    // if (lead_spacer->layout()->height == 0) {
-    //     lead_spacer->layout()->height = 1;
-    // }
-    // tail_spacer->layout()->height = (blocks_count - visible_blocks - first_index) * block_height;
-    // if (tail_spacer->layout()->height < 4 * block_height) {
-    //     tail_spacer->layout()->height = 4 * block_height;
-    // }
+    first_visible = -slo->scroll_y / block_height;
 
     view_list::iterator vit = subcontent->children.begin();
     block_list::iterator it = editor->document.blocks.begin();
-    if (first_index >= editor->document.blocks.size()) {
-        first_index = editor->document.blocks.size() - 1;
+    if (first_visible >= editor->document.blocks.size()) {
+        first_visible = editor->document.blocks.size() - 1;
     }
-    it += first_index;
+    it += first_visible;
 
     bool dirty_layout = false;
     int i = 0;
@@ -231,7 +226,7 @@ void rich_text_t::prelayout()
         }
     }
 
-    lead_spacer->layout()->height = (first_index * block_height);
+    lead_spacer->layout()->height = (first_visible * block_height);
     lead_spacer->layout()->visible = lead_spacer->layout()->height > 1;
     tail_spacer->layout()->height = 8 * block_height;
 

@@ -51,6 +51,7 @@ extern "C" int main(int argc, char** argv)
     renderer->clear({ 50, 50, 50 });
     renderer->end_frame();
 
+    int suspend_frame_skipping = 0;
     bool did_layout = true;
     layout_request();
     events_manager->on(EVT_WINDOW_RESIZE, [](event_t& evt) {
@@ -69,6 +70,11 @@ extern "C" int main(int argc, char** argv)
         sys->poll_events(&events);
 
         if (events.size()) {
+            if (events.size()) {
+                if (events[0].type == EVT_KEY_SEQUENCE) {
+                    suspend_frame_skipping = 8;
+                }
+            }
             view_dispatch_events(events, visible_views);
             events_manager->dispatch_events(events);
             events.clear();
@@ -78,11 +84,9 @@ extern "C" int main(int argc, char** argv)
         root->update();
 
         // layout
-        layout_run_requests();
         if (layout_should_run()) {
             layout_run(root->layout(), { 0, 0, renderer->width(), renderer->height() });
             did_layout = true;
-            sys->caffeinate();
         }
 
         // todo control skipping with actual framerate (throttling)
@@ -92,6 +96,12 @@ extern "C" int main(int argc, char** argv)
                 skip_frames = false;
                 frames = 0;
             }
+        }
+
+        if (suspend_frame_skipping > 0) {
+            suspend_frame_skipping--;
+            skip_frames = false;
+            sys->caffeinate();
         }
 
         // render

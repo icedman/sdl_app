@@ -159,7 +159,7 @@ void panel_t::postlayout()
     }
 
     if (prev != bottom->layout()->visible) {
-        layout_request(layout());
+        relayout();
     }
 }
 

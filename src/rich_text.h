@@ -34,6 +34,7 @@ struct rich_text_t : panel_t {
     view_ptr tail_spacer;
     view_ptr subcontent;
 
+    int first_visible;
     int visible_blocks;
     int block_height;
     bool wrapped;

@@ -5,6 +5,7 @@ enum view_type_e {
     CONTAINER,
     SPACER,
     TEXT,
+    TEXT_BLOCK,
     BUTTON,
     IMAGE,
     PANEL,

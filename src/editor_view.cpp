@@ -31,6 +31,8 @@ editor_view_t::editor_view_t()
         this->handle_mouse_move(event);
         return true;
     });
+
+    layout()->name = "editor";
 }
 
 bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)

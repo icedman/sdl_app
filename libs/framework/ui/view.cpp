@@ -27,6 +27,7 @@ const char* view_type_names[] = {
     "container",
     "spacer",
     "text",
+    "text_block",
     "button",
     "image",
     "panel",

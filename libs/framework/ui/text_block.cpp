@@ -64,7 +64,6 @@ text_block_t::text_block_t(std::string t)
     layout()->wrap = true;
     layout()->fit_children_x = false;
     layout()->fit_children_y = true;
-    layout()->name = "text_block";
 
     _text = t;
     layout()->prelayout = [this](layout_item_t* item) {

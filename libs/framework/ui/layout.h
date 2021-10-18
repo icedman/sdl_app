@@ -160,12 +160,9 @@ struct layout_item_t {
     layout_item_list children;
 };
 
-void layout_request(layout_item_ptr item);
 void layout_request();
-
 bool layout_should_run();
 
-void layout_run_requests();
 void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute = false);
 void layout_sort(layout_item_ptr item);
 void layout_compute_absolute_position(layout_item_ptr item);

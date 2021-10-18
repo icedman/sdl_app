@@ -2,6 +2,8 @@
 #define VIEW_STYLE_H
 
 #include <stdint.h>
+#include "color.h"
+#include "rect.h"
 
 struct renderer_t;
 

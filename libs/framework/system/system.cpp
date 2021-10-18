@@ -272,6 +272,8 @@ int system_t::poll_events(event_list* events)
             mod : keyMods
         });
         idle_counter = 0;
+
+        caffeinate();
         return 1;
 
     case SDL_KEYDOWN: {

@@ -50,12 +50,11 @@ struct list_t : panel_t {
     view_ptr subcontent;
     std::vector<list_item_data_t> data;
 
+    int first_visible;
     int visible_items;
     int item_height;
 
     list_item_data_t selected_data;
-
-    virtual int content_hash(bool peek) override;
 };
 
 #endif LIST_H

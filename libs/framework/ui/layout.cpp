@@ -586,7 +586,7 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
     postlayout_run(item);
     layout_compute_absolute_position(item);
 
-    _LOG("%s %d\n", item->name.c_str(), items_visited);
+    // _LOG("%s %d\n", item->name.c_str(), items_visited);
 }
 
 static bool compare_item_order(layout_item_ptr f1, layout_item_ptr f2)
@@ -599,24 +599,9 @@ void layout_sort(layout_item_ptr item)
     sort(item->children.begin(), item->children.end(), compare_item_order);
 }
 
-std::vector<layout_item_ptr> requests;
-void layout_request(layout_item_ptr item)
-{
-    requests.push_back(item);
-}
-
-void layout_run_requests()
-{
-    for (auto r : requests) {
-        layout_run(r, {}, true);
-    }
-    requests.clear();
-}
-
 bool should_run = false;
 void layout_request()
 {
-    requests.clear();
     should_run = true;
 }
 
