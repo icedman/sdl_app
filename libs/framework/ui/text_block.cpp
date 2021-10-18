@@ -34,7 +34,7 @@ static std::vector<std::string> split_string(const std::string& str)
             // if (strchr((char*)delimiters, (int)*pch) != NULL) {
             if (pch != start) {
                 if (pch - start)
-                result.push_back(std::string(start, pch - start));
+                    result.push_back(std::string(start, pch - start));
             }
             result.push_back(std::string(pch, 1));
             start = pch;
@@ -154,7 +154,7 @@ void text_block_t::render(renderer_t* renderer)
 
         rect_t r = span->render_rect;
 
-        // renderer->draw_rect(span->render_rect, { 255, 0, 255, 100 }, false, 1);
+        renderer->draw_rect(span->render_rect, { 255, 0, 255, 100 }, false, 1);
         renderer->draw_text(NULL, (char*)text_span->text.c_str(),
             r.x,
             r.y, { 255, 255, 255 });

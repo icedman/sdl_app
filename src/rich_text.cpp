@@ -15,7 +15,7 @@ rich_text_block_t::rich_text_block_t()
 rich_text_t::rich_text_t()
     : panel_t()
     , visible_blocks(0)
-    , wrapped(false)
+    , wrapped(true)
 {
     layout()->prelayout = [this](layout_item_t* item) {
         this->prelayout();
@@ -169,7 +169,7 @@ void rich_text_t::prelayout()
     layout_item_ptr slo = scrollarea->layout();
 
     scrollarea->cast<scrollarea_t>()->scroll_factor_x = font()->width;
-    scrollarea->cast<scrollarea_t>()->scroll_factor_y = font()->height * 1.5f;
+    scrollarea->cast<scrollarea_t>()->scroll_factor_y = font()->height * 1.25f;
 
     int first_index = -slo->scroll_y / block_height;
 
@@ -245,7 +245,9 @@ void rich_text_t::prelayout()
 
 void rich_text_t::render(renderer_t* renderer)
 {
-    layout_run(layout(), {}, true);
+    layout_clear_hash(layout(), 6);
+    relayout();
+    relayout();
 
     // sync the panel scrollbars
     event_t evt;

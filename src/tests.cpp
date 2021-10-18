@@ -22,25 +22,26 @@
 #include "explorer.h"
 #include "rich_text.h"
 
-#define TEST test3
+#define TEST test6
 
 static bool render_layout = false;
 explorer_t explorer;
 
-view_ptr test1(int argc, char **argv);  // flex layout
-view_ptr test2(int argc, char **argv);  // wrap
-view_ptr test2b(int argc, char **argv); // wrap & frame style
-view_ptr test3(int argc, char **argv);  // list, splitter
-view_ptr test4(int argc, char **argv);  // fit to children
-view_ptr test5(int argc, char **argv);  // text block
-view_ptr test6(int argc, char **argv);  // rich text editor 
+view_ptr test1(int argc, char** argv); // flex layout
+view_ptr test2(int argc, char** argv); // wrap
+view_ptr test2b(int argc, char** argv); // wrap & frame style
+view_ptr test3(int argc, char** argv); // list, splitter
+view_ptr test4(int argc, char** argv); // fit to children
+view_ptr test5(int argc, char** argv); // text block
+view_ptr test6(int argc, char** argv); // rich text editor
 
 std::string inputFile;
 std::string themeFile;
 
 void render_layout_item(renderer_t* renderer, layout_item_ptr item)
 {
-    if (!render_layout) return;
+    if (!render_layout)
+        return;
 
     if (!item->visible || item->render_rect.w < 0 || item->render_rect.h < 0)
         return;
@@ -49,14 +50,15 @@ void render_layout_item(renderer_t* renderer, layout_item_ptr item)
 
     char tmp[32];
     sprintf(tmp, "%x", item->state_hash);
-    renderer->draw_text(NULL, (char*)tmp, item->render_rect.x, item->render_rect.y, { 255, 255, 255 });
+    if (item->children.size())
+        renderer->draw_text(NULL, (char*)tmp, item->render_rect.x, item->render_rect.y, { 255, 255, 255 });
 
     for (auto child : item->children) {
         render_layout_item(renderer, child);
     }
 }
 
-view_ptr test(int argc, char **argv)
+view_ptr test(int argc, char** argv)
 {
     themeFile = "./tests/themes/dracula.json";
 
@@ -104,7 +106,7 @@ void set_sidebar_data(view_ptr sidebar)
     sidebar->cast<list_t>()->update_data(data);
 }
 
-view_ptr test6(int argc, char **argv)
+view_ptr test6(int argc, char** argv)
 {
     std::string filename = "./src/main.cpp";
     if (inputFile.length()) {
@@ -170,7 +172,7 @@ view_ptr test6(int argc, char **argv)
     ev->editor = editor;
 
     view_ptr vsplitter = std::make_shared<vertical_splitter_t>(sidebar, root_view);
-    
+
     root_view->add_child(sidebar);
     root_view->add_child(vsplitter);
     root_view->add_child(view);
@@ -179,7 +181,7 @@ view_ptr test6(int argc, char **argv)
     return root_view;
 }
 
-view_ptr test5(int argc, char **argv)
+view_ptr test5(int argc, char** argv)
 {
     bool wrapped = true;
 
@@ -273,7 +275,7 @@ view_ptr test5(int argc, char **argv)
     return view;
 }
 
-view_ptr test4(int argc, char **argv)
+view_ptr test4(int argc, char** argv)
 {
     view_ptr view = std::make_shared<vertical_container_t>();
     view->layout()->margin = 20;
@@ -344,7 +346,7 @@ view_ptr create_submenu()
     return submenu;
 }
 
-view_ptr test3(int argc, char **argv)
+view_ptr test3(int argc, char** argv)
 {
     view_ptr view = std::make_shared<view_t>();
     view->layout()->margin = 20;
@@ -466,7 +468,7 @@ view_ptr test3(int argc, char **argv)
     return view;
 }
 
-view_ptr test2b(int argc, char **argv)
+view_ptr test2b(int argc, char** argv)
 {
     view_ptr inner = std::make_shared<view_t>();
     layout_item_ptr root = inner->layout();
@@ -500,10 +502,10 @@ view_ptr test2b(int argc, char **argv)
     view_ptr item_h = std::make_shared<view_t>();
 
     styled_frame_t style = {
-        .bg = { 150,150,150 },
+        .bg = { 150, 150, 150 },
         .filled = true,
         .border = { 2 },
-        .border_color = { 255,0,255,255 },
+        .border_color = { 255, 0, 255, 255 },
         .margin = { 8 }
     };
     item_a->set_style(style);
@@ -530,7 +532,7 @@ view_ptr test2b(int argc, char **argv)
     return view;
 }
 
-view_ptr test2(int argc, char **argv)
+view_ptr test2(int argc, char** argv)
 {
     render_layout = true;
     view_ptr inner = std::make_shared<view_t>();
@@ -582,7 +584,7 @@ view_ptr test2(int argc, char **argv)
     return view;
 }
 
-view_ptr test1(int argc, char **argv)
+view_ptr test1(int argc, char** argv)
 {
     render_layout = true;
     view_ptr inner = std::make_shared<view_t>();

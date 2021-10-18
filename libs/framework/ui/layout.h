@@ -170,4 +170,6 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute = 
 void layout_sort(layout_item_ptr item);
 void layout_compute_absolute_position(layout_item_ptr item);
 
+void layout_clear_hash(layout_item_ptr item, int depth);
+
 #endif // LAYOUT_H

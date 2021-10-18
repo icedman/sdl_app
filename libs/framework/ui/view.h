@@ -3,8 +3,8 @@
 
 #include "events.h"
 #include "layout.h"
-#include "view_types.h"
 #include "styled_frame.h"
+#include "view_types.h"
 
 #include <memory>
 #include <string>

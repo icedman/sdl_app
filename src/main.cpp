@@ -12,7 +12,7 @@
 
 #define FRAME_SKIP_INTERVAL 32
 
-view_ptr test(int argc, char **argv);
+view_ptr test(int argc, char** argv);
 void render_layout_item(renderer_t* renderer, layout_item_ptr item);
 
 extern "C" int main(int argc, char** argv)
@@ -148,7 +148,7 @@ extern "C" int main(int argc, char** argv)
 
             skipped = 0;
         } else {
-            skipped ++;
+            skipped++;
         }
 
         do {

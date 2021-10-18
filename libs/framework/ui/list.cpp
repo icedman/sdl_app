@@ -5,6 +5,7 @@
 #include "text.h"
 
 #define VISIBLE_ITEMS_PAD 4
+#define TAIL_PAD 16
 
 list_item_t::list_item_t()
     : horizontal_container_t()
@@ -67,6 +68,8 @@ void list_t::prelayout()
     layout_item_ptr lo = layout();
     layout_item_ptr slo = scrollarea->layout();
 
+    lo->name = "list";
+
     if (!subcontent) {
         lead_spacer = std::make_shared<spacer_t>();
         tail_spacer = std::make_shared<spacer_t>();
@@ -120,19 +123,19 @@ void list_t::render(renderer_t* renderer)
         }
     }
 
-    // int diff = (first_visible * item_height) + slo->scroll_y;
     lead_spacer->layout()->height = (first_visible * item_height);
     lead_spacer->layout()->visible = lead_spacer->layout()->height > 1;
-    tail_spacer->layout()->height = 8 * item_height;
+    tail_spacer->layout()->height = TAIL_PAD * item_height;
 
     int computed = lead_spacer->layout()->height + tail_spacer->layout()->height + (vc * item_height);
-    int total_height = (data.size() + 8) * item_height;
+    int total_height = (data.size() + TAIL_PAD) * item_height;
     if (computed < total_height) {
         tail_spacer->layout()->height += total_height - computed;
     }
 
     tail_spacer->layout()->visible = tail_spacer->layout()->height > 1;
 
+    layout_clear_hash(layout(), 6);
     relayout();
 
     panel_t::render(renderer);
@@ -141,8 +144,6 @@ void list_t::render(renderer_t* renderer)
 void list_t::update_data(std::vector<list_item_data_t> _data)
 {
     data = _data;
-    relayout();
-    rerender();
 }
 
 bool list_t::handle_item_click(event_t& evt)

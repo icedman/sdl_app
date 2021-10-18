@@ -22,6 +22,7 @@ std::string text_t::text()
 void text_t::set_text(std::string text)
 {
     _text = text;
+    layout()->content_hash = murmur_hash(text.c_str(), text.length(), CONTENT_HASH_SEED);
 
     // layout_item_ptr item = layout();
     // prelayout();

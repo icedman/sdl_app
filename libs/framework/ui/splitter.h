@@ -26,7 +26,9 @@ struct splitter_t : view_t {
 
 struct vertical_splitter_t : splitter_t {
     vertical_splitter_t(view_ptr target = nullptr, view_ptr container = nullptr)
-        : splitter_t(target, container) {}
+        : splitter_t(target, container)
+    {
+    }
 };
 
 struct horizontal_splitter_t : splitter_t {

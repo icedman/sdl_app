@@ -1,11 +1,11 @@
-#include "view.h"
 #include "styled_frame.h"
 #include "renderer.h"
+#include "view.h"
 
 void render_styled_frame(renderer_t* renderer, rect_t rect, styled_frame_t& style)
 {
     rect_t r = rect;
-    color_t default_clr = { 150,150,150, 255 };
+    color_t default_clr = { 150, 150, 150, 255 };
 
     // margin
     r.x += style.margin.width;

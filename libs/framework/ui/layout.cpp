@@ -453,6 +453,7 @@ int layout_compute_hash(layout_item_ptr item)
         int scroll_y;
         int width;
         int height;
+        int content_hash;
         constraint_t constraint;
     };
 
@@ -463,11 +464,12 @@ int layout_compute_hash(layout_item_ptr item)
         item->scroll_y,
         item->width,
         item->height,
+        item->content_hash,
         item->constraint
     };
 
     int hash = murmur_hash(&hash_data, sizeof(layout_hash_data_t), LAYOUT_HASH_SEED);
-    for(auto c : item->children) {
+    for (auto c : item->children) {
         hash = hash_combine(hash, c->state_hash);
     }
 
@@ -499,13 +501,10 @@ void postlayout_run(layout_item_ptr item)
 }
 
 void _layout_run(layout_item_ptr item, constraint_t constraint)
-{    
+{
     item->constraint = constraint;
 
-    prelayout_run(item);
-
     if (layout_compute_hash(item) == item->state_hash) {
-        postlayout_run(item);
         return;
     }
 
@@ -538,8 +537,6 @@ void _layout_run(layout_item_ptr item, constraint_t constraint)
         child->rect.x += item->margin_left;
         child->rect.y += item->margin_top;
     }
-
-    postlayout_run(item);
 }
 
 void layout_compute_absolute_position(layout_item_ptr item)
@@ -555,8 +552,20 @@ void layout_compute_absolute_position(layout_item_ptr item)
     }
 }
 
+void layout_clear_hash(layout_item_ptr item, int depth)
+{
+    if (depth <= 0)
+        return;
+    item->state_hash = 0;
+    for (auto c : item->children) {
+        layout_clear_hash(c, depth - 1);
+    }
+}
+
 void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
 {
+    prelayout_run(item);
+
     items_visited = 0;
 
     rect_t r = item->rect;
@@ -574,6 +583,7 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
         item->render_rect = rr;
     }
 
+    postlayout_run(item);
     layout_compute_absolute_position(item);
 
     _LOG("%s %d\n", item->name.c_str(), items_visited);
