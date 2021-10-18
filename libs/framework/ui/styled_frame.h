@@ -13,7 +13,7 @@ struct borders_t {
     uint8_t bottom;
 };
 
-struct view_style_t {
+struct styled_frame_t {
     // colors
     color_t fg;
     color_t bg;
@@ -38,6 +38,6 @@ struct view_style_t {
     bool available;
 };
 
-void render_styled_frame(renderer_t* renderer, rect_t rect, view_style_t& style);
+void render_styled_frame(renderer_t* renderer, rect_t rect, styled_frame_t& style);
 
 #endif // VIEW_STYLE_H

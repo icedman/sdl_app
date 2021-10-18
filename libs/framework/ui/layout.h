@@ -62,8 +62,8 @@ typedef std::vector<layout_item_ptr> layout_item_list;
 
 typedef std::function<bool(layout_item_t*)> layout_callback_t;
 
-struct layout_item_state_t {
-    layout_item_state_t()
+struct layout_item_t {
+    layout_item_t()
         : x(0)
         , y(0)
         , scroll_x(0)
@@ -91,8 +91,20 @@ struct layout_item_state_t {
         , align_self(LAYOUT_ALIGN_UNKNOWN)
         , justify(LAYOUT_JUSTIFY_FLEX_START)
         , direction(LAYOUT_FLEX_DIRECTION_COLUMN)
+
+        , constraint({ 0, 0, 0, 0 })
+        , render_rect({ 0, 0, 0, 0 })
+        , rect({ 0, 0, 0, 0 })
+
+        , content_hash(0)
+        , state_hash(0)
+        , skip_layout(false)
+        , rgb({ 255, 0, 255 })
     {
     }
+
+    std::string name;
+    color_t rgb;
 
     int x;
     int y;
@@ -121,24 +133,6 @@ struct layout_item_state_t {
     layout_align_items_e align_self;
     layout_justify_content_e justify;
     layout_flex_direction_e direction;
-};
-
-struct layout_item_t : layout_item_state_t {
-    layout_item_t()
-        : layout_item_state_t()
-
-        , constraint({ 0, 0, 0, 0 })
-        , render_rect({ 0, 0, 0, 0 })
-        , rect({ 0, 0, 0, 0 })
-
-        , state_hash(0)
-        , skip_layout(false)
-        , rgb({ 255, 0, 255 })
-    {
-    }
-
-    std::string name;
-    color_t rgb;
 
     constraint_t constraint; // passed down
     rect_t render_rect; // final computed
@@ -147,6 +141,7 @@ struct layout_item_t : layout_item_state_t {
     float _flex; // computed grow/shrink
     int _width, _height;
     rect_t _rect;
+    int content_hash;
     int state_hash;
     bool skip_layout;
 

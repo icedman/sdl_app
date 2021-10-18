@@ -247,7 +247,7 @@ int view_t::content_hash(bool peek)
     return 0;
 }
 
-void view_t::set_style(view_style_t style)
+void view_t::set_style(styled_frame_t style)
 {
     state.style = style;
     state.style.available = true;

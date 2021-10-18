@@ -77,12 +77,12 @@ void panel_t::_validate()
     scrollbar_t* vs = v_scroll->cast<scrollbar_t>();
     scrollbar_t* hs = h_scroll->cast<scrollbar_t>();
 
-    int hp = (hs->count - hs->window);
+    float hp = (hs->count - hs->window);
     if (area->layout()->scroll_x < -hp) {
         area->layout()->scroll_x = -hp;
     }
 
-    int vp = (vs->count - vs->window);
+    float vp = (vs->count - vs->window);
     if (area->layout()->scroll_y < -vp) {
         area->layout()->scroll_y = -vp;
     }

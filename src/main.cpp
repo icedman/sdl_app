@@ -13,18 +13,7 @@
 #define FRAME_SKIP_INTERVAL 32
 
 view_ptr test(int argc, char **argv);
-
-void render_layout_item(renderer_t* renderer, layout_item_ptr item)
-{
-    if (!item->visible)
-        return;
-
-    renderer->draw_rect(item->render_rect, { 255, 255, 255 }, false, 1.0f);
-    renderer->draw_text(NULL, (char*)item->name.c_str(), item->render_rect.x, item->render_rect.y, { 255, 255, 255 });
-    for (auto child : item->children) {
-        render_layout_item(renderer, child);
-    }
-}
+void render_layout_item(renderer_t* renderer, layout_item_ptr item);
 
 extern "C" int main(int argc, char** argv)
 {
@@ -66,6 +55,12 @@ extern "C" int main(int argc, char** argv)
     layout_request();
     events_manager->on(EVT_WINDOW_RESIZE, [](event_t& evt) {
         layout_request();
+        return false;
+    });
+    events_manager->on(EVT_KEY_SEQUENCE, [](event_t& evt) {
+        if (evt.text == "ctrl+r") {
+            layout_request();
+        }
         return false;
     });
     while (sys->is_running()) {
@@ -143,7 +138,7 @@ extern "C" int main(int argc, char** argv)
                 renderer->set_update_rects(dmg->rects(), dmg->count());
             }
 
-            // render_layout_item(renderer, root->layout());
+            render_layout_item(renderer, root->layout());
 
             renderer->end_frame();
 

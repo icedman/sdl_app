@@ -4,7 +4,7 @@
 #include "events.h"
 #include "layout.h"
 #include "view_types.h"
-#include "view_style.h"
+#include "styled_frame.h"
 
 #include <memory>
 #include <string>
@@ -88,15 +88,17 @@ struct view_t : events_manager_t, event_object_t {
         rect_t rect;
         int scroll_x;
         int scroll_y;
-        view_style_t style;
+        styled_frame_t style;
     } state;
 
-    void set_style(view_style_t style);
+    void set_style(styled_frame_t style);
 
     // hashes
     virtual int state_hash(bool peek = false);
     virtual int content_hash(bool peek = false);
     virtual void rerender();
+
+    virtual view_ptr content() { return nullptr; }
 
     int _state_hash;
     int _content_hash;

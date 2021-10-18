@@ -37,7 +37,11 @@ void layout_reverse_items(layout_item_ptr item, int constraint)
 
 void layout_position_items(layout_item_ptr item)
 {
-    int constraint = item->constraint.max_width;
+    constraint_t c = item->constraint;
+    c.max_width -= (item->margin_left + item->margin_right);
+    c.max_height -= (item->margin_top + item->margin_bottom);
+
+    int constraint = c.max_width;
 
     int wd = 0;
     int hd = 0;
@@ -45,7 +49,7 @@ void layout_position_items(layout_item_ptr item)
         wd = 1;
     } else {
         hd = 1;
-        constraint = item->constraint.max_height;
+        constraint = c.max_height;
     }
 
     // wrap
@@ -152,8 +156,8 @@ void layout_position_items(layout_item_ptr item)
         if (child->stack) {
             continue;
         }
-        int alignOffset = (item->constraint.max_width - child->rect.w) * hd;
-        alignOffset += (item->constraint.max_height - child->rect.h) * wd;
+        int alignOffset = (c.max_width - child->rect.w) * hd;
+        alignOffset += (c.max_height - child->rect.h) * wd;
 
         int align = child->align_self ? child->align_self : item->align;
         switch (align) {
@@ -252,10 +256,10 @@ void layout_horizontal_run(layout_item_ptr item, constraint_t constraint)
 
     item->rect = rect;
     item->render_rect = rect;
+    item->constraint = constraint;
 
     constraint.max_width -= (item->margin_left + item->margin_right);
     constraint.max_height -= (item->margin_top + item->margin_bottom);
-    item->constraint = constraint;
 
     if (!item->visible) {
         item->rect = { 0, 0, 0, 0 };
@@ -353,10 +357,10 @@ void layout_vertical_run(layout_item_ptr item, constraint_t constraint)
 
     item->rect = rect;
     item->render_rect = rect;
+    item->constraint = constraint;
 
     constraint.max_width -= (item->margin_left + item->margin_right);
     constraint.max_height -= (item->margin_top + item->margin_bottom);
-    item->constraint = constraint;
 
     if (!item->visible) {
         item->rect = { 0, 0, 0, 0 };
@@ -442,7 +446,32 @@ void layout_vertical_run(layout_item_ptr item, constraint_t constraint)
 
 int layout_compute_hash(layout_item_ptr item)
 {
-    return murmur_hash((layout_item_state_t*)(item.get()), sizeof(layout_item_state_t), LAYOUT_HASH_SEED);
+    struct layout_hash_data_t {
+        int x;
+        int y;
+        int scroll_x;
+        int scroll_y;
+        int width;
+        int height;
+        constraint_t constraint;
+    };
+
+    layout_hash_data_t hash_data = {
+        item->x,
+        item->y,
+        item->scroll_x,
+        item->scroll_y,
+        item->width,
+        item->height,
+        item->constraint
+    };
+
+    int hash = murmur_hash(&hash_data, sizeof(layout_hash_data_t), LAYOUT_HASH_SEED);
+    for(auto c : item->children) {
+        hash = hash_combine(hash, c->state_hash);
+    }
+
+    return hash;
 }
 
 void prelayout_run(layout_item_ptr item)
@@ -450,6 +479,7 @@ void prelayout_run(layout_item_ptr item)
     for (auto child : item->children) {
         prelayout_run(child);
     }
+
     if (item->prelayout) {
         item->prelayout(item.get());
     }
@@ -461,17 +491,25 @@ void postlayout_run(layout_item_ptr item)
         postlayout_run(child);
     }
 
-    item->state_hash = layout_compute_hash(item);
-
     if (item->postlayout) {
         item->postlayout(item.get());
     }
+
+    item->state_hash = layout_compute_hash(item);
 }
 
 void _layout_run(layout_item_ptr item, constraint_t constraint)
-{
-    items_visited++;
+{    
+    item->constraint = constraint;
+
     prelayout_run(item);
+
+    if (layout_compute_hash(item) == item->state_hash) {
+        postlayout_run(item);
+        return;
+    }
+
+    items_visited++;
 
     // margin
     if (item->margin) {
@@ -519,7 +557,6 @@ void layout_compute_absolute_position(layout_item_ptr item)
 
 void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
 {
-    // _LOG("%s\n", item->name.c_str());
     items_visited = 0;
 
     rect_t r = item->rect;
@@ -539,7 +576,7 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
 
     layout_compute_absolute_position(item);
 
-    // _LOG("%s %d\n", item->name.c_str(), items_visited);
+    _LOG("%s %d\n", item->name.c_str(), items_visited);
 }
 
 static bool compare_item_order(layout_item_ptr f1, layout_item_ptr f2)

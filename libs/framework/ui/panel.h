@@ -14,7 +14,7 @@ struct panel_t : vertical_container_t {
     view_ptr resizer;
     view_ptr bottom;
 
-    view_ptr content();
+    virtual view_ptr content() override;
 
     void _validate();
 

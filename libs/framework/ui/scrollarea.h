@@ -8,7 +8,7 @@ struct scrollarea_t : view_t {
 
     DECLAR_VIEW_TYPE(SCROLLAREA, view_t)
 
-    view_ptr content() { return _content; }
+    virtual view_ptr content() override { return _content; }
 
     void render(renderer_t* renderer) override;
 

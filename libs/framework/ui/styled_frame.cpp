@@ -1,8 +1,8 @@
 #include "view.h"
-#include "view_style.h"
+#include "styled_frame.h"
 #include "renderer.h"
 
-void render_styled_frame(renderer_t* renderer, rect_t rect, view_style_t& style)
+void render_styled_frame(renderer_t* renderer, rect_t rect, styled_frame_t& style)
 {
     rect_t r = rect;
     color_t default_clr = { 150,150,150, 255 };
