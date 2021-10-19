@@ -17,6 +17,8 @@ rich_text_t::rich_text_t()
     , visible_blocks(0)
     , wrapped(true)
 {
+    editor = std::make_shared<editor_t>();
+    
     layout()->prelayout = [this](layout_item_t* item) {
         this->prelayout();
         return true;

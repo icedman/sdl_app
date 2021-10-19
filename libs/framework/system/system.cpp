@@ -14,7 +14,7 @@ static int mouse_y = -1;
 #define MAX_UPDATE_RECTS 2048
 #define FRAME_RATE 30
 #define IDLE_FRAMES (FRAME_RATE * 2)
-#define CAFFEINE_FRAMES (FRAME_RATE * 8)
+#define CAFFEINE_FRAMES (FRAME_RATE * 4)
 
 extern SDL_Surface* ctx_sdl_surface(context_t* ctx);
 

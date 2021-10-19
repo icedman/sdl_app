@@ -91,6 +91,7 @@ framework_files = [
     'libs/framework/common/hash.cpp',
     'libs/framework/system/system.cpp',
     'libs/framework/system/events.cpp',
+    'libs/framework/system/tasks.cpp',
     'libs/framework/renderer/renderer.cpp',
     'libs/framework/renderer/font.cpp',
     'libs/framework/renderer/fallback_font.cpp',

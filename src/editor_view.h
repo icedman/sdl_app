@@ -3,9 +3,20 @@
 
 #include "editor.h"
 #include "rich_text.h"
+#include "tasks.h"
+
+struct editor_view_t;
+struct highlighter_task_t : task_t
+{
+    editor_view_t *editor;
+    bool run(int limit) override;
+
+    block_list hl;
+};
 
 struct editor_view_t : rich_text_t {
     editor_view_t();
+    ~editor_view_t();
 
     DECLAR_VIEW_TYPE(CUSTOM, rich_text_t)
     virtual std::string type_name() { return "editor"; }
@@ -28,6 +39,8 @@ struct editor_view_t : rich_text_t {
     int mouse_x;
     int mouse_y;
     int scroll_to;
+
+    task_ptr hl_task;
 };
 
 #endif EDITOR_VIEW_H

@@ -157,7 +157,7 @@ view_ptr test6(int argc, char** argv)
     ev->gutter()->layout()->width = 50;
     ev->minimap()->layout()->width = 80;
 
-    editor_ptr editor = std::make_shared<editor_t>();
+    editor_ptr editor = ev->editor;
     editor->highlighter.lang = std::make_shared<language_info_t>();
     editor->highlighter.lang->grammar = load("./tests/syntaxes/c.json");
     Json::Value root = parse::loadJson(themeFile);

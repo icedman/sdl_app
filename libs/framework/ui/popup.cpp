@@ -30,7 +30,7 @@ popup_manager_t::popup_manager_t()
 {
     layout()->stack = true;
 
-    on(EVT_ALL, [this](event_t& event) {
+    events_manager_t::instance()->on(EVT_ALL, [this](event_t& event) {
         if (!this->children.size())
             return false;
 
@@ -49,14 +49,6 @@ popup_manager_t::popup_manager_t()
 
         return false;
     });
-
-    layout()->prelayout = [this](layout_item_t* item) {
-        this->layout()->x = parent->layout()->margin_left;
-        this->layout()->y = parent->layout()->margin_top;
-        this->layout()->width = parent->layout()->render_rect.w - (parent->layout()->margin_left + parent->layout()->margin_right);
-        this->layout()->height = parent->layout()->render_rect.h - (parent->layout()->margin_top + parent->layout()->margin_bottom);
-        return true;
-    };
 }
 
 void popup_manager_t::push_at(view_ptr popup, rect_t attach, int direction)
@@ -91,6 +83,8 @@ void popup_manager_t::push(view_ptr popup)
 
     popup->cast<popup_t>()->pm = this;
     popup->layout()->stack = true;
+
+    layout_clear_hash(popup->layout(), 8);
 
     view_list::iterator it = std::find(children.begin(), children.end(), popup);
     if (it != children.end()) {

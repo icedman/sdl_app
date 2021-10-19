@@ -7,6 +7,7 @@
 #include "popup.h"
 #include "system.h"
 #include "view.h"
+#include "tasks.h"
 
 #include "operation.h"
 
@@ -14,6 +15,15 @@
 
 view_ptr test(int argc, char** argv);
 void render_layout_item(renderer_t* renderer, layout_item_ptr item);
+
+struct my_task_t : task_t
+{
+    std::string name;
+    bool run(int limit) {
+        printf("!%s\n", name.c_str());
+        return false;
+    }
+};
 
 extern "C" int main(int argc, char** argv)
 {
@@ -23,6 +33,14 @@ extern "C" int main(int argc, char** argv)
 
     renderer_t* renderer = &sys->renderer;
     events_manager_t* events_manager = events_manager_t::instance();
+    tasks_manager_t* tasks_manager = tasks_manager_t::instance();
+
+    // task_ptr mt1 = std::make_shared<my_task_t>();
+    // ((my_task_t*)(mt1.get()))->name = "task 1";
+    // task_ptr mt2 = std::make_shared<my_task_t>();
+    // ((my_task_t*)(mt2.get()))->name = "task 2";
+    // tasks_manager->enroll(mt1);
+    // tasks_manager->enroll(mt2);
 
     event_list events;
     view_list visible_views;
@@ -72,11 +90,12 @@ extern "C" int main(int argc, char** argv)
         if (events.size()) {
             if (events.size()) {
                 if (events[0].type == EVT_KEY_SEQUENCE) {
-                    suspend_frame_skipping = 8;
+                    suspend_frame_skipping = target_fps;
                 }
             }
-            view_dispatch_events(events, visible_views);
+
             events_manager->dispatch_events(events);
+            view_dispatch_events(events, visible_views);
             events.clear();
         }
 
@@ -170,10 +189,11 @@ extern "C" int main(int argc, char** argv)
                 break;
             }
 
-            // do work here
-
             if (!sys->is_caffeinated() && sys->is_idle()) {
-                sys->delay(30);
+                bool did_work = tasks_manager->run(max_elapsed);
+                if (!did_work) {
+                    sys->delay(50);
+                }
             }
 
         } while (sys->timer.elapsed() < max_elapsed);

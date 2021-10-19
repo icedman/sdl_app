@@ -14,6 +14,8 @@ button_t::button_t(std::string t)
     layout()->justify = LAYOUT_JUSTIFY_CENTER;
     layout()->align = LAYOUT_ALIGN_CENTER;
     layout()->margin = 8;
+
+    can_hover = true;
 }
 
 void button_t::render(renderer_t* renderer)

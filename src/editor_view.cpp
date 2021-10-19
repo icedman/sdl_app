@@ -5,10 +5,59 @@
 #include "system.h"
 #include "text.h"
 
+#define PRE_VISIBLE_HL 20
+#define POST_VISIBLE_HL 100
+#define MAX_HL_BUCKET ((PRE_VISIBLE_HL + POST_VISIBLE_HL) * 4)
+
+bool highlighter_task_t::run(int limit)
+{
+    if (!editor->editor) return false;
+
+    if (hl.size() > MAX_HL_BUCKET) {
+        hl.erase(hl.begin(), hl.begin() + (hl.size() - MAX_HL_BUCKET));
+    }
+
+    int hltd = 0;
+    while (hl.size()) {
+        block_ptr block = hl.front();
+        hl.erase(hl.begin(), hl.begin()+1);
+        if (!block->data || block->data->dirty) {
+            editor->editor->highlight(block->lineNumber, 1);
+            hltd++;
+            break;
+        }
+    }
+
+    int first = editor->first_visible;
+    block_list::iterator it = editor->editor->document.blocks.begin();
+    first -= PRE_VISIBLE_HL;
+    if (first < 0) {
+        first = 0;
+    }
+
+    int idx = 0;
+    it += first;
+    while(it != editor->editor->document.blocks.end()) {
+        block_ptr block = *it++;
+
+        if (!block->data || block->data->dirty) {
+            hl.push_back(block);
+        }
+
+        if (idx++ > editor->visible_blocks + POST_VISIBLE_HL) break;
+    }
+
+    return true;
+}
+
 editor_view_t::editor_view_t()
     : rich_text_t()
     , scroll_to(-1)
 {
+    hl_task = std::make_shared<highlighter_task_t>();
+    ((highlighter_task_t*)(hl_task.get()))->editor = this;
+    tasks_manager_t::instance()->enroll(hl_task);
+
     can_focus = true;
     draw_cursors = true;
     on(EVT_KEY_SEQUENCE, [this](event_t& event) {
@@ -33,6 +82,11 @@ editor_view_t::editor_view_t()
     });
 
     layout()->name = "editor";
+}
+
+editor_view_t::~editor_view_t()
+{
+    // tasks_manager_t::instance()->withdraw(hl_task);
 }
 
 bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
