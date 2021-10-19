@@ -8,9 +8,11 @@
 struct editor_view_t;
 struct highlighter_task_t : task_t
 {
-    editor_view_t *editor;
+    highlighter_task_t(editor_view_t *editor);
+
     bool run(int limit) override;
 
+    editor_view_t *editor;
     block_list hl;
 };
 
@@ -26,7 +28,6 @@ struct editor_view_t : rich_text_t {
     virtual bool handle_mouse_down(event_t& event);
     virtual bool handle_mouse_move(event_t& event);
 
-    void update() override;
     void ensure_visible_cursor();
     void scroll_to_cursor(cursor_t cursor);
 

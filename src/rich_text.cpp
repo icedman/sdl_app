@@ -15,7 +15,7 @@ rich_text_block_t::rich_text_block_t()
 rich_text_t::rich_text_t()
     : panel_t()
     , visible_blocks(0)
-    , wrapped(true)
+    , wrapped(false)
 {
     editor = std::make_shared<editor_t>();
     

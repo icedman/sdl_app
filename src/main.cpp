@@ -16,15 +16,6 @@
 view_ptr test(int argc, char** argv);
 void render_layout_item(renderer_t* renderer, layout_item_ptr item);
 
-struct my_task_t : task_t
-{
-    std::string name;
-    bool run(int limit) {
-        printf("!%s\n", name.c_str());
-        return false;
-    }
-};
-
 extern "C" int main(int argc, char** argv)
 {
     system_t* sys = system_t::instance();
@@ -34,13 +25,6 @@ extern "C" int main(int argc, char** argv)
     renderer_t* renderer = &sys->renderer;
     events_manager_t* events_manager = events_manager_t::instance();
     tasks_manager_t* tasks_manager = tasks_manager_t::instance();
-
-    // task_ptr mt1 = std::make_shared<my_task_t>();
-    // ((my_task_t*)(mt1.get()))->name = "task 1";
-    // task_ptr mt2 = std::make_shared<my_task_t>();
-    // ((my_task_t*)(mt2.get()))->name = "task 2";
-    // tasks_manager->enroll(mt1);
-    // tasks_manager->enroll(mt2);
 
     event_list events;
     view_list visible_views;
@@ -88,12 +72,6 @@ extern "C" int main(int argc, char** argv)
         sys->poll_events(&events);
 
         if (events.size()) {
-            if (events.size()) {
-                if (events[0].type == EVT_KEY_SEQUENCE) {
-                    suspend_frame_skipping = target_fps;
-                }
-            }
-
             events_manager->dispatch_events(events);
             view_dispatch_events(events, visible_views);
             events.clear();
@@ -167,7 +145,7 @@ extern "C" int main(int argc, char** argv)
                 renderer->set_update_rects(dmg->rects(), dmg->count());
             }
 
-            render_layout_item(renderer, root->layout());
+            // render_layout_item(renderer, root->layout());
 
             renderer->end_frame();
 
@@ -181,13 +159,11 @@ extern "C" int main(int argc, char** argv)
         }
 
         do {
-            if (sys->poll_events(&events)) {
+            if (sys->poll_events(&events))
                 break;
-            }
 
-            if (sys->is_caffeinated()) {
+            if (sys->is_caffeinated())
                 break;
-            }
 
             if (!sys->is_caffeinated() && sys->is_idle()) {
                 bool did_work = tasks_manager->run(max_elapsed);

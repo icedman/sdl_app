@@ -1,6 +1,7 @@
 #include "editor_view.h"
 #include "damage.h"
 #include "gutter.h"
+#include "minimap.h"
 #include "hash.h"
 #include "system.h"
 #include "text.h"
@@ -8,6 +9,10 @@
 #define PRE_VISIBLE_HL 20
 #define POST_VISIBLE_HL 100
 #define MAX_HL_BUCKET ((PRE_VISIBLE_HL + POST_VISIBLE_HL) * 4)
+
+highlighter_task_t::highlighter_task_t(editor_view_t *editor)
+    : editor(editor)
+{}
 
 bool highlighter_task_t::run(int limit)
 {
@@ -47,15 +52,14 @@ bool highlighter_task_t::run(int limit)
         if (idx++ > editor->visible_blocks + POST_VISIBLE_HL) break;
     }
 
-    return true;
+    return hltd > 0;
 }
 
 editor_view_t::editor_view_t()
     : rich_text_t()
     , scroll_to(-1)
 {
-    hl_task = std::make_shared<highlighter_task_t>();
-    ((highlighter_task_t*)(hl_task.get()))->editor = this;
+    hl_task = std::make_shared<highlighter_task_t>(this);
     tasks_manager_t::instance()->enroll(hl_task);
 
     can_focus = true;
@@ -356,7 +360,7 @@ view_ptr editor_view_t::gutter()
 {
     if (!_gutter) {
         view_ptr container = children[0];
-        _gutter = std::make_shared<gutter_t>();
+        _gutter = std::make_shared<gutter_t>(this);
         _gutter->layout()->order = 5;
         container->add_child(_gutter);
         layout_sort(container->layout());
@@ -368,28 +372,10 @@ view_ptr editor_view_t::minimap()
 {
     if (!_minimap) {
         view_ptr container = children[0];
-        _minimap = std::make_shared<view_t>();
+        _minimap = std::make_shared<minimap_t>(this);
         _minimap->layout()->order = 15;
         container->add_child(_minimap);
         layout_sort(container->layout());
     }
     return _minimap;
-}
-
-void editor_view_t::update()
-{
-    // if (scroll_to != -1) {
-    //     layout_item_ptr slo = scrollarea->layout();
-    //     float diff = scroll_to - slo->scroll_y;
-    //     if (diff * diff < 100) {
-    //         scroll_to = -1;
-    //         diff = 0;
-    //     }
-    //     slo->scroll_y += diff/40;
-
-    //     layout_compute_absolute_position(layout());
-    //     _state_hash = 0;
-    // }
-
-    panel_t::update();
 }

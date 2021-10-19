@@ -112,6 +112,7 @@ view_ptr test6(int argc, char** argv)
     if (inputFile.length()) {
         filename = inputFile;
     }
+
     // std::string filename = "./tests/test.c";
     // std::string filename = "./tests/utf8_test2.txt";
     // std::string filename = "./tests/tinywl.c";
@@ -124,7 +125,6 @@ view_ptr test6(int argc, char** argv)
 
     explorer_t::instance()->setRootFromFile("./src");
     explorer_t::instance()->update(0);
-    explorer_t::instance()->print();
 
     set_sidebar_data(sidebar);
 
@@ -145,7 +145,6 @@ view_ptr test6(int argc, char** argv)
             explorer_t::instance()->update(0);
             explorer_t::instance()->print();
             set_sidebar_data(sidebar);
-            sidebar->parent->relayout();
         }
         return true;
     });
@@ -154,8 +153,8 @@ view_ptr test6(int argc, char** argv)
     view_ptr view = std::make_shared<editor_view_t>();
     editor_view_t* ev = view->cast<editor_view_t>();
 
-    ev->gutter()->layout()->width = 50;
-    ev->minimap()->layout()->width = 80;
+    // ev->gutter();
+    // ev->minimap()->layout()->width = 80;
 
     editor_ptr editor = ev->editor;
     editor->highlighter.lang = std::make_shared<language_info_t>();
