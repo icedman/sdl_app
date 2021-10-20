@@ -1,6 +1,7 @@
 #include "hash.h"
 
-#include <stdint.h>
+#include <cstdint>
+#include <memory>
 
 // from nuklear ui
 

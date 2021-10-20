@@ -38,6 +38,7 @@ const char* view_type_names[] = {
     "scrollarea",
     "scrollbar",
     "tabbar",
+    "tabbed_content",
     "splitter",
     "custom"
 };
@@ -220,7 +221,7 @@ void view_t::render_frame(renderer_t* renderer)
 
 void view_t::render(renderer_t* renderer)
 {
-    // render_frame(renderer);
+    render_frame(renderer);
 }
 
 void view_t::propagate_event(event_t& event)
@@ -274,7 +275,6 @@ bool view_t::set_hovered(view_t* view)
     if (view_hovered.get() != view) {
         system_t::instance()->caffeinate();
         if (view_hovered) {
-            printf("+++++H%s\n", view_hovered->type_name().c_str());
             event_t event;
             event.type = EVT_HOVER_OUT;
             event.source = view_hovered.get();
@@ -284,8 +284,6 @@ bool view_t::set_hovered(view_t* view)
         }
         view_hovered = view->ptr();
         if (view_hovered) {
-
-            printf("-----%s\n", view_hovered->type_name().c_str());
             event_t event;
             event.type = EVT_HOVER_IN;
             event.source = view_hovered.get();

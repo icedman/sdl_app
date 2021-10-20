@@ -94,6 +94,8 @@ renderer_t::renderer_t()
     , update_rects_count(0)
     , enable_update_rects(false)
 {
+    foreground = { 255,255,255 };
+    background = {  50, 50, 50 };
 }
 
 renderer_t::~renderer_t()
@@ -413,6 +415,10 @@ int renderer_t::draw_text(font_t* font, char* text, int x, int y, color_t clr, b
     // _draw_count++;
     if (!font) {
         font = default_font();
+    }
+
+    if (!color_is_set(clr)) {
+        clr = foreground;
     }
     return font->draw_text(this, font, text, x, y, clr, bold, italic, underline);
 }

@@ -40,6 +40,10 @@ struct rich_text_t : panel_t {
     int block_height;
     bool wrapped;
     bool draw_cursors;
+
+    color_t fg;
+    color_t bg;
+    color_t sel;
 };
 
 #endif RICH_TEXT_H

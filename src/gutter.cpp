@@ -36,7 +36,8 @@ void gutter_t::render(renderer_t* renderer)
         view_ptr c = *it++;
         view_ptr sc = *sit++;
         rich_text_block_t* scb = sc->cast<rich_text_block_t>();
-        c->layout()->y = sc->layout()->render_rect.y;
+
+        c->layout()->y = sc->layout()->render_rect.y - layout()->render_rect.y;
         c->layout()->visible = false;
 
         if (!scb->block || !sc->layout()->visible) break;
@@ -45,6 +46,19 @@ void gutter_t::render(renderer_t* renderer)
             c->cast<text_block_t>()->set_text(std::to_string(scb->block->lineNumber + 1));
             c->layout()->x = layout()->width - text_width((scb->block->lineNumber + 1) * 10, font());
             c->layout()->visible = true;
+
+            text_span_t ts = {
+                .start = 0,
+                .length = c->cast<text_block_t>()->text().length(),
+                .fg = editor->fg,
+                .bg = { 0, 0, 0, 0 },
+                .bold = false,
+                .italic = false,
+                .underline = false,
+                .caret = 0
+            };    
+            c->cast<text_block_t>()->_text_spans.clear();
+            c->cast<text_block_t>()->_text_spans.push_back(ts);
         }
 
         if (sit == editor->subcontent->children.end()) break;

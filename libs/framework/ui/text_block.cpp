@@ -143,7 +143,6 @@ void text_block_t::prelayout()
 void text_block_t::render(renderer_t* renderer)
 {
     layout_item_ptr lo = layout();
-    // renderer->draw_rect(lo->render_rect, { 255, 0, 255 }, false, 1.0f);
 
     renderer->begin_text_span(_text_spans);
     for (auto span : lo->children) {
@@ -153,10 +152,9 @@ void text_block_t::render(renderer_t* renderer)
 
         rect_t r = span->render_rect;
 
-        // renderer->draw_rect(span->render_rect, { 255, 0, 255, 100 }, false, 1);
         renderer->draw_text(NULL, (char*)text_span->text.c_str(),
             r.x,
-            r.y, { 255, 255, 255 });
+            r.y, {});
     }
     renderer->end_text_span();
 }

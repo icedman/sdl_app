@@ -9,6 +9,7 @@
 #include "scrollbar.h"
 #include "splitter.h"
 #include "system.h"
+#include "tabbar.h"
 #include "text.h"
 #include "text_block.h"
 #include "view.h"
@@ -18,11 +19,13 @@
 #include "reader.h"
 #include "theme.h"
 
+#include "app_view.h"
 #include "editor_view.h"
+#include "explorer_view.h"
 #include "explorer.h"
 #include "rich_text.h"
 
-#define TEST test6
+#define TEST test7
 
 static bool render_layout = false;
 explorer_t explorer;
@@ -34,6 +37,7 @@ view_ptr test3(int argc, char** argv); // list, splitter
 view_ptr test4(int argc, char** argv); // fit to children
 view_ptr test5(int argc, char** argv); // text block
 view_ptr test6(int argc, char** argv); // rich text editor
+view_ptr test7(int argc, char** argv); // app
 
 std::string inputFile;
 std::string themeFile;
@@ -91,19 +95,11 @@ parse::grammar_ptr load(std::string path)
     return parse::parse_grammar(json);
 }
 
-void set_sidebar_data(view_ptr sidebar)
+view_ptr test7(int argc, char** argv)
 {
-    std::vector<list_item_data_t> data;
-    for (auto f : explorer_t::instance()->renderList) {
-        list_item_data_t d = {
-            value : f->fullPath,
-            text : f->name,
-            indent : f->depth * (sidebar->font()->width * 2),
-            data : f
-        };
-        data.push_back(d);
-    }
-    sidebar->cast<list_t>()->update_data(data);
+    view_ptr root_view = std::make_shared<app_view_t>();
+    root_view->cast<app_view_t>()->configure(argc, argv);
+    return root_view;
 }
 
 view_ptr test6(int argc, char** argv)
@@ -120,34 +116,9 @@ view_ptr test6(int argc, char** argv)
 
     view_ptr root_view = std::make_shared<horizontal_container_t>();
 
-    view_ptr sidebar = std::make_shared<list_t>();
+    view_ptr sidebar = std::make_shared<explorer_view_t>();
     sidebar->layout()->width = 300;
-
-    explorer_t::instance()->setRootFromFile("./src");
-    explorer_t::instance()->update(0);
-
-    set_sidebar_data(sidebar);
-
-    sidebar->on(EVT_ITEM_SELECT, [sidebar](event_t& evt) {
-        evt.cancelled = true;
-        view_t* item = (view_t*)evt.source;
-        if (!item)
-            return false;
-        list_item_data_t d = item->cast<list_item_t>()->item_data;
-        fileitem_t* file = (fileitem_t*)d.data;
-        if (file->isDirectory) {
-            if (file->canLoadMore) {
-                explorer_t::instance()->loadFolder(file);
-                file->canLoadMore = false;
-            }
-            file->expanded = !file->expanded;
-            explorer_t::instance()->regenerateList = true;
-            explorer_t::instance()->update(0);
-            explorer_t::instance()->print();
-            set_sidebar_data(sidebar);
-        }
-        return true;
-    });
+    sidebar->cast<explorer_view_t>()->set_root_path("./src");
 
     root_view->layout()->margin_left = 20;
     view_ptr view = std::make_shared<editor_view_t>();
@@ -167,8 +138,6 @@ view_ptr test6(int argc, char** argv)
 
     editor->name = "editor:";
     editor->name += filename;
-
-    ev->editor = editor;
 
     view_ptr vsplitter = std::make_shared<vertical_splitter_t>(sidebar, root_view);
 
@@ -350,7 +319,9 @@ view_ptr test3(int argc, char** argv)
     view_ptr view = std::make_shared<view_t>();
     view->layout()->margin = 20;
 
+    view_ptr tabbar = std::make_shared<tabbar_t>();
     view_ptr top = std::make_shared<vertical_container_t>();
+
     view_ptr text = std::make_shared<text_t>();
     text->cast<text_t>()->set_text("Hello World");
 
@@ -387,7 +358,18 @@ view_ptr test3(int argc, char** argv)
     icon->cast<image_view_t>()->load_icon("./tests/3d.svg", 24, 24);
     // toolbar->add_child(icon);
 
+    view->add_child(tabbar);
     view->add_child(top);
+
+    std::vector<list_item_data_t> tabbar_data;
+    for (int i = 0; i < 8; i++) {
+        list_item_data_t d = {
+            value : "List Item " + std::to_string(i),
+            text : "List Item " + std::to_string(i)
+        };
+        tabbar_data.push_back(d);
+    }
+    tabbar->cast<tabbar_t>()->update_data(tabbar_data);
 
     view_ptr vsplitter = std::make_shared<horizontal_splitter_t>();
     view->add_child(vsplitter);

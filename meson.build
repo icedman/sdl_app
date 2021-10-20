@@ -107,6 +107,7 @@ framework_files = [
     'libs/framework/ui/scrollarea.cpp',
     'libs/framework/ui/scrollbar.cpp',
     'libs/framework/ui/splitter.cpp',
+    'libs/framework/ui/tabbar.cpp',
     'libs/framework/ui/text.cpp',
     'libs/framework/ui/text_block.cpp'
 ]
@@ -186,18 +187,16 @@ framework_lib = static_library('framework',
 
 framework_dep = declare_dependency(link_with: framework_lib, include_directories: [ framework_inc ])
 
-sdl_files = [
-]
-
 if get_option('build_sdl')
 executable('ashlar',
     'src/rich_text.cpp',
+    'src/app_view.cpp',
+    'src/explorer_view.cpp',
     'src/editor_view.cpp',
     'src/gutter.cpp',
     'src/minimap.cpp',
     'src/main.cpp',
     'src/tests.cpp',
-    sdl_files,
     framework_files,
     include_directories: [ './src', 'libs/PennerEasing' ],
     dependencies: [

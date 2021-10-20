@@ -1,7 +1,7 @@
 #ifndef VIEW_STYLE_H
 #define VIEW_STYLE_H
 
-#include <stdint.h>
+#include <cstdint>
 #include "color.h"
 #include "rect.h"
 

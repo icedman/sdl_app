@@ -26,6 +26,9 @@ extern "C" int main(int argc, char** argv)
     events_manager_t* events_manager = events_manager_t::instance();
     tasks_manager_t* tasks_manager = tasks_manager_t::instance();
 
+    renderer->foreground = { 255, 255, 255 };
+    renderer->background = { 50, 50, 50 };
+
     event_list events;
     view_list visible_views;
 
@@ -50,7 +53,7 @@ extern "C" int main(int argc, char** argv)
 
     // quick first render
     renderer->begin_frame();
-    renderer->clear({ 50, 50, 50 });
+    renderer->clear(renderer->background);
     renderer->end_frame();
 
     int suspend_frame_skipping = 0;
@@ -114,19 +117,21 @@ extern "C" int main(int argc, char** argv)
             view_prerender(root, visible_views, dmg);
 
             if (!dmg || dmg->count()) {
-                renderer->clear({ 50, 50, 50 });
+                renderer->clear(renderer->background);
             }
 
             view_render(renderer, root, dmg);
 
+            #if 1
             if (dmg) {
                 printf("damages:%d rendered:%d skipped:%d\n", dmg->count(), renderer->draw_count(), skipped);
-                for(auto d : dmg->damage_rects) {
-                    printf("%d %d %d %d\n", d.x,d.y,d.w,d.h);
-                }
+                // for(auto d : dmg->damage_rects) {
+                //     printf("%d %d %d %d\n", d.x,d.y,d.w,d.h);
+                // }
             } else {
                 printf("rendered:%d skipped:%d\n", renderer->draw_count(), skipped);
             }
+            #endif
 
             // renderer->draw_rect({20,20,renderer->width()-40,renderer->height()-40},{255,0,255}, false, 2);
             // renderer->draw_line(20,20,420,420,{255,0,255});

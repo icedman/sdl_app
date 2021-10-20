@@ -53,8 +53,9 @@ bool splitter_t::handle_mouse_drag(event_t& event)
             bool prior = target->layout()->render_rect.y <= layout()->render_rect.y;
             target->layout()->height = start_height + (prior ? (event.y - drag_start_y) : -(event.y - drag_start_y));
         }
-        layout_request();
         system_t::instance()->caffeinate();
+        layout_clear_hash(container->layout(), 6);
+        container->relayout();
     }
     return true;
 }

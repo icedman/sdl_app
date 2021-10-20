@@ -23,12 +23,6 @@ void text_t::set_text(std::string text)
 {
     _text = text;
     layout()->content_hash = murmur_hash(text.c_str(), text.length(), CONTENT_HASH_SEED);
-
-    // layout_item_ptr item = layout();
-    // prelayout();
-    // if ((item->width && item->render_rect.w != item->width) || (item->height && item->render_rect.h != item->height)) {
-    //     relayout();
-    // }
 }
 
 void text_t::prelayout()
@@ -45,7 +39,8 @@ void text_t::render(renderer_t* renderer)
 {
     layout_item_ptr item = layout();
     renderer->begin_text_span(_text_spans);
-    renderer->draw_text(NULL, (char*)_text.c_str(), item->render_rect.x, item->render_rect.y, { 255, 255, 255 });
+    // renderer->draw_rect(item->render_rect, {255,0,255}, false, 1.0f);
+    renderer->draw_text(NULL, (char*)_text.c_str(), item->render_rect.x, item->render_rect.y, {});
     renderer->end_text_span();
 }
 

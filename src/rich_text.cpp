@@ -55,6 +55,22 @@ void rich_text_t::update_block(view_ptr item, block_ptr block)
     }
 
     editor_block->_text_spans.clear();
+
+    // default color
+    if (color_is_set(fg)) {
+        text_span_t ts = {
+            .start = 0,
+            .length = block->length(),
+            .fg = fg,
+            .bg = { 0, 0, 0, 0 },
+            .bold = false,
+            .italic = false,
+            .underline = false,
+            .caret = 0
+        };    
+        editor_block->_text_spans.push_back(ts);
+    }
+
     for (auto s : block->data->spans) {
         text_span_t ts;
         memcpy(&ts, &s, sizeof(text_span_t));
@@ -112,7 +128,7 @@ void rich_text_t::update_block(view_ptr item, block_ptr block)
                     .caret = cr
                 };
                 if (hl) {
-                    ts.bg = { 150, 150, 150, 50 };
+                    ts.bg = sel;
                 }
                 editor_block->_text_spans.push_back(ts);
             }
@@ -140,6 +156,31 @@ void rich_text_t::update_blocks()
 void rich_text_t::prelayout()
 {
     int blocks_count = editor->document.blocks.size();
+
+    fg = { 255,255,255,0 };
+    sel = { 150,150,150,50 };
+
+    color_info_t t_clr;
+    color_t clr;
+    editor->highlighter.theme->theme_color("editor.foreground", t_clr);
+    clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
+    if (color_is_set(clr)) {
+        fg = clr;
+    }
+    editor->highlighter.theme->theme_color("editor.background", t_clr);
+    clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
+    if (color_is_set(clr)) {
+        bg = clr;
+    }
+    editor->highlighter.theme->theme_color("editor.selectionBackground", t_clr);
+    clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
+    if (color_is_set(clr)) {
+        sel = clr;
+        sel.a = 100;
+    }
+
+    system_t::instance()->renderer.foreground = fg;
+    system_t::instance()->renderer.background = bg;
 
     layout_item_ptr lo = layout();
 

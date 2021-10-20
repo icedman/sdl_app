@@ -16,6 +16,7 @@ enum view_type_e {
     SCROLLAREA,
     SCROLLBAR,
     TABBAR,
+    TABBED_CONTENT,
     SPLITTER,
     CUSTOM,
     END
