@@ -24,7 +24,7 @@ tabbar_t::tabbar_t()
 
 void tabbar_t::prelayout()
 {
-    layout()->height = font()->height + layout()->margin_top;
+    layout()->height = font()->height + layout()->margin_top + 4;
 }
 
 view_ptr tabbar_t::create_item()
@@ -32,11 +32,12 @@ view_ptr tabbar_t::create_item()
     view_ptr item = std::make_shared<list_item_t>();
     item->layout()->fit_children_x = true;
     item->layout()->fit_children_y = true;
-    view_ptr btn = std::make_shared<button_t>();
+    // view_ptr btn = std::make_shared<button_t>();
     view_ptr text = std::make_shared<text_t>("ITEM TEMPLATE");
     item->add_child(text);
-    item->add_child(btn);
+    // item->add_child(btn);
     item->layout()->visible = false;
+    item->layout()->preferred_constraint.max_width = font()->width * 20;
 
     item->layout()->fit_children_x = true;
     item->layout()->fit_children_y = true;
@@ -57,13 +58,13 @@ void tabbar_t::update_item(view_ptr item, list_item_data_t data)
 {
     item->cast<list_item_t>()->item_data = data;
     item->cast<list_item_t>()->find_child(view_type_e::TEXT)->cast<text_t>()->set_text(data.text);
-    item->cast<list_item_t>()->find_child(view_type_e::BUTTON)->layout()->width = 32;
+    // item->cast<list_item_t>()->find_child(view_type_e::BUTTON)->layout()->width = 32;
     item->layout()->visible = true;
 }
+
 void tabbar_t::update_data(std::vector<list_item_data_t> _data)
 {
     data = _data;
-    _content_hash = 1234;
 
     while (content()->children.size() < data.size()) {
         view_ptr vi = create_item();

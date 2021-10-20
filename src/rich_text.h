@@ -28,8 +28,8 @@ struct rich_text_t : panel_t {
     virtual view_ptr create_block();
     virtual void update_block(view_ptr item, block_ptr block);
     virtual void update_block(block_ptr block);
-    void update_blocks();
-    void relayout_virtual_blocks();
+    virtual void update_blocks();
+    virtual void relayout_virtual_blocks();
 
     view_ptr lead_spacer;
     view_ptr tail_spacer;

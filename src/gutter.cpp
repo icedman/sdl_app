@@ -1,6 +1,7 @@
 #include "gutter.h"
 #include "editor_view.h"
 #include "text_block.h"
+#include "hash.h"
 
 gutter_t::gutter_t(editor_view_t* editor)
     : vertical_container_t()
@@ -69,3 +70,31 @@ void gutter_t::render(renderer_t* renderer)
         c->layout()->visible = false;
     }
 }
+
+int gutter_t::content_hash(bool peek)
+{
+    struct gutter_hash_data_t {
+        int scroll_x;
+        int scroll_y;
+    };
+
+    gutter_hash_data_t hash_data = {
+        editor->scrollarea->layout()->scroll_x,
+        editor->scrollarea->layout()->scroll_y
+    };
+
+    int hash = murmur_hash(&hash_data, sizeof(gutter_hash_data_t), CONTENT_HASH_SEED);
+    for(auto c : editor->subcontent->children) {
+        rich_text_block_t* scb = c->cast<rich_text_block_t>();
+        if (!scb->block) break;
+        hash += scb->block->lineNumber;
+    }
+
+    if (!peek) {
+        _content_hash = hash;
+    }
+
+    // printf(">>%x\n", hash);
+    return hash;
+}
+

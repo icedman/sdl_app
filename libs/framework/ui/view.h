@@ -102,6 +102,7 @@ struct view_t : events_manager_t, event_object_t {
 
     int _state_hash;
     int _content_hash;
+    int render_priority;
 };
 
 struct spacer_t : view_t {

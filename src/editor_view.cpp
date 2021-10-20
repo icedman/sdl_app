@@ -365,6 +365,7 @@ view_ptr editor_view_t::gutter()
         view_ptr container = children[0];
         _gutter = std::make_shared<gutter_t>(this);
         _gutter->layout()->order = 5;
+        _gutter->render_priority = 20;
         container->add_child(_gutter);
         layout_sort(container->layout());
     }

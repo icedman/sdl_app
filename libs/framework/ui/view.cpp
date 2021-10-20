@@ -51,6 +51,7 @@ view_t::view_t()
     , _font(0)
     , _state_hash(0)
     , _content_hash(0)
+    , render_priority(0)
 {
     state.style.available = false;
 }
@@ -602,6 +603,11 @@ void view_render(renderer_t* renderer, view_ptr view, damage_t* damage)
     view->render(renderer);
 
     for (auto child : view->children) {
+        if (child->render_priority == 0)
+        view_render(renderer, child, damage);
+    }
+    for (auto child : view->children) {
+        if (child->render_priority > 0)
         view_render(renderer, child, damage);
     }
 
