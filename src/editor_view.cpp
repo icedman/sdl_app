@@ -224,6 +224,7 @@ bool editor_view_t::handle_key_sequence(event_t& event)
 
     update_blocks();
     ensure_visible_cursor();
+    relayout_virtual_blocks();
     return true;
 }
 
@@ -233,6 +234,7 @@ bool editor_view_t::handle_key_text(event_t& event)
     editor->runAllOps();
     update_blocks();
     ensure_visible_cursor();
+    relayout_virtual_blocks();
     return true;
 }
 
@@ -292,6 +294,7 @@ bool editor_view_t::handle_mouse_down(event_t& event)
     editor->runAllOps();
     update_blocks();
     ensure_visible_cursor();
+    relayout_virtual_blocks();
     return true;
 }
 bool editor_view_t::handle_mouse_move(event_t& event)
@@ -342,7 +345,7 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
     scroll_to = -cursor.block()->lineNumber * block_height;
 
     if (prev > scroll_to) {
-        scroll_to += lo->render_rect.h / 4;
+        // scroll_to += lo->render_rect.h / 4;
         // block_ptr block = cursor.block();
         // int c = visible_blocks;
         // while(block && c > 0) {

@@ -36,6 +36,7 @@ struct list_t : panel_t {
     void render(renderer_t* renderer) override;
     void prelayout() override;
     void update_data(std::vector<list_item_data_t> data);
+    void relayout_virtual_items();
 
     virtual view_ptr create_item();
     virtual void update_item(view_ptr item, list_item_data_t data);
@@ -55,6 +56,8 @@ struct list_t : panel_t {
     int item_height;
 
     list_item_data_t selected_data;
+
+    int content_hash(bool peek) override;
 };
 
 #endif LIST_H

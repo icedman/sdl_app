@@ -131,13 +131,17 @@ void list_t::prelayout()
     tail_spacer->layout()->visible = tail_spacer->layout()->height > 1;
 }
 
-void list_t::render(renderer_t* renderer)
+void list_t::relayout_virtual_items()
 {
-    panel_t::render(renderer);
-
     layout_clear_hash(layout(), 6);
     relayout();
     relayout();
+}
+
+void list_t::render(renderer_t* renderer)
+{
+    panel_t::render(renderer);
+    relayout_virtual_items();
 }
 
 void list_t::update_data(std::vector<list_item_data_t> _data)
@@ -170,4 +174,12 @@ void list_t::select_item(view_ptr item)
 list_item_data_t list_t::value()
 {
     return selected_data;
+}
+
+int list_t::content_hash(bool peek)
+{
+    if (!peek) {
+        _content_hash = 1;
+    }
+    return _content_hash;
 }

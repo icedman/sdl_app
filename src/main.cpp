@@ -120,10 +120,12 @@ extern "C" int main(int argc, char** argv)
             view_render(renderer, root, dmg);
 
             if (dmg) {
-                // printf("damages:%d rendered:%d skipped:%d\n", dmg->count(), renderer->draw_count(), skipped);
-                // for(auto d : dmg->damage_rects) {
-                //     printf("%d %d %d %d\n", d.x,d.y,d.w,d.h);
-                // }
+                printf("damages:%d rendered:%d skipped:%d\n", dmg->count(), renderer->draw_count(), skipped);
+                for(auto d : dmg->damage_rects) {
+                    printf("%d %d %d %d\n", d.x,d.y,d.w,d.h);
+                }
+            } else {
+                printf("rendered:%d skipped:%d\n", renderer->draw_count(), skipped);
             }
 
             // renderer->draw_rect({20,20,renderer->width()-40,renderer->height()-40},{255,0,255}, false, 2);

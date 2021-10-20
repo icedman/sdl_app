@@ -153,7 +153,7 @@ view_ptr test6(int argc, char** argv)
     view_ptr view = std::make_shared<editor_view_t>();
     editor_view_t* ev = view->cast<editor_view_t>();
 
-    // ev->gutter();
+    ev->gutter();
     // ev->minimap()->layout()->width = 80;
 
     editor_ptr editor = ev->editor;

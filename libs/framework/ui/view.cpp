@@ -244,7 +244,10 @@ int view_t::state_hash(bool peek)
 }
 
 int view_t::content_hash(bool peek)
-{
+{   
+    if (!peek) {
+        _content_hash = 0;
+    }
     return 0;
 }
 
@@ -257,7 +260,7 @@ void view_t::set_style(styled_frame_t style)
 void view_t::rerender()
 {
     _state_hash = 1;
-    _content_hash = 1;
+    _content_hash = 4;
 }
 
 bool view_t::is_hovered(view_t* view)
@@ -268,9 +271,10 @@ bool view_t::is_hovered(view_t* view)
 
 bool view_t::set_hovered(view_t* view)
 {
-    if (view_hovered != view->ptr()) {
+    if (view_hovered.get() != view) {
         system_t::instance()->caffeinate();
         if (view_hovered) {
+            printf("+++++H%s\n", view_hovered->type_name().c_str());
             event_t event;
             event.type = EVT_HOVER_OUT;
             event.source = view_hovered.get();
@@ -279,12 +283,16 @@ bool view_t::set_hovered(view_t* view)
             view_hovered->rerender();
         }
         view_hovered = view->ptr();
-        event_t event;
-        event.type = EVT_HOVER_IN;
-        event.source = view_hovered.get();
-        event.cancelled = false;
-        view_hovered->propagate_event(event);
-        view_hovered->rerender();
+        if (view_hovered) {
+
+            printf("-----%s\n", view_hovered->type_name().c_str());
+            event_t event;
+            event.type = EVT_HOVER_IN;
+            event.source = view_hovered.get();
+            event.cancelled = false;
+            view_hovered->propagate_event(event);
+            view_hovered->rerender();
+        }
     }
 }
 
@@ -295,7 +303,7 @@ bool view_t::is_focused(view_t* view)
 
 bool view_t::set_focused(view_t* view)
 {
-    if (view_focused != view->ptr()) {
+    if (view_focused.get() != view) {
         system_t::instance()->caffeinate();
         if (view_focused) {
             event_t event;
@@ -306,12 +314,14 @@ bool view_t::set_focused(view_t* view)
             view_focused->rerender();
         }
         view_focused = view->ptr();
-        event_t event;
-        event.type = EVT_FOCUS_IN;
-        event.source = view_focused.get();
-        event.cancelled = false;
-        view_focused->propagate_event(event);
-        view_focused->rerender();
+        if (view_focused) {
+            event_t event;
+            event.type = EVT_FOCUS_IN;
+            event.source = view_focused.get();
+            event.cancelled = false;
+            view_focused->propagate_event(event);
+            view_focused->rerender();
+        }
     }
 }
 

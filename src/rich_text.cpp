@@ -242,6 +242,12 @@ void rich_text_t::prelayout()
 
 void rich_text_t::render(renderer_t* renderer)
 {
+    panel_t::render(renderer);
+    relayout_virtual_blocks();
+}
+
+void rich_text_t::relayout_virtual_blocks()
+{
     layout_clear_hash(layout(), 6);
     relayout();
     relayout();

@@ -361,6 +361,7 @@ inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, 
         _pf = fnt->bold;
     }
 
+    renderer->_draw_count++;
     pango_layout_set_text(_pf->layout, text + span.start, span.length);
     cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
     cairo_move_to(cairo_context, x + span.start * fnt->width, y);
