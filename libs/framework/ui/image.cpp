@@ -23,7 +23,8 @@ void image_view_t::render(renderer_t* renderer)
     }
 
     layout_item_ptr item = layout();
-    system_t::instance()->renderer.draw_image(icon, { item->render_rect.x, item->render_rect.y, icon->width, icon->height });
+    system_t::instance()->renderer.draw_image(icon, { item->render_rect.x, item->render_rect.y, icon->width, icon->height },
+        { 255,255,255,0 });
 }
 
 void image_view_t::load_icon(std::string path, int w, int h)

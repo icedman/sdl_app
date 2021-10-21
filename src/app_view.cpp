@@ -139,6 +139,9 @@ void app_view_t::destroy_editor(editor_ptr editor)
 
     if (editor->view) {
         view_t* view = (view_t*)editor->view;
+        editor_view_t *ev = (editor_view_t*)view;
+        ev->cleanup();
+
         tabs->cast<tabbed_content_t>()->content()->remove_child(view->ptr());
         app->closeEditor(editor);
     }

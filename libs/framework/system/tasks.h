@@ -7,11 +7,14 @@
 struct task_t {
     task_t()
         : withdraw_on_done(false)
+        , running(true)
     {
     }
 
     virtual bool run(int limit) { return false; }
+    virtual bool stop() { running = false; }
 
+    bool running;
     bool withdraw_on_done;
 };
 

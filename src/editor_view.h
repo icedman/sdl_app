@@ -17,7 +17,6 @@ struct highlighter_task_t : task_t {
 
 struct editor_view_t : rich_text_t {
     editor_view_t();
-    ~editor_view_t();
 
     DECLAR_VIEW_TYPE(CUSTOM, rich_text_t)
     std::string type_name() override { return "editor"; }
@@ -31,6 +30,7 @@ struct editor_view_t : rich_text_t {
     void scroll_to_cursor(cursor_t cursor);
 
     void request_highlight(block_ptr block);
+    void cleanup();
 
     view_ptr gutter();
     view_ptr minimap();

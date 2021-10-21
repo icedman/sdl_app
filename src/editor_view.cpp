@@ -11,13 +11,14 @@
 #define MAX_HL_BUCKET ((PRE_VISIBLE_HL + POST_VISIBLE_HL) * 4)
 
 highlighter_task_t::highlighter_task_t(editor_view_t* editor)
-    : editor(editor)
+    : task_t()
+    , editor(editor)
 {
 }
 
 bool highlighter_task_t::run(int limit)
 {
-    if (!editor || !editor->editor)
+    if (!editor || !editor->editor || !running)
         return false;
 
     if (hl.size() > MAX_HL_BUCKET) {
@@ -66,7 +67,7 @@ editor_view_t::editor_view_t()
     , scroll_to(-1)
 {
     hl_task = std::make_shared<highlighter_task_t>(this);
-    // tasks_manager_t::instance()->enroll(hl_task);
+    tasks_manager_t::instance()->enroll(hl_task);
 
     can_focus = true;
     draw_cursors = true;
@@ -94,8 +95,9 @@ editor_view_t::editor_view_t()
     layout()->name = "editor";
 }
 
-editor_view_t::~editor_view_t()
+void editor_view_t::cleanup()
 {
+    hl_task->stop();
     tasks_manager_t::instance()->withdraw(hl_task);
 }
 

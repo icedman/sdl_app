@@ -26,7 +26,7 @@ void tasks_manager_t::withdraw(task_ptr task)
 {
     task_list::iterator it = std::find(tasks.begin(), tasks.end(), task);
     if (it != tasks.end()) {
-        tasks.erase(it);
+        tasks.erase(it, it);
     }
 }
 

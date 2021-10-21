@@ -3,6 +3,7 @@
 #include "scrollarea.h"
 #include "system.h"
 #include "text.h"
+#include "image.h"
 
 #define VISIBLE_ITEMS_PAD 4
 #define TAIL_PAD 16
@@ -49,8 +50,10 @@ view_ptr list_t::create_item()
     item->layout()->fit_children_x = true;
     item->layout()->fit_children_y = true;
     view_ptr indent = std::make_shared<spacer_t>();
+    view_ptr icon = std::make_shared<image_view_t>();
     view_ptr text = std::make_shared<text_t>("ITEM TEMPLATE");
     item->add_child(indent);
+    item->add_child(icon);
     item->add_child(text);
     item->layout()->visible = false;
 
@@ -68,6 +71,13 @@ void list_t::update_item(view_ptr item, list_item_data_t data)
 {
     item->cast<list_item_t>()->item_data = data;
     item->cast<list_item_t>()->find_child(view_type_e::SPACER)->layout()->width = data.indent ? data.indent : 1;
+    if (data.icon != "") {
+        item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->cast<image_view_t>()->load_icon(data.icon, 24, 24);
+        item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->layout()->visible = true;
+        item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->layout()->width = 32;
+    } else {
+        item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->layout()->visible = false;
+    }
     item->cast<list_item_t>()->find_child(view_type_e::TEXT)->cast<text_t>()->set_text(data.text);
     item->layout()->visible = true;
 }

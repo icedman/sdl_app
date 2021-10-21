@@ -37,6 +37,12 @@ explorer_view_t::explorer_view_t()
 
 void explorer_view_t::update_explorer_data()
 {
+    icon_t ico;
+    ico = icon_for_file(app_t::instance()->icons, ".folder-open", app_t::instance()->extensions);
+    std::string folder_icon_path = ico.path;
+    ico = icon_for_file(app_t::instance()->icons, ".folder", app_t::instance()->extensions);
+    std::string folder_close_icon_path = ico.path;
+
     std::vector<list_item_data_t> data;
     for (auto f : explorer_t::instance()->renderList) {
         list_item_data_t d = {
@@ -45,6 +51,16 @@ void explorer_view_t::update_explorer_data()
             indent : f->depth * (font()->width * 2),
             data : f
         };
+
+        if (f->isDirectory) {
+            d.icon = f->expanded ? folder_icon_path : folder_close_icon_path;
+        } else {
+            if (app_t::instance()->icons) {
+                ico = icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
+                d.icon = ico.path;
+            }
+        }
+
         data.push_back(d);
     }
     update_data(data);
