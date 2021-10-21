@@ -24,6 +24,7 @@ struct list_item_t : horizontal_container_t {
     DECLAR_VIEW_TYPE(LIST_ITEM, horizontal_container_t)
 
     void render(renderer_t* renderer) override;
+    int content_hash(bool peek) override;
 
     list_item_data_t item_data;
 };

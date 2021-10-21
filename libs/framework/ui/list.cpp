@@ -16,9 +16,19 @@ list_item_t::list_item_t()
     layout()->margin = 2;
 }
 
+int list_item_t::content_hash(bool peek)
+{
+    int hash = murmur_hash(&item_data, sizeof(list_item_data_t), CONTENT_HASH_SEED);
+    if (!peek) {
+        _content_hash = hash;
+    }
+    return hash;
+}
+
 void list_item_t::render(renderer_t* renderer)
 {
-    render_frame(renderer);
+    if (is_hovered(this))
+        render_frame(renderer);
 }
 
 list_t::list_t()

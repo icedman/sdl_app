@@ -32,10 +32,11 @@ view_ptr tabbar_t::create_item()
     view_ptr item = std::make_shared<list_item_t>();
     item->layout()->fit_children_x = true;
     item->layout()->fit_children_y = true;
-    // view_ptr btn = std::make_shared<button_t>();
+    view_ptr btn = std::make_shared<button_t>();
     view_ptr text = std::make_shared<text_t>("ITEM TEMPLATE");
     item->add_child(text);
-    // item->add_child(btn);
+    item->add_child(btn);
+    btn->layout()->width = 32;
     item->layout()->visible = false;
     item->layout()->preferred_constraint.max_width = font()->width * 20;
 
@@ -47,6 +48,15 @@ view_ptr tabbar_t::create_item()
     item->on(EVT_MOUSE_CLICK, [this, item](event_t& evt) {
         evt.cancelled = true;
         evt.source = item.get();
+        evt.button = 0;
+        this->handle_item_click(evt);
+        return true;
+    });
+
+    btn->on(EVT_MOUSE_CLICK, [this, item](event_t& evt) {
+        evt.cancelled = true;
+        evt.source = item.get();
+        evt.button = 1;
         this->handle_item_click(evt);
         return true;
     });
@@ -73,26 +83,28 @@ void tabbar_t::update_data(std::vector<list_item_data_t> _data)
         vi->layout()->height = font()->height;
     }
 
+    for (auto c : content()->children) {
+        c->layout()->visible = false;
+    }
+
     std::vector<list_item_data_t>::iterator it = data.begin();
     for (auto c : content()->children) {
-        if (it != data.end()) {
-            list_item_data_t d = *it++;
-            update_item(c, d);
-        } else {
-            c->layout()->visible = false;
-        }
+        if (it == data.end())
+            break;
+        list_item_data_t d = *it++;
+        update_item(c, d);
     }
 }
 
 bool tabbar_t::handle_item_click(event_t& evt)
 {
     if (evt.source) {
-        select_item(((view_t*)(evt.source))->ptr());
+        select_item(((view_t*)(evt.source))->ptr(), evt.button);
     }
     return true;
 }
 
-void tabbar_t::select_item(view_ptr item)
+void tabbar_t::select_item(view_ptr item, int button)
 {
     if (!item)
         return;
@@ -101,6 +113,7 @@ void tabbar_t::select_item(view_ptr item)
     event_t evt;
     evt.type = EVT_ITEM_SELECT;
     evt.source = n;
+    evt.button = button;
     evt.cancelled = false;
     propagate_event(evt);
 }

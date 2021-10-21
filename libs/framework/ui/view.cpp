@@ -39,6 +39,7 @@ const char* view_type_names[] = {
     "scrollbar",
     "tabbar",
     "tabbed_content",
+    "statusbar",
     "splitter",
     "custom"
 };
@@ -283,7 +284,7 @@ bool view_t::set_hovered(view_t* view)
             view_hovered->propagate_event(event);
             view_hovered->rerender();
         }
-        view_hovered = view->ptr();
+        view_hovered = view ? view->ptr() : nullptr;
         if (view_hovered) {
             event_t event;
             event.type = EVT_HOVER_IN;
@@ -312,7 +313,7 @@ bool view_t::set_focused(view_t* view)
             view_focused->propagate_event(event);
             view_focused->rerender();
         }
-        view_focused = view->ptr();
+        view_focused = view ? view->ptr() : nullptr;
         if (view_focused) {
             event_t event;
             event.type = EVT_FOCUS_IN;
@@ -331,6 +332,8 @@ bool view_t::is_dragged(view_t* view)
 
 view_ptr _view_from_xy(view_ptr view, int x, int y)
 {
+    if (!view->layout()->visible) return nullptr;
+    
     rect_t r = view->layout()->render_rect;
 
     point_t p = { x, y };
@@ -369,7 +372,7 @@ bool view_offer_focus(view_ptr view)
     if (!view)
         return false;
 
-    if (view->can_focus) {
+    if (view->can_focus && view->layout()->visible) {
         view_t::set_focused(view.get());
         return true;
     }
@@ -384,13 +387,14 @@ bool view_offer_hover(view_ptr view)
     if (!view)
         return false;
 
-    if (view->can_hover) {
+    if (view->can_hover && view->layout()->visible) {
         view_t::set_hovered(view.get());
         return true;
     }
     if (view->parent) {
         return view_offer_hover(view->parent->ptr());
     }
+
     return false;
 }
 
@@ -439,7 +443,9 @@ void view_dispatch_mouse_event(event_t& event, view_list& views)
     case EVT_MOUSE_MOTION:
         view->propagate_event(event);
 
-        view_offer_hover(view);
+        if (!view_offer_hover(view)) {
+            view_t::set_hovered(NULL);
+        }
 
         mouse_x = event.x;
         mouse_y = event.y;

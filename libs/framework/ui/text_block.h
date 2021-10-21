@@ -14,7 +14,7 @@ struct text_block_t : horizontal_container_t {
     text_block_t(std::string = "");
 
     DECLAR_VIEW_TYPE(view_type_e::TEXT, horizontal_container_t)
-    virtual std::string type_name() { return "text_block"; }
+    std::string type_name() override { return "text_block"; }
 
     void set_text(std::string text);
     std::string text();

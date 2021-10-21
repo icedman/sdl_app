@@ -17,13 +17,13 @@ highlighter_task_t::highlighter_task_t(editor_view_t* editor)
 
 bool highlighter_task_t::run(int limit)
 {
-    if (!editor->editor)
+    if (!editor || !editor->editor)
         return false;
 
     if (hl.size() > MAX_HL_BUCKET) {
         hl.erase(hl.begin(), hl.begin() + (hl.size() - MAX_HL_BUCKET));
     }
-
+    
     int hltd = 0;
     while (hl.size()) {
         block_ptr block = hl.front();
@@ -38,6 +38,9 @@ bool highlighter_task_t::run(int limit)
     int first = editor->first_visible;
     block_list::iterator it = editor->editor->document.blocks.begin();
     first -= PRE_VISIBLE_HL;
+    if (first >= editor->editor->document.blocks.size()) {
+        first = editor->editor->document.blocks.size() - 1;
+    }
     if (first < 0) {
         first = 0;
     }
@@ -63,7 +66,7 @@ editor_view_t::editor_view_t()
     , scroll_to(-1)
 {
     hl_task = std::make_shared<highlighter_task_t>(this);
-    tasks_manager_t::instance()->enroll(hl_task);
+    // tasks_manager_t::instance()->enroll(hl_task);
 
     can_focus = true;
     draw_cursors = true;
@@ -93,7 +96,7 @@ editor_view_t::editor_view_t()
 
 editor_view_t::~editor_view_t()
 {
-    // tasks_manager_t::instance()->withdraw(hl_task);
+    tasks_manager_t::instance()->withdraw(hl_task);
 }
 
 bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
@@ -233,6 +236,9 @@ bool editor_view_t::handle_key_sequence(event_t& event)
 
 bool editor_view_t::handle_key_text(event_t& event)
 {
+    int mods = system_t::instance()->key_mods();
+    if (mods & K_MOD_CTRL || mods & K_MOD_ALT) return true;
+    
     editor->pushOp(INSERT, event.text);
     editor->runAllOps();
     update_blocks();

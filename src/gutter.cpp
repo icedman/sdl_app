@@ -9,6 +9,13 @@ gutter_t::gutter_t(editor_view_t* editor)
 {
     layout()->width = 1;
     layout()->justify = LAYOUT_JUSTIFY_FLEX_END;
+
+    layout()->prelayout = [this](layout_item_t* item) {
+        this->prelayout();
+        return true;
+    };
+
+    layout()->name = "gutter";
 }
 
 int text_width(int i, font_t* font)
@@ -16,12 +23,15 @@ int text_width(int i, font_t* font)
     return std::to_string(i).length() * font->width;
 }
 
-void gutter_t::render(renderer_t* renderer)
+void gutter_t::prelayout()
 {
     int block_count = editor->editor->document.blocks.size();
     int width = text_width(block_count * 100, font());
     layout()->width = width;
+}
 
+void gutter_t::render(renderer_t* renderer)
+{
     if (!editor->subcontent)
         return;
 

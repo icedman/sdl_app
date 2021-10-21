@@ -2,17 +2,29 @@
 #define APP_VIEW_H
 
 #include "view.h"
+#include "editor.h"
 
-struct app_view_t : view_t {
+struct app_view_t : view_t
+{
     app_view_t();
-
+    
     DECLAR_VIEW_TYPE(CUSTOM, view_t)
-    virtual std::string type_name() { return "app"; }
+    std::string type_name() override { return "app"; }
 
     void configure(int argc, char** argv);
+    void update() override;
 
+    void show_editor(editor_ptr editor);
+    void create_editor(editor_ptr editor);
+    void destroy_editor(editor_ptr editor);
+
+    void update_tabs();
+    
     view_ptr sidebar;
     view_ptr tabs;
+    view_ptr statusbar;
+
+    view_ptr fps;
 };
 
 #endif // APP_VIEW_H

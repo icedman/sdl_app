@@ -80,6 +80,7 @@ struct app_t {
     std::vector<std::string> binaryFiles;
     std::string scriptPath;
 
+    editor_ptr findEditor(std::string path);
     editor_ptr openEditor(std::string path, bool check = true);
     editor_ptr newEditor();
     void closeEditor(editor_ptr editor);

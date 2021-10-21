@@ -22,7 +22,7 @@ std::string text_t::text()
 void text_t::set_text(std::string text)
 {
     _text = text;
-    layout()->content_hash = murmur_hash(text.c_str(), text.length(), CONTENT_HASH_SEED);
+    layout()->content_hash = content_hash(true);
 }
 
 void text_t::prelayout()
@@ -47,11 +47,10 @@ void text_t::render(renderer_t* renderer)
 int text_t::content_hash(bool peek)
 {
     int hash;
-    if (_text.length()) {
-        hash = murmur_hash(_text.c_str(), _text.length(), CONTENT_HASH_SEED);
-        if (!peek) {
-            _content_hash = hash;
-        }
+    std::string tmp = _text + "]";
+    hash = murmur_hash(tmp.c_str(), tmp.length(), CONTENT_HASH_SEED);
+    if (!peek) {
+        _content_hash = hash;
     }
     return hash;
 }

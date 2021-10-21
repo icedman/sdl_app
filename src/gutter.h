@@ -11,6 +11,7 @@ struct gutter_t : vertical_container_t {
     DECLAR_VIEW_TYPE(view_type_e::CUSTOM, vertical_container_t)
     virtual std::string type_name() { return "gutter"; }
 
+    void prelayout() override;
     void render(renderer_t* renderer) override;
     int content_hash(bool peek) override;
 

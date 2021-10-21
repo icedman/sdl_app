@@ -3,9 +3,11 @@
 #include "explorer_view.h"
 #include "splitter.h"
 #include "tabbar.h"
+#include "statusbar.h"
+#include "system.h"
+#include "text.h"
 
 #include "app.h"
-#include "editor.h"
 #include "grammar.h"
 #include "parse.h"
 
@@ -32,49 +34,133 @@ app_view_t::app_view_t()
     tabs = std::make_shared<tabbed_content_t>();
     hc->add_child(tabs);
 
-    std::vector<list_item_data_t> tabbar_data;
-    for (int i = 0; i < 4; i++) {
-        list_item_data_t d = {
-            value : "Item " + std::to_string(i),
-            text : "Item " + std::to_string(i)
-        };
-        tabbar_data.push_back(d);
-    }
-    tabs->cast<tabbed_content_t>()->tabbar()->cast<tabbar_t>()->update_data(tabbar_data);
-
     add_child(hc);
+
+    statusbar = std::make_shared<statusbar_t>();
+
+    fps = statusbar->cast<statusbar_t>()->add_status("", 0, 0);
+    add_child(statusbar);
+
+    tabs->cast<tabbed_content_t>()->tabbar()->on(EVT_ITEM_SELECT, [this](event_t& evt) {
+        list_item_t *item = (list_item_t*)evt.source;
+
+        if (evt.button == 1) {
+            evt.cancelled = true;
+            this->destroy_editor(app_t::instance()->findEditor(item->item_data.value));
+            return true;
+        }
+
+        this->show_editor(app_t::instance()->openEditor(item->item_data.value));
+        return true;
+    });
+
+    sidebar->cast<explorer_view_t>()->on(EVT_ITEM_SELECT, [this](event_t& evt) {
+        list_item_t *item = (list_item_t*)evt.source;
+        printf(">>%s\n", item->item_data.value.c_str());
+        this->show_editor(app_t::instance()->openEditor(item->item_data.value));
+        return true;
+    });
+}
+
+void app_view_t::update()
+{
+    app_t* app = app_t::instance();
+    for (auto e : app->editors) {
+        if (!e->view) {
+            create_editor(e);
+        }
+    }
 }
 
 void app_view_t::configure(int argc, char** argv)
 {
     app_t::instance()->configure(argc, argv);
+    sidebar->cast<explorer_view_t>()->set_root_path(app_t::instance()->inputFile);
+    app_t::instance()->openEditor(app_t::instance()->inputFile, true);
+}
 
-    std::string filename = app_t::instance()->inputFile;
-    std::string themeFile = app_t::instance()->themeName; //"./tests/themes/dracula.json";
+void app_view_t::show_editor(editor_ptr editor)
+{
+    view_t *view = (view_t*)(editor->view);
+    if (!view) return;
 
-    if (filename == "") {
-        filename = "./";
+    int mods = system_t::instance()->key_mods();
+    if ((mods & K_MOD_CTRL) != K_MOD_CTRL) {
+        for(auto c : tabs->cast<tabbed_content_t>()->content()->children) {
+            c->layout()->visible = false;
+        }
     }
 
-    sidebar->cast<explorer_view_t>()->set_root_path(filename);
+    view->layout()->visible = true;
+    set_focused(view);
 
+    layout_clear_hash(layout(), 8);
+    relayout();
+}
+
+void app_view_t::create_editor(editor_ptr editor)
+{
     view_ptr view = std::make_shared<editor_view_t>();
     tabs->cast<tabbed_content_t>()->content()->add_child(view);
 
     editor_view_t* ev = view->cast<editor_view_t>();
+    ev->editor = editor;
+    editor->view = ev;
 
     ev->gutter();
-    ev->minimap()->layout()->width = 80;
+    ev->minimap();
 
-    editor_ptr editor = ev->editor;
-    editor->highlighter.lang = std::make_shared<language_info_t>();
-    editor->highlighter.lang->grammar = load_grammar("./tests/syntaxes/c.json");
-    Json::Value root = parse::loadJson(themeFile);
-    editor->highlighter.theme = parse_theme(root);
+    // editor->highlighter.lang = std::make_shared<language_info_t>();
+    // editor->highlighter.lang->grammar = load_grammar("./tests/syntaxes/c.json");
+    // Json::Value root = parse::loadJson(themeFile);
+    // editor->highlighter.theme = parse_theme(root);
+    // editor->pushOp("OPEN", filename);
+    // editor->runAllOps();
+    // editor->name = "editor:";
+    // editor->name += filename;
 
-    editor->pushOp("OPEN", filename);
-    editor->runAllOps();
+    update_tabs();
+    show_editor(editor);
+}
 
-    editor->name = "editor:";
-    editor->name += filename;
+void app_view_t::destroy_editor(editor_ptr editor)
+{
+    if (!editor) return;
+
+    set_focused(nullptr);
+    set_hovered(nullptr);
+
+    app_t* app = app_t::instance();
+
+    if (app->editors.size() == 1) {
+        system_t::instance()->quit();
+        return;
+    }
+
+    if (editor->view) {
+        view_t* view = (view_t*)editor->view;
+        tabs->cast<tabbed_content_t>()->content()->remove_child(view->ptr());
+        app->closeEditor(editor);
+    }
+
+    update_tabs();
+    show_editor(app->currentEditor);
+}
+
+void app_view_t::update_tabs()
+{
+    std::vector<list_item_data_t> tabbar_data;
+    app_t* app = app_t::instance();
+    for (auto e : app->editors) {
+        list_item_data_t d = {
+            value : e->document.fullPath,
+            text : e->document.fileName
+        };
+        tabbar_data.push_back(d);
+    }
+    tabs->cast<tabbed_content_t>()->tabbar()->cast<tabbar_t>()->update_data(tabbar_data);
+
+    layout_clear_hash(tabs->layout(), 4);
+    tabs->relayout();
+
 }

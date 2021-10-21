@@ -25,6 +25,9 @@ minimap_t::minimap_t(editor_view_t* editor)
         evt.cancelled = true;
         return this->handle_mouse_click(evt);
     });
+
+    layout()->width = 80;
+    layout()->name = "minimap";
 }
 
 void minimap_t::render(renderer_t* renderer)

@@ -15,7 +15,7 @@ struct tabbar_t : panel_t {
     void update_data(std::vector<list_item_data_t> data);
     bool handle_item_click(event_t& evt);
 
-    void select_item(view_ptr item);
+    void select_item(view_ptr item, int button = 0);
     list_item_data_t value();
 
     std::vector<list_item_data_t> data;

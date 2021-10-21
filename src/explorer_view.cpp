@@ -1,6 +1,7 @@
 #include "explorer_view.h"
 #include "explorer.h"
 #include "renderer.h"
+#include "app.h"
 
 explorer_view_t::explorer_view_t()
     : list_t()
@@ -22,11 +23,16 @@ explorer_view_t::explorer_view_t()
             explorer_t::instance()->update(0);
             explorer_t::instance()->print();
             update_explorer_data();
+        } else {
+            app_t::instance()->openEditor(file->fullPath, true);
         }
         return true;
     });
 
-    layout()->margin = 8;
+    layout()->margin_left = 8;
+    layout()->margin_top = 8;
+    layout()->margin_bottom = 8;
+    layout()->margin_right = 0;
 }
 
 void explorer_view_t::update_explorer_data()

@@ -4,6 +4,12 @@
 #include "events.h"
 #include "renderer.h"
 
+enum cursor_e {
+    ARROW,
+    RESIZE_EW,
+    RESIZE_NS
+};
+
 struct window_renderer_t : renderer_t {
     void begin_frame();
     void end_frame();
@@ -26,6 +32,8 @@ struct system_t {
     void caffeinate();
     bool is_caffeinated();
 
+    void set_cursor(cursor_e cur);
+
     struct timer_t {
         void begin();
         int now();
@@ -33,6 +41,10 @@ struct system_t {
 
         int start_millis;
     };
+
+    struct stats {
+        int fps;
+    } stats;
 
     int key_mods();
 

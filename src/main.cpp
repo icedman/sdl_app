@@ -168,15 +168,14 @@ extern "C" int main(int argc, char** argv)
         }
 
         do {
-            if (sys->is_caffeinated())
+            if (sys->is_caffeinated()) {
                 break;
+            }
 
-            if (!sys->is_caffeinated() && sys->is_idle()) {
+            if (sys->is_idle()) {
                 if (!tasks_manager->run(max_elapsed)) {
-
                     if (sys->poll_events(&events))
                         break;
-
                     sys->delay(50);
                 }
             }
@@ -184,9 +183,10 @@ extern "C" int main(int argc, char** argv)
         } while (sys->timer.elapsed() < max_elapsed);
 
         fps = 1000.0f / sys->timer.elapsed();
-        // if (fps > 0 && fps < 1000) {
-        //     printf("fps:%d\n", (int)fps);
-        // }
+        if (fps > 0 && fps < 1000) {
+            // printf("fps:%d\n", (int)fps);
+            sys->stats.fps = fps;
+        }
     }
 
     sys->shutdown();

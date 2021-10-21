@@ -11,6 +11,10 @@ static int caffeine_counter = 0;
 static int mouse_x = -1;
 static int mouse_y = -1;
 
+static SDL_Cursor* cursor_arrow = 0;
+static SDL_Cursor* cursor_resize_ew = 0;
+static SDL_Cursor* cursor_resize_ns = 0;
+
 #define MAX_UPDATE_RECTS 2048
 #define FRAME_RATE 30
 #define IDLE_FRAMES (FRAME_RATE * 2)
@@ -111,6 +115,8 @@ bool system_t::init()
     renderer.init(width, height);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);
+
+    stats.fps = 0;
     return true;
 }
 
@@ -379,4 +385,33 @@ int system_t::poll_events(event_list* events, bool wait)
 int system_t::key_mods()
 {
     return keyMods;
+}
+
+void system_t::set_cursor(cursor_e cur)
+{
+    SDL_Cursor *cursor = 0;
+    switch(cur) {
+        case cursor_e::ARROW:
+        if (!cursor_arrow) {
+            cursor_arrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+        }
+        cursor = cursor_arrow;
+        break;
+        case cursor_e::RESIZE_EW:
+        if (!cursor_resize_ew) {
+            cursor_resize_ew = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
+        }
+        cursor = cursor_resize_ew;
+        break;
+        case cursor_e::RESIZE_NS:
+        if (!cursor_resize_ns) {
+            cursor_resize_ns = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
+        }
+        cursor = cursor_resize_ns;
+        break;
+    }
+
+    if (cursor) {
+        SDL_SetCursor(cursor);
+    }
 }

@@ -398,6 +398,16 @@ void app_t::setupColors(bool colors)
     */
 }
 
+editor_ptr app_t::findEditor(std::string path)
+{
+    for (auto e : editors) {
+        if (e->document.fullPath == path) {
+            return e;
+        }
+    }
+    return nullptr;
+}
+
 editor_ptr app_t::openEditor(std::string path, bool check)
 {
     if (path.length()) {
@@ -411,12 +421,10 @@ editor_ptr app_t::openEditor(std::string path, bool check)
     log("open: %s", path.c_str());
 
     if (check) {
-        for (auto e : editors) {
-            if (e->document.fullPath == path) {
-                log("reopening existing tab");
-                currentEditor = e;
-                return e;
-            }
+        editor_ptr e = findEditor(path);
+        if (e) {
+            currentEditor = e;
+            return e;
         }
     }
 

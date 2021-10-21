@@ -86,6 +86,7 @@ framework_inc = [
 ]
 
 framework_files = [
+    'libs/framework/common/color.cpp',
     'libs/framework/common/rect.cpp',
     'libs/framework/common/utf8.cpp',
     'libs/framework/common/hash.cpp',
@@ -107,6 +108,7 @@ framework_files = [
     'libs/framework/ui/scrollarea.cpp',
     'libs/framework/ui/scrollbar.cpp',
     'libs/framework/ui/splitter.cpp',
+    'libs/framework/ui/statusbar.cpp',
     'libs/framework/ui/tabbar.cpp',
     'libs/framework/ui/text.cpp',
     'libs/framework/ui/text_block.cpp'

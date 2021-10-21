@@ -15,7 +15,7 @@ rich_text_block_t::rich_text_block_t()
 rich_text_t::rich_text_t()
     : panel_t()
     , visible_blocks(0)
-    , wrapped(false)
+    , wrapped(true)
 {
     editor = std::make_shared<editor_t>();
 
@@ -236,7 +236,9 @@ void rich_text_t::prelayout()
 
         v->layout()->wrap = wrapped;
         v->layout()->visible = true;
-        v->layout()->width = lo->render_rect.w;
+        if (wrapped) {
+            v->layout()->width = lo->render_rect.w;
+        }
 
         if (v->cast<rich_text_block_t>()->block == block) {
             if (i++ > visible_blocks)
@@ -289,8 +291,10 @@ void rich_text_t::render(renderer_t* renderer)
 
 void rich_text_t::relayout_virtual_blocks()
 {
+    // hacky
     layout_clear_hash(layout(), 6);
     relayout();
+    layout_clear_hash(layout(), 6);
     relayout();
 
     // sync the panel scrollbars
