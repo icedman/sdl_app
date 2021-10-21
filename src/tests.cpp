@@ -21,8 +21,8 @@
 
 #include "app_view.h"
 #include "editor_view.h"
-#include "explorer_view.h"
 #include "explorer.h"
+#include "explorer_view.h"
 #include "rich_text.h"
 
 #define TEST test7

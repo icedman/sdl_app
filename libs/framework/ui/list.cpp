@@ -92,7 +92,7 @@ void list_t::prelayout()
         subcontent->add_child(vi);
         vi->layout()->height = item_height;
     }
-    
+
     // layout_item_ptr lo = layout();
     // layout_item_ptr slo = scrollarea->layout();
 

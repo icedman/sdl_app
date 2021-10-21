@@ -85,6 +85,7 @@ struct renderer_t {
     rect_t* update_rects;
     int update_rects_count;
     bool enable_update_rects;
+
     color_t foreground;
     color_t background;
 

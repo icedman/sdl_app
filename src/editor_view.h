@@ -6,13 +6,12 @@
 #include "tasks.h"
 
 struct editor_view_t;
-struct highlighter_task_t : task_t
-{
-    highlighter_task_t(editor_view_t *editor);
+struct highlighter_task_t : task_t {
+    highlighter_task_t(editor_view_t* editor);
 
     bool run(int limit) override;
 
-    editor_view_t *editor;
+    editor_view_t* editor;
     block_list hl;
 };
 
@@ -21,7 +20,7 @@ struct editor_view_t : rich_text_t {
     ~editor_view_t();
 
     DECLAR_VIEW_TYPE(CUSTOM, rich_text_t)
-    virtual std::string type_name() { return "editor"; }
+    std::string type_name() override { return "editor"; }
 
     virtual bool handle_key_sequence(event_t& event);
     virtual bool handle_key_text(event_t& event);
@@ -30,6 +29,8 @@ struct editor_view_t : rich_text_t {
 
     void ensure_visible_cursor();
     void scroll_to_cursor(cursor_t cursor);
+
+    void request_highlight(block_ptr block);
 
     view_ptr gutter();
     view_ptr minimap();

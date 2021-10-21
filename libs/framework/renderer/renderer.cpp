@@ -94,8 +94,8 @@ renderer_t::renderer_t()
     , update_rects_count(0)
     , enable_update_rects(false)
 {
-    foreground = { 255,255,255 };
-    background = {  50, 50, 50 };
+    foreground = { 255, 255, 255 };
+    background = { 50, 50, 50 };
 }
 
 renderer_t::~renderer_t()

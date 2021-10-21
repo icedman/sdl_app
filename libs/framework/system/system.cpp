@@ -196,12 +196,16 @@ static inline std::string to_mods(int mods)
     return mod;
 }
 
-int system_t::poll_events(event_list* events)
+int system_t::poll_events(event_list* events, bool wait)
 {
     SDL_Event e;
-    if (!SDL_PollEvent(&e)) {
-        idle_counter++;
-        return 0;
+    if (wait) {
+        SDL_WaitEvent(&e);
+    } else {
+        if (!SDL_PollEvent(&e)) {
+            idle_counter++;
+            return 0;
+        }
     }
 
     switch (e.type) {

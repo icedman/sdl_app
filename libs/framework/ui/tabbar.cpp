@@ -1,7 +1,7 @@
 #include "tabbar.h"
-#include "text.h"
-#include "scrollbar.h"
 #include "button.h"
+#include "scrollbar.h"
+#include "text.h"
 
 tabbar_t::tabbar_t()
     : panel_t()

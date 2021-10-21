@@ -6,8 +6,8 @@
 #include "layout.h"
 #include "popup.h"
 #include "system.h"
-#include "view.h"
 #include "tasks.h"
+#include "view.h"
 
 #include "operation.h"
 
@@ -69,6 +69,8 @@ extern "C" int main(int argc, char** argv)
         }
         return false;
     });
+
+    sys->caffeinate();
     while (sys->is_running()) {
         sys->timer.begin();
 
@@ -122,7 +124,7 @@ extern "C" int main(int argc, char** argv)
 
             view_render(renderer, root, dmg);
 
-            #if 1
+#if 1
             if (dmg) {
                 printf("damages:%d rendered:%d skipped:%d\n", dmg->count(), renderer->draw_count(), skipped);
                 // for(auto d : dmg->damage_rects) {
@@ -131,7 +133,7 @@ extern "C" int main(int argc, char** argv)
             } else {
                 printf("rendered:%d skipped:%d\n", renderer->draw_count(), skipped);
             }
-            #endif
+#endif
 
             // renderer->draw_rect({20,20,renderer->width()-40,renderer->height()-40},{255,0,255}, false, 2);
             // renderer->draw_line(20,20,420,420,{255,0,255});
@@ -166,15 +168,15 @@ extern "C" int main(int argc, char** argv)
         }
 
         do {
-            if (sys->poll_events(&events))
-                break;
-
             if (sys->is_caffeinated())
                 break;
 
             if (!sys->is_caffeinated() && sys->is_idle()) {
-                bool did_work = tasks_manager->run(max_elapsed);
-                if (!did_work) {
+                if (!tasks_manager->run(max_elapsed)) {
+
+                    if (sys->poll_events(&events))
+                        break;
+
                     sys->delay(50);
                 }
             }
@@ -182,7 +184,6 @@ extern "C" int main(int argc, char** argv)
         } while (sys->timer.elapsed() < max_elapsed);
 
         fps = 1000.0f / sys->timer.elapsed();
-
         // if (fps > 0 && fps < 1000) {
         //     printf("fps:%d\n", (int)fps);
         // }

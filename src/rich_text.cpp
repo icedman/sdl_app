@@ -18,7 +18,7 @@ rich_text_t::rich_text_t()
     , wrapped(false)
 {
     editor = std::make_shared<editor_t>();
-    
+
     layout()->prelayout = [this](layout_item_t* item) {
         this->prelayout();
         return true;
@@ -67,7 +67,7 @@ void rich_text_t::update_block(view_ptr item, block_ptr block)
             .italic = false,
             .underline = false,
             .caret = 0
-        };    
+        };
         editor_block->_text_spans.push_back(ts);
     }
 
@@ -157,8 +157,8 @@ void rich_text_t::prelayout()
 {
     int blocks_count = editor->document.blocks.size();
 
-    fg = { 255,255,255,0 };
-    sel = { 150,150,150,50 };
+    fg = { 255, 255, 255, 0 };
+    sel = { 150, 150, 150, 50 };
 
     color_info_t t_clr;
     color_t clr;

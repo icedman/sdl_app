@@ -12,7 +12,8 @@ tasks_manager_t* tasks_manager_t::instance()
 
 tasks_manager_t::tasks_manager_t()
     : robin(0)
-{}
+{
+}
 
 void tasks_manager_t::enroll(task_ptr task)
 {
@@ -31,7 +32,8 @@ void tasks_manager_t::withdraw(task_ptr task)
 
 bool tasks_manager_t::run(int limit)
 {
-    if (!tasks.size()) return false;
+    if (!tasks.size())
+        return false;
 
     task_ptr task = tasks[robin];
     robin = (robin + 1) % tasks.size();

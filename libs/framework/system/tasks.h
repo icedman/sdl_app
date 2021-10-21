@@ -4,11 +4,11 @@
 #include <memory>
 #include <vector>
 
-struct task_t
-{
+struct task_t {
     task_t()
         : withdraw_on_done(false)
-    {}
+    {
+    }
 
     virtual bool run(int limit) { return false; }
 

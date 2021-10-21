@@ -1,8 +1,8 @@
 #include "editor_view.h"
 #include "damage.h"
 #include "gutter.h"
-#include "minimap.h"
 #include "hash.h"
+#include "minimap.h"
 #include "system.h"
 #include "text.h"
 
@@ -10,13 +10,15 @@
 #define POST_VISIBLE_HL 100
 #define MAX_HL_BUCKET ((PRE_VISIBLE_HL + POST_VISIBLE_HL) * 4)
 
-highlighter_task_t::highlighter_task_t(editor_view_t *editor)
+highlighter_task_t::highlighter_task_t(editor_view_t* editor)
     : editor(editor)
-{}
+{
+}
 
 bool highlighter_task_t::run(int limit)
 {
-    if (!editor->editor) return false;
+    if (!editor->editor)
+        return false;
 
     if (hl.size() > MAX_HL_BUCKET) {
         hl.erase(hl.begin(), hl.begin() + (hl.size() - MAX_HL_BUCKET));
@@ -25,7 +27,7 @@ bool highlighter_task_t::run(int limit)
     int hltd = 0;
     while (hl.size()) {
         block_ptr block = hl.front();
-        hl.erase(hl.begin(), hl.begin()+1);
+        hl.erase(hl.begin(), hl.begin() + 1);
         if (!block->data || block->data->dirty) {
             editor->editor->highlight(block->lineNumber, 1);
             hltd++;
@@ -42,14 +44,15 @@ bool highlighter_task_t::run(int limit)
 
     int idx = 0;
     it += first;
-    while(it != editor->editor->document.blocks.end()) {
+    while (it != editor->editor->document.blocks.end()) {
         block_ptr block = *it++;
 
         if (!block->data || block->data->dirty) {
             hl.push_back(block);
         }
 
-        if (idx++ > editor->visible_blocks + POST_VISIBLE_HL) break;
+        if (idx++ > editor->visible_blocks + POST_VISIBLE_HL)
+            break;
     }
 
     return hltd > 0;
@@ -382,4 +385,9 @@ view_ptr editor_view_t::minimap()
         layout_sort(container->layout());
     }
     return _minimap;
+}
+
+void editor_view_t::request_highlight(block_ptr block)
+{
+    ((highlighter_task_t*)(hl_task.get()))->hl.push_back(block);
 }

@@ -16,7 +16,7 @@ struct system_t {
     void shutdown();
     void quit();
 
-    int poll_events(event_list* events = NULL);
+    int poll_events(event_list* events = NULL, bool wait = false);
 
     int target_fps();
     bool is_running();

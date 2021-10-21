@@ -12,10 +12,10 @@ struct scrollbar_t : scrollarea_t {
     void postlayout() override;
     void render(renderer_t* renderer) override;
 
-    virtual bool handle_mouse_drag_start(event_t& event);
-    virtual bool handle_mouse_drag_end(event_t& event);
-    virtual bool handle_mouse_drag(event_t& event);
-    virtual bool handle_mouse_click(event_t& event);
+    virtual bool handle_mouse_drag_start(event_t& event) override;
+    virtual bool handle_mouse_drag_end(event_t& event) override;
+    virtual bool handle_mouse_drag(event_t& event) override;
+    virtual bool handle_mouse_click(event_t& event) override;
 
     void propagate_scrollbar_event();
 

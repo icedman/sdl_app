@@ -13,7 +13,7 @@ struct gutter_t : vertical_container_t {
 
     void render(renderer_t* renderer) override;
     int content_hash(bool peek) override;
-    
+
     editor_view_t* editor;
 };
 

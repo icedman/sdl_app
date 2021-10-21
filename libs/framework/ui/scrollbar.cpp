@@ -10,6 +10,8 @@ scrollbar_t::scrollbar_t()
     , window(6)
     , count(12)
 {
+    can_hover = true;
+
     layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
 
     content()->layout()->rgb = { 255, 255, 0 };
@@ -196,18 +198,29 @@ void scrollbar_t::set_size(int c, int w)
 
 void scrollbar_t::render(renderer_t* renderer)
 {
-    render_frame(renderer);
+    // render_frame(renderer);
 
     layout_item_ptr lo = layout();
     layout_item_ptr lot = content()->layout();
 
+    color_t clr;
+
+    // clr = renderer->background;
+    // clr.a = 50;
+    // renderer->draw_rect(lo->render_rect, clr, true, 0);
+
     // thumb
+    clr = renderer->foreground;
+    clr.a = 50;
+    if (is_hovered(this)) {
+        clr.a = 100;
+    }
     int pad = 4;
     renderer->draw_rect({ lot->render_rect.x + pad,
                             lot->render_rect.y + pad,
                             lot->render_rect.w - pad * 2,
                             lot->render_rect.h - pad * 2 },
-        { 250, 250, 250 }, false, 1);
+        clr, true, 1, {}, 3);
 }
 
 int scrollbar_t::thumb_size()

@@ -222,7 +222,7 @@ void view_t::render_frame(renderer_t* renderer)
 
 void view_t::render(renderer_t* renderer)
 {
-    render_frame(renderer);
+    // render_frame(renderer);
 }
 
 void view_t::propagate_event(event_t& event)
@@ -246,7 +246,7 @@ int view_t::state_hash(bool peek)
 }
 
 int view_t::content_hash(bool peek)
-{   
+{
     if (!peek) {
         _content_hash = 0;
     }
@@ -602,13 +602,20 @@ void view_render(renderer_t* renderer, view_ptr view, damage_t* damage)
 
     view->render(renderer);
 
+    bool has_deferred_rendering = false;
     for (auto child : view->children) {
-        if (child->render_priority == 0)
+        if (child->render_priority != 0) {
+            has_deferred_rendering = true;
+            continue;
+        }
         view_render(renderer, child, damage);
     }
-    for (auto child : view->children) {
-        if (child->render_priority > 0)
-        view_render(renderer, child, damage);
+
+    if (has_deferred_rendering) {
+        for (auto child : view->children) {
+            if (child->render_priority > 0)
+                view_render(renderer, child, damage);
+        }
     }
 
     renderer->pop_state();

@@ -3,8 +3,7 @@
 
 #include "list.h"
 
-struct explorer_view_t : list_t
-{
+struct explorer_view_t : list_t {
     explorer_view_t();
 
     DECLAR_VIEW_TYPE(CUSTOM, list_t)

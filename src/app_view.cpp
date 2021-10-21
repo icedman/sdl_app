@@ -1,8 +1,8 @@
 #include "app_view.h"
-#include "explorer_view.h"
 #include "editor_view.h"
-#include "tabbar.h"
+#include "explorer_view.h"
 #include "splitter.h"
+#include "tabbar.h"
 
 #include "app.h"
 #include "editor.h"
@@ -50,7 +50,7 @@ void app_view_t::configure(int argc, char** argv)
     app_t::instance()->configure(argc, argv);
 
     std::string filename = app_t::instance()->inputFile;
-    std::string themeFile = "./tests/themes/dracula.json";
+    std::string themeFile = app_t::instance()->themeName; //"./tests/themes/dracula.json";
 
     if (filename == "") {
         filename = "./";

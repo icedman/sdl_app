@@ -66,6 +66,11 @@ struct view_t : events_manager_t, event_object_t {
     static bool set_hovered(view_t* view);
     static bool set_focused(view_t* view);
 
+    virtual bool handle_mouse_drag_start(event_t& event) {}
+    virtual bool handle_mouse_drag_end(event_t& event) {}
+    virtual bool handle_mouse_drag(event_t& event) {}
+    virtual bool handle_mouse_click(event_t& event) {}
+
     void propagate_event(event_t& event);
 
     layout_item_ptr layout();

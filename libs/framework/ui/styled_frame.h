@@ -1,9 +1,9 @@
 #ifndef VIEW_STYLE_H
 #define VIEW_STYLE_H
 
-#include <cstdint>
 #include "color.h"
 #include "rect.h"
+#include <cstdint>
 
 struct renderer_t;
 
