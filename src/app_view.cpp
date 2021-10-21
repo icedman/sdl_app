@@ -152,9 +152,13 @@ void app_view_t::update_tabs()
     std::vector<list_item_data_t> tabbar_data;
     app_t* app = app_t::instance();
     for (auto e : app->editors) {
+        std::string fname = e->document.fileName;
+        if (fname == "") {
+            fname = "untitled";
+        }
         list_item_data_t d = {
             value : e->document.fullPath,
-            text : e->document.fileName
+            text : fname
         };
         tabbar_data.push_back(d);
     }

@@ -18,6 +18,9 @@ struct tabbar_t : panel_t {
     void select_item(view_ptr item, int button = 0);
     list_item_data_t value();
 
+    void render(renderer_t* renderer) override;
+    int content_hash(bool peek) override;
+
     std::vector<list_item_data_t> data;
 
     list_item_data_t selected_data;

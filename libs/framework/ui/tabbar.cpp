@@ -1,5 +1,6 @@
 #include "tabbar.h"
 #include "button.h"
+#include "hash.h"
 #include "scrollbar.h"
 #include "text.h"
 
@@ -8,6 +9,7 @@ tabbar_t::tabbar_t()
 {
     content()->layout()->direction = LAYOUT_FLEX_DIRECTION_ROW;
 
+    layout()->fit_children_x = false;
     layout()->fit_children_y = true;
 
     v_scroll->cast<scrollbar_t>()->disabled = true;
@@ -68,7 +70,6 @@ void tabbar_t::update_item(view_ptr item, list_item_data_t data)
 {
     item->cast<list_item_t>()->item_data = data;
     item->cast<list_item_t>()->find_child(view_type_e::TEXT)->cast<text_t>()->set_text(data.text);
-    // item->cast<list_item_t>()->find_child(view_type_e::BUTTON)->layout()->width = 32;
     item->layout()->visible = true;
 }
 
@@ -121,6 +122,23 @@ void tabbar_t::select_item(view_ptr item, int button)
 list_item_data_t tabbar_t::value()
 {
     return selected_data;
+}
+
+void tabbar_t::render(renderer_t* renderer)
+{
+    // render_frame(renderer);
+}
+
+int tabbar_t::content_hash(bool peek)
+{
+    int hash = 0;
+    if (data.size()) {
+        hash = murmur_hash(&data[0], sizeof(list_item_data_t)*data.size(), CONTENT_HASH_SEED);
+    }
+    if (!peek) {
+        _content_hash = hash;
+    }
+    return hash;
 }
 
 tabbed_content_t::tabbed_content_t()
