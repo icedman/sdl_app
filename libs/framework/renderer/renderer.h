@@ -5,9 +5,9 @@
 #include "font.h"
 #include "rect.h"
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 struct image_t {
     int width;

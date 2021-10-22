@@ -390,21 +390,21 @@ int system_t::key_mods()
 
 void system_t::set_cursor(cursor_e cur)
 {
-    SDL_Cursor *cursor = 0;
-    switch(cur) {
-        case cursor_e::ARROW:
+    SDL_Cursor* cursor = 0;
+    switch (cur) {
+    case cursor_e::ARROW:
         if (!cursor_arrow) {
             cursor_arrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
         }
         cursor = cursor_arrow;
         break;
-        case cursor_e::RESIZE_EW:
+    case cursor_e::RESIZE_EW:
         if (!cursor_resize_ew) {
             cursor_resize_ew = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
         }
         cursor = cursor_resize_ew;
         break;
-        case cursor_e::RESIZE_NS:
+    case cursor_e::RESIZE_NS:
         if (!cursor_resize_ns) {
             cursor_resize_ns = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
         }

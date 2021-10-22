@@ -269,7 +269,7 @@ view_ptr test4(int argc, char** argv)
         hc->add_child(button);
     }
 
-    view_ptr sp = std::make_shared<horizontal_splitter_t>(vc.get(),content.get());
+    view_ptr sp = std::make_shared<horizontal_splitter_t>(vc.get(), content.get());
     content->add_child(vc);
     content->add_child(sp);
     content->add_child(hc);

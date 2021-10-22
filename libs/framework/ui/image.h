@@ -1,8 +1,8 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "view.h"
 #include "renderer.h"
+#include "view.h"
 
 struct image_view_t : view_t {
     image_view_t();

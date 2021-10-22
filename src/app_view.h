@@ -1,13 +1,12 @@
 #ifndef APP_VIEW_H
 #define APP_VIEW_H
 
-#include "view.h"
 #include "editor.h"
+#include "view.h"
 
-struct app_view_t : view_t
-{
+struct app_view_t : view_t {
     app_view_t();
-    
+
     DECLAR_VIEW_TYPE(CUSTOM, view_t)
     std::string type_name() override { return "app"; }
 
@@ -19,7 +18,7 @@ struct app_view_t : view_t
     void destroy_editor(editor_ptr editor);
 
     void update_tabs();
-    
+
     view_ptr sidebar;
     view_ptr tabs;
     view_ptr statusbar;

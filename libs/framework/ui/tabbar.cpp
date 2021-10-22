@@ -138,7 +138,7 @@ int tabbar_t::content_hash(bool peek)
 {
     int hash = 0;
     if (data.size()) {
-        hash = murmur_hash(&data[0], sizeof(list_item_data_t)*data.size(), CONTENT_HASH_SEED);
+        hash = murmur_hash(&data[0], sizeof(list_item_data_t) * data.size(), CONTENT_HASH_SEED);
     }
     if (!peek) {
         _content_hash = hash;

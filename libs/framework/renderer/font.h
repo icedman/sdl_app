@@ -2,8 +2,8 @@
 #define FONT_H
 
 #include <functional>
-#include <string>
 #include <memory>
+#include <string>
 
 #include "color.h"
 

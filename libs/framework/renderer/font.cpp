@@ -47,16 +47,13 @@ struct pango_font_t : font_t {
     font_ptr bold;
 };
 
-static int _fnt = 0;
 pango_font_t::pango_font_t()
 {
-    _fnt++;
 }
 
 pango_font_t::~pango_font_t()
 {
-    _fnt--;
-    printf(">free font %d\n", _fnt);
+    // free pango resources?
 }
 
 void pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)

@@ -29,7 +29,6 @@ view_ptr statusbar_t::add_status(std::string text, int pos, int order)
     return p;
 }
 
-
 void statusbar_t::remove_status(view_ptr view)
 {
     left->remove_child(view);

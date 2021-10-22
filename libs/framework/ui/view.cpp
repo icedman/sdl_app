@@ -7,6 +7,7 @@
 
 #include "text.h"
 
+#define WATCH_LEAKS
 #define DRAG_THRESHOLD 25 // distance squared
 
 view_ptr view_hovered;
@@ -44,23 +45,10 @@ const char* view_type_names[] = {
     "custom"
 };
 
-bool view_init()
-{
-    return true;
-}
-void view_shutdown()
-{
-    view_hovered = nullptr;
-    view_focused = nullptr;
-    view_pressed = nullptr;
-    view_released = nullptr;
-    view_dragged = nullptr;
-    entering_views.clear();
-    exiting_views.clear();
-}
-
+#ifdef WATCH_LEAKS
 static size_t _uid = 0;
 static size_t _views = 0;
+#endif
 
 view_t::view_t()
     : parent(0)
@@ -72,16 +60,20 @@ view_t::view_t()
     , _content_hash(0)
     , render_priority(0)
 {
+#ifdef WATCH_LEAKS
     uid = _uid++;
     _views++;
     printf("v[%d] %s\n", uid, type_name().c_str());
+#endif
     state.style.available = false;
 }
 
 view_t::~view_t()
 {
+#ifdef WATCH_LEAKS
     _views--;
     printf("free view %d %d %s\n", uid, _views, type_name().c_str());
+#endif
 }
 
 std::string view_t::type_name()
@@ -358,8 +350,9 @@ bool view_t::is_dragged(view_t* view)
 
 view_ptr _view_from_xy(view_ptr view, int x, int y)
 {
-    if (!view->layout()->visible) return nullptr;
-    
+    if (!view->layout()->visible)
+        return nullptr;
+
     rect_t r = view->layout()->render_rect;
 
     point_t p = { x, y };

@@ -41,7 +41,7 @@ extern "C" int main(int argc, char** argv)
 
     renderer->create_font("Source Code Pro", 12, "ui");
     renderer->create_font("Fira Code", 14, "editor");
-    
+
     int d = 0;
 
     sys->init();
@@ -67,8 +67,6 @@ extern "C" int main(int argc, char** argv)
         }
         return false;
     });
-
-    view_init();
 
     while (sys->is_running()) {
         sys->timer.begin();
@@ -174,8 +172,6 @@ extern "C" int main(int argc, char** argv)
     }
 
     printf("visible views %d\n", visible_views.size());
-    visible_views.clear();
-    view_shutdown();
 
     sys->shutdown();
 

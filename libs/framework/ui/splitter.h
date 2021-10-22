@@ -20,7 +20,6 @@ struct splitter_t : view_t {
     int start_width;
     int start_height;
 
-    // todo! circular reference??
     view_t* container;
     view_t* target;
 };
@@ -28,7 +27,8 @@ struct splitter_t : view_t {
 struct vertical_splitter_t : splitter_t {
     vertical_splitter_t(view_t* target = nullptr, view_t* container = nullptr)
         : splitter_t(target, container)
-    {}
+    {
+    }
 };
 
 struct horizontal_splitter_t : splitter_t {

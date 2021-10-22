@@ -13,7 +13,8 @@
 highlighter_task_t::highlighter_task_t(editor_view_t* editor)
     : task_t()
     , editor(editor)
-{}
+{
+}
 
 bool highlighter_task_t::run(int limit)
 {
@@ -23,7 +24,7 @@ bool highlighter_task_t::run(int limit)
     if (hl.size() > MAX_HL_BUCKET) {
         hl.erase(hl.begin(), hl.begin() + (hl.size() - MAX_HL_BUCKET));
     }
-    
+
     int hltd = 0;
     while (hl.size()) {
         block_ptr block = hl.front();
@@ -239,8 +240,9 @@ bool editor_view_t::handle_key_sequence(event_t& event)
 bool editor_view_t::handle_key_text(event_t& event)
 {
     int mods = system_t::instance()->key_mods();
-    if (mods & K_MOD_CTRL || mods & K_MOD_ALT) return true;
-    
+    if (mods & K_MOD_CTRL || mods & K_MOD_ALT)
+        return true;
+
     editor->pushOp(INSERT, event.text);
     editor->runAllOps();
     update_blocks();

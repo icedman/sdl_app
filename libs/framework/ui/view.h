@@ -2,10 +2,10 @@
 #define VIEW_H
 
 #include "events.h"
+#include "font.h"
 #include "layout.h"
 #include "styled_frame.h"
 #include "view_types.h"
-#include "font.h"
 
 #include <memory>
 #include <string>
@@ -131,8 +131,6 @@ struct horizontal_container_t : view_t {
     }
 };
 
-bool view_init();
-void view_shutdown();
 void view_dispatch_events(event_list& events, view_list& views);
 void view_prerender(view_ptr view, view_list& visible_views, damage_t* damage = NULL);
 void view_render(renderer_t* renderer, view_ptr view, damage_t* damage = NULL);

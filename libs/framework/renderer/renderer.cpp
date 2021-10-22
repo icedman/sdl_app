@@ -26,16 +26,12 @@ struct cairo_context_t : image_t {
     cairo_pattern_t* pattern;
 };
 
-static int _img = 0;
 cairo_context_t::cairo_context_t()
 {
-    _img++;
 }
 
 cairo_context_t::~cairo_context_t()
 {
-    _img--;
-    printf(">free image: %d\n", _img);
     cairo_pattern_destroy(pattern);
     cairo_surface_destroy(cairo_surface);
     cairo_destroy(cairo_context);
@@ -113,7 +109,8 @@ renderer_t::renderer_t()
 }
 
 renderer_t::~renderer_t()
-{}
+{
+}
 
 void renderer_t::init(int w, int h)
 {
@@ -252,7 +249,7 @@ font_ptr renderer_t::default_font()
 
 font_ptr renderer_t::font(std::string alias)
 {
-    for(auto f : font_cache) {
+    for (auto f : font_cache) {
         if (f->alias == alias) {
             return f;
         }

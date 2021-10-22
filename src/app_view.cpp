@@ -2,14 +2,13 @@
 #include "editor_view.h"
 #include "explorer_view.h"
 #include "splitter.h"
-#include "tabbar.h"
 #include "statusbar.h"
 #include "system.h"
+#include "tabbar.h"
 #include "text.h"
 
 #include "app.h"
-#include "grammar.h"
-#include "parse.h"
+#include "explorer.h"
 
 static app_t global_app;
 
@@ -42,7 +41,7 @@ app_view_t::app_view_t()
     add_child(statusbar);
 
     tabs->cast<tabbed_content_t>()->tabbar()->on(EVT_ITEM_SELECT, [this](event_t& evt) {
-        list_item_t *item = (list_item_t*)evt.source;
+        list_item_t* item = (list_item_t*)evt.source;
 
         if (evt.button == 1) {
             evt.cancelled = true;
@@ -55,9 +54,13 @@ app_view_t::app_view_t()
     });
 
     sidebar->cast<explorer_view_t>()->on(EVT_ITEM_SELECT, [this](event_t& evt) {
-        list_item_t *item = (list_item_t*)evt.source;
-        printf(">>%s\n", item->item_data.value.c_str());
-        this->show_editor(app_t::instance()->openEditor(item->item_data.value));
+        list_item_t* item = (list_item_t*)evt.source;
+        list_item_data_t d = item->item_data;
+        fileitem_t* file = (fileitem_t*)d.data;
+        // printf(">>%s\n", item->item_data.value.c_str());
+        if (file && !file->isDirectory) {
+            this->show_editor(app_t::instance()->openEditor(item->item_data.value));
+        }
         return true;
     });
 }
@@ -86,12 +89,13 @@ void app_view_t::configure(int argc, char** argv)
 
 void app_view_t::show_editor(editor_ptr editor)
 {
-    view_t *view = (view_t*)(editor->view);
-    if (!view) return;
+    view_t* view = (view_t*)(editor->view);
+    if (!view)
+        return;
 
     int mods = system_t::instance()->key_mods();
     if ((mods & K_MOD_CTRL) != K_MOD_CTRL) {
-        for(auto c : tabs->cast<tabbed_content_t>()->content()->children) {
+        for (auto c : tabs->cast<tabbed_content_t>()->content()->children) {
             c->layout()->visible = false;
         }
     }
@@ -115,22 +119,14 @@ void app_view_t::create_editor(editor_ptr editor)
     ev->gutter();
     ev->minimap();
 
-    // editor->highlighter.lang = std::make_shared<language_info_t>();
-    // editor->highlighter.lang->grammar = load_grammar("./tests/syntaxes/c.json");
-    // Json::Value root = parse::loadJson(themeFile);
-    // editor->highlighter.theme = parse_theme(root);
-    // editor->pushOp("OPEN", filename);
-    // editor->runAllOps();
-    // editor->name = "editor:";
-    // editor->name += filename;
-
     update_tabs();
     show_editor(editor);
 }
 
 void app_view_t::destroy_editor(editor_ptr editor)
 {
-    if (!editor) return;
+    if (!editor)
+        return;
 
     set_focused(nullptr);
     set_hovered(nullptr);
@@ -144,7 +140,7 @@ void app_view_t::destroy_editor(editor_ptr editor)
 
     if (editor->view) {
         view_t* view = (view_t*)editor->view;
-        editor_view_t *ev = (editor_view_t*)view;
+        editor_view_t* ev = (editor_view_t*)view;
         ev->cleanup();
 
         tabs->cast<tabbed_content_t>()->content()->remove_child(view->ptr());
@@ -174,5 +170,4 @@ void app_view_t::update_tabs()
 
     layout_clear_hash(tabs->layout(), 4);
     tabs->relayout();
-
 }

@@ -1,9 +1,9 @@
 #include "list.h"
 #include "hash.h"
+#include "image.h"
 #include "scrollarea.h"
 #include "system.h"
 #include "text.h"
-#include "image.h"
 
 #define VISIBLE_ITEMS_PAD 4
 #define TAIL_PAD 16
@@ -57,7 +57,7 @@ view_ptr list_t::create_item()
     item->add_child(text);
     item->layout()->visible = false;
 
-    view_t *_item = item.get();
+    view_t* _item = item.get();
     item->on(EVT_MOUSE_CLICK, [this, _item](event_t& evt) {
         evt.cancelled = true;
         evt.source = _item;
