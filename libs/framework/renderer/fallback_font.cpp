@@ -32,22 +32,19 @@ int asteroidDrawString(renderer_t* renderer, float x, float y, char* str, float 
 struct asteroid_font_t : font_t {
 };
 
-void asteroid_font_destroy(font_t*)
-{
-}
-
 int asteroid_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, int y, color_t clr, bool bold, bool italic, bool underline)
 {
     float _sz = 1 + ((float)(font->size - 8) / 8);
     return asteroidDrawString(renderer, x, y, text, _sz, clr, bold, italic, underline);
 }
 
-font_t* asteroid_font_create(std::string name, int size)
+font_ptr asteroid_font_create(std::string name, int size)
 {
     initAsteroids();
-    asteroid_font_t* fnt = new asteroid_font_t();
+
+    font_ptr _f = std::make_shared<asteroid_font_t>();
+    asteroid_font_t* fnt = (asteroid_font_t*)(_f.get());
     fnt->draw_text = asteroid_font_draw_text;
-    fnt->destroy = asteroid_font_destroy;
     fnt->name = name;
 
     if (size < 8) {
@@ -63,7 +60,7 @@ font_t* asteroid_font_create(std::string name, int size)
     fnt->width = 12.0f * _sz;
     fnt->height = 18.0f * _sz;
 
-    return fnt;
+    return _f;
 }
 
 void initAsteroids()

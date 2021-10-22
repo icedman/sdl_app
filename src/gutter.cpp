@@ -16,9 +16,10 @@ gutter_t::gutter_t(editor_view_t* editor)
     };
 
     layout()->name = "gutter";
+    render_priority = 1;
 }
 
-int text_width(int i, font_t* font)
+int text_width(int i, font_ptr font)
 {
     return std::to_string(i).length() * font->width;
 }

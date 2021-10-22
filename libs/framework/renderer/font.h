@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include <memory>
 
 #include "color.h"
 
@@ -15,11 +16,9 @@ struct font_t {
     std::string desc;
     std::string path;
     std::string alias;
-
-    int ref;
-
     std::function<int(renderer_t* renderer, font_t* font, char* text, int x, int y, color_t clr, bool bold, bool italic, bool underline)> draw_text;
-    std::function<void(font_t*)> destroy;
 };
+
+typedef std::shared_ptr<font_t> font_ptr;
 
 #endif FONT_H

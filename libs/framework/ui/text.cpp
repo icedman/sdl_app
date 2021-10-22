@@ -40,7 +40,7 @@ void text_t::render(renderer_t* renderer)
     layout_item_ptr item = layout();
     renderer->begin_text_span(_text_spans);
     // renderer->draw_rect(item->render_rect, {255,0,255}, false, 1.0f);
-    renderer->draw_text(NULL, (char*)_text.c_str(), item->render_rect.x, item->render_rect.y, {});
+    renderer->draw_text(font().get(), (char*)_text.c_str(), item->render_rect.x, item->render_rect.y, {});
     renderer->end_text_span();
 }
 

@@ -17,7 +17,7 @@
 #define CARET_WIDTH 2
 #define UNDERLINE_WIDTH 1
 
-font_t* pango_font_create(std::string name, int size);
+font_ptr pango_font_create(std::string name, int size);
 void pango_font_destroy(font_t*);
 int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, int y, color_t clr, bool bold, bool italic, bool underline);
 
@@ -26,13 +26,16 @@ cairo_pattern_t* ctx_cairo_pattern(context_t* ctx);
 cairo_surface_t* ctx_cairo_surface(context_t* ctx);
 
 typedef struct {
-    image_t* image;
+    image_ptr image;
     int cw;
     int ch;
     int cp;
 } glypset_t;
 
 struct pango_font_t : font_t {
+    pango_font_t();
+    ~pango_font_t();
+
     glypset_t set[MAX_GLYPHSET];
     std::map<int, glypset_t> utf8;
 
@@ -40,9 +43,21 @@ struct pango_font_t : font_t {
     PangoContext* context;
     PangoLayout* layout;
 
-    pango_font_t* italic;
-    pango_font_t* bold;
+    font_ptr italic;
+    font_ptr bold;
 };
+
+static int _fnt = 0;
+pango_font_t::pango_font_t()
+{
+    _fnt++;
+}
+
+pango_font_t::~pango_font_t()
+{
+    _fnt--;
+    printf(">free font %d\n", _fnt);
+}
 
 void pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
 {
@@ -69,7 +84,7 @@ glypset_t bake_glyph(pango_font_t* fnt, char* c)
     renderer.init(cw + 1, ch);
 
     glypset_t glyph;
-    glyph.image = (image_t*)(renderer.context);
+    glyph.image = renderer.context;
     glyph.cw = cw;
     glyph.ch = ch;
     glyph.cp = cp;
@@ -77,21 +92,21 @@ glypset_t bake_glyph(pango_font_t* fnt, char* c)
     renderer.begin_frame();
 
     pango_layout_set_text(fnt->layout, _p, _pl);
-    cairo_set_source_rgb(ctx_cairo_context(glyph.image), 1, 1, 1);
-    cairo_move_to(ctx_cairo_context(glyph.image), x, y);
-    pango_cairo_show_layout(ctx_cairo_context(glyph.image), fnt->layout);
+    cairo_set_source_rgb(ctx_cairo_context(glyph.image.get()), 1, 1, 1);
+    cairo_move_to(ctx_cairo_context(glyph.image.get()), x, y);
+    pango_cairo_show_layout(ctx_cairo_context(glyph.image.get()), fnt->layout);
 
     renderer.end_frame();
-    renderer.context = NULL; // detach
 
     renderer.shutdown();
 
     return glyph;
 }
 
-font_t* pango_font_create(char* fdsc, char* alias)
+font_ptr pango_font_create(char* fdsc, char* alias)
 {
-    pango_font_t* fnt = new pango_font_t();
+    font_ptr _f = std::make_shared<pango_font_t>();
+    pango_font_t* fnt = (pango_font_t*)(_f.get());
     fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
     fnt->context = pango_font_map_create_context(fnt->font_map);
     fnt->layout = pango_layout_new(fnt->context);
@@ -146,57 +161,28 @@ font_t* pango_font_create(char* fdsc, char* alias)
 #endif
 
     fnt->draw_text = pango_font_draw_text;
-    fnt->destroy = pango_font_destroy;
-
-    return fnt;
+    return _f;
 }
 
-font_t* pango_font_create(std::string name, int size)
+font_ptr pango_font_create(std::string name, int size)
 {
     std::string desc = name + " " + std::to_string(size);
-    font_t* fnt = pango_font_create((char*)desc.c_str(), "");
+    font_ptr fnt = pango_font_create((char*)desc.c_str(), "");
     fnt->name = name;
     fnt->size = size;
 
-    pango_font_t* pf = (pango_font_t*)fnt;
+    pango_font_t* pf = (pango_font_t*)(fnt.get());
     desc = name + " italic " + std::to_string(size);
-    pf->italic = (pango_font_t*)pango_font_create((char*)desc.c_str(), "");
+    // pf->italic = pango_font_create((char*)desc.c_str(), "");
     desc = name + " bold " + std::to_string(size);
-    pf->bold = (pango_font_t*)pango_font_create((char*)desc.c_str(), "");
+    // pf->bold = pango_font_create((char*)desc.c_str(), "");
     return fnt;
-}
-
-void pango_font_destroy(font_t* font)
-{
-    pango_font_t* pf = (pango_font_t*)font;
-
-    if (pf->italic) {
-        pango_font_destroy((font_t*)pf->italic);
-    }
-    if (pf->bold) {
-        pango_font_destroy((font_t*)pf->bold);
-    }
-
-    for (int i = 0; i < MAX_GLYPHSET; i++) {
-        if (pf->set[i].image) {
-            renderer_t::destroy_image(pf->set[i].image);
-        }
-    }
-
-    std::map<int, glypset_t>::iterator it = pf->utf8.begin();
-    while (it != pf->utf8.end()) {
-        glypset_t set = it->second;
-        if (set.image) {
-            renderer_t::destroy_image(set.image);
-        }
-        it++;
-    }
 }
 
 int pango_font_draw_char_image(renderer_t* renderer, image_t* img, rect_t rect, color_t clr,
     bool bold, bool italic, bool underline, int caret, bool bg)
 {
-    cairo_t* cairo_context = ctx_cairo_context(renderer->context);
+    cairo_t* cairo_context = ctx_cairo_context(renderer->context.get());
 
     int w = img->width;
     int h = img->height;
@@ -316,7 +302,7 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, wchar_t* text, int 
 
             renderer->_draw_count++;
             pango_font_draw_char_image(renderer,
-                glyph.image,
+                glyph.image.get(),
                 { x + (i * font->width) + (font->width / 2) - (glyph.cw / 2),
                     y + (font->height / 2) - (glyph.ch / 2),
                     glyph.cw + 1,
@@ -333,7 +319,7 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, wchar_t* text, int 
 
 inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, int x, int y, text_span_t& span, color_t clr, bool bold, bool italic, bool underline)
 {
-    cairo_t* cairo_context = ctx_cairo_context(renderer->context);
+    cairo_t* cairo_context = ctx_cairo_context(renderer->context.get());
     pango_font_t* fnt = (pango_font_t*)font;
 
     // text span
@@ -355,10 +341,10 @@ inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, 
 
     pango_font_t* _pf = fnt;
     if (span.italic && fnt->italic) {
-        _pf = fnt->italic;
+        // _pf = (pango_font_t*)(fnt->italic.get());
     }
     if (span.bold && fnt->bold) {
-        _pf = fnt->bold;
+        // _pf = (pango_font_t*)(fnt->bold.get());
     }
 
     renderer->_draw_count++;
@@ -400,7 +386,7 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, 
 
     char* _s = text;
 
-    cairo_t* cairo_context = ctx_cairo_context(renderer->context);
+    cairo_t* cairo_context = ctx_cairo_context(renderer->context.get());
     pango_font_t* fnt = (pango_font_t*)font;
 
     if (!renderer->text_spans.size()) {

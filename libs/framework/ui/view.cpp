@@ -44,21 +44,44 @@ const char* view_type_names[] = {
     "custom"
 };
 
+bool view_init()
+{
+    return true;
+}
+void view_shutdown()
+{
+    view_hovered = nullptr;
+    view_focused = nullptr;
+    view_pressed = nullptr;
+    view_released = nullptr;
+    view_dragged = nullptr;
+    entering_views.clear();
+    exiting_views.clear();
+}
+
+static size_t _uid = 0;
+static size_t _views = 0;
+
 view_t::view_t()
     : parent(0)
+    , uid(0)
     , disabled(false)
     , can_focus(false)
     , can_hover(false)
-    , _font(0)
     , _state_hash(0)
     , _content_hash(0)
     , render_priority(0)
 {
+    uid = _uid++;
+    _views++;
+    printf("v[%d] %s\n", uid, type_name().c_str());
     state.style.available = false;
 }
 
 view_t::~view_t()
 {
+    _views--;
+    printf("free view %d %d %s\n", uid, _views, type_name().c_str());
 }
 
 std::string view_t::type_name()
@@ -81,6 +104,8 @@ void view_t::add_child(view_ptr view)
     view->parent = this;
     children.push_back(view);
     layout()->children.push_back(view->layout());
+
+    printf(">%d %s\n", view->uid, view->type_name().c_str());
 }
 
 void view_t::remove_child(view_ptr view)
@@ -109,7 +134,7 @@ void view_t::remove_child(view_ptr view)
     }
 }
 
-view_ptr view_t::find_child(std::string uid)
+view_ptr view_t::find_child(size_t uid)
 {
     for (auto child : children) {
         if (child->uid == uid) {
@@ -141,12 +166,12 @@ view_ptr view_t::ptr()
     return nullptr;
 }
 
-void view_t::set_font(font_t* font)
+void view_t::set_font(font_ptr font)
 {
     _font = font;
 }
 
-font_t* view_t::font()
+font_ptr view_t::font()
 {
     if (_font)
         return _font;
@@ -157,6 +182,7 @@ font_t* view_t::font()
         if (p->font()) {
             _font = p->font();
             return _font;
+            // return p->font();
         }
         p = p->parent;
     }

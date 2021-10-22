@@ -5,6 +5,7 @@
 #include "layout.h"
 #include "styled_frame.h"
 #include "view_types.h"
+#include "font.h"
 
 #include <memory>
 #include <string>
@@ -32,7 +33,7 @@ struct view_t : events_manager_t, event_object_t {
     virtual bool is_type_of(view_type_e t) { return t == view_type_e::CONTAINER; }
     virtual std::string type_name();
 
-    std::string uid;
+    size_t uid;
     view_t* parent;
 
     virtual void prerender();
@@ -50,7 +51,7 @@ struct view_t : events_manager_t, event_object_t {
 
     void add_child(view_ptr view);
     void remove_child(view_ptr view);
-    view_ptr find_child(std::string uid);
+    view_ptr find_child(size_t uid);
     view_ptr find_child(view_type_e t);
     view_ptr ptr();
 
@@ -79,9 +80,9 @@ struct view_t : events_manager_t, event_object_t {
     view_list children;
 
     // style
-    void set_font(font_t* font);
-    font_t* font();
-    font_t* _font;
+    void set_font(font_ptr font);
+    font_ptr font();
+    font_ptr _font;
 
     bool disabled;
     bool can_focus;
@@ -130,6 +131,8 @@ struct horizontal_container_t : view_t {
     }
 };
 
+bool view_init();
+void view_shutdown();
 void view_dispatch_events(event_list& events, view_list& views);
 void view_prerender(view_ptr view, view_list& visible_views, damage_t* damage = NULL);
 void view_render(renderer_t* renderer, view_ptr view, damage_t* damage = NULL);

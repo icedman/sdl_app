@@ -26,7 +26,7 @@ tabbar_t::tabbar_t()
 
 void tabbar_t::prelayout()
 {
-    layout()->height = font()->height + layout()->margin_top + 4;
+    layout()->height = 1.5f * font()->height + layout()->margin_top;
 }
 
 view_ptr tabbar_t::create_item()
@@ -34,11 +34,15 @@ view_ptr tabbar_t::create_item()
     view_ptr item = std::make_shared<list_item_t>();
     item->layout()->fit_children_x = true;
     item->layout()->fit_children_y = true;
+    item->layout()->margin_left = 4;
+    item->layout()->margin_right = 4;
     view_ptr btn = std::make_shared<button_t>();
     view_ptr text = std::make_shared<text_t>("ITEM TEMPLATE");
     item->add_child(text);
     item->add_child(btn);
     btn->layout()->width = 32;
+    btn->layout()->fit_children_y = false;
+    btn->layout()->margin = 2;
     item->layout()->visible = false;
     item->layout()->preferred_constraint.max_width = font()->width * 20;
 
@@ -47,17 +51,18 @@ view_ptr tabbar_t::create_item()
     item->layout()->justify = LAYOUT_JUSTIFY_SPACE_BETWEEN;
     item->layout()->align = LAYOUT_ALIGN_CENTER;
 
-    item->on(EVT_MOUSE_CLICK, [this, item](event_t& evt) {
+    view_t* _item = item.get();
+    item->on(EVT_MOUSE_CLICK, [this, _item](event_t& evt) {
         evt.cancelled = true;
-        evt.source = item.get();
+        evt.source = _item;
         evt.button = 0;
         this->handle_item_click(evt);
         return true;
     });
 
-    btn->on(EVT_MOUSE_CLICK, [this, item](event_t& evt) {
+    btn->on(EVT_MOUSE_CLICK, [this, _item](event_t& evt) {
         evt.cancelled = true;
-        evt.source = item.get();
+        evt.source = _item;
         evt.button = 1;
         this->handle_item_click(evt);
         return true;

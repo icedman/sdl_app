@@ -57,9 +57,10 @@ view_ptr list_t::create_item()
     item->add_child(text);
     item->layout()->visible = false;
 
-    item->on(EVT_MOUSE_CLICK, [this, item](event_t& evt) {
+    view_t *_item = item.get();
+    item->on(EVT_MOUSE_CLICK, [this, _item](event_t& evt) {
         evt.cancelled = true;
-        evt.source = item.get();
+        evt.source = _item;
         this->handle_item_click(evt);
         return true;
     });

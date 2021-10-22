@@ -28,7 +28,7 @@ app_view_t::app_view_t()
     sidebar->layout()->width = 300;
     hc->add_child(sidebar);
 
-    view_ptr hsplit = std::make_shared<vertical_splitter_t>(sidebar, hc);
+    view_ptr hsplit = std::make_shared<vertical_splitter_t>(sidebar.get(), hc.get());
     hc->add_child(hsplit);
 
     tabs = std::make_shared<tabbed_content_t>();
@@ -75,8 +75,13 @@ void app_view_t::update()
 void app_view_t::configure(int argc, char** argv)
 {
     app_t::instance()->configure(argc, argv);
-    sidebar->cast<explorer_view_t>()->set_root_path(app_t::instance()->inputFile);
-    app_t::instance()->openEditor(app_t::instance()->inputFile, true);
+
+    std::string path = app_t::instance()->inputFile;
+    if (path == "") {
+        path = "./";
+    }
+    sidebar->cast<explorer_view_t>()->set_root_path(path);
+    app_t::instance()->openEditor(path, true);
 }
 
 void app_view_t::show_editor(editor_ptr editor)

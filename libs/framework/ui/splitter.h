@@ -4,7 +4,7 @@
 #include "view.h"
 
 struct splitter_t : view_t {
-    splitter_t(view_ptr target = nullptr, view_ptr container = nullptr);
+    splitter_t(view_t* target = NULL, view_t* container = NULL);
 
     DECLAR_VIEW_TYPE(SPLITTER, view_t)
 
@@ -20,19 +20,19 @@ struct splitter_t : view_t {
     int start_width;
     int start_height;
 
-    view_ptr container;
-    view_ptr target;
+    // todo! circular reference??
+    view_t* container;
+    view_t* target;
 };
 
 struct vertical_splitter_t : splitter_t {
-    vertical_splitter_t(view_ptr target = nullptr, view_ptr container = nullptr)
+    vertical_splitter_t(view_t* target = nullptr, view_t* container = nullptr)
         : splitter_t(target, container)
-    {
-    }
+    {}
 };
 
 struct horizontal_splitter_t : splitter_t {
-    horizontal_splitter_t(view_ptr target = nullptr, view_ptr container = nullptr);
+    horizontal_splitter_t(view_t* target = nullptr, view_t* container = nullptr);
 };
 
 #endif // SPLITTER_H

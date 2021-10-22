@@ -2,7 +2,7 @@
 #include "renderer.h"
 #include "system.h"
 
-splitter_t::splitter_t(view_ptr target, view_ptr container)
+splitter_t::splitter_t(view_t* target, view_t* container)
     : view_t()
     , target(target)
     , container(container)
@@ -19,6 +19,11 @@ splitter_t::splitter_t(view_ptr target, view_ptr container)
     });
     on(EVT_MOUSE_DRAG, [this](event_t& evt) {
         evt.cancelled = true;
+        if (this->layout()->is_column()) {
+            system_t::instance()->set_cursor(cursor_e::RESIZE_EW);
+        } else {
+            system_t::instance()->set_cursor(cursor_e::RESIZE_NS);
+        }
         return this->handle_mouse_drag(evt);
     });
     on(EVT_MOUSE_DRAG_END, [this](event_t& evt) {
@@ -30,6 +35,8 @@ splitter_t::splitter_t(view_ptr target, view_ptr container)
         evt.cancelled = true;
         if (this->layout()->is_column()) {
             system_t::instance()->set_cursor(cursor_e::RESIZE_EW);
+        } else {
+            system_t::instance()->set_cursor(cursor_e::RESIZE_NS);
         }
         return true;
     });
@@ -80,7 +87,7 @@ void splitter_t::render(renderer_t* renderer)
     // render_frame(renderer);
 }
 
-horizontal_splitter_t::horizontal_splitter_t(view_ptr target, view_ptr container)
+horizontal_splitter_t::horizontal_splitter_t(view_t* target, view_t* container)
     : splitter_t(target, container)
 {
     layout()->height = layout()->width;

@@ -398,6 +398,7 @@ theme_ptr theme_from_name(const std::string path, std::vector<struct extension_t
 icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<struct extension_t>& _extensions)
 {
     icon_t res;
+    res.path = "";
     if (!icons) {
         return res;
     }

@@ -139,7 +139,7 @@ view_ptr test6(int argc, char** argv)
     editor->name = "editor:";
     editor->name += filename;
 
-    view_ptr vsplitter = std::make_shared<vertical_splitter_t>(sidebar, root_view);
+    view_ptr vsplitter = std::make_shared<vertical_splitter_t>(sidebar.get(), root_view.get());
 
     root_view->add_child(sidebar);
     root_view->add_child(vsplitter);
@@ -231,11 +231,12 @@ view_ptr test5(int argc, char** argv)
     view->cast<panel_t>()->content()->add_child(block);
     view->cast<panel_t>()->content()->layout()->fit_children_x = !wrapped;
 
-    block->on(EVT_KEY_TEXT, [block](event_t& event) {
+    text_block_t* text_block = block->cast<text_block_t>();
+    block->on(EVT_KEY_TEXT, [text_block](event_t& event) {
         if (event.text == " ") {
-            block->cast<text_block_t>()->set_text("");
+            text_block->set_text("");
         } else {
-            block->cast<text_block_t>()->set_text(block->cast<text_block_t>()->text() + event.text);
+            text_block->set_text(text_block->text() + event.text);
         }
         return true;
     });
@@ -245,8 +246,10 @@ view_ptr test5(int argc, char** argv)
 
 view_ptr test4(int argc, char** argv)
 {
-    view_ptr view = std::make_shared<vertical_container_t>();
+    view_ptr view = std::make_shared<view_t>();
     view->layout()->margin = 20;
+
+    view_ptr content = view;
 
     view_ptr vc = std::make_shared<vertical_container_t>();
     {
@@ -256,6 +259,7 @@ view_ptr test4(int argc, char** argv)
         button_text->set_text(text);
         vc->add_child(button);
     }
+
     view_ptr hc = std::make_shared<horizontal_container_t>();
     {
         view_ptr button = std::make_shared<button_t>();
@@ -265,8 +269,10 @@ view_ptr test4(int argc, char** argv)
         hc->add_child(button);
     }
 
-    view->add_child(vc);
-    view->add_child(hc);
+    view_ptr sp = std::make_shared<horizontal_splitter_t>(vc.get(),content.get());
+    content->add_child(vc);
+    content->add_child(sp);
+    content->add_child(hc);
 
     return view;
 }
@@ -320,7 +326,10 @@ view_ptr test3(int argc, char** argv)
     view->layout()->margin = 20;
 
     view_ptr tabbar = std::make_shared<tabbar_t>();
+    view->add_child(tabbar);
+
     view_ptr top = std::make_shared<vertical_container_t>();
+    view->add_child(top);
 
     view_ptr text = std::make_shared<text_t>();
     text->cast<text_t>()->set_text("Hello World");
@@ -335,16 +344,17 @@ view_ptr test3(int argc, char** argv)
         underline : true
     });
     text->cast<text_t>()->_text_spans = spans;
-
     top->add_child(text);
     top->layout()->grow = 1;
 
-    text->on(EVT_KEY_TEXT, [text](event_t& event) {
+    text->can_focus = true;
+    text_t* _text = text->cast<text_t>();
+    text->on(EVT_KEY_TEXT, [_text](event_t& event) {
         std::string t = event.text + event.text + event.text;
         if (event.text == " ") {
-            text->cast<text_t>()->set_text("");
+            _text->set_text("");
         } else {
-            text->cast<text_t>()->set_text(t);
+            _text->set_text(t);
         }
         return true;
     });
@@ -354,12 +364,9 @@ view_ptr test3(int argc, char** argv)
     toolbar->layout()->height = 40;
     toolbar->layout()->justify = LAYOUT_JUSTIFY_SPACE_BETWEEN;
 
-    view_ptr icon = std::make_shared<image_view_t>();
-    icon->cast<image_view_t>()->load_icon("./tests/3d.svg", 24, 24);
+    // view_ptr icon = std::make_shared<image_view_t>();
+    // icon->cast<image_view_t>()->load_icon("./tests/icon.svg", 140, 140);
     // toolbar->add_child(icon);
-
-    view->add_child(tabbar);
-    view->add_child(top);
 
     std::vector<list_item_data_t> tabbar_data;
     for (int i = 0; i < 8; i++) {
@@ -390,11 +397,11 @@ view_ptr test3(int argc, char** argv)
     hcontainer->add_child(panel);
     panel->layout()->grow = 4;
 
-    hsplitter->cast<splitter_t>()->container = hcontainer;
-    hsplitter->cast<splitter_t>()->target = panel;
+    hsplitter->cast<splitter_t>()->container = hcontainer.get();
+    hsplitter->cast<splitter_t>()->target = panel.get();
 
-    vsplitter->cast<splitter_t>()->container = view;
-    vsplitter->cast<splitter_t>()->target = hcontainer;
+    vsplitter->cast<splitter_t>()->container = view.get();
+    vsplitter->cast<splitter_t>()->target = hcontainer.get();
 
     int item_count = 100;
     for (int i = 0; i < item_count; i++) {
@@ -441,10 +448,6 @@ view_ptr test3(int argc, char** argv)
             });
         }
     }
-
-    // view_ptr spacer = std::make_shared<view_t>();
-    // spacer->layout()->grow = 40;
-    // list->add_child(spacer);
 
     return view;
 }

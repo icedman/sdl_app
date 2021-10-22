@@ -9,7 +9,7 @@ add_global_arguments([
         '-D_XOPEN_SOURCE_EXTENDED',
     ], language: 'cpp')
 
-add_global_arguments('-DFONT_PREBAKE_GLYPHS', language: 'cpp')
+#add_global_arguments('-DFONT_PREBAKE_GLYPHS', language: 'cpp')
 
 if build_machine.system() == 'darwin'
     add_global_arguments('-DFONT_FORCE_DRAW_PREBAKED_GLYPHS', language: 'cpp')    

@@ -13,8 +13,7 @@
 highlighter_task_t::highlighter_task_t(editor_view_t* editor)
     : task_t()
     , editor(editor)
-{
-}
+{}
 
 bool highlighter_task_t::run(int limit)
 {
@@ -93,6 +92,7 @@ editor_view_t::editor_view_t()
     });
 
     layout()->name = "editor";
+    set_font(system_t::instance()->renderer.font("editor"));
 }
 
 void editor_view_t::cleanup()

@@ -39,11 +39,9 @@ extern "C" int main(int argc, char** argv)
 
     int skipped = 0;
 
-    image_t* svg = renderer->create_image_from_svg("./tests/3d.svg", 40, 40);
-    image_t* png = renderer->create_image_from_png("./tests/game.png");
-    // font_t* fnt = renderer->create_font("Source Code Pro", 16);
-    font_t* fnt = renderer->create_font("Fira Code", 14);
-    // font_t* fnt = renderer->create_font("asteroids", 10);
+    renderer->create_font("Source Code Pro", 12, "ui");
+    renderer->create_font("Fira Code", 14, "editor");
+    
     int d = 0;
 
     sys->init();
@@ -70,7 +68,8 @@ extern "C" int main(int argc, char** argv)
         return false;
     });
 
-    sys->caffeinate();
+    view_init();
+
     while (sys->is_running()) {
         sys->timer.begin();
 
@@ -135,21 +134,6 @@ extern "C" int main(int argc, char** argv)
             }
 #endif
 
-            // renderer->draw_rect({20,20,renderer->width()-40,renderer->height()-40},{255,0,255}, false, 2);
-            // renderer->draw_line(20,20,420,420,{255,0,255});
-            // renderer->draw_rect({20,20,400,400},{255,255,255}, true, 4, {255,0,255}, 40);
-
-            // renderer->push_state();
-            // renderer->translate(40, 40);
-            // renderer->rotate(d);
-            // renderer->draw_image(svg, {0,0,40,40}, {255,0,0});
-            // renderer->pop_state();
-            // d += 4;
-            // d = d % 360;
-
-            // renderer->draw_image(png, {400+132,40,132/2,122/2});
-            // renderer->draw_image(png, 400,40);
-
             if (dmg) {
                 renderer->set_update_rects(dmg->rects(), dmg->count());
             }
@@ -189,10 +173,12 @@ extern "C" int main(int argc, char** argv)
         }
     }
 
+    printf("visible views %d\n", visible_views.size());
+    visible_views.clear();
+    view_shutdown();
+
     sys->shutdown();
 
-    renderer_t::destroy_image(svg);
-    renderer_t::destroy_image(png);
-    renderer_t::destroy_font(fnt);
+    printf("bye\n");
     return 0;
 }

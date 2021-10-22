@@ -12,21 +12,36 @@
 #include <librsvg-2.0/librsvg/rsvg.h>
 #endif
 
-static font_t* _default_font = NULL;
-
-std::vector<image_t*> image_cache;
-std::vector<font_t*> font_cache;
-
-font_t* pango_font_create(std::string name, int size);
-font_t* asteroid_font_create(std::string name, int size);
+font_ptr pango_font_create(std::string name, int size);
+font_ptr asteroid_font_create(std::string name, int size);
 
 struct cairo_context_t : image_t {
+    cairo_context_t();
+    ~cairo_context_t();
+
     uint8_t* buffer;
     SDL_Surface* sdl_surface;
     cairo_surface_t* cairo_surface;
     cairo_t* cairo_context;
     cairo_pattern_t* pattern;
 };
+
+static int _img = 0;
+cairo_context_t::cairo_context_t()
+{
+    _img++;
+}
+
+cairo_context_t::~cairo_context_t()
+{
+    _img--;
+    printf(">free image: %d\n", _img);
+    cairo_pattern_destroy(pattern);
+    cairo_surface_destroy(cairo_surface);
+    cairo_destroy(cairo_context);
+    free(buffer);
+    SDL_FreeSurface(sdl_surface);
+}
 
 SDL_Surface* ctx_sdl_surface(context_t* ctx)
 {
@@ -88,8 +103,7 @@ text_span_t span_from_index(std::vector<text_span_t>& spans, int idx, bool bg)
 }
 
 renderer_t::renderer_t()
-    : context(0)
-    , _draw_count(0)
+    : _draw_count(0)
     , update_rects(0)
     , update_rects_count(0)
     , enable_update_rects(false)
@@ -99,13 +113,10 @@ renderer_t::renderer_t()
 }
 
 renderer_t::~renderer_t()
-{
-    shutdown();
-}
+{}
 
 void renderer_t::init(int w, int h)
 {
-    shutdown();
     context = create_context(w, h);
 }
 
@@ -125,23 +136,21 @@ int renderer_t::height()
 
 void renderer_t::shutdown()
 {
-    if (context) {
-        destroy_context(context);
-        context = 0;
-    }
+    context = nullptr;
+    _default_font = nullptr;
+
+    printf("freeing %d images, %d fonts\n", image_cache.size(), font_cache.size());
+
+    image_cache.clear();
+    font_cache.clear();
 }
 
-context_t* renderer_t::create_context(int w, int h)
+context_ptr renderer_t::create_context(int w, int h)
 {
     return create_image(w, h);
 }
 
-void renderer_t::destroy_context(context_t* context)
-{
-    destroy_image((image_t*)context);
-}
-
-image_t* renderer_t::create_image(int w, int h)
+image_ptr renderer_t::create_image(int w, int h)
 {
     cairo_context_t* img = new cairo_context_t();
     int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, w);
@@ -153,28 +162,24 @@ image_t* renderer_t::create_image(int w, int h)
     img->cairo_surface = cairo_image_surface_create_for_data(img->buffer, CAIRO_FORMAT_ARGB32, w, h, stride);
     img->cairo_context = cairo_create(img->cairo_surface);
     img->pattern = cairo_pattern_create_for_surface(img->cairo_surface);
-    img->ref = 1;
-
-    image_cache.push_back(img);
-    return img;
+    return image_ptr(img);
 }
 
-image_t* renderer_t::create_image_from_svg(std::string path, int w, int h)
+image_ptr renderer_t::create_image_from_svg(std::string path, int w, int h)
 {
     for (auto f : image_cache) {
-        if (f->path == path && f->width == w && f->height == h) {
-            f->ref++;
+        if (f->path == path) {
             return f;
         }
     }
 
-    image_t* img = create_image(w, h);
+    image_ptr img = create_image(w, h);
     img->path = path;
 
 #ifdef ENABLE_SVG
     RsvgHandle* svg = rsvg_handle_new_from_file(path.c_str(), 0);
     if (svg) {
-        rsvg_handle_render_cairo(svg, ((cairo_context_t*)img)->cairo_context);
+        rsvg_handle_render_cairo(svg, ((cairo_context_t*)img.get())->cairo_context);
         rsvg_handle_free(svg);
     }
 #endif
@@ -183,11 +188,10 @@ image_t* renderer_t::create_image_from_svg(std::string path, int w, int h)
     return img;
 }
 
-image_t* renderer_t::create_image_from_png(std::string path)
+image_ptr renderer_t::create_image_from_png(std::string path)
 {
     for (auto f : image_cache) {
         if (f->path == path) {
-            f->ref++;
             return f;
         }
     }
@@ -197,11 +201,11 @@ image_t* renderer_t::create_image_from_png(std::string path)
         return NULL;
     }
 
-    image_t* img = create_image(cairo_image_surface_get_width(image), cairo_image_surface_get_height(image));
+    image_ptr img = create_image(cairo_image_surface_get_width(image), cairo_image_surface_get_height(image));
     img->path = path;
 
     color_t clr = { 255, 0, 255 };
-    cairo_t* cairo_context = ((cairo_context_t*)img)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)img.get())->cairo_context;
     cairo_set_source_surface(cairo_context, image, 0, 0);
     cairo_paint(cairo_context);
 
@@ -211,84 +215,49 @@ image_t* renderer_t::create_image_from_png(std::string path)
     return img;
 }
 
-void renderer_t::destroy_image(image_t* ctx)
-{
-    bool delete_ctx = false;
-    if (std::find(image_cache.begin(), image_cache.end(), ctx) != image_cache.end()) {
-        ctx->ref--;
-        if (!ctx->ref) {
-            image_cache.erase(std::find(image_cache.begin(), image_cache.end(), ctx));
-            delete_ctx = true;
-        } else {
-            return;
-        }
-    }
-
-    if (delete_ctx) {
-        cairo_context_t* img = (cairo_context_t*)ctx;
-        cairo_pattern_destroy(img->pattern);
-        cairo_surface_destroy(img->cairo_surface);
-        cairo_destroy(img->cairo_context);
-        free(img->buffer);
-        SDL_FreeSurface(img->sdl_surface);
-
-        delete ctx;
-    }
-}
-
-font_t* renderer_t::create_font(std::string name, int size)
+font_ptr renderer_t::create_font(std::string name, int size, std::string alias)
 {
     for (auto f : font_cache) {
         if (f->name == name && (int)f->size == size) {
-            f->ref++;
             return f;
         }
     }
 
-    font_t* fnt = NULL;
+    font_ptr fnt = nullptr;
     if (name == "asteroids") {
         fnt = asteroid_font_create(name, size);
-        fnt->ref = 1;
     }
     if (!fnt) {
         fnt = pango_font_create(name, size);
-        fnt->ref = 1;
     }
+    fnt->alias = alias;
+    font_cache.push_back(fnt);
+
     if (!_default_font) {
         _default_font = fnt;
     }
 
-    font_cache.push_back(fnt);
     return fnt;
 }
 
-void renderer_t::destroy_font(font_t* font)
-{
-    bool delete_font = false;
-    if (std::find(font_cache.begin(), font_cache.end(), font) != font_cache.end()) {
-        font->ref--;
-        if (!font->ref) {
-            font_cache.erase(std::find(font_cache.begin(), font_cache.end(), font));
-            delete_font = true;
-        } else {
-            return;
-        }
-    }
-
-    font->destroy(font);
-    if (delete_font) {
-        delete font;
-    }
-}
-
-void renderer_t::set_default_font(font_t* font)
+void renderer_t::set_default_font(font_ptr font)
 {
     _default_font = font;
 }
 
-font_t* renderer_t::default_font()
+font_ptr renderer_t::default_font()
 {
     return _default_font;
+}
+
+font_ptr renderer_t::font(std::string alias)
+{
+    for(auto f : font_cache) {
+        if (f->alias == alias) {
+            return f;
+        }
+    }
+    return NULL;
 }
 
 void renderer_t::clear(color_t clr)
@@ -304,7 +273,7 @@ void renderer_t::draw_rect(rect_t rect, color_t clr, bool fill, int stroke, colo
 
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
 
     if (!fill && !color_is_set(stroke_clr)) {
         stroke_clr = clr;
@@ -355,7 +324,7 @@ void renderer_t::draw_line(int x, int y, int x2, int y2, color_t clr, int stroke
 
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
 
     if (clr.a > 0) {
         cairo_set_source_rgba(cairo_context, clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, clr.a / 255.0f);
@@ -376,7 +345,7 @@ void renderer_t::draw_image(image_t* image, rect_t rect, color_t clr)
 
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
     cairo_context_t* img = (cairo_context_t*)image;
 
     cairo_save(cairo_context);
@@ -414,7 +383,7 @@ int renderer_t::draw_text(font_t* font, char* text, int x, int y, color_t clr, b
 {
     // _draw_count++;
     if (!font) {
-        font = default_font();
+        font = default_font().get();
     }
 
     if (!color_is_set(clr)) {
@@ -450,7 +419,7 @@ void renderer_t::push_state()
 {
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
     cairo_save(cairo_context);
 }
 
@@ -458,7 +427,7 @@ void renderer_t::pop_state()
 {
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
     cairo_restore(cairo_context);
 }
 
@@ -466,7 +435,7 @@ void renderer_t::set_clip_rect(rect_t rect)
 {
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
 
     cairo_rectangle(cairo_context, rect.x, rect.y, rect.w, rect.h);
     cairo_clip(cairo_context);
@@ -476,7 +445,7 @@ void renderer_t::rotate(float deg)
 {
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
     cairo_rotate(cairo_context, deg * M_PI / 180.0f);
 }
 
@@ -484,7 +453,7 @@ void renderer_t::translate(int x, int y)
 {
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
     cairo_translate(cairo_context, x, y);
 }
 
@@ -492,7 +461,7 @@ void renderer_t::scale(float sx, float sy)
 {
     if (!context)
         return;
-    cairo_t* cairo_context = ((cairo_context_t*)context)->cairo_context;
+    cairo_t* cairo_context = ((cairo_context_t*)context.get())->cairo_context;
 
     if (sy == 0) {
         sy = sx;

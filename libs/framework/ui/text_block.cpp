@@ -152,7 +152,7 @@ void text_block_t::render(renderer_t* renderer)
 
         rect_t r = span->render_rect;
 
-        renderer->draw_text(NULL, (char*)text_span->text.c_str(),
+        renderer->draw_text(font().get(), (char*)text_span->text.c_str(),
             r.x,
             r.y, {});
     }

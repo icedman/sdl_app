@@ -53,11 +53,11 @@ void window_renderer_t::end_frame()
                 break;
             }
 
-            SDL_BlitSurface(ctx_sdl_surface(context), (SDL_Rect*)&d, window_surface, (SDL_Rect*)&d);
+            SDL_BlitSurface(ctx_sdl_surface(context.get()), (SDL_Rect*)&d, window_surface, (SDL_Rect*)&d);
         }
         SDL_UpdateWindowSurfaceRects(window, (SDL_Rect*)rects, rects_count);
     } else {
-        SDL_BlitSurface(ctx_sdl_surface(context), NULL, window_surface, NULL);
+        SDL_BlitSurface(ctx_sdl_surface(context.get()), NULL, window_surface, NULL);
         SDL_UpdateWindowSurface(window);
     }
 
@@ -122,6 +122,7 @@ bool system_t::init()
 
 void system_t::shutdown()
 {
+    renderer.shutdown();
     SDL_Quit();
 }
 

@@ -7,16 +7,17 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
-struct context_t {
+struct image_t {
     int width;
     int height;
+    std::string path;
 };
 
-struct image_t : context_t {
-    std::string path;
-    int ref;
-};
+typedef image_t context_t;
+typedef std::shared_ptr<image_t> image_ptr;
+typedef std::shared_ptr<image_t> context_ptr;
 
 struct text_span_t {
     int start;
@@ -44,18 +45,16 @@ struct renderer_t {
     int width();
     int height();
 
-    image_t* create_image(int w, int h);
-    image_t* create_image_from_svg(std::string path, int w, int h);
-    image_t* create_image_from_png(std::string path);
-    static void destroy_image(image_t*);
+    image_ptr create_image(int w, int h);
+    image_ptr create_image_from_svg(std::string path, int w, int h);
+    image_ptr create_image_from_png(std::string path);
 
-    font_t* create_font(std::string name, int size);
-    static void destroy_font(font_t* font);
-    void set_default_font(font_t* font);
-    font_t* default_font();
+    font_ptr create_font(std::string name, int size, std::string alias = "");
+    void set_default_font(font_ptr font);
+    font_ptr default_font();
+    font_ptr font(std::string alias);
 
-    context_t* create_context(int w, int h);
-    void destroy_context(context_t* context);
+    context_ptr create_context(int w, int h);
 
     void clear(color_t clr);
     void draw_rect(rect_t rect, color_t clr, bool fill = true, int stroke = 0, color_t stroke_clr = { 0, 0, 0, 0 }, int radius = 0);
@@ -80,7 +79,8 @@ struct renderer_t {
     void set_update_rects(rect_t* rects, int count);
     int draw_count();
 
-    context_t* context;
+    context_ptr context;
+
     int _draw_count;
     rect_t* update_rects;
     int update_rects_count;
@@ -91,6 +91,10 @@ struct renderer_t {
 
     std::vector<text_span_t> text_spans;
     int text_span_idx;
+
+    std::vector<image_ptr> image_cache;
+    std::vector<font_ptr> font_cache;
+    font_ptr _default_font;
 };
 
 text_span_t span_from_index(std::vector<text_span_t>& spans, int idx, bool bg = false);

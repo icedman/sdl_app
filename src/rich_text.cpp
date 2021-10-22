@@ -158,7 +158,7 @@ void rich_text_t::prelayout()
     int blocks_count = editor->document.blocks.size();
 
     fg = { 255, 255, 255, 0 };
-    sel = { 150, 150, 150, 50 };
+    sel = { 150, 150, 150, 125 };
 
     color_info_t t_clr;
     color_t clr;
@@ -176,7 +176,7 @@ void rich_text_t::prelayout()
     clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
     if (color_is_set(clr)) {
         sel = clr;
-        sel.a = 100;
+        sel.a = 125;
     }
 
     system_t::instance()->renderer.foreground = fg;
