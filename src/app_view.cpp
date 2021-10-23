@@ -78,7 +78,6 @@ void app_view_t::update()
 void app_view_t::configure(int argc, char** argv)
 {
     app_t::instance()->configure(argc, argv);
-
     std::string path = app_t::instance()->inputFile;
     if (path == "") {
         path = "./";
@@ -96,11 +95,11 @@ void app_view_t::show_editor(editor_ptr editor)
     int mods = system_t::instance()->key_mods();
     if ((mods & K_MOD_CTRL) != K_MOD_CTRL) {
         for (auto c : tabs->cast<tabbed_content_t>()->content()->children) {
-            c->layout()->visible = false;
+            c->set_visible(false);
         }
     }
 
-    view->layout()->visible = true;
+    view->set_visible(true);
     set_focused(view);
 
     layout_clear_hash(layout(), 8);

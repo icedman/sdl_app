@@ -149,6 +149,7 @@ bool system_t::is_idle()
 void system_t::caffeinate()
 {
     caffeine_counter = CAFFEINE_FRAMES;
+    idle_counter = 0;
 }
 
 bool system_t::is_caffeinated()
@@ -252,7 +253,8 @@ int system_t::poll_events(event_list* events, bool wait)
             y : e.motion.y,
             button : e.button.button
         });
-        idle_counter = 0.75f * IDLE_FRAMES;
+
+        // idle_counter = 0.75f * IDLE_FRAMES;
 
         mouse_x = e.motion.x;
         mouse_y = e.motion.y;

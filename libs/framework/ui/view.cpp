@@ -7,7 +7,6 @@
 
 #include "text.h"
 
-#define WATCH_LEAKS
 #define DRAG_THRESHOLD 25 // distance squared
 
 view_ptr view_hovered;
@@ -58,7 +57,6 @@ view_t::view_t()
     , can_hover(false)
     , _state_hash(0)
     , _content_hash(0)
-    , render_priority(0)
 {
 #ifdef WATCH_LEAKS
     uid = _uid++;
@@ -96,8 +94,9 @@ void view_t::add_child(view_ptr view)
     view->parent = this;
     children.push_back(view);
     layout()->children.push_back(view->layout());
-
+#ifdef WATCH_LEAKS
     printf(">%d %s\n", view->uid, view->type_name().c_str());
+#endif
 }
 
 void view_t::remove_child(view_ptr view)
@@ -189,6 +188,25 @@ layout_item_ptr view_t::layout()
         _layout->name = type_name();
     }
     return _layout;
+}
+
+void view_t::set_visible(bool visible)
+{
+    if (layout()->visible == visible) {
+        return;
+    }
+    layout()->visible = visible;
+    if (!this->ptr()) return;
+    if (visible) {
+        entering_views.push_back(this->ptr());
+    } else {
+        exiting_views.push_back(this->ptr());
+    }
+}
+
+bool view_t::is_visible()
+{
+    return layout()->visible;
 }
 
 void view_t::relayout()
@@ -627,20 +645,8 @@ void view_render(renderer_t* renderer, view_ptr view, damage_t* damage)
 
     view->render(renderer);
 
-    bool has_deferred_rendering = false;
     for (auto child : view->children) {
-        if (child->render_priority != 0) {
-            has_deferred_rendering = true;
-            continue;
-        }
         view_render(renderer, child, damage);
-    }
-
-    if (has_deferred_rendering) {
-        for (auto child : view->children) {
-            if (child->render_priority > 0)
-                view_render(renderer, child, damage);
-        }
     }
 
     renderer->pop_state();

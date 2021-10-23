@@ -12,10 +12,11 @@ struct task_t {
     }
 
     virtual bool run(int limit) { return false; }
-    virtual bool stop() { running = false; }
+    void start() { running = true; }
+    void stop() { running = false; }
 
-    bool running;
     bool withdraw_on_done;
+    bool running;
 };
 
 typedef std::shared_ptr<task_t> task_ptr;

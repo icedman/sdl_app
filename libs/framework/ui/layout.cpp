@@ -6,6 +6,7 @@
 #define _LOG printf
 
 static int items_visited = 0;
+static int items_computed = 0;
 
 void _layout_run(layout_item_ptr item, constraint_t constraint);
 
@@ -539,17 +540,26 @@ void _layout_run(layout_item_ptr item, constraint_t constraint)
     }
 }
 
-void layout_compute_absolute_position(layout_item_ptr item)
+void _layout_compute_absolute_position(layout_item_ptr item)
 {
     if (!item->visible)
         return;
 
+    items_computed++;
+    
     for (auto child : item->children) {
         child->render_rect = child->rect;
         child->render_rect.x += item->render_rect.x + item->scroll_x;
         child->render_rect.y += item->render_rect.y + item->scroll_y;
-        layout_compute_absolute_position(child);
+        _layout_compute_absolute_position(child);
     }
+}
+
+void layout_compute_absolute_position(layout_item_ptr item)
+{
+    items_computed = 0;
+    _layout_compute_absolute_position(item);
+    _LOG("%s %d\n", item->name.c_str(), items_computed);
 }
 
 void layout_clear_hash(layout_item_ptr item, int depth)

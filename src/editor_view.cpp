@@ -6,6 +6,7 @@
 #include "system.h"
 #include "text.h"
 
+#define SCROLL_Y_BOTTOM_PAD 4
 #define PRE_VISIBLE_HL 20
 #define POST_VISIBLE_HL 100
 #define MAX_HL_BUCKET ((PRE_VISIBLE_HL + POST_VISIBLE_HL) * 4)
@@ -32,7 +33,9 @@ bool highlighter_task_t::run(int limit)
         if (!block->data || block->data->dirty) {
             editor->editor->highlight(block->lineNumber, 1);
             hltd++;
-            break;
+            if (hltd>4) {
+                break;
+            }
         }
     }
 
@@ -58,7 +61,6 @@ bool highlighter_task_t::run(int limit)
         if (idx++ > editor->visible_blocks + POST_VISIBLE_HL)
             break;
     }
-
     return hltd > 0;
 }
 
@@ -310,6 +312,7 @@ bool editor_view_t::handle_mouse_down(event_t& event)
     relayout_virtual_blocks();
     return true;
 }
+
 bool editor_view_t::handle_mouse_move(event_t& event)
 {
     if (event.button) {
@@ -323,31 +326,55 @@ bool editor_view_t::handle_mouse_move(event_t& event)
     return true;
 }
 
+int editor_view_t::estimated_cursor_y(cursor_t cursor)
+{
+    int lineNumber = cursor.block()->lineNumber;
+    lineNumber -= (visible_blocks/2);
+    if (lineNumber < 0) {
+        lineNumber = 0;
+    }
+    
+    block_ptr block = editor->document.blockAtLine(lineNumber);
+    if (!block) {
+        return 0;
+    }
+
+    int y = block->lineNumber * block_height;
+    for(int i=0;i<visible_blocks && block; i++) {
+        if (block == cursor.block()) {
+            break;
+        }
+
+        if (!block->lineCount) {
+            block->lineCount = 1;
+        }
+        y += (block->lineCount * block_height);
+        block = block->next();
+    }
+
+    return y;
+}
+
 void editor_view_t::ensure_visible_cursor()
 {
     layout_item_ptr lo = layout();
     layout_item_ptr slo = scrollarea->layout();
 
     cursor_t cursor = editor->document.cursor();
-    int cursor_screen_y = cursor.block()->lineNumber * block_height + slo->scroll_y;
-    point_t p = { lo->render_rect.x + lo->render_rect.w / 2, cursor_screen_y + block_height / 2 };
+
+    int cursor_screen_y = estimated_cursor_y(cursor);
+    cursor_screen_y += slo->scroll_y;
+
+    point_t p = { lo->render_rect.x + lo->render_rect.w / 2, cursor_screen_y };
     rect_t r = lo->render_rect;
+    r.y -= block_height;
+    r.h -= (SCROLL_Y_BOTTOM_PAD + 1) * block_height;
 
-    bool visible = false;
-    for (auto c : subcontent->children) {
-        layout_item_ptr clo = c->layout();
-        if (!clo->visible)
-            break;
-        rich_text_block_t* tb = (rich_text_block_t*)c.get();
-        if (tb->block == cursor.block()) {
-            visible = point_in_rect({ clo->render_rect.x + 1, clo->render_rect.y + font()->height }, lo->render_rect);
-            break;
-        }
+    if (point_in_rect(p, r)) {
+        return;
     }
 
-    if (!visible) {
-        scroll_to_cursor(cursor);
-    }
+    scroll_to_cursor(cursor);
 }
 
 void editor_view_t::scroll_to_cursor(cursor_t cursor)
@@ -355,21 +382,31 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
     layout_item_ptr lo = layout();
     layout_item_ptr slo = scrollarea->layout();
     int prev = slo->scroll_y;
-    scroll_to = -cursor.block()->lineNumber * block_height;
+
+    int cursor_screen_y = -estimated_cursor_y(cursor);
+
+    scroll_to = cursor_screen_y;
 
     if (prev > scroll_to) {
-        // scroll_to += lo->render_rect.h / 4;
-        // block_ptr block = cursor.block();
-        // int c = visible_blocks;
-        // while(block && c > 0) {
-        //     scroll_to -= (block->lineCount - 1) * font()->height;
-        //     c -= block->lineCount;
-        //     block = block->previous();
-        // }
-        // printf("%d\n", scroll_to);
+        int y = lo->render_rect.h - (block_height * SCROLL_Y_BOTTOM_PAD);
+        block_ptr block = cursor.block();
+        while(block && y > 0) {
+            if (block->lineCount == 0) {
+                block->lineCount = 1;
+            }
+            scroll_to += block->lineCount * block_height;
+            y -= block->lineCount * block_height;
+            block = block->previous();
+        }
     }
 
+    printf("scroll to: %d\n", scroll_to);
     slo->scroll_y = scroll_to;
+
+    event_t evt;
+    evt.sx = 0;
+    evt.sy = 0;
+    handle_mouse_move(evt);
 }
 
 view_ptr editor_view_t::gutter()
@@ -378,7 +415,6 @@ view_ptr editor_view_t::gutter()
         view_ptr container = children[0];
         _gutter = std::make_shared<gutter_t>(this);
         _gutter->layout()->order = 5;
-        _gutter->render_priority = 20;
         container->add_child(_gutter);
         layout_sort(container->layout());
     }

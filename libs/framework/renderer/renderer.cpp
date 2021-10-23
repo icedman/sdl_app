@@ -136,7 +136,11 @@ void renderer_t::shutdown()
     context = nullptr;
     _default_font = nullptr;
 
-    printf("freeing %d images, %d fonts\n", image_cache.size(), font_cache.size());
+#ifdef WATCH_LEAKS
+    if (image_cache.size() || font_cache.size()) {
+        printf("freeing %d images, %d fonts\n", image_cache.size(), font_cache.size());
+    }
+#endif
 
     image_cache.clear();
     font_cache.clear();

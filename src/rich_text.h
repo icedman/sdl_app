@@ -22,6 +22,7 @@ struct rich_text_t : panel_t {
     DECLAR_VIEW_TYPE(CUSTOM, panel_t)
     std::string type_name() override { return "rich_text"; }
 
+    void prerender() override;
     void render(renderer_t* renderer) override;
     void prelayout() override;
 
@@ -30,6 +31,8 @@ struct rich_text_t : panel_t {
     virtual void update_block(block_ptr block);
     virtual void update_blocks();
     virtual void relayout_virtual_blocks();
+    virtual bool handle_mouse_wheel(event_t& event) override;
+    virtual bool handle_scrollbar_move(event_t& event) override;
 
     view_ptr lead_spacer;
     view_ptr tail_spacer;
@@ -44,6 +47,8 @@ struct rich_text_t : panel_t {
     color_t fg;
     color_t bg;
     color_t sel;
+
+    int defer_relayout;
 };
 
 #endif RICH_TEXT_H

@@ -15,16 +15,24 @@ rich_text_block_t::rich_text_block_t()
 rich_text_t::rich_text_t()
     : panel_t()
     , visible_blocks(0)
-    , wrapped(true)
+    , wrapped(false)
+    , draw_cursors(false)
+    , defer_relayout(DEFER_LAYOUT_FRAMES)
 {
     editor = std::make_shared<editor_t>();
+    layout()->name = "rich_text";
 
     layout()->prelayout = [this](layout_item_t* item) {
         this->prelayout();
         return true;
     };
 
-    layout()->name = "rich_text";
+    on(EVT_STAGE_IN, [this](event_t& event) {
+        if (event.source == this) {
+            this->defer_relayout = DEFER_LAYOUT_FRAMES;
+        }
+        return true;
+    });
 }
 
 view_ptr rich_text_t::create_block()
@@ -153,9 +161,25 @@ void rich_text_t::update_blocks()
     }
 }
 
+void rich_text_t::prerender()
+{
+    if (defer_relayout > 0) {
+        relayout_virtual_blocks();
+        defer_relayout--;
+
+        // hacky .. scrollbars show/hide
+        event_t evt;
+        evt.sx = 0;
+        evt.sy = 0;
+        panel_t::handle_mouse_wheel(evt);
+        relayout_virtual_blocks();
+    }
+
+    panel_t::prerender();
+}
+
 void rich_text_t::prelayout()
 {
-    int blocks_count = editor->document.blocks.size();
 
     fg = { 255, 255, 255, 0 };
     sel = { 150, 150, 150, 125 };
@@ -182,11 +206,10 @@ void rich_text_t::prelayout()
     system_t::instance()->renderer.foreground = fg;
     system_t::instance()->renderer.background = bg;
 
-    layout_item_ptr lo = layout();
-
     if (!subcontent) {
         lead_spacer = std::make_shared<view_t>();
         tail_spacer = std::make_shared<view_t>();
+
         subcontent = std::make_shared<view_t>();
         subcontent->layout()->fit_children_x = !wrapped;
         subcontent->layout()->fit_children_y = true;
@@ -194,13 +217,21 @@ void rich_text_t::prelayout()
         content()->add_child(lead_spacer);
         content()->add_child(subcontent);
         content()->add_child(tail_spacer);
-
-        block_height = font()->height;
     }
+}
 
-    if (block_height == 0) {
-        block_height = 1;
-    }
+void rich_text_t::render(renderer_t* renderer)
+{
+    panel_t::render(renderer);
+}
+
+void rich_text_t::relayout_virtual_blocks()
+{
+    // moving this code to prelayout.. is explensive (as relayout is often called multiple times)
+    layout_item_ptr lo = layout();
+
+    int blocks_count = editor->document.blocks.size();
+    block_height = font()->height;
 
     visible_blocks = lo->render_rect.h / block_height;
     visible_blocks += VISIBLE_BLOCKS_PAD;
@@ -281,25 +312,20 @@ void rich_text_t::prelayout()
         tail_spacer->layout()->height += total_height - computed;
     }
     tail_spacer->layout()->visible = tail_spacer->layout()->height > 1;
-}
 
-void rich_text_t::render(renderer_t* renderer)
-{
-    panel_t::render(renderer);
-    relayout_virtual_blocks();
-}
-
-void rich_text_t::relayout_virtual_blocks()
-{
-    // hacky
     layout_clear_hash(layout(), 6);
     relayout();
-    layout_clear_hash(layout(), 6);
     relayout();
+}
 
-    // sync the panel scrollbars
-    event_t evt;
-    evt.sx = 0;
-    evt.sy = 0;
-    handle_mouse_wheel(evt);
+bool rich_text_t::handle_mouse_wheel(event_t& event)
+{
+    defer_relayout = DEFER_LAYOUT_FRAMES;
+    return panel_t::handle_mouse_wheel(event);
+}
+
+bool rich_text_t::handle_scrollbar_move(event_t& event)
+{
+    defer_relayout = DEFER_LAYOUT_FRAMES;
+    return panel_t::handle_scrollbar_move(event);
 }

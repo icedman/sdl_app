@@ -16,10 +16,9 @@ gutter_t::gutter_t(editor_view_t* editor)
     };
 
     layout()->name = "gutter";
-    render_priority = 1;
 }
 
-int text_width(int i, font_ptr font)
+static inline int text_width(int i, font_ptr font)
 {
     return std::to_string(i).length() * font->width;
 }
@@ -33,10 +32,13 @@ void gutter_t::prelayout()
 
 void gutter_t::render(renderer_t* renderer)
 {
-    if (!editor->subcontent)
-        return;
+    view_ptr subcontent = editor->subcontent;
+    if (!subcontent) return;
 
-    while (children.size() < editor->subcontent->children.size()) {
+    layout_item_ptr lo = layout();
+    // renderer->draw_rect(lo->render_rect, editor->bg, true);
+
+    while (children.size() < subcontent->children.size()) {
         view_ptr item = std::make_shared<text_block_t>();
         item->layout()->stack = true;
         add_child(item);
@@ -50,46 +52,13 @@ void gutter_t::render(renderer_t* renderer)
         clr = editor->fg;
     }
 
-    view_list::iterator it = children.begin();
-    view_list::iterator sit = editor->subcontent->children.begin();
-    it = children.begin();
-    while (it != children.end()) {
-        view_ptr c = *it++;
-        view_ptr sc = *sit++;
-        rich_text_block_t* scb = sc->cast<rich_text_block_t>();
-
-        c->layout()->y = sc->layout()->render_rect.y - layout()->render_rect.y;
-        c->layout()->visible = false;
-
-        if (!scb->block || !sc->layout()->visible)
-            break;
-
-        if (scb->block) {
-            c->cast<text_block_t>()->set_text(std::to_string(scb->block->lineNumber + 1));
-            c->layout()->x = layout()->width - text_width((scb->block->lineNumber + 1) * 10, font());
-            c->layout()->visible = true;
-
-            text_span_t ts = {
-                .start = 0,
-                .length = c->cast<text_block_t>()->text().length(),
-                .fg = clr,
-                .bg = { 0, 0, 0, 0 },
-                .bold = false,
-                .italic = false,
-                .underline = false,
-                .caret = 0
-            };
-            c->cast<text_block_t>()->_text_spans.clear();
-            c->cast<text_block_t>()->_text_spans.push_back(ts);
-        }
-
-        if (sit == editor->subcontent->children.end())
-            break;
-    }
-
-    while (it != children.end()) {
-        view_ptr c = *it++;
-        c->layout()->visible = false;
+    for(auto c : subcontent->children) {
+        rich_text_block_t* cb = c->cast<rich_text_block_t>();
+        if (!cb->is_visible() || !cb->block) break;
+        std::string text = std::to_string(cb->block->lineNumber+1);
+        renderer->draw_text(font().get(), (char*)text.c_str(),
+            lo->render_rect.x + lo->render_rect.w - (text.length() + 1) * font()->width,
+        c->layout()->render_rect.y, clr);
     }
 }
 
@@ -117,6 +86,5 @@ int gutter_t::content_hash(bool peek)
         _content_hash = hash;
     }
 
-    // printf(">>%x\n", hash);
     return hash;
 }

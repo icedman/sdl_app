@@ -13,6 +13,7 @@
 
 #define STATE_HASH_SEED 0x0f
 #define CONTENT_HASH_SEED 0x0e
+#define DEFER_LAYOUT_FRAMES 2
 
 struct font_t;
 struct renderer_t;
@@ -58,6 +59,9 @@ struct view_t : events_manager_t, event_object_t {
     virtual void update();
     virtual void prelayout() {}
     virtual void postlayout() {}
+    
+    void set_visible(bool visible);
+    bool is_visible();
 
     void relayout();
 
@@ -108,7 +112,6 @@ struct view_t : events_manager_t, event_object_t {
 
     int _state_hash;
     int _content_hash;
-    int render_priority;
 };
 
 struct spacer_t : view_t {

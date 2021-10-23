@@ -72,7 +72,6 @@ extern "C" int main(int argc, char** argv)
         sys->timer.begin();
 
         sys->poll_events(&events);
-
         if (events.size()) {
             events_manager->dispatch_events(events);
             view_dispatch_events(events, visible_views);
@@ -150,14 +149,22 @@ extern "C" int main(int argc, char** argv)
         }
 
         do {
+            if (sys->poll_events(&events)) {
+                if (events.size()) {
+                    if (events[0].type == EVT_MOUSE_MOTION && events[0].button == 0) {
+                    // ignore
+                    } else {
+                        break;
+                    }
+                }
+            }
+
             if (sys->is_caffeinated()) {
                 break;
             }
 
             if (sys->is_idle()) {
                 if (!tasks_manager->run(max_elapsed)) {
-                    if (sys->poll_events(&events))
-                        break;
                     sys->delay(50);
                 }
             }

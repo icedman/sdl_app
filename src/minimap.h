@@ -12,17 +12,17 @@ struct minimap_t : view_t {
     std::string type_name() override { return "minimap"; }
 
     void render(renderer_t* renderer) override;
-
     bool handle_mouse_click(event_t& event) override;
+    int content_hash(bool peek) override;
 
     editor_view_t* editor;
 
     int start_row;
     int end_row;
-
     float sliding_y;
     int render_y;
     int render_h;
+    int hltd;
 };
 
 #endif // MINIMAP_H

@@ -1,11 +1,13 @@
 #include "minimap.h"
 #include "editor_view.h"
+#include "hash.h"
 
 #define DRAW_SCALE 0.75f
 
 minimap_t::minimap_t(editor_view_t* editor)
     : view_t()
     , editor(editor)
+    , hltd(0)
 {
     can_hover = true;
 
@@ -35,6 +37,8 @@ void minimap_t::render(renderer_t* renderer)
     // render_frame(renderer);
     layout_item_ptr lo = layout();
     int rows = lo->render_rect.h / font()->height;
+
+    renderer->draw_rect(lo->render_rect, this->editor->bg, true);
 
     int spacing = 2;
 
@@ -86,6 +90,7 @@ void minimap_t::render(renderer_t* renderer)
 
         if (!block->data || block->data->dirty) {
             ev->request_highlight(block);
+            hltd++;
         }
 
         blockdata_ptr blockData = block->data;
@@ -204,6 +209,38 @@ bool minimap_t::handle_mouse_click(event_t& event)
     cursor_t cursor;
     cursor.setPosition(editor->document.blockAtLine(line), 0);
     ev->scroll_to_cursor(cursor);
+    ev->relayout_virtual_blocks();
+    rerender();
 
     return true;
+}
+
+int minimap_t::content_hash(bool peek)
+{
+    struct minimap_hash_data_t {
+        int start_row;
+        int end_row;
+        float sliding_y;
+        int render_y;
+        int render_h;
+        int hltd;
+    };
+
+    minimap_hash_data_t hash_data = {
+        start_row,
+        end_row,
+        sliding_y,
+        render_y,
+        render_h,
+        hltd
+    };
+
+    hltd = 0;
+
+    int hash = murmur_hash(&hash_data, sizeof(minimap_hash_data_t), CONTENT_HASH_SEED);
+    if (!peek) {
+        _content_hash = hash;
+    }
+
+    return hash;
 }

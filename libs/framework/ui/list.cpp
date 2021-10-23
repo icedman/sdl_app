@@ -35,6 +35,7 @@ void list_item_t::render(renderer_t* renderer)
 list_t::list_t()
     : panel_t()
     , visible_items(0)
+    , defer_relayout(DEFER_LAYOUT_FRAMES)
 {
     layout()->prelayout = [this](layout_item_t* item) {
         this->prelayout();
@@ -83,11 +84,25 @@ void list_t::update_item(view_ptr item, list_item_data_t data)
     item->layout()->visible = true;
 }
 
-void list_t::prelayout()
+void list_t::prerender()
 {
-    if (!data.size())
-        return;
+    if (defer_relayout > 0) {
+        relayout_virtual_items();
+        defer_relayout--;
 
+        // hacky .. scrollbars show/hide
+        event_t evt;
+        evt.sx = 0;
+        evt.sy = 0;
+        panel_t::handle_mouse_wheel(evt);
+        relayout_virtual_items();
+    }
+
+    panel_t::prerender();
+}
+
+void list_t::relayout_virtual_items()
+{
     layout_item_ptr lo = layout();
     layout_item_ptr slo = scrollarea->layout();
 
@@ -150,25 +165,34 @@ void list_t::prelayout()
     }
 
     tail_spacer->layout()->visible = tail_spacer->layout()->height > 1;
-}
 
-void list_t::relayout_virtual_items()
-{
     layout_clear_hash(layout(), 6);
     relayout();
-    relayout();
-}
-
-void list_t::render(renderer_t* renderer)
-{
-    panel_t::render(renderer);
-    relayout_virtual_items();
 }
 
 void list_t::update_data(std::vector<list_item_data_t> _data)
 {
     data = _data;
-    _content_hash = 0;
+
+    // hacky
+    int h = layout()->render_rect.h;
+    layout_run(layout(), {0,0,layout()->render_rect.w, 400});
+    layout_run(layout(), {0,0,layout()->render_rect.w, h});
+
+    relayout_virtual_items();
+    rerender();
+}
+
+bool list_t::handle_mouse_wheel(event_t& event)
+{
+    relayout_virtual_items();
+    return panel_t::handle_mouse_wheel(event);
+}
+
+bool list_t::handle_scrollbar_move(event_t& event)
+{
+    relayout_virtual_items();
+    return panel_t::handle_scrollbar_move(event);
 }
 
 bool list_t::handle_item_click(event_t& evt)
@@ -199,8 +223,12 @@ list_item_data_t list_t::value()
 
 int list_t::content_hash(bool peek)
 {
-    if (!peek) {
-        _content_hash = 1;
+    int hash = 0;
+    if (data.size()) {
+        hash = murmur_hash(&data[0], sizeof(list_item_data_t) * data.size(), CONTENT_HASH_SEED);
     }
-    return _content_hash;
+    if (!peek) {
+        _content_hash = hash;
+    }
+    return hash;
 }

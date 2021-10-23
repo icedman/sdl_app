@@ -34,8 +34,7 @@ struct list_t : panel_t {
 
     DECLAR_VIEW_TYPE(LIST, panel_t)
 
-    void render(renderer_t* renderer) override;
-    void prelayout() override;
+    void prerender() override;
     void update_data(std::vector<list_item_data_t> data);
     void relayout_virtual_items();
 
@@ -57,8 +56,12 @@ struct list_t : panel_t {
     int item_height;
 
     list_item_data_t selected_data;
-
+    
+    bool handle_mouse_wheel(event_t& event);
+    bool handle_scrollbar_move(event_t& event);
     int content_hash(bool peek) override;
+
+    int defer_relayout;
 };
 
 #endif LIST_H

@@ -146,6 +146,7 @@ view_ptr test6(int argc, char** argv)
     root_view->add_child(view);
 
     view_t::set_focused(view.get());
+
     return root_view;
 }
 
