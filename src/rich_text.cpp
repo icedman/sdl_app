@@ -58,7 +58,7 @@ void rich_text_t::update_block(view_ptr item, block_ptr block)
         block->data = std::make_shared<blockdata_t>();
         block->data->dirty = true;
     }
-    if (block->data->dirty) {
+    if (block->data->dirty && editor->highlighter.lang) {
         editor->highlight(block->lineNumber, 1);
     }
 
@@ -184,27 +184,28 @@ void rich_text_t::prelayout()
     fg = { 255, 255, 255, 0 };
     sel = { 150, 150, 150, 125 };
 
-    color_info_t t_clr;
-    color_t clr;
-    editor->highlighter.theme->theme_color("editor.foreground", t_clr);
-    clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
-    if (color_is_set(clr)) {
-        fg = clr;
+    if (editor->highlighter.theme) {
+        color_info_t t_clr;
+        color_t clr;
+        editor->highlighter.theme->theme_color("editor.foreground", t_clr);
+        clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
+        if (color_is_set(clr)) {
+            fg = clr;
+        }
+        editor->highlighter.theme->theme_color("editor.background", t_clr);
+        clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
+        if (color_is_set(clr)) {
+            bg = clr;
+        }
+        editor->highlighter.theme->theme_color("editor.selectionBackground", t_clr);
+        clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
+        if (color_is_set(clr)) {
+            sel = clr;
+            sel.a = 125;
+        }
+        system_t::instance()->renderer.foreground = fg;
+        system_t::instance()->renderer.background = bg;
     }
-    editor->highlighter.theme->theme_color("editor.background", t_clr);
-    clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
-    if (color_is_set(clr)) {
-        bg = clr;
-    }
-    editor->highlighter.theme->theme_color("editor.selectionBackground", t_clr);
-    clr = { t_clr.red * 255, t_clr.green * 255, t_clr.blue * 255 };
-    if (color_is_set(clr)) {
-        sel = clr;
-        sel.a = 125;
-    }
-
-    system_t::instance()->renderer.foreground = fg;
-    system_t::instance()->renderer.background = bg;
 
     if (!subcontent) {
         lead_spacer = std::make_shared<view_t>();

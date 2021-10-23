@@ -191,7 +191,7 @@ void highlighter_t::updateBrackets(block_ptr block)
 
 int highlighter_t::highlightBlock(block_ptr block)
 {
-    if (!block || !lang)
+    if (!block || !lang || !lang->grammar)
         return 0;
 
     if (!block->data) {

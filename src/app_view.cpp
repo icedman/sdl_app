@@ -117,6 +117,7 @@ void app_view_t::create_editor(editor_ptr editor)
 
     ev->gutter();
     ev->minimap();
+    ev->start_tasks();
 
     update_tabs();
     show_editor(editor);
@@ -140,7 +141,7 @@ void app_view_t::destroy_editor(editor_ptr editor)
     if (editor->view) {
         view_t* view = (view_t*)editor->view;
         editor_view_t* ev = (editor_view_t*)view;
-        ev->cleanup();
+        ev->stop_tasks();
 
         tabs->cast<tabbed_content_t>()->content()->remove_child(view->ptr());
         app->closeEditor(editor);

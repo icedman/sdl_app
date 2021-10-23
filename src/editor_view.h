@@ -32,7 +32,8 @@ struct editor_view_t : rich_text_t {
     void scroll_to_cursor(cursor_t cursor);
 
     void request_highlight(block_ptr block);
-    void cleanup();
+    void start_tasks();
+    void stop_tasks();
 
     view_ptr gutter();
     view_ptr minimap();

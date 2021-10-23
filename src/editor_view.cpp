@@ -68,11 +68,9 @@ editor_view_t::editor_view_t()
     : rich_text_t()
     , scroll_to(-1)
 {
-    hl_task = std::make_shared<highlighter_task_t>(this);
-    tasks_manager_t::instance()->enroll(hl_task);
-
     can_focus = true;
     draw_cursors = true;
+    
     on(EVT_KEY_SEQUENCE, [this](event_t& event) {
         event.cancelled = true;
         this->handle_key_sequence(event);
@@ -98,7 +96,13 @@ editor_view_t::editor_view_t()
     set_font(system_t::instance()->renderer.font("editor"));
 }
 
-void editor_view_t::cleanup()
+void editor_view_t::start_tasks()
+{
+    hl_task = std::make_shared<highlighter_task_t>(this);
+    tasks_manager_t::instance()->enroll(hl_task);
+}
+
+void editor_view_t::stop_tasks()
 {
     hl_task->stop();
     tasks_manager_t::instance()->withdraw(hl_task);
@@ -400,7 +404,6 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
         }
     }
 
-    printf("scroll to: %d\n", scroll_to);
     slo->scroll_y = scroll_to;
 
     event_t evt;

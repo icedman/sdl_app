@@ -24,8 +24,9 @@
 #include "explorer.h"
 #include "explorer_view.h"
 #include "rich_text.h"
+#include "input_text.h"
 
-#define TEST test7
+#define TEST test5
 
 static bool render_layout = false;
 explorer_t explorer;
@@ -241,6 +242,11 @@ view_ptr test5(int argc, char** argv)
         }
         return true;
     });
+
+    view_ptr input = std::make_shared<input_text_t>();
+    input->cast<input_text_t>()->set_value("hello world");
+    view->cast<panel_t>()->content()->add_child(input);
+    view->cast<panel_t>()->content()->add_child(std::make_shared<input_text_t>());
 
     return view;
 }
