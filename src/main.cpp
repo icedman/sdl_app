@@ -39,7 +39,7 @@ extern "C" int main(int argc, char** argv)
 
     int skipped = 0;
 
-    renderer->create_font("Source Code Pro", 12, "ui");
+    // renderer->create_font("Source Code Pro", 12, "ui");
     renderer->create_font("Fira Code", 14, "editor");
 
     sys->init();

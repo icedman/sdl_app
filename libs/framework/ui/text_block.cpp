@@ -100,8 +100,13 @@ void text_block_t::prelayout()
         return;
     }
 
+    bool _split = false;
+    #ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
+    _split = true;
+    #endif
+
     std::vector<std::string> words;
-    if (_wrap) {
+    if (_wrap || _split) {
         words = split_string(_text);
     } else {
         words.push_back(_text);
@@ -152,6 +157,7 @@ void text_block_t::render(renderer_t* renderer)
 
         rect_t r = span->render_rect;
 
+        // renderer->draw_rect(r, {255,0,255}, false, 1);
         renderer->draw_text(font().get(), (char*)text_span->text.c_str(),
             r.x,
             r.y, {});

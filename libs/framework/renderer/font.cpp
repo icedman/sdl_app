@@ -141,6 +141,10 @@ font_ptr pango_font_create(char* fdsc, char* alias)
     pango_get_font_extents(fnt->layout, &fnt->width, &fnt->height, text, len);
     fnt->width = ((float)fnt->width / len);
 
+#ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
+    fnt->width += 0.125f * fnt->width;
+#endif
+
     for (int i = 0; i < MAX_GLYPHSET; i++) {
         set[i].image = 0;
     }

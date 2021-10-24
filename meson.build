@@ -13,7 +13,8 @@ add_global_arguments('-DFONT_PREBAKE_GLYPHS', language: 'cpp')
 # add_global_arguments('-DWATCH_LEAKS', language: 'cpp')
 
 if build_machine.system() == 'darwin'
-    add_global_arguments('-DFONT_FORCE_DRAW_PREBAKED_GLYPHS', language: 'cpp')    
+#    add_global_arguments('-DFONT_FORCE_DRAW_PREBAKED_GLYPHS', language: 'cpp')    
+     add_global_arguments('-DFONT_FIX_FIXED_WIDTH_EXTENTS', language: 'cpp')    
 endif
 
 if host_machine.system() == 'windows'
