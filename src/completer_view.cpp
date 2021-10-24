@@ -1,13 +1,13 @@
 #include "completer_view.h"
+#include "editor.h"
+#include "editor_view.h"
+#include "indexer.h"
 #include "input_text.h"
 #include "list.h"
-#include "editor.h"
-#include "indexer.h"
-#include "search.h"
 #include "popup.h"
-#include "editor_view.h"
+#include "search.h"
 
-completer_t::completer_t(editor_view_t *e)
+completer_t::completer_t(editor_view_t* e)
     : popup_t()
     , editor(e)
 {
@@ -125,25 +125,24 @@ bool completer_t::update_data()
     return false;
 }
 
-void completer_t::render(renderer_t *renderer)
+void completer_t::render(renderer_t* renderer)
 {
     layout_item_ptr lo = layout();
 
-    renderer->draw_rect(lo->render_rect, { 50,50,50 }, true);
+    renderer->draw_rect(lo->render_rect, { 50, 50, 50 }, true);
 }
 
 bool completer_t::handle_key_sequence(event_t& event)
 {
     operation_e op = operationFromKeys(event.text);
-    switch(op)
-    {
-        case MOVE_CURSOR_UP:
+    switch (op) {
+    case MOVE_CURSOR_UP:
         list->cast<list_t>()->select_previous();
         return true;
-        case MOVE_CURSOR_DOWN:
+    case MOVE_CURSOR_DOWN:
         list->cast<list_t>()->select_next();
         return true;
-        case ENTER:
+    case ENTER:
         list->cast<list_t>()->select_item();
         return true;
     }
@@ -163,7 +162,7 @@ bool completer_t::handle_item_select(event_t& event)
 {
     editor_ptr editor = this->editor->editor;
 
-    list_item_t *item = (list_item_t*)event.source;
+    list_item_t* item = (list_item_t*)event.source;
     list_item_data_t d = item->item_data;
     std::string text = d.value;
     cursor_t cur = editor->document.cursor();
@@ -189,4 +188,3 @@ bool completer_t::handle_item_select(event_t& event)
 
     return true;
 }
-

@@ -29,8 +29,8 @@ list_item_t::list_item_t()
 
 list_t* list_item_t::list()
 {
-    view_t *p = parent;
-    while(p) {
+    view_t* p = parent;
+    while (p) {
         if (p->is_type_of(view_type_e::LIST)) {
             return (list_t*)p;
         }
@@ -93,7 +93,8 @@ void list_t::select_next()
 {
     selected_data = null_selected_data;
 
-    if (!data.size()) return;
+    if (!data.size())
+        return;
     if (selected_index == -1) {
         selected_index = 0;
     } else {
@@ -112,7 +113,8 @@ void list_t::select_previous()
 {
     selected_data = null_selected_data;
 
-    if (!data.size()) return;
+    if (!data.size())
+        return;
     if (selected_index == -1) {
         selected_index = 0;
     } else {
@@ -166,6 +168,11 @@ void list_t::update_item(view_ptr item, list_item_data_t data)
     item->layout()->visible = true;
 }
 
+int list_t::item_height()
+{
+    return font()->height;
+}
+
 void list_t::prerender()
 {
     if (defer_relayout > 0) {
@@ -198,26 +205,24 @@ void list_t::relayout_virtual_items()
 
         subcontent->layout()->fit_children_x = true;
         subcontent->layout()->fit_children_y = true;
-
-        item_height = font()->height;
     }
 
-    visible_items = lo->render_rect.h / item_height + VISIBLE_ITEMS_PAD;
+    visible_items = lo->render_rect.h / item_height() + VISIBLE_ITEMS_PAD;
 
     while (subcontent->children.size() < visible_items) {
         view_ptr vi = create_item();
         list_item_t* i = vi->cast<list_item_t>();
         subcontent->add_child(vi);
-        vi->layout()->height = item_height;
+        vi->layout()->height = item_height();
     }
 
     // layout_item_ptr lo = layout();
     // layout_item_ptr slo = scrollarea->layout();
 
     scrollarea->cast<scrollarea_t>()->scroll_factor_x = font()->width;
-    scrollarea->cast<scrollarea_t>()->scroll_factor_y = item_height / 2;
+    scrollarea->cast<scrollarea_t>()->scroll_factor_y = item_height() / 2;
 
-    first_visible = -slo->scroll_y / item_height;
+    first_visible = -slo->scroll_y / item_height();
     std::vector<list_item_data_t>::iterator it = data.begin();
     if (first_visible >= data.size())
         first_visible = data.size() - 1;
@@ -236,12 +241,12 @@ void list_t::relayout_virtual_items()
         }
     }
 
-    lead_spacer->layout()->height = (first_visible * item_height);
+    lead_spacer->layout()->height = (first_visible * item_height());
     lead_spacer->layout()->visible = lead_spacer->layout()->height > 1;
-    tail_spacer->layout()->height = tail_pad * item_height;
+    tail_spacer->layout()->height = tail_pad * item_height();
 
-    int computed = lead_spacer->layout()->height + tail_spacer->layout()->height + (vc * item_height);
-    int total_height = (data.size() + tail_pad) * item_height;
+    int computed = lead_spacer->layout()->height + tail_spacer->layout()->height + (vc * item_height());
+    int total_height = (data.size() + tail_pad) * item_height();
     if (computed < total_height) {
         tail_spacer->layout()->height += total_height - computed;
     }
@@ -260,14 +265,14 @@ void list_t::update_data(std::vector<list_item_data_t> _data)
     }
 
     int idx = 0;
-    for(list_item_data_t& d : data) {
+    for (list_item_data_t& d : data) {
         d.index = idx++;
     }
 
     // hacky
     int h = layout()->render_rect.h;
-    layout_run(layout(), {0,0,layout()->render_rect.w, 400});
-    layout_run(layout(), {0,0,layout()->render_rect.w, h});
+    layout_run(layout(), { 0, 0, layout()->render_rect.w, 400 });
+    layout_run(layout(), { 0, 0, layout()->render_rect.w, h });
 
     relayout_virtual_items();
     rerender();
@@ -316,10 +321,10 @@ void list_t::select_item(int index)
         selected_data = null_selected_data;
         return;
     }
-    
+
     view_ptr item;
-    for(auto c : subcontent->children) {
-        list_item_t *i = c->cast<list_item_t>();
+    for (auto c : subcontent->children) {
+        list_item_t* i = c->cast<list_item_t>();
         if (i->item_data.index == index) {
             select_item(c);
             break;

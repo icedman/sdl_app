@@ -59,7 +59,7 @@ struct view_t : events_manager_t, event_object_t {
     virtual void update();
     virtual void prelayout() {}
     virtual void postlayout() {}
-    
+
     void set_visible(bool visible);
     bool is_visible();
 

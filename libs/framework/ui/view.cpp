@@ -196,7 +196,8 @@ void view_t::set_visible(bool visible)
         return;
     }
     layout()->visible = visible;
-    if (!this->ptr()) return;
+    if (!this->ptr())
+        return;
     if (visible) {
         entering_views.push_back(this->ptr());
     } else {

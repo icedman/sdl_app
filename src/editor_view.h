@@ -29,7 +29,7 @@ struct editor_view_t : rich_text_t {
     int cursor_x(cursor_t cursor);
     int cursor_y(cursor_t cursor);
     point_t cursor_xy(cursor_t cursor);
-    
+
     void ensure_visible_cursor();
     void scroll_to_cursor(cursor_t cursor);
 

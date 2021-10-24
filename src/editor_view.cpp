@@ -1,13 +1,13 @@
 #include "editor_view.h"
+#include "completer_view.h"
 #include "damage.h"
 #include "gutter.h"
 #include "hash.h"
-#include "minimap.h"
-#include "system.h"
-#include "popup.h"
-#include "text.h"
-#include "completer_view.h"
 #include "indexer.h"
+#include "minimap.h"
+#include "popup.h"
+#include "system.h"
+#include "text.h"
 
 #define SCROLL_Y_TOP_PAD 2
 #define SCROLL_Y_BOTTOM_PAD (SCROLL_Y_TOP_PAD + 4)
@@ -266,10 +266,10 @@ bool editor_view_t::handle_key_text(event_t& event)
     if (editor->document.cursors.size() == 1) {
         cursor_t cur = editor->document.cursor();
         if (!cur.hasSelection()) {
-            completer_t *com = completer()->cast<completer_t>();
+            completer_t* com = completer()->cast<completer_t>();
             if (com->update_data()) {
                 view_ptr _pm = popup_manager_t::instance();
-                popup_manager_t *pm = _pm->cast<popup_manager_t>();
+                popup_manager_t* pm = _pm->cast<popup_manager_t>();
                 pm->clear();
 
                 point_t pos = cursor_xy(cur);
@@ -277,10 +277,11 @@ bool editor_view_t::handle_key_text(event_t& event)
                 pos.x -= com->selected_word.length() * font()->width;
                 pos.y += scrollarea->layout()->render_rect.y;
                 pos.y += scrollarea->layout()->scroll_y;
-                rect_t rect = {pos.x,pos.y,font()->width,font()->height};
-                pm->push_at(completer(), rect, 
+                rect_t rect = { pos.x, pos.y, font()->width, font()->height };
+                pm->push_at(completer(), rect,
                     pos.y - (block_height * 4) > scrollarea->layout()->render_rect.h / 2
-                        ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN);
+                        ? POPUP_DIRECTION_UP
+                        : POPUP_DIRECTION_DOWN);
             }
         }
     }
@@ -369,18 +370,18 @@ int editor_view_t::cursor_x(cursor_t cursor)
 int editor_view_t::cursor_y(cursor_t cursor)
 {
     int lineNumber = cursor.block()->lineNumber;
-    lineNumber -= (visible_blocks/4);
+    lineNumber -= (visible_blocks / 4);
     if (lineNumber < 0) {
         lineNumber = 0;
     }
-    
+
     block_ptr block = editor->document.blockAtLine(lineNumber);
     if (!block) {
         return 0;
     }
 
     int y = block->lineNumber * block_height;
-    for(int i=0;i<visible_blocks && block; i++) {
+    for (int i = 0; i < visible_blocks && block; i++) {
         if (block == cursor.block()) {
             break;
         }
@@ -414,7 +415,7 @@ void editor_view_t::ensure_visible_cursor()
     r.y -= block_height;
 
     if (slo->scroll_y < 0)
-    r.y += (SCROLL_Y_TOP_PAD * block_height);
+        r.y += (SCROLL_Y_TOP_PAD * block_height);
     r.h -= (SCROLL_Y_BOTTOM_PAD + 1) * block_height;
 
     if (point_in_rect(p, r)) {
@@ -432,7 +433,7 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
 
     scroll_to = -cursor_y(cursor);
     if (slo->scroll_y < 0)
-    scroll_to += (SCROLL_Y_TOP_PAD * block_height);
+        scroll_to += (SCROLL_Y_TOP_PAD * block_height);
 
     if (scroll_to > 0) {
         scroll_to = 0;
@@ -441,7 +442,7 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
     if (prev > scroll_to) {
         int y = lo->render_rect.h - (block_height * SCROLL_Y_BOTTOM_PAD);
         block_ptr block = cursor.block();
-        while(block && y > 0) {
+        while (block && y > 0) {
             if (block->lineCount == 0) {
                 block->lineCount = 1;
             }

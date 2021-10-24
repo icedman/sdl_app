@@ -47,6 +47,7 @@ struct list_t : panel_t {
 
     virtual view_ptr create_item();
     virtual void update_item(view_ptr item, list_item_data_t data);
+    virtual int item_height();
 
     bool handle_item_click(event_t& evt);
 
@@ -63,11 +64,10 @@ struct list_t : panel_t {
 
     int first_visible;
     int visible_items;
-    int item_height;
 
     list_item_data_t selected_data;
     int selected_index;
-    
+
     bool handle_mouse_wheel(event_t& event);
     bool handle_scrollbar_move(event_t& event);
     int content_hash(bool peek) override;

@@ -23,8 +23,8 @@
 #include "editor_view.h"
 #include "explorer.h"
 #include "explorer_view.h"
-#include "rich_text.h"
 #include "input_text.h"
+#include "rich_text.h"
 
 #define TEST test7
 

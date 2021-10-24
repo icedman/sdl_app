@@ -33,7 +33,8 @@ void gutter_t::prelayout()
 void gutter_t::render(renderer_t* renderer)
 {
     view_ptr subcontent = editor->subcontent;
-    if (!subcontent) return;
+    if (!subcontent)
+        return;
 
     layout_item_ptr lo = layout();
     // renderer->draw_rect(lo->render_rect, editor->bg, true);
@@ -52,13 +53,14 @@ void gutter_t::render(renderer_t* renderer)
         clr = editor->fg;
     }
 
-    for(auto c : subcontent->children) {
+    for (auto c : subcontent->children) {
         rich_text_block_t* cb = c->cast<rich_text_block_t>();
-        if (!cb->is_visible() || !cb->block) break;
-        std::string text = std::to_string(cb->block->lineNumber+1);
+        if (!cb->is_visible() || !cb->block)
+            break;
+        std::string text = std::to_string(cb->block->lineNumber + 1);
         renderer->draw_text(font().get(), (char*)text.c_str(),
             lo->render_rect.x + lo->render_rect.w - (text.length() + 1) * font()->width,
-        c->layout()->render_rect.y, clr);
+            c->layout()->render_rect.y, clr);
     }
 }
 

@@ -1,4 +1,5 @@
 #include "app_view.h"
+#include "commands_view.h"
 #include "editor_view.h"
 #include "explorer_view.h"
 #include "splitter.h"
@@ -6,7 +7,6 @@
 #include "system.h"
 #include "tabbar.h"
 #include "text.h"
-#include "commands_view.h"
 
 #include "app.h"
 #include "explorer.h"
@@ -65,9 +65,21 @@ app_view_t::app_view_t()
         return true;
     });
 
-    commands = std::make_shared<commands_t>();
-    on(EVT_KEY_SEQUENCE, [this](event_t& event) {
-        event.cancelled = true;
+    cmd_actions = std::make_shared<commands_t>();
+    cmd_files = std::make_shared<commands_files_t>();
+
+    cmd_files->cast<explorer_view_t>()->on(EVT_ITEM_SELECT, [this](event_t& evt) {
+        list_item_t* item = (list_item_t*)evt.source;
+        list_item_data_t d = item->item_data;
+        fileitem_t* file = (fileitem_t*)d.data;
+        // printf(">>%s\n", item->item_data.value.c_str());
+        if (file && !file->isDirectory) {
+            this->show_editor(app_t::instance()->openEditor(item->item_data.value));
+        }
+        return true;
+    });
+
+    events_manager_t::instance()->on(EVT_KEY_SEQUENCE, [this](event_t& event) {
         this->handle_key_sequence(event);
         return true;
     });
@@ -97,12 +109,34 @@ void app_view_t::configure(int argc, char** argv)
 bool app_view_t::handle_key_sequence(event_t& event)
 {
     operation_e op = operationFromKeys(event.text);
-    switch(op) {
-    case POPUP_SEARCH:
+    switch (op) {
+    case POPUP_COMMANDS:
+        show_files();
         break;
     }
 
     return false;
+}
+
+void app_view_t::show_actions()
+{
+    if (cmd_actions->cast<commands_t>()->update_data()) {
+        view_ptr _pm = popup_manager_t::instance();
+        popup_manager_t* pm = _pm->cast<popup_manager_t>();
+        pm->clear();
+        pm->push_at(cmd_actions, {});
+    }
+}
+
+void app_view_t::show_files()
+{
+    if (cmd_files->cast<commands_t>()->update_data()) {
+        layout_item_ptr lo = layout();
+        view_ptr _pm = popup_manager_t::instance();
+        popup_manager_t* pm = _pm->cast<popup_manager_t>();
+        pm->clear();
+        pm->push_at(cmd_files, { lo->render_rect.w / 2 - cmd_files->layout()->width / 2, 0, 0 });
+    }
 }
 
 void app_view_t::show_editor(editor_ptr editor)

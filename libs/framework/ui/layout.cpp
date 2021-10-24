@@ -546,7 +546,7 @@ void _layout_compute_absolute_position(layout_item_ptr item)
         return;
 
     items_computed++;
-    
+
     for (auto child : item->children) {
         child->render_rect = child->rect;
         child->render_rect.x += item->render_rect.x + item->scroll_x;
