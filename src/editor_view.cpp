@@ -6,10 +6,11 @@
 #include "system.h"
 #include "popup.h"
 #include "text.h"
-#include "completer.h"
+#include "completer_view.h"
 #include "indexer.h"
 
-#define SCROLL_Y_BOTTOM_PAD 4
+#define SCROLL_Y_TOP_PAD 2
+#define SCROLL_Y_BOTTOM_PAD (SCROLL_Y_TOP_PAD + 4)
 #define PRE_VISIBLE_HL 20
 #define POST_VISIBLE_HL 100
 #define MAX_HL_BUCKET ((PRE_VISIBLE_HL + POST_VISIBLE_HL) * 4)
@@ -41,9 +42,7 @@ bool highlighter_task_t::run(int limit)
             }
 
             hltd++;
-            if (hltd>4) {
-                break;
-            }
+            break;
         }
     }
 
@@ -277,6 +276,7 @@ bool editor_view_t::handle_key_text(event_t& event)
                 pos.x += scrollarea->layout()->render_rect.x;
                 pos.x -= com->selected_word.length() * font()->width;
                 pos.y += scrollarea->layout()->render_rect.y;
+                pos.y += scrollarea->layout()->scroll_y;
                 rect_t rect = {pos.x,pos.y,font()->width,font()->height};
                 pm->push_at(completer(), rect, 
                     pos.y - (block_height * 4) > scrollarea->layout()->render_rect.h / 2
@@ -284,7 +284,7 @@ bool editor_view_t::handle_key_text(event_t& event)
             }
         }
     }
-    
+
     return true;
 }
 
@@ -292,7 +292,7 @@ bool editor_view_t::handle_mouse_down(event_t& event)
 {
     layout_item_ptr lo = layout();
 
-    point_t p = { event.x, event.y };
+    mouse_xy = { event.x, event.y };
     view_ptr text_block;
     for (auto c : subcontent->children) {
         layout_item_ptr clo = c->layout();
@@ -302,7 +302,7 @@ bool editor_view_t::handle_mouse_down(event_t& event)
         if (r.w < lo->render_rect.w) {
             r.w = lo->render_rect.w;
         }
-        if (point_in_rect(p, r)) {
+        if (point_in_rect(mouse_xy, r)) {
             text_block = c;
             break;
         }
@@ -318,8 +318,8 @@ bool editor_view_t::handle_mouse_down(event_t& event)
         layout_text_span_t* span = (layout_text_span_t*)l.get();
         if (!span->visible)
             continue;
-        if (point_in_rect(p, span->render_rect)) {
-            pos = span->start + (p.x - span->render_rect.x) / (span->render_rect.w / span->length);
+        if (point_in_rect(mouse_xy, span->render_rect)) {
+            pos = span->start + (mouse_xy.x - span->render_rect.x) / (span->render_rect.w / span->length);
             break;
         }
     }
@@ -351,8 +351,8 @@ bool editor_view_t::handle_mouse_down(event_t& event)
 bool editor_view_t::handle_mouse_move(event_t& event)
 {
     if (event.button) {
-        int dx = mouse_x - event.x;
-        int dy = mouse_y - event.y;
+        int dx = mouse_xy.x - event.x;
+        int dy = mouse_xy.y - event.y;
         int drag_distance = dx * dx + dy * dy;
         if (drag_distance >= 100) {
             handle_mouse_down(event);
@@ -369,7 +369,7 @@ int editor_view_t::cursor_x(cursor_t cursor)
 int editor_view_t::cursor_y(cursor_t cursor)
 {
     int lineNumber = cursor.block()->lineNumber;
-    lineNumber -= (visible_blocks/2);
+    lineNumber -= (visible_blocks/4);
     if (lineNumber < 0) {
         lineNumber = 0;
     }
@@ -384,7 +384,6 @@ int editor_view_t::cursor_y(cursor_t cursor)
         if (block == cursor.block()) {
             break;
         }
-
         if (!block->lineCount) {
             block->lineCount = 1;
         }
@@ -413,6 +412,9 @@ void editor_view_t::ensure_visible_cursor()
     point_t p = { lo->render_rect.x + lo->render_rect.w / 2, cursor_screen_y };
     rect_t r = lo->render_rect;
     r.y -= block_height;
+
+    if (slo->scroll_y < 0)
+    r.y += (SCROLL_Y_TOP_PAD * block_height);
     r.h -= (SCROLL_Y_BOTTOM_PAD + 1) * block_height;
 
     if (point_in_rect(p, r)) {
@@ -428,9 +430,13 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
     layout_item_ptr slo = scrollarea->layout();
     int prev = slo->scroll_y;
 
-    int cursor_screen_y = -cursor_y(cursor);
+    scroll_to = -cursor_y(cursor);
+    if (slo->scroll_y < 0)
+    scroll_to += (SCROLL_Y_TOP_PAD * block_height);
 
-    scroll_to = cursor_screen_y;
+    if (scroll_to > 0) {
+        scroll_to = 0;
+    }
 
     if (prev > scroll_to) {
         int y = lo->render_rect.h - (block_height * SCROLL_Y_BOTTOM_PAD);

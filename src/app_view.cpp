@@ -6,6 +6,7 @@
 #include "system.h"
 #include "tabbar.h"
 #include "text.h"
+#include "commands_view.h"
 
 #include "app.h"
 #include "explorer.h"
@@ -63,6 +64,13 @@ app_view_t::app_view_t()
         }
         return true;
     });
+
+    commands = std::make_shared<commands_t>();
+    on(EVT_KEY_SEQUENCE, [this](event_t& event) {
+        event.cancelled = true;
+        this->handle_key_sequence(event);
+        return true;
+    });
 }
 
 void app_view_t::update()
@@ -84,6 +92,17 @@ void app_view_t::configure(int argc, char** argv)
     }
     sidebar->cast<explorer_view_t>()->set_root_path(path);
     app_t::instance()->openEditor(path, true);
+}
+
+bool app_view_t::handle_key_sequence(event_t& event)
+{
+    operation_e op = operationFromKeys(event.text);
+    switch(op) {
+    case POPUP_SEARCH:
+        break;
+    }
+
+    return false;
 }
 
 void app_view_t::show_editor(editor_ptr editor)

@@ -506,6 +506,7 @@ void view_dispatch_mouse_event(event_t& event, view_list& views)
             event.type = EVT_MOUSE_DRAG;
             event.cancelled = false;
             view_dragged->propagate_event(event);
+            system_t::instance()->caffeinate();
         }
 
         break;

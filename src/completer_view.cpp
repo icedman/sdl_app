@@ -1,4 +1,4 @@
-#include "completer.h"
+#include "completer_view.h"
 #include "input_text.h"
 #include "list.h"
 #include "editor.h"

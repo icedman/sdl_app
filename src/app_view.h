@@ -12,6 +12,8 @@ struct app_view_t : view_t {
 
     void configure(int argc, char** argv);
     void update() override;
+    
+    virtual bool handle_key_sequence(event_t& event);
 
     void show_editor(editor_ptr editor);
     void create_editor(editor_ptr editor);
@@ -22,6 +24,7 @@ struct app_view_t : view_t {
     view_ptr sidebar;
     view_ptr tabs;
     view_ptr statusbar;
+    view_ptr commands;
 
     view_ptr fps;
 };

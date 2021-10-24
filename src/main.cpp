@@ -152,9 +152,9 @@ extern "C" int main(int argc, char** argv)
             if (sys->poll_events(&events)) {
                 if (events.size()) {
                     if (events[0].type == EVT_MOUSE_MOTION && events[0].button == 0) {
-                    // ignore
+                        // ignore
                     } else {
-                        break;
+                        sys->caffeinate();
                     }
                 }
             }

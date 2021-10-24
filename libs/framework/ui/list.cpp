@@ -52,16 +52,15 @@ bool list_item_t::is_selected()
 int list_item_t::content_hash(bool peek)
 {
     struct list_item_data_hash_t {
-        list_item_data_t d;
         bool selected;
     };
 
     list_item_data_hash_t data = {
-        item_data,
         is_selected()
     };
 
-    int hash = murmur_hash(&data, sizeof(list_item_data_hash_t), CONTENT_HASH_SEED);
+    int _hash = murmur_hash(&data, sizeof(list_item_data_hash_t), CONTENT_HASH_SEED);
+    int hash = hash_combine(_hash, murmur_hash(&item_data, sizeof(list_item_data_t), CONTENT_HASH_SEED));
     if (!peek) {
         _content_hash = hash;
     }
