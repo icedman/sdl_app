@@ -1,5 +1,6 @@
 #include "statusbar.h"
 #include "renderer.h"
+#include "system.h"
 #include "text.h"
 
 statusbar_t::statusbar_t()
@@ -33,4 +34,11 @@ void statusbar_t::remove_status(view_ptr view)
 {
     left->remove_child(view);
     right->remove_child(view);
+}
+
+void statusbar_t::render(renderer_t* renderer)
+{
+    layout_item_ptr lo = layout();
+    color_t clr = color_darker(system_t::instance()->renderer.background, 10);
+    renderer->draw_rect(lo->render_rect, clr, true, 0);
 }

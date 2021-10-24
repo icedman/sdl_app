@@ -157,6 +157,8 @@ void app_view_t::show_editor(editor_ptr editor)
 
     layout_clear_hash(layout(), 8);
     relayout();
+
+    system_t::instance()->caffeinate();
 }
 
 void app_view_t::create_editor(editor_ptr editor)

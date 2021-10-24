@@ -127,12 +127,12 @@ bool document_t::open(std::string path)
     std::vector<std::string> spath_ext = split_path(path, delims_ext);
     std::string suffix = "*." + spath_ext.back();
     if (app_t::instance())
-    for (auto pat : app_t::instance()->binaryFiles) {
-        if (suffix == pat) {
-            binary = true;
-            break;
+        for (auto pat : app_t::instance()->binaryFiles) {
+            if (suffix == pat) {
+                binary = true;
+                break;
+            }
         }
-    }
 
     blocks.clear();
     cursors.clear();

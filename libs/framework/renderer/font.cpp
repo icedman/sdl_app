@@ -170,9 +170,9 @@ font_ptr pango_font_create(std::string name, int size)
 
     pango_font_t* pf = (pango_font_t*)(fnt.get());
     desc = name + " italic " + std::to_string(size);
-    // pf->italic = pango_font_create((char*)desc.c_str(), "");
+    pf->italic = pango_font_create((char*)desc.c_str(), "");
     desc = name + " bold " + std::to_string(size);
-    // pf->bold = pango_font_create((char*)desc.c_str(), "");
+    pf->bold = pango_font_create((char*)desc.c_str(), "");
     return fnt;
 }
 
@@ -288,7 +288,7 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, wchar_t* text, int 
                 }
 
                 pf->utf8[*p] = bake_glyph(pf, u);
-                glyph = set[*p];
+                // glyph = set[*p];
             }
         }
 
@@ -338,10 +338,10 @@ inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, 
 
     pango_font_t* _pf = fnt;
     if (span.italic && fnt->italic) {
-        // _pf = (pango_font_t*)(fnt->italic.get());
+        _pf = (pango_font_t*)(fnt->italic.get());
     }
     if (span.bold && fnt->bold) {
-        // _pf = (pango_font_t*)(fnt->bold.get());
+        _pf = (pango_font_t*)(fnt->bold.get());
     }
 
     renderer->_draw_count++;

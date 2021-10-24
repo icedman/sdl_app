@@ -11,7 +11,8 @@ struct backend_t* backend_t::instance()
 }
 
 backend_t::backend_t()
-{}
+{
+}
 
 void backend_t::setClipboard(std::string text)
 {

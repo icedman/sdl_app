@@ -2,6 +2,8 @@
 #include "renderer.h"
 #include "system.h"
 
+#define SPLITTER_WIDTH 4
+
 splitter_t::splitter_t(view_t* target, view_t* container)
     : view_t()
     , target(target)
@@ -10,7 +12,7 @@ splitter_t::splitter_t(view_t* target, view_t* container)
 {
     can_hover = true;
 
-    layout()->width = 8;
+    layout()->width = SPLITTER_WIDTH;
     layout()->direction = LAYOUT_FLEX_DIRECTION_COLUMN;
 
     on(EVT_MOUSE_DRAG_START, [this](event_t& evt) {
@@ -84,7 +86,9 @@ bool splitter_t::handle_mouse_drag(event_t& event)
 
 void splitter_t::render(renderer_t* renderer)
 {
-    // render_frame(renderer);
+    layout_item_ptr lo = layout();
+    color_t clr = color_darker(system_t::instance()->renderer.background, 10);
+    renderer->draw_rect(lo->render_rect, clr, true, 0);
 }
 
 horizontal_splitter_t::horizontal_splitter_t(view_t* target, view_t* container)

@@ -186,7 +186,7 @@ std::string utf8_erase(std::string& text, size_t pos, size_t len)
     return text.erase(s - t, e - s);
 }
 
-size_t utf8_clength(char *text)
+size_t utf8_clength(char* text)
 {
     char* p = (char*)text;
     size_t idx = 0;

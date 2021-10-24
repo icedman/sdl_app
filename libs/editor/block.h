@@ -23,8 +23,13 @@ enum block_state_e {
     BLOCK_STATE_STRING = 1 << 5
 };
 
-struct rgba_t { int r; int g; int b; int a; };
-    
+struct rgba_t {
+    int r;
+    int g;
+    int b;
+    int a;
+};
+
 struct span_info_t {
     int start;
     int length;

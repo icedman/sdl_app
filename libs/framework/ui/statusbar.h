@@ -11,6 +11,8 @@ struct statusbar_t : horizontal_container_t {
     view_ptr add_status(std::string text, int pos = 0, int order = 0);
     void remove_status(view_ptr view);
 
+    virtual void render(renderer_t* renderer) override;
+
     view_ptr left;
     view_ptr right;
 };

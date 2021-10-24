@@ -262,7 +262,6 @@ int highlighter_t::highlightBlock(block_ptr block)
         firstLine = true;
     }
 
-
     if (str.length() > LINE_LENGTH_LIMIT) {
         // too long to parse
         blockData->dirty = false;
@@ -296,12 +295,13 @@ int highlighter_t::highlightBlock(block_ptr block)
         span_info_t span = {
             .start = (int)n,
             .length = (int)(l - n),
-            .fg = { style.foreground.red * 255,
-                    style.foreground.green * 255,
-                    style.foreground.blue * 255,
-                    0,
+            .fg = {
+                style.foreground.red * 255,
+                style.foreground.green * 255,
+                style.foreground.blue * 255,
+                0,
             },
-            .bg = { 0,0,0,0 },
+            .bg = { 0, 0, 0, 0 },
             .bold = style.bold == bool_true,
             .italic = style.italic == bool_true,
             .underline = false,
@@ -319,8 +319,8 @@ int highlighter_t::highlightBlock(block_ptr block)
         it++;
     }
 
-    span_info_t *prev = NULL;
-    for(auto& s : blockData->spans) {
+    span_info_t* prev = NULL;
+    for (auto& s : blockData->spans) {
         if (prev) {
             prev->length = s.start - prev->start;
         }
@@ -347,12 +347,13 @@ int highlighter_t::highlightBlock(block_ptr block)
             span_info_t span = {
                 .start = b,
                 .length = e - b,
-                .fg = { s.foreground.red * 255,
+                .fg = {
+                    s.foreground.red * 255,
                     s.foreground.green * 255,
                     s.foreground.blue * 255,
                     255,
                 },
-                .bg = { 0,0,0,0 },
+                .bg = { 0, 0, 0, 0 },
                 .bold = s.bold == bool_true,
                 .italic = s.italic == bool_true,
                 .underline = false,
@@ -371,12 +372,13 @@ int highlighter_t::highlightBlock(block_ptr block)
             span_info_t span = {
                 .start = b,
                 .length = e - b,
-                .fg = { s.foreground.red * 255,
+                .fg = {
+                    s.foreground.red * 255,
                     s.foreground.green * 255,
                     s.foreground.blue * 255,
                     255,
                 },
-                .bg = { 0,0,0,0 },
+                .bg = { 0, 0, 0, 0 },
                 .bold = s.bold == bool_true,
                 .italic = s.italic == bool_true,
                 .underline = false,
@@ -394,12 +396,13 @@ int highlighter_t::highlightBlock(block_ptr block)
                 span_info_t span = {
                     .start = 0,
                     .length = (int)(endComment + lang->blockCommentEnd.length()),
-                    .fg = { s.foreground.red * 255,
+                    .fg = {
+                        s.foreground.red * 255,
                         s.foreground.green * 255,
                         s.foreground.blue * 255,
                         255,
                     },
-                    .bg = { 0,0,0,0 },
+                    .bg = { 0, 0, 0, 0 },
                     .bold = s.bold == bool_true,
                     .italic = s.italic == bool_true,
                     .underline = false,

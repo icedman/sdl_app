@@ -17,8 +17,10 @@ void image_view_t::render(renderer_t* renderer)
         return;
     }
 
+    float sz = 0.75f;
     layout_item_ptr item = layout();
-    system_t::instance()->renderer.draw_image(icon.get(), { item->render_rect.x, item->render_rect.y, icon->width, icon->height },
+    system_t::instance()->renderer.draw_image(icon.get(),
+        { item->render_rect.x + icon->width * (1.0f - sz), item->render_rect.y, icon->width * sz, icon->height * sz },
         { 255, 255, 255, 0 });
 }
 

@@ -129,7 +129,7 @@ void explorer_t::setRootFromFile(std::string path)
     loadFolder(&files, path);
 }
 
-void explorer_t::loadFolder(fileitem_t *fileitem, std::string p)
+void explorer_t::loadFolder(fileitem_t* fileitem, std::string p)
 {
     if (p != "") {
         fileitem->setPath(p);

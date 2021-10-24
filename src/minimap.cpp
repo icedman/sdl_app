@@ -2,7 +2,11 @@
 #include "editor_view.h"
 #include "hash.h"
 
-#define DRAW_SCALE 0.75f
+#define DRAW_SCALE 0.80f
+#define DRAW_SPACING 2
+#define DRAW_HEIGHT 1
+#define DRAW_ALPHA 150
+#define DRAW_MARGIN_LEFT 8
 
 minimap_t::minimap_t(editor_view_t* editor)
     : view_t()
@@ -32,15 +36,27 @@ minimap_t::minimap_t(editor_view_t* editor)
     layout()->name = "minimap";
 }
 
+static size_t countIndentSize(std::string s)
+{
+    for (int i = 0; i < s.length(); i++) {
+        if (s[i] != ' ') {
+            return i;
+        }
+    }
+    return 0;
+}
+
 void minimap_t::render(renderer_t* renderer)
 {
+    int alpha = DRAW_ALPHA;
+
     // render_frame(renderer);
     layout_item_ptr lo = layout();
     int rows = lo->render_rect.h / font()->height;
 
     renderer->draw_rect(lo->render_rect, this->editor->bg, true);
 
-    int spacing = 2;
+    int spacing = DRAW_SPACING;
 
     editor_view_t* ev = (editor_view_t*)(this->editor);
     editor_ptr editor = ev->editor;
@@ -65,14 +81,8 @@ void minimap_t::render(renderer_t* renderer)
         scroll_y = 0;
     }
 
-    // printf("%f\n", p);
-
-    block_list& snapBlocks = editor->snapshots[0].snapshot;
-
     block_list::iterator it = doc->blocks.begin();
     it += (scroll_y / spacing);
-
-    // printf(">%f %d\n", p, scroll_y);
 
     start_row = -1;
     end_row = 0;
@@ -86,7 +96,7 @@ void minimap_t::render(renderer_t* renderer)
         block_ptr block = *it;
         it++;
 
-        uint8_t alpha = 80;
+        uint8_t alpha = DRAW_ALPHA;
 
         if (!block->data || block->data->dirty) {
             ev->request_highlight(block);
@@ -99,37 +109,44 @@ void minimap_t::render(renderer_t* renderer)
             alpha = 250;
         }
 
+        int ind = countIndentSize(block->text());
+
         if (!blockData) {
             rect_t r = {
-                lo->render_rect.x,
+                lo->render_rect.x + (ind * DRAW_SCALE) + DRAW_MARGIN_LEFT,
                 lo->render_rect.y + l,
-                (int)(block->length() * DRAW_SCALE),
-                1,
+                ((int)(block->length() - ind) * DRAW_SCALE),
+                DRAW_HEIGHT,
             };
             if (r.w > 0) {
+                color_t clr = ev->fg;
+                clr.a = alpha * 0.5f;
                 renderer->draw_rect(r,
-                    { 255, 255, 255, 150 },
-                    false, 1);
+                    clr,
+                    true, 0);
             }
-            blockData = 0;
         }
 
         if (blockData) {
             for (auto s : blockData->spans) {
 
-                color_t clr = { s.fg.r, s.fg.g, s.fg.b, 150 };
+                color_t clr = { s.fg.r, s.fg.g, s.fg.b, alpha };
                 if (!color_is_set(clr)) {
                     clr = ev->fg;
-                    clr.a = 150;
+                    clr.a = alpha;
                 }
 
-                int start = s.start / 3;
+                int start = s.start * DRAW_SCALE;
                 int length = s.length * DRAW_SCALE;
+                if (length == 0 && s.length > 0) {
+                    length = 1;
+                    clr.a = alpha / 2;
+                }
                 rect_t r = {
-                    lo->render_rect.x + start + 2,
+                    lo->render_rect.x + start + 2 + DRAW_MARGIN_LEFT,
                     lo->render_rect.y + l,
                     length,
-                    1,
+                    DRAW_HEIGHT,
                 };
 
                 if (render_h < l) {
@@ -140,10 +157,10 @@ void minimap_t::render(renderer_t* renderer)
                     r.w = lo->render_rect.w - (start + 2);
                 }
 
-                if (r.w > 0) {
+                if (r.w > 0 && s.start >= ind) {
                     renderer->draw_rect(r,
                         clr,
-                        false, 1);
+                        true, 0);
                 }
             }
         }
@@ -177,14 +194,14 @@ void minimap_t::render(renderer_t* renderer)
             clr, true, 0, {}, 4);
     }
 
-    renderer->draw_rect(
-        {
-            lo->render_rect.x,
-            render_current_y - spacing,
-            lo->render_rect.w,
-            2,
-        },
-        { 255, 255, 255, 40 }, true, 0);
+    // renderer->draw_rect(
+    //     {
+    //         lo->render_rect.x,
+    //         render_current_y - spacing,
+    //         lo->render_rect.w,
+    //         2,
+    //     },
+    //     { 255, 255, 255, 40 }, true, 0);
 }
 
 bool minimap_t::handle_mouse_click(event_t& event)
@@ -223,6 +240,7 @@ int minimap_t::content_hash(bool peek)
         float sliding_y;
         int render_y;
         int render_h;
+        int scroll_y;
         int hltd;
     };
 
@@ -232,6 +250,7 @@ int minimap_t::content_hash(bool peek)
         sliding_y,
         render_y,
         render_h,
+        editor->scrollarea->layout()->scroll_y,
         hltd
     };
 

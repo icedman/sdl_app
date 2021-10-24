@@ -390,6 +390,7 @@ int renderer_t::draw_text(font_t* font, char* text, int x, int y, color_t clr, b
     if (!color_is_set(clr)) {
         clr = foreground;
     }
+
     return font->draw_text(this, font, text, x, y, clr, bold, italic, underline);
 }
 

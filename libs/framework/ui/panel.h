@@ -22,6 +22,9 @@ struct panel_t : vertical_container_t {
     virtual bool handle_mouse_wheel(event_t& event);
     virtual bool handle_scrollbar_move(event_t& event);
 
+    void scroll_to_top();
+    void scroll_to_bottom();
+
     void update_scrollbars();
 };
 

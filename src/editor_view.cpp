@@ -42,7 +42,9 @@ bool highlighter_task_t::run(int limit)
             }
 
             hltd++;
-            break;
+            if (hltd > 4) {
+                break;
+            }
         }
     }
 
@@ -75,8 +77,6 @@ editor_view_t::editor_view_t()
     : rich_text_t()
     , scroll_to(-1)
 {
-    start_tasks();
-
     can_focus = true;
     draw_cursors = true;
     on(EVT_KEY_SEQUENCE, [this](event_t& event) {
@@ -106,14 +106,19 @@ editor_view_t::editor_view_t()
 
 void editor_view_t::start_tasks()
 {
-    hl_task = std::make_shared<highlighter_task_t>(this);
-    tasks_manager_t::instance()->enroll(hl_task);
+    if (!task) {
+        task = std::make_shared<highlighter_task_t>(this);
+        tasks_manager_t::instance()->enroll(task);
+    }
 }
 
 void editor_view_t::stop_tasks()
 {
-    hl_task->stop();
-    tasks_manager_t::instance()->withdraw(hl_task);
+    if (task) {
+        task->stop();
+        tasks_manager_t::instance()->withdraw(task);
+        task = nullptr;
+    }
 }
 
 bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
@@ -454,10 +459,9 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
 
     slo->scroll_y = scroll_to;
 
-    event_t evt;
-    evt.sx = 0;
-    evt.sy = 0;
-    handle_mouse_move(evt);
+    printf("scroll to: %d\n", scroll_to);
+
+    update_scrollbars();
 }
 
 view_ptr editor_view_t::gutter()
@@ -494,5 +498,5 @@ view_ptr editor_view_t::completer()
 
 void editor_view_t::request_highlight(block_ptr block)
 {
-    ((highlighter_task_t*)(hl_task.get()))->hl.push_back(block);
+    ((highlighter_task_t*)(task.get()))->hl.push_back(block);
 }

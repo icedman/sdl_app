@@ -122,6 +122,7 @@ bool completer_t::update_data()
         popup_manager_t::instance()->cast<popup_manager_t>()->clear();
     }
 
+    list->cast<list_t>()->scroll_to_top();
     return false;
 }
 

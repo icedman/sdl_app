@@ -2,6 +2,27 @@
 #include "app.h"
 #include "explorer.h"
 #include "renderer.h"
+#include "system.h"
+
+explorer_task_t::explorer_task_t(explorer_view_t* ev)
+    : task_t()
+    , ev(ev)
+{
+}
+
+bool explorer_task_t::run(int limit)
+{
+    if (!running)
+        return false;
+
+    explorer_t::instance()->update(0);
+    if (explorer_t::instance()->regenerateList) {
+        ev->update_explorer_data();
+        explorer_t::instance()->regenerateList = false; // done
+        return true;
+    }
+    return false;
+}
 
 explorer_view_t::explorer_view_t()
     : list_t()
@@ -69,4 +90,29 @@ void explorer_view_t::set_root_path(std::string path)
     explorer_t::instance()->setRootFromFile(path);
     explorer_t::instance()->update(0);
     update_explorer_data();
+}
+
+void explorer_view_t::start_tasks()
+{
+    if (!task) {
+        task = std::make_shared<explorer_task_t>(this);
+        tasks_manager_t::instance()->enroll(task);
+    }
+}
+
+void explorer_view_t::stop_tasks()
+{
+    if (task) {
+        task->stop();
+        tasks_manager_t::instance()->withdraw(task);
+        task = nullptr;
+    }
+}
+
+void explorer_view_t::render(renderer_t* renderer)
+{
+    layout_item_ptr lo = layout();
+    color_t clr = color_darker(system_t::instance()->renderer.background, 10);
+    renderer->draw_rect(lo->render_rect, clr, true, 0);
+    list_t::render(renderer);
 }

@@ -21,6 +21,7 @@ rich_text_t::rich_text_t()
 {
     editor = std::make_shared<editor_t>();
     layout()->name = "rich_text";
+    layout()->margin_top = 4;
 
     layout()->prelayout = [this](layout_item_t* item) {
         this->prelayout();
@@ -167,11 +168,7 @@ void rich_text_t::prerender()
         relayout_virtual_blocks();
         defer_relayout--;
 
-        // hacky .. scrollbars show/hide
-        event_t evt;
-        evt.sx = 0;
-        evt.sy = 0;
-        panel_t::handle_mouse_wheel(evt);
+        update_scrollbars();
         relayout_virtual_blocks();
     }
 
@@ -180,7 +177,6 @@ void rich_text_t::prerender()
 
 void rich_text_t::prelayout()
 {
-
     fg = { 255, 255, 255, 0 };
     sel = { 150, 150, 150, 125 };
 
@@ -321,7 +317,10 @@ void rich_text_t::relayout_virtual_blocks()
 
 bool rich_text_t::handle_mouse_wheel(event_t& event)
 {
-    defer_relayout = DEFER_LAYOUT_FRAMES;
+    if (event.x != -1 && event.y != -1) {
+        // if x or y equals to -1, .. synthetic..
+        defer_relayout = DEFER_LAYOUT_FRAMES;
+    }
     return panel_t::handle_mouse_wheel(event);
 }
 

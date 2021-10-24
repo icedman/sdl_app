@@ -144,7 +144,7 @@ private:
 
     std::string _font_name;
     float _font_size;
-    
+
     std::map<size_t, style_t> _cache;
     // mutable google::dense_hash_map<scope::scope_t, styles_t> _cache;
 

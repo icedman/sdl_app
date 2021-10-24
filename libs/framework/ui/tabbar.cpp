@@ -2,7 +2,18 @@
 #include "button.h"
 #include "hash.h"
 #include "scrollbar.h"
+#include "system.h"
 #include "text.h"
+
+struct tabbar_item_t : list_item_t {
+    void render(renderer_t* renderer) override
+    {
+        layout_item_ptr lo = layout();
+        if (is_hovered(this)) {
+            renderer->draw_rect(lo->render_rect, { 255, 0, 255 }, false, true);
+        }
+    }
+};
 
 tabbar_t::tabbar_t()
     : panel_t()
@@ -31,7 +42,7 @@ void tabbar_t::prelayout()
 
 view_ptr tabbar_t::create_item()
 {
-    view_ptr item = std::make_shared<list_item_t>();
+    view_ptr item = std::make_shared<tabbar_item_t>();
     item->layout()->fit_children_x = true;
     item->layout()->fit_children_y = true;
     item->layout()->margin_left = 4;
@@ -45,6 +56,9 @@ view_ptr tabbar_t::create_item()
     btn->layout()->margin = 2;
     item->layout()->visible = false;
     item->layout()->preferred_constraint.max_width = font()->width * 20;
+
+    item->layout()->margin_left = 6;
+    item->layout()->margin_right = 6;
 
     item->layout()->fit_children_x = true;
     item->layout()->fit_children_y = true;
@@ -131,7 +145,9 @@ list_item_data_t tabbar_t::value()
 
 void tabbar_t::render(renderer_t* renderer)
 {
-    // render_frame(renderer);
+    layout_item_ptr lo = layout();
+    color_t clr = color_darker(system_t::instance()->renderer.background, 10);
+    renderer->draw_rect(lo->render_rect, clr, true, 0);
 }
 
 int tabbar_t::content_hash(bool peek)

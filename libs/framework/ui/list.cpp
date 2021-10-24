@@ -179,11 +179,7 @@ void list_t::prerender()
         relayout_virtual_items();
         defer_relayout--;
 
-        // hacky .. scrollbars show/hide
-        event_t evt;
-        evt.sx = 0;
-        evt.sy = 0;
-        panel_t::handle_mouse_wheel(evt);
+        update_scrollbars();
         relayout_virtual_items();
     }
 

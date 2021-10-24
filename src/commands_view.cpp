@@ -8,12 +8,28 @@
 #include "search.h"
 #include "system.h"
 
+#include <algorithm>
+
 static inline bool _compare_prefix(std::string s1, std::string s2, int len)
 {
     if (s1.length() < len || s2.length() < len) {
         return true;
     }
-    return s1.substr(0, len) == s2.substr(0, len);
+
+    std::string _s1 = s1.substr(0, len);
+    std::string _s2 = s2.substr(0, len);
+
+    if (_s1 == _s2) {
+        return true;
+    }
+
+    // tolower
+    std::transform(_s1.begin(), _s1.end(), _s1.begin(),
+        [](unsigned char c) { return std::tolower(c); });
+    std::transform(_s2.begin(), _s2.end(), _s2.begin(),
+        [](unsigned char c) { return std::tolower(c); });
+
+    return _s1 == _s2;
 }
 
 commands_t::commands_t()
@@ -118,6 +134,7 @@ bool commands_files_t::update_data()
                 continue;
             if (f->name.length() <= inputtext.length())
                 continue;
+
             if (!_compare_prefix(f->name, inputtext, 3))
                 continue;
 
@@ -153,6 +170,7 @@ bool commands_files_t::update_data()
         parent->relayout();
     }
 
+    list->cast<list_t>()->scroll_to_top();
     return true;
 }
 

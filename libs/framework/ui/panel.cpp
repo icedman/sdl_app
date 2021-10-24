@@ -166,7 +166,21 @@ void panel_t::postlayout()
 void panel_t::update_scrollbars()
 {
     event_t event;
-    event.x = 0;
-    event.y = 0;
+    event.sx = 0;
+    event.sy = 0;
+    event.x = -1;
+    event.y = -1;
     handle_mouse_wheel(event);
+}
+
+void panel_t::scroll_to_top()
+{
+    scrollarea->layout()->scroll_y = 0;
+    update_scrollbars();
+}
+
+void panel_t::scroll_to_bottom()
+{
+    scrollarea->layout()->scroll_y = -content()->layout()->render_rect.h + scrollarea->layout()->render_rect.h;
+    update_scrollbars();
 }
