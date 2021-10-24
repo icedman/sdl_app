@@ -112,9 +112,14 @@ font_ptr pango_font_create(char* fdsc, char* alias)
 #if 1
     cairo_font_options_t* font_options = cairo_font_options_create();
     // cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_FULL);
-    cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_NONE);
+    cairo_font_options_set_antialias(font_options, CAIRO_ANTIALIAS_SUBPIXEL);
+    cairo_font_options_set_hint_metrics(font_options, CAIRO_HINT_METRICS_OFF); // ON OFF
+    // cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_NONE);
+    // cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_DEFAULT); // NONE DEFAULT SLIGHT MEDIUM FULL
+    cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_SLIGHT); // NONE DEFAULT SLIGHT MEDIUM FULL
     pango_cairo_context_set_font_options(fnt->context, font_options);
     cairo_font_options_destroy(font_options);
+
 #endif
 
     fnt->layout = pango_layout_new(fnt->context);
@@ -139,18 +144,14 @@ font_ptr pango_font_create(char* fdsc, char* alias)
     pango_font_map_load_font(fnt->font_map, fnt->context, font_desc);
     pango_font_description_free(font_desc);
 
-    cairo_font_options_t* cairo_font_options = cairo_font_options_create();
-    cairo_font_options_set_antialias(cairo_font_options, CAIRO_ANTIALIAS_SUBPIXEL);
-
-    cairo_font_options_set_hint_style(cairo_font_options, CAIRO_HINT_STYLE_DEFAULT); // NONE DEFAULT SLIGHT MEDIUM FULL
-    cairo_font_options_set_hint_metrics(cairo_font_options, CAIRO_HINT_METRICS_ON); // ON OFF
-
-    pango_cairo_context_set_font_options(fnt->context, cairo_font_options);
-
     const char text[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ~!@#$%^&*()-_=+{}[]";
     int len = strlen(text);
     pango_get_font_extents(fnt->layout, &fnt->width, &fnt->height, text, len);
     fnt->width = ((float)fnt->width / len);
+
+#ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
+    fnt->width += 0.10f * fnt->width;
+#endif
 
     for (int i = 0; i < MAX_GLYPHSET; i++) {
         set[i].image = 0;
@@ -325,6 +326,11 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, wchar_t* text, int 
     return 0;
 }
 
+static const char _ligatures[][3] = {
+    "==", "!=", "<=", ">=", "->", "<-", "!!", "&&", "||", "::", ":=", "++", "--", "*=", "|=", "/=", "<<", ">>",
+    ":)", ":(", ":|", 0
+};
+
 inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, int x, int y, text_span_t& span, color_t clr, bool bold, bool italic, bool underline)
 {
     cairo_t* cairo_context = ctx_cairo_context(renderer->context.get());
@@ -357,12 +363,29 @@ inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, 
 
     renderer->_draw_count++;
 
-#if FONT_FIX_FIXED_WIDTH_EXTENTS
-    for(int ti=0; ti<span.length; ti++) {
-        pango_layout_set_text(_pf->layout, text + (span.start + ti), 1);
+#ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
+    for(int ti=0; ti<span.length;) {
+        int ln = 1;
+
+        // firables
+        if (ti+1<span.length) {
+            // look ahead
+            for(int li=0;;li++) {
+                if (_ligatures[li][0] == 0) {
+                    break;
+                }
+                if (_ligatures[li][0] == *(text + (span.start + ti)) && 
+                    _ligatures[li][1] == *(text + (span.start + ti + 1))) {
+                    ln = 2;
+                }
+            }
+        }
+        
+        pango_layout_set_text(_pf->layout, text + (span.start + ti), ln);
         cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
         cairo_move_to(cairo_context, x + (span.start + ti) * fnt->width, y);
         pango_cairo_show_layout(cairo_context, _pf->layout);
+        ti += ln;
     }
 #else
     pango_layout_set_text(_pf->layout, text + span.start, span.length);
