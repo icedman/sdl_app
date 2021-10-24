@@ -26,7 +26,7 @@
 #include "rich_text.h"
 #include "input_text.h"
 
-#define TEST test5
+#define TEST test7
 
 static bool render_layout = false;
 explorer_t explorer;

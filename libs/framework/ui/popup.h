@@ -32,6 +32,8 @@ struct popup_manager_t : view_t {
     void push(view_ptr popup);
     void pop();
     void clear();
+
+    view_ptr last_focused;
 };
 
 #endif // POPUP_H

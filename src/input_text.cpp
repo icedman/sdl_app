@@ -7,6 +7,7 @@ input_text_t::input_text_t()
     , mouse_y(0)
 {
     can_focus = true;
+    draw_cursors = false;
     editor->singleLineEdit = true;
 
     editor->highlighter.lang = std::make_shared<language_info_t>();
@@ -40,6 +41,22 @@ input_text_t::input_text_t()
         this->handle_mouse_move(event);
         return true;
     });
+
+    on(EVT_FOCUS_IN, [this](event_t& event) {
+        if (event.source == this) {
+            this->draw_cursors = true;
+            this->update_blocks();
+        }
+        return true;
+    });
+
+    on(EVT_FOCUS_OUT, [this](event_t& event) {
+        if (event.source == this) {
+            this->draw_cursors = false;
+            this->update_blocks();
+        }
+        return true;
+    });
 }
 
 void input_text_t::prelayout()
@@ -48,10 +65,6 @@ void input_text_t::prelayout()
     layout()->height = font()->height + layout()->margin * 4;
 
     rich_text_t::prelayout();
-
-    if (is_focused(this)) {
-        draw_cursors = true;
-    }
 }
 
 void input_text_t::render(renderer_t* renderer)

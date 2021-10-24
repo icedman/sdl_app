@@ -651,3 +651,8 @@ void view_render(renderer_t* renderer, view_ptr view, damage_t* damage)
 
     renderer->pop_state();
 }
+
+view_ptr view_current_focused()
+{
+    return view_focused;
+}

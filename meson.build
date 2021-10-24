@@ -194,6 +194,7 @@ if get_option('build_sdl')
 executable('ashlar',
     'src/rich_text.cpp',
     'src/input_text.cpp',
+    'src/completer.cpp',
     'src/app_view.cpp',
     'src/explorer_view.cpp',
     'src/editor_view.cpp',

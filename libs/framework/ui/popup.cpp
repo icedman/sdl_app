@@ -94,12 +94,23 @@ void popup_manager_t::push(view_ptr popup)
 
     add_child(popup);
     relayout();
+
+    // push focused
+    if (view_current_focused() && !view_current_focused()->is_type_of(view_type_e::POPUP)) {
+        last_focused = view_current_focused();
+    }
+
+    set_focused(popup.get());
 }
 
 void popup_manager_t::pop()
 {
     if (children.size()) {
         remove_child(children.back());
+    }
+
+    if (!children.size()) {
+        set_focused(last_focused.get());
     }
 }
 

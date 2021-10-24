@@ -115,6 +115,8 @@ void app_view_t::create_editor(editor_ptr editor)
     ev->editor = editor;
     editor->view = ev;
 
+    editor->enableIndexer();
+
     ev->gutter();
     ev->minimap();
     ev->start_tasks();

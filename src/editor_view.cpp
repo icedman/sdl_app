@@ -4,7 +4,10 @@
 #include "hash.h"
 #include "minimap.h"
 #include "system.h"
+#include "popup.h"
 #include "text.h"
+#include "completer.h"
+#include "indexer.h"
 
 #define SCROLL_Y_BOTTOM_PAD 4
 #define PRE_VISIBLE_HL 20
@@ -32,6 +35,11 @@ bool highlighter_task_t::run(int limit)
         hl.erase(hl.begin(), hl.begin() + 1);
         if (!block->data || block->data->dirty) {
             editor->editor->highlight(block->lineNumber, 1);
+
+            if (editor->editor->indexer) {
+                editor->editor->indexer->indexBlock(block);
+            }
+
             hltd++;
             if (hltd>4) {
                 break;
@@ -68,9 +76,10 @@ editor_view_t::editor_view_t()
     : rich_text_t()
     , scroll_to(-1)
 {
+    start_tasks();
+
     can_focus = true;
     draw_cursors = true;
-    
     on(EVT_KEY_SEQUENCE, [this](event_t& event) {
         event.cancelled = true;
         this->handle_key_sequence(event);
@@ -254,6 +263,28 @@ bool editor_view_t::handle_key_text(event_t& event)
     update_blocks();
     ensure_visible_cursor();
     relayout_virtual_blocks();
+
+    if (editor->document.cursors.size() == 1) {
+        cursor_t cur = editor->document.cursor();
+        if (!cur.hasSelection()) {
+            completer_t *com = completer()->cast<completer_t>();
+            if (com->update_data()) {
+                view_ptr _pm = popup_manager_t::instance();
+                popup_manager_t *pm = _pm->cast<popup_manager_t>();
+                pm->clear();
+
+                point_t pos = cursor_xy(cur);
+                pos.x += scrollarea->layout()->render_rect.x;
+                pos.x -= com->selected_word.length() * font()->width;
+                pos.y += scrollarea->layout()->render_rect.y;
+                rect_t rect = {pos.x,pos.y,font()->width,font()->height};
+                pm->push_at(completer(), rect, 
+                    pos.y - (block_height * 4) > scrollarea->layout()->render_rect.h / 2
+                        ? POPUP_DIRECTION_UP : POPUP_DIRECTION_DOWN);
+            }
+        }
+    }
+    
     return true;
 }
 
@@ -330,7 +361,12 @@ bool editor_view_t::handle_mouse_move(event_t& event)
     return true;
 }
 
-int editor_view_t::estimated_cursor_y(cursor_t cursor)
+int editor_view_t::cursor_x(cursor_t cursor)
+{
+    return cursor.position() * font()->width;
+}
+
+int editor_view_t::cursor_y(cursor_t cursor)
 {
     int lineNumber = cursor.block()->lineNumber;
     lineNumber -= (visible_blocks/2);
@@ -359,6 +395,11 @@ int editor_view_t::estimated_cursor_y(cursor_t cursor)
     return y;
 }
 
+point_t editor_view_t::cursor_xy(cursor_t cursor)
+{
+    return { cursor_x(cursor), cursor_y(cursor) };
+}
+
 void editor_view_t::ensure_visible_cursor()
 {
     layout_item_ptr lo = layout();
@@ -366,7 +407,7 @@ void editor_view_t::ensure_visible_cursor()
 
     cursor_t cursor = editor->document.cursor();
 
-    int cursor_screen_y = estimated_cursor_y(cursor);
+    int cursor_screen_y = cursor_y(cursor);
     cursor_screen_y += slo->scroll_y;
 
     point_t p = { lo->render_rect.x + lo->render_rect.w / 2, cursor_screen_y };
@@ -387,7 +428,7 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
     layout_item_ptr slo = scrollarea->layout();
     int prev = slo->scroll_y;
 
-    int cursor_screen_y = -estimated_cursor_y(cursor);
+    int cursor_screen_y = -cursor_y(cursor);
 
     scroll_to = cursor_screen_y;
 
@@ -434,6 +475,14 @@ view_ptr editor_view_t::minimap()
         layout_sort(container->layout());
     }
     return _minimap;
+}
+
+view_ptr editor_view_t::completer()
+{
+    if (!_completer) {
+        _completer = std::make_shared<completer_t>(this);
+    }
+    return _completer;
 }
 
 void editor_view_t::request_highlight(block_ptr block)

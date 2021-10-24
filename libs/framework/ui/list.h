@@ -11,13 +11,17 @@ struct list_item_data_t {
     int indent;
     void* data;
     int score;
+    int index;
 
     bool equals(list_item_data_t d)
     {
         return (value == d.value && text == d.text && icon == d.icon && indent == d.indent && data == d.data);
     }
+
+    static bool compare_item(struct list_item_data_t& f1, struct list_item_data_t& f2);
 };
 
+struct list_t;
 struct list_item_t : horizontal_container_t {
     list_item_t();
 
@@ -26,6 +30,9 @@ struct list_item_t : horizontal_container_t {
     void render(renderer_t* renderer) override;
     int content_hash(bool peek) override;
 
+    bool is_selected();
+
+    list_t* list();
     list_item_data_t item_data;
 };
 
@@ -43,7 +50,10 @@ struct list_t : panel_t {
 
     bool handle_item_click(event_t& evt);
 
+    void select_item(int i = -2);
     void select_item(view_ptr item);
+    void select_next();
+    void select_previous();
     list_item_data_t value();
 
     view_ptr lead_spacer;
@@ -56,12 +66,14 @@ struct list_t : panel_t {
     int item_height;
 
     list_item_data_t selected_data;
+    int selected_index;
     
     bool handle_mouse_wheel(event_t& event);
     bool handle_scrollbar_move(event_t& event);
     int content_hash(bool peek) override;
 
     int defer_relayout;
+    int tail_pad;
 };
 
 #endif LIST_H

@@ -137,5 +137,6 @@ struct horizontal_container_t : view_t {
 void view_dispatch_events(event_list& events, view_list& views);
 void view_prerender(view_ptr view, view_list& visible_views, damage_t* damage = NULL);
 void view_render(renderer_t* renderer, view_ptr view, damage_t* damage = NULL);
+view_ptr view_current_focused();
 
 #endif // VIEW_H

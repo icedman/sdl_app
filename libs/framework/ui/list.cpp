@@ -8,6 +8,16 @@
 #define VISIBLE_ITEMS_PAD 4
 #define TAIL_PAD 16
 
+list_item_data_t null_selected_data = { .index = -1 };
+
+bool list_item_data_t::compare_item(struct list_item_data_t& f1, struct list_item_data_t& f2)
+{
+    if (f1.score == f2.score) {
+        return f1.text < f2.text;
+    }
+    return f1.score < f2.score;
+}
+
 list_item_t::list_item_t()
     : horizontal_container_t()
 {
@@ -17,9 +27,41 @@ list_item_t::list_item_t()
     layout()->margin = 2;
 }
 
+list_t* list_item_t::list()
+{
+    view_t *p = parent;
+    while(p) {
+        if (p->is_type_of(view_type_e::LIST)) {
+            return (list_t*)p;
+        }
+        p = p->parent;
+    }
+    return NULL;
+}
+
+bool list_item_t::is_selected()
+{
+    if (list()) {
+        if (list()->selected_data.equals(item_data)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 int list_item_t::content_hash(bool peek)
 {
-    int hash = murmur_hash(&item_data, sizeof(list_item_data_t), CONTENT_HASH_SEED);
+    struct list_item_data_hash_t {
+        list_item_data_t d;
+        bool selected;
+    };
+
+    list_item_data_hash_t data = {
+        item_data,
+        is_selected()
+    };
+
+    int hash = murmur_hash(&data, sizeof(list_item_data_hash_t), CONTENT_HASH_SEED);
     if (!peek) {
         _content_hash = hash;
     }
@@ -28,14 +70,17 @@ int list_item_t::content_hash(bool peek)
 
 void list_item_t::render(renderer_t* renderer)
 {
-    if (is_hovered(this))
+    if (is_hovered(this) || is_selected()) {
         render_frame(renderer);
+    }
 }
 
 list_t::list_t()
     : panel_t()
     , visible_items(0)
     , defer_relayout(DEFER_LAYOUT_FRAMES)
+    , tail_pad(TAIL_PAD)
+    , selected_index(-1)
 {
     layout()->prelayout = [this](layout_item_t* item) {
         this->prelayout();
@@ -43,6 +88,44 @@ list_t::list_t()
     };
 
     layout()->name = "list";
+}
+
+void list_t::select_next()
+{
+    selected_data = null_selected_data;
+
+    if (!data.size()) return;
+    if (selected_index == -1) {
+        selected_index = 0;
+    } else {
+        selected_index++;
+    }
+
+    if (selected_index >= data.size()) {
+        selected_index = data.size() - 1;
+    }
+
+    selected_data = data[selected_index];
+    relayout_virtual_items();
+}
+
+void list_t::select_previous()
+{
+    selected_data = null_selected_data;
+
+    if (!data.size()) return;
+    if (selected_index == -1) {
+        selected_index = 0;
+    } else {
+        selected_index--;
+    }
+
+    if (selected_index < 0) {
+        selected_index = 0;
+    }
+
+    selected_data = data[selected_index];
+    relayout_virtual_items();
 }
 
 view_ptr list_t::create_item()
@@ -156,10 +239,10 @@ void list_t::relayout_virtual_items()
 
     lead_spacer->layout()->height = (first_visible * item_height);
     lead_spacer->layout()->visible = lead_spacer->layout()->height > 1;
-    tail_spacer->layout()->height = TAIL_PAD * item_height;
+    tail_spacer->layout()->height = tail_pad * item_height;
 
     int computed = lead_spacer->layout()->height + tail_spacer->layout()->height + (vc * item_height);
-    int total_height = (data.size() + TAIL_PAD) * item_height;
+    int total_height = (data.size() + tail_pad) * item_height;
     if (computed < total_height) {
         tail_spacer->layout()->height += total_height - computed;
     }
@@ -173,6 +256,14 @@ void list_t::relayout_virtual_items()
 void list_t::update_data(std::vector<list_item_data_t> _data)
 {
     data = _data;
+    if (selected_index >= data.size()) {
+        selected_index = -1;
+    }
+
+    int idx = 0;
+    for(list_item_data_t& d : data) {
+        d.index = idx++;
+    }
 
     // hacky
     int h = layout()->render_rect.h;
@@ -214,6 +305,28 @@ void list_t::select_item(view_ptr item)
     evt.source = n;
     evt.cancelled = false;
     propagate_event(evt);
+}
+
+void list_t::select_item(int index)
+{
+    if (index == -2) {
+        index = selected_index;
+    }
+    selected_index = index;
+    if (selected_index == -1) {
+        selected_data = null_selected_data;
+        return;
+    }
+    
+    view_ptr item;
+    for(auto c : subcontent->children) {
+        list_item_t *i = c->cast<list_item_t>();
+        if (i->item_data.index == index) {
+            select_item(c);
+            break;
+        }
+    }
+    return;
 }
 
 list_item_data_t list_t::value()
