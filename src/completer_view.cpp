@@ -6,6 +6,7 @@
 #include "list.h"
 #include "popup.h"
 #include "search.h"
+#include "system.h"
 
 completer_t::completer_t(editor_view_t* e)
     : popup_t()
@@ -129,8 +130,8 @@ bool completer_t::update_data()
 void completer_t::render(renderer_t* renderer)
 {
     layout_item_ptr lo = layout();
-
-    renderer->draw_rect(lo->render_rect, { 50, 50, 50 }, true);
+    color_t clr = color_darker(system_t::instance()->renderer.background, 10);
+    renderer->draw_rect(lo->render_rect, clr, true, 0);
 }
 
 bool completer_t::handle_key_sequence(event_t& event)

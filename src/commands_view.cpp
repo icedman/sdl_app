@@ -37,6 +37,8 @@ commands_t::commands_t()
 {
     can_focus = true;
 
+    layout()->margin_top = 4;
+
     view_ptr vc = std::make_shared<vertical_container_t>();
 
     input = std::make_shared<input_text_t>();
@@ -80,7 +82,8 @@ bool commands_t::update_data()
 void commands_t::render(renderer_t* renderer)
 {
     layout_item_ptr lo = layout();
-    renderer->draw_rect(lo->render_rect, { 50, 50, 50 }, true);
+    color_t clr = color_darker(system_t::instance()->renderer.background, 20);
+    renderer->draw_rect(lo->render_rect, clr, true, 0);
 }
 
 bool commands_t::handle_key_sequence(event_t& event)

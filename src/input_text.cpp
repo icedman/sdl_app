@@ -60,14 +60,15 @@ input_text_t::input_text_t()
 void input_text_t::prelayout()
 {
     layout()->margin = 4;
-    layout()->height = font()->height + layout()->margin * 4;
+    layout()->height = font()->height + layout()->margin * 2;
     rich_text_t::prelayout();
 }
 
 void input_text_t::render(renderer_t* renderer)
 {
-    render_frame(renderer);
-    rich_text_t::render(renderer);
+    layout_item_ptr lo = layout();
+    color_t clr = color_lighter(system_t::instance()->renderer.background, 10);
+    renderer->draw_rect(lo->render_rect, clr, true, 0);
 }
 
 bool input_text_t::handle_key_sequence(event_t& event)
