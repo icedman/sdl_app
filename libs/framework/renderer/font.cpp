@@ -102,10 +102,21 @@ glypset_t bake_glyph(pango_font_t* fnt, char* c)
 
 font_ptr pango_font_create(char* fdsc, char* alias)
 {
+
     font_ptr _f = std::make_shared<pango_font_t>();
     pango_font_t* fnt = (pango_font_t*)(_f.get());
     fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
+    // fnt->font_map = pango_cairo_font_map_new();
     fnt->context = pango_font_map_create_context(fnt->font_map);
+
+#if 1
+    cairo_font_options_t* font_options = cairo_font_options_create();
+    // cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_FULL);
+    cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_NONE);
+    pango_cairo_context_set_font_options(fnt->context, font_options);
+    cairo_font_options_destroy(font_options);
+#endif
+
     fnt->layout = pango_layout_new(fnt->context);
     fnt->desc = fdsc;
     fnt->italic = NULL;
@@ -142,7 +153,7 @@ font_ptr pango_font_create(char* fdsc, char* alias)
     fnt->width = ((float)fnt->width / len);
 
 #ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
-    fnt->width += 0.125f * fnt->width;
+    fnt->width += 0.10f * fnt->width;
 #endif
 
     for (int i = 0; i < MAX_GLYPHSET; i++) {
