@@ -96,7 +96,7 @@ framework_files = [
     'libs/framework/system/events.cpp',
     'libs/framework/system/tasks.cpp',
     'libs/framework/renderer/renderer.cpp',
-    'libs/framework/renderer/font.cpp',
+    'libs/framework/renderer/pango_font.cpp',
     'libs/framework/renderer/fallback_font.cpp',
     'libs/framework/ui/styled_frame.cpp',
     'libs/framework/ui/layout.cpp',

@@ -100,13 +100,8 @@ void text_block_t::prelayout()
         return;
     }
 
-    bool _split = false;
-    #ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
-    _split = true;
-    #endif
-
     std::vector<std::string> words;
-    if (_wrap || _split) {
+    if (_wrap) {
         words = split_string(_text);
     } else {
         words.push_back(_text);

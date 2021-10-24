@@ -21,4 +21,4 @@ struct font_t {
 
 typedef std::shared_ptr<font_t> font_ptr;
 
-#endif FONT_H
+#endif // FONT_H

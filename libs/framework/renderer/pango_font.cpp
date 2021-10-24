@@ -1,4 +1,4 @@
-#include "font.h"
+#include "pango_font.h"
 #include "renderer.h"
 #include "utf8.h"
 
@@ -151,10 +151,6 @@ font_ptr pango_font_create(char* fdsc, char* alias)
     int len = strlen(text);
     pango_get_font_extents(fnt->layout, &fnt->width, &fnt->height, text, len);
     fnt->width = ((float)fnt->width / len);
-
-#ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
-    fnt->width += 0.10f * fnt->width;
-#endif
 
     for (int i = 0; i < MAX_GLYPHSET; i++) {
         set[i].image = 0;
@@ -360,10 +356,20 @@ inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, 
     }
 
     renderer->_draw_count++;
+
+#if FONT_FIX_FIXED_WIDTH_EXTENTS
+    for(int ti=0; ti<span.length; ti++) {
+        pango_layout_set_text(_pf->layout, text + (span.start + ti), 1);
+        cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
+        cairo_move_to(cairo_context, x + (span.start + ti) * fnt->width, y);
+        pango_cairo_show_layout(cairo_context, _pf->layout);
+    }
+#else
     pango_layout_set_text(_pf->layout, text + span.start, span.length);
     cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
     cairo_move_to(cairo_context, x + span.start * fnt->width, y);
     pango_cairo_show_layout(cairo_context, _pf->layout);
+#endif
 
     if (span.underline) {
         rect_t r = { x + span.start * fnt->width, y, fnt->width, fnt->height };
