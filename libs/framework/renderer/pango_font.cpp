@@ -54,6 +54,9 @@ pango_font_t::pango_font_t()
 pango_font_t::~pango_font_t()
 {
     // free pango resources?
+    g_object_unref(layout);
+    g_object_unref(font_map);
+    g_object_unref(context);
 }
 
 void pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
@@ -105,18 +108,16 @@ font_ptr pango_font_create(char* fdsc, char* alias)
 
     font_ptr _f = std::make_shared<pango_font_t>();
     pango_font_t* fnt = (pango_font_t*)(_f.get());
-    fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
-    // fnt->font_map = pango_cairo_font_map_new();
+    // fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
+    fnt->font_map = pango_cairo_font_map_new();
     fnt->context = pango_font_map_create_context(fnt->font_map);
 
-#if 1
+#if 0
     cairo_font_options_t* font_options = cairo_font_options_create();
     // cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_FULL);
     cairo_font_options_set_antialias(font_options, CAIRO_ANTIALIAS_SUBPIXEL);
-    cairo_font_options_set_hint_metrics(font_options, CAIRO_HINT_METRICS_OFF); // ON OFF
-    // cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_NONE);
-    // cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_DEFAULT); // NONE DEFAULT SLIGHT MEDIUM FULL
-    cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_SLIGHT); // NONE DEFAULT SLIGHT MEDIUM FULL
+    cairo_font_options_set_hint_metrics(font_options, CAIRO_HINT_METRICS_ON); // ON OFF
+    cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_NONE); // NONE DEFAULT SLIGHT MEDIUM FULL
     pango_cairo_context_set_font_options(fnt->context, font_options);
     cairo_font_options_destroy(font_options);
 
