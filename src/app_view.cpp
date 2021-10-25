@@ -120,12 +120,12 @@ bool app_view_t::handle_key_sequence(event_t& event)
 
 void app_view_t::show_actions()
 {
-    if (cmd_actions->cast<commands_t>()->update_data()) {
-        view_ptr _pm = popup_manager_t::instance();
-        popup_manager_t* pm = _pm->cast<popup_manager_t>();
-        pm->clear();
-        pm->push_at(cmd_actions, {});
-    }
+    // if (cmd_actions->cast<commands_t>()->update_data()) {
+    //     view_ptr _pm = popup_manager_t::instance();
+    //     popup_manager_t* pm = _pm->cast<popup_manager_t>();
+    //     pm->clear();
+    //     pm->push_at(cmd_actions, {});
+    // }
 }
 
 void app_view_t::show_files()

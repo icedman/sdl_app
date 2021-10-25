@@ -51,6 +51,7 @@ struct list_t : panel_t {
 
     bool handle_item_click(event_t& evt);
 
+    void scroll_to_index(int index);
     void select_item(int i = -2);
     void select_item(view_ptr item);
     void select_next();
