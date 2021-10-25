@@ -200,10 +200,13 @@ bool editor_view_t::handle_key_sequence(event_t& event)
 
     // special navigation - move this to editor?
     switch (op) {
-    case POPUP_SEARCH: {
+    case POPUP_SEARCH:
+    case POPUP_SEARCH_LINE: {
         search_view_t* srch = search()->cast<search_view_t>();
         std::string text = "";
-        if (cursor.hasSelection() && !cursor.isMultiBlockSelection()) {
+        if (op == POPUP_SEARCH_LINE) {
+            text = ":";
+        } else if (cursor.hasSelection() && !cursor.isMultiBlockSelection()) {
             text = cursor.selectedText();
         }
         if (srch->update_data(text)) {

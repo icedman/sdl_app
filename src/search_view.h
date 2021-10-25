@@ -16,8 +16,12 @@ struct search_view_t : popup_t {
     virtual bool handle_key_text(event_t& event);
 
     bool update_data(std::string text);
+    bool commit();
 
     view_ptr input;
+
+    bool _findNext;
+    int _searchDirection;
 
     editor_view_t* editor;
     cursor_t current_cursor;
