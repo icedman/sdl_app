@@ -264,6 +264,31 @@ bool editor_view_t::handle_key_sequence(event_t& event)
     update_blocks();
     ensure_visible_cursor();
     relayout_virtual_blocks();
+
+    // check cursor offscreen (yeah, wrapped lines is currently expensive)
+    if (wrapped && editor->document.cursors.size() == 1) {
+        layout_item_ptr lo = layout();
+        layout_item_ptr slo = scrollarea->layout();
+    
+        cursor_t cursor = editor->document.cursor();
+        block_ptr block = cursor.block();
+        for(auto c : subcontent->children) {
+            rich_text_block_t* tb = (rich_text_block_t*)c.get();
+            if (tb->block == block) {
+                int y = tb->layout()->render_rect.y;
+                int pad = block_height * SCROLL_Y_BOTTOM_PAD;
+                if (y > slo->render_rect.y + slo->render_rect.h - pad) {
+                    int diff = (slo->render_rect.y + slo->render_rect.h) - y;
+                    // printf(">>>>%d\n", diff);
+                    slo->scroll_y -= (-diff + pad);
+                    update_blocks();
+                    relayout_virtual_blocks();
+                    update_scrollbars();
+                } 
+                break;
+            }
+        }
+    }
     return true;
 }
 
@@ -386,7 +411,7 @@ int editor_view_t::cursor_x(cursor_t cursor)
 int editor_view_t::cursor_y(cursor_t cursor)
 {
     int lineNumber = cursor.block()->lineNumber;
-    lineNumber -= (visible_blocks / 4);
+    // lineNumber -= (visible_blocks / 4);
     if (lineNumber < 0) {
         lineNumber = 0;
     }
@@ -431,13 +456,14 @@ bool editor_view_t::is_cursor_visible(cursor_t cursor)
 
     int cursor_screen_x = cursor_x(cursor);
     int cursor_screen_y = cursor_y(cursor);
+
+    printf("[%d] [%d]\n", cursor_screen_y, slo->render_rect.h);
+
     cursor_screen_x += slo->scroll_x;
     cursor_screen_y += slo->scroll_y;
 
     point_t p = { slo->render_rect.x + cursor_screen_x + font()->width/2, slo->render_rect.y + cursor_screen_y };
     rect_t r = slo->render_rect;
-
-    printf("[%d] [%d]\n", cursor_screen_y, r.h);
 
     if (slo->scroll_x < 0)
         r.y += (SCROLL_X_LEFT_PAD * font()->width);
