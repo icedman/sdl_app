@@ -377,9 +377,10 @@ void editor_t::runOp(operation_t op)
             cur.eraseText(cur.block()->length());
             cur.mergeNextLine();
             break;
+
         case MOVE_LINE_UP:
-            break;
         case MOVE_LINE_DOWN:
+            // handle at view
             break;
 
         case CLEAR_SELECTION:

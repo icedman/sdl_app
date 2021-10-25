@@ -31,7 +31,10 @@ struct editor_view_t : rich_text_t {
     point_t cursor_xy(cursor_t cursor);
 
     void ensure_visible_cursor();
+    bool is_cursor_visible(cursor_t cursor);
     void scroll_to_cursor(cursor_t cursor);
+    void scroll_up();
+    void scroll_down();
 
     void request_highlight(block_ptr block);
     void start_tasks();

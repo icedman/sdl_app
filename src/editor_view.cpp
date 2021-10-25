@@ -152,10 +152,18 @@ bool editor_view_t::handle_key_sequence(event_t& event)
 
     bool single_block = (editor->document.cursors.size() == 1 && !editor->document.cursor().isMultiBlockSelection());
 
-    // printf("%s %s\n", nameFromOperation(op).c_str(), event.text.c_str());
+    printf("%s %s\n", nameFromOperation(op).c_str(), event.text.c_str());
 
     // special navigation - move this to editor?
     switch (op) {
+    case MOVE_LINE_DOWN: {
+        scroll_down();
+        return true;
+    }
+    case MOVE_LINE_UP: {
+        scroll_up();
+        return true;
+    }
     case MOVE_CURSOR_UP:
     case MOVE_CURSOR_DOWN: {
         block_ptr block = cursor.block();
@@ -410,10 +418,16 @@ point_t editor_view_t::cursor_xy(cursor_t cursor)
 
 void editor_view_t::ensure_visible_cursor()
 {
+    cursor_t cursor = editor->document.cursor();
+    if (!is_cursor_visible(cursor)) {
+        scroll_to_cursor(cursor);
+    }
+}
+
+bool editor_view_t::is_cursor_visible(cursor_t cursor)
+{
     layout_item_ptr lo = layout();
     layout_item_ptr slo = scrollarea->layout();
-
-    cursor_t cursor = editor->document.cursor();
 
     int cursor_screen_x = cursor_x(cursor);
     int cursor_screen_y = cursor_y(cursor);
@@ -423,7 +437,7 @@ void editor_view_t::ensure_visible_cursor()
     point_t p = { slo->render_rect.x + cursor_screen_x + font()->width/2, slo->render_rect.y + cursor_screen_y };
     rect_t r = slo->render_rect;
 
-    printf("[%d] [%d %d]\n", cursor_screen_x, r.x, r.y);
+    printf("[%d] [%d]\n", cursor_screen_y, r.h);
 
     if (slo->scroll_x < 0)
         r.y += (SCROLL_X_LEFT_PAD * font()->width);
@@ -433,11 +447,7 @@ void editor_view_t::ensure_visible_cursor()
         r.y += (SCROLL_Y_TOP_PAD * block_height);
     r.h -= (SCROLL_Y_BOTTOM_PAD) * block_height;
 
-    if (point_in_rect(p, r)) {
-        return;
-    }
-
-    scroll_to_cursor(cursor);
+    return point_in_rect(p, r);
 }
 
 void editor_view_t::scroll_to_cursor(cursor_t cursor)
@@ -481,9 +491,39 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
     slo->scroll_x = scroll_to_x;
     slo->scroll_y = scroll_to_y;
 
-    printf("scroll to x: %d\n", scroll_to_x);
-    printf("scroll to y: %d\n", scroll_to_y);
+    // printf("scroll to x: %d\n", scroll_to_x);
+    // printf("scroll to y: %d\n", scroll_to_y);
 
+    update_scrollbars();
+}
+
+void editor_view_t::scroll_up()
+{
+    cursor_t cursor = editor->document.cursor();
+    cursor.moveEndOfDocument();
+    if (is_cursor_visible(cursor)) {
+        return;
+    }
+
+    layout_item_ptr lo = layout();
+    layout_item_ptr slo = scrollarea->layout();
+    // layout_item_ptr clo = content()->layout();
+    // printf(">%d %d\n", slo->scroll_y - (lo->render_rect.h/2), clo->render_rect.h);
+    slo->scroll_y -= block_height;
+    update_blocks();
+    relayout_virtual_blocks();
+    update_scrollbars();
+}
+
+void editor_view_t::scroll_down()
+{
+    layout_item_ptr slo = scrollarea->layout();
+    slo->scroll_y += block_height;
+    if (slo->scroll_y > 0) {
+        slo->scroll_y = 0;
+    }
+    update_blocks();
+    relayout_virtual_blocks();
     update_scrollbars();
 }
 
