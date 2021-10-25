@@ -156,8 +156,8 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
 
     // find adjacent span
     layout_text_span_t* target = 0;
-    int offset = (cursor.position() - cts->start) * ev->font()->width;
-    int x = cts->render_rect.x + offset;
+    int offset = (cursor.position() - cts->start);
+    int x = cts->render_rect.x + (offset * ev->font()->width);
     int y = cts->render_rect.y;
     if (dir < 0) {
         y -= (ev->block_height * 0.5f);
@@ -176,7 +176,18 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
         }
     }
 
-    if (!target) return false;
+    if (!target) {
+        int x = (cts->render_rect.x - ev->scrollarea->layout()->render_rect.x) / ev->font()->width;
+        if (dir == -1 && block->previous()) {
+            cursor.setPosition(block->previous(), offset + x);
+            return true;
+        }
+        if (dir == 1 && block->next()) {
+            cursor.setPosition(block->next(), offset + x);
+            return true;
+        }
+        return true;
+    }
 
     offset = (target->render_rect.x - x) / ev->font()->width;
     cursor.setPosition(cursor.block(), target->start - offset);
@@ -242,9 +253,10 @@ bool editor_view_t::handle_key_sequence(event_t& event)
             bool up = (op == MOVE_CURSOR_UP || op == MOVE_CURSOR_UP_ANCHORED);
             if (nav_wrapped && _move_cursor(this, cursor, up ? -1 : 1)) {
                     std::ostringstream ss;
-                    ss << (block->lineNumber + 1);
+                    ss << (cursor.block()->lineNumber + 1);
                     ss << ":";
                     ss << cursor.position();
+                    printf(">>%s\n", ss.str().c_str());
                     bool anchor = (op == MOVE_CURSOR_UP_ANCHORED || op == MOVE_CURSOR_DOWN_ANCHORED);
                     editor->pushOp(anchor ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
                     text = "";
