@@ -412,18 +412,21 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
     static std::map<std::string, icon_t> cache;
 
     Json::Value definitions = icons->definition["iconDefinitions"];
+    Json::Value fonts = icons->definition["fonts"];
 
     if (definitions.isMember(_suffix)) {
         Json::Value iconDef = definitions[_suffix];
-        res.path = icons->icons_path + "/" + iconDef["iconPath"].asString();
-        res.svg = true;
-        cache.emplace(_suffix, res);
-        return res;
+
+        if (iconDef.isMember("iconPath")) {
+            res.path = icons->icons_path + "/" + iconDef["iconPath"].asString();
+            res.svg = true;
+
+            cache.emplace(_suffix, res);
+            return res;
+        }
     }
 
     std::string iconName;
-    std::string fontCharacter = "x";
-    std::string fontColor;
 
     // printf("finding icon %s\n", filename.c_str());
 
@@ -480,14 +483,33 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
 
     if (definitions.isMember(iconName)) {
         Json::Value iconDef = definitions[iconName];
-        res.path = icons->icons_path + "/" + iconDef["iconPath"].asString();
-        res.svg = true;
-        cache.emplace(cacheId, res);
-        printf("[%s] [%s]\n", cacheId.c_str(), res.path.c_str());
+
+        if (iconDef.isMember("iconPath")) {
+            res.path = icons->icons_path + "/" + iconDef["iconPath"].asString();
+            if (file_exists(res.path.c_str())) {
+                res.svg = true;
+                cache.emplace(cacheId, res);
+                return res;
+            }
+        }
+
+        if (iconDef.isMember("fontCharacter")) {
+            res.character = iconDef["fontCharacter"].asString();
+            if (fonts.size()) {
+                Json::Value src = fonts[0]["src"];
+                if (src.size()) {
+                    Json::Value path = src[0]["path"];
+                    res.path = icons->icons_path + "/" + path.asString();    
+                    res.svg = false;
+                    cache.emplace(cacheId, res);
+                }
+            }
+        }
+
         return res;
     }
 
-    printf("not found %s\n", iconName.c_str());
+    printf("not found %s\n", filename.c_str());
     return res;
 }
 

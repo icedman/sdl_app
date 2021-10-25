@@ -17,6 +17,7 @@ struct font_t {
     std::string path;
     std::string alias;
     std::function<int(renderer_t* renderer, font_t* font, char* text, int x, int y, color_t clr, bool bold, bool italic, bool underline)> draw_text;
+    std::function<void(renderer_t* renderer, font_t* font, char* text, int len, int *w, int *h)> get_font_extents;
 };
 
 typedef std::shared_ptr<font_t> font_ptr;

@@ -13,6 +13,8 @@
 #endif
 
 font_ptr pango_font_create(std::string name, int size);
+bool pango_register_font(char* text);
+
 font_ptr asteroid_font_create(std::string name, int size);
 
 struct cairo_context_t : image_t {
@@ -214,6 +216,12 @@ image_ptr renderer_t::create_image_from_png(std::string path)
 
     image_cache.push_back(img);
     return img;
+}
+
+bool renderer_t::register_font(std::string path)
+{
+    pango_register_font((char*)path.c_str());
+    return true;
 }
 
 font_ptr renderer_t::create_font(std::string name, int size, std::string alias)

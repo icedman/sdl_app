@@ -20,6 +20,8 @@
 font_ptr pango_font_create(std::string name, int size);
 void pango_font_destroy(font_t*);
 int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, int y, color_t clr, bool bold, bool italic, bool underline);
+void pango_get_font_extents(renderer_t* renderer, font_t* font, const char* text, int len, int* w, int* h);
+bool pango_register_font(char* text);
 
 cairo_t* ctx_cairo_context(context_t* ctx);
 cairo_pattern_t* ctx_cairo_pattern(context_t* ctx);
@@ -48,8 +50,7 @@ struct pango_font_t : font_t {
 };
 
 pango_font_t::pango_font_t()
-{
-}
+{}
 
 pango_font_t::~pango_font_t()
 {
@@ -59,11 +60,31 @@ pango_font_t::~pango_font_t()
     g_object_unref(context);
 }
 
-void pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
+static std::vector<std::string> registered_fonts;
+bool pango_register_font(char* path)
+{
+    for(auto s : registered_fonts) {
+        if (s == path) return true;
+    }
+    
+    registered_fonts.push_back(path);
+    const FcChar8 * fontFile = (const FcChar8 *)path;
+    FcBool fontAddStatus = FcConfigAppFontAddFile(FcConfigGetCurrent(), fontFile);
+    // FcChar8 *configName = FcConfigFilename(NULL);
+    return fontAddStatus;
+}
+
+void _pango_get_font_extents(PangoLayout* layout, int* w, int* h, const char* text, int len)
 {
     pango_layout_set_attributes(layout, nullptr);
     pango_layout_set_text(layout, text, len);
     pango_layout_get_pixel_size(layout, w, h);
+}
+
+void pango_get_font_extents(renderer_t* renderer, font_t* font, const char* text, int len, int* w, int* h)
+{
+    pango_font_t* fnt = (pango_font_t*)(font);
+    _pango_get_font_extents(fnt->layout, w, h, text, len);
 }
 
 glypset_t bake_glyph(pango_font_t* fnt, char* c)
@@ -79,7 +100,7 @@ glypset_t bake_glyph(pango_font_t* fnt, char* c)
     renderer_t renderer;
 
     int _pl = strlen(_p);
-    pango_get_font_extents(fnt->layout, &cw, &ch, _p, _pl);
+    _pango_get_font_extents(fnt->layout, &cw, &ch, _p, _pl);
 
     renderer.init(cw + 1, ch);
 
@@ -110,6 +131,7 @@ font_ptr pango_font_create(char* fdsc, char* alias)
     pango_font_t* fnt = (pango_font_t*)(_f.get());
     // fnt->font_map = pango_cairo_font_map_get_default(); // pango-owned, don't delete
     fnt->font_map = pango_cairo_font_map_new();
+    // fnt->font_map = pango_cairo_font_map_new_for_font_type(CAIRO_FONT_TYPE_FT);
     fnt->context = pango_font_map_create_context(fnt->font_map);
 
 #if 0
@@ -120,7 +142,6 @@ font_ptr pango_font_create(char* fdsc, char* alias)
     cairo_font_options_set_hint_style(font_options, CAIRO_HINT_STYLE_NONE); // NONE DEFAULT SLIGHT MEDIUM FULL
     pango_cairo_context_set_font_options(fnt->context, font_options);
     cairo_font_options_destroy(font_options);
-
 #endif
 
     fnt->layout = pango_layout_new(fnt->context);
@@ -140,14 +161,13 @@ font_ptr pango_font_create(char* fdsc, char* alias)
     glypset_t* set = fnt->set;
 
     PangoFontDescription* font_desc = pango_font_description_from_string(desc.c_str());
-    pango_layout_set_font_description(fnt->layout, nullptr);
     pango_layout_set_font_description(fnt->layout, font_desc);
     pango_font_map_load_font(fnt->font_map, fnt->context, font_desc);
     pango_font_description_free(font_desc);
 
     const char text[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ~!@#$%^&*()-_=+{}[]";
     int len = strlen(text);
-    pango_get_font_extents(fnt->layout, &fnt->width, &fnt->height, text, len);
+    _pango_get_font_extents(fnt->layout, &fnt->width, &fnt->height, text, len);
     fnt->width = ((float)fnt->width / len);
 
 #ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
@@ -171,6 +191,7 @@ font_ptr pango_font_create(char* fdsc, char* alias)
 #endif
 
     fnt->draw_text = pango_font_draw_text;
+    fnt->get_font_extents = pango_get_font_extents;
     return _f;
 }
 
@@ -364,6 +385,12 @@ inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, 
 
     renderer->_draw_count++;
 
+    // int sz = 14;
+    // cairo_select_font_face(cairo_context, "Fira Code",
+    //   CAIRO_FONT_SLANT_NORMAL,
+    //   CAIRO_FONT_WEIGHT_NORMAL);
+    // cairo_set_font_size(cairo_context, sz);
+
 #ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
     for(int ti=0; ti<span.length;) {
         int ln = 1;
@@ -382,17 +409,23 @@ inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, 
             }
         }
         
-        pango_layout_set_text(_pf->layout, text + (span.start + ti), ln);
         cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
         cairo_move_to(cairo_context, x + (span.start + ti) * fnt->width, y);
+        pango_layout_set_text(_pf->layout, text + (span.start + ti), ln);
         pango_cairo_show_layout(cairo_context, _pf->layout);
         ti += ln;
     }
 #else
-    pango_layout_set_text(_pf->layout, text + span.start, span.length);
+
     cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
     cairo_move_to(cairo_context, x + span.start * fnt->width, y);
+    pango_layout_set_text(_pf->layout, text + span.start, span.length);
     pango_cairo_show_layout(cairo_context, _pf->layout);
+
+    // cairo_move_to(cairo_context, x + span.start * fnt->width, y+sz);
+    // std::string t = std::string(text + span.start, span.length);
+    // cairo_show_text(cairo_context, t.c_str());
+
 #endif
 
     if (span.underline) {
@@ -439,7 +472,6 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, 
         return l * fnt->width;
     }
 
-#if 1
     int clen = strlen(text);
     int start = renderer->text_span_idx;
     text_span_t prev;
@@ -487,56 +519,6 @@ int pango_font_draw_text(renderer_t* renderer, font_t* font, char* text, int x, 
 
     prev.length = start + clen - prev.start;
     pango_font_draw_span(renderer, fnt, _s, x, y, prev, clr, bold, italic, underline);
-
-#else
-
-    // draw background and the caret first
-    for (auto s : renderer->text_spans) {
-        if (color_is_set(s.bg)) {
-            rect_t rect = { x + s.start * fnt->width, y, s.length * fnt->width, fnt->height };
-            renderer->draw_rect(rect, s.bg, true);
-        }
-
-        if (s.caret && s.length == 1) {
-            rect_t r = { x + s.start * fnt->width, y, s.length * fnt->width, fnt->height };
-            if (s.caret == 2) {
-                r.x += r.w - CARET_WIDTH;
-            }
-            r.w = CARET_WIDTH;
-            renderer->draw_rect(r, clr);
-        }
-    }
-
-    for (auto s : renderer->text_spans) {
-        if (s.caret || color_is_set(s.bg))
-            continue;
-
-        color_t _clr = clr;
-        if (s.length && color_is_set(s.fg)) {
-            _clr = s.fg;
-        }
-
-        pango_font_t* _pf = fnt;
-        if (s.italic) {
-            _pf = fnt->italic;
-        }
-        if (s.bold) {
-            _pf = fnt->bold;
-        }
-        pango_layout_set_text(_pf->layout, _s + s.start, s.length);
-        cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
-        cairo_move_to(cairo_context, x + s.start * fnt->width, y);
-        pango_cairo_show_layout(cairo_context, _pf->layout);
-
-        if (s.underline) {
-            rect_t r = { x + s.start * fnt->width, y, fnt->width, fnt->height };
-            r.y += r.h - (1 + UNDERLINE_WIDTH);
-            r.h = UNDERLINE_WIDTH;
-            r.w *= s.length;
-            renderer->draw_rect(r, clr);
-        }
-    }
-#endif
 
     return l * fnt->width;
 }

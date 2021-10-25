@@ -13,6 +13,9 @@ struct list_item_data_t {
     int score;
     int index;
 
+    std::string icon_font;
+    color_t icon_color;
+
     bool equals(list_item_data_t d)
     {
         return (value == d.value && text == d.text && icon == d.icon && indent == d.indent && data == d.data);

@@ -77,6 +77,10 @@ void explorer_view_t::update_explorer_data()
             if (app_t::instance()->icons) {
                 ico = icon_for_file(app_t::instance()->icons, f->name, app_t::instance()->extensions);
                 d.icon = ico.path;
+                if (!ico.svg) {
+                    d.icon_font = ico.path;
+                    d.icon = ico.character;
+                }
             }
         }
 

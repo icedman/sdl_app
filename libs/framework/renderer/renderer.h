@@ -49,11 +49,12 @@ struct renderer_t {
     image_ptr create_image_from_svg(std::string path, int w, int h);
     image_ptr create_image_from_png(std::string path);
 
+    bool register_font(std::string path);
     font_ptr create_font(std::string name, int size, std::string alias = "");
     void set_default_font(font_ptr font);
     font_ptr default_font();
     font_ptr font(std::string alias);
-
+    
     context_ptr create_context(int w, int h);
 
     void clear(color_t clr);

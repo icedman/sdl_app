@@ -42,6 +42,9 @@ struct icon_theme_t {
 struct icon_t {
     std::string path;
     std::string character;
+    int r;
+    int g;
+    int b;
     bool svg;
 };
 
