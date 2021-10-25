@@ -16,6 +16,7 @@ struct panel_t : vertical_container_t {
 
     virtual view_ptr content() override;
 
+    void update() override;
     void _validate();
 
     virtual void postlayout() override;
@@ -26,6 +27,9 @@ struct panel_t : vertical_container_t {
     void scroll_to_bottom();
 
     void update_scrollbars();
+
+    int wheel_x;
+    int wheel_y;
 };
 
 #endif // PANEL_VIEW_H

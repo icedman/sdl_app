@@ -20,8 +20,7 @@ void render_layout_item(renderer_t* renderer, layout_item_ptr item);
 extern "C" int main(int argc, char** argv)
 {
     system_t* sys = system_t::instance();
-    damage_t* dmg = damage_t::instance();
-    // dmg = NULL;
+    damage_t* dmg = NULL; // disabled initially
 
     renderer_t* renderer = &sys->renderer;
     events_manager_t* events_manager = events_manager_t::instance();
@@ -47,11 +46,6 @@ extern "C" int main(int argc, char** argv)
 
     view_ptr root = test(argc, argv);
     root->add_child(popup_manager_t::instance());
-
-    // quick first render
-    renderer->begin_frame();
-    renderer->clear(renderer->background);
-    renderer->end_frame();
 
     int suspend_frame_skipping = 0;
     bool did_layout = true;
@@ -87,7 +81,7 @@ extern "C" int main(int argc, char** argv)
         }
 
         // todo control skipping with actual framerate (throttling)
-        bool skip_frames = true;
+        bool skip_frames = !did_layout;
         if (skip_frames) {
             if (frames++ > FRAME_SKIP_INTERVAL) {
                 skip_frames = false;
@@ -141,6 +135,9 @@ extern "C" int main(int argc, char** argv)
             if (dmg) {
                 dmg->clear();
             }
+
+            dmg = damage_t::instance();
+            // dmg = NULL;
 
             skipped = 0;
         } else {

@@ -254,7 +254,7 @@ void rich_text_t::relayout_virtual_blocks()
     tail_spacer->layout()->height = (blocks_count - visible_blocks) * block_height;
 
     scrollarea->cast<scrollarea_t>()->scroll_factor_x = font()->width;
-    scrollarea->cast<scrollarea_t>()->scroll_factor_y = font()->height * 1.25f;
+    scrollarea->cast<scrollarea_t>()->scroll_factor_y = font()->height * 0.25f;
 
     first_visible = -slo->scroll_y / block_height;
 
@@ -339,7 +339,6 @@ bool rich_text_t::handle_scrollbar_move(event_t& event)
     defer_relayout = DEFER_LAYOUT_FRAMES;
     return panel_t::handle_scrollbar_move(event);
 }
-
 
 int rich_text_t::cursor_x(cursor_t cursor)
 {

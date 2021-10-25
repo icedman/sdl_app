@@ -40,6 +40,7 @@ struct view_t : events_manager_t, event_object_t {
     virtual void prerender();
     virtual void render(renderer_t* renderer);
     virtual void render_frame(renderer_t* renderer);
+    virtual void refresh() {}
 
     template <class T>
     static T* cast(view_ptr v) { return (T*)(v.get()); };

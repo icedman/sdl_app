@@ -26,6 +26,8 @@ struct editor_view_t : rich_text_t {
     virtual bool handle_mouse_down(event_t& event);
     virtual bool handle_mouse_move(event_t& event);
 
+    void refresh() override;
+
     void request_highlight(block_ptr block);
     void start_tasks();
     void stop_tasks();

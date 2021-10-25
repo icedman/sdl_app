@@ -93,6 +93,8 @@ void app_view_t::update()
             create_editor(e);
         }
     }
+
+    view_t::update();
 }
 
 void app_view_t::configure(int argc, char** argv)

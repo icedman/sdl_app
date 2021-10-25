@@ -129,13 +129,15 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
         return false;
 
     // find rich text
-    rich_text_block_t* ctb = 0;
+    rich_text_block_t* ctb = NULL;
+    rich_text_block_t* pctb = NULL;
     for(auto c : ev->subcontent->children) {
         rich_text_block_t* tb = (rich_text_block_t*)c.get();
         if (tb->block == block) {
             ctb = tb;
             break;
         }
+        pctb = tb;
     }
 
     if (!ctb) return false;
@@ -154,6 +156,15 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
 
     if (!cts) return false;
 
+    // if move up to previous block
+    int loop = 1;
+    if (dir == -1 && cts->rect.y == 0 && pctb && pctb->block->lineCount > 1) {
+        ctb = pctb;
+        loop = 2;
+    }
+
+    if (!ctb) return false;
+
     // find adjacent span
     layout_text_span_t* target = 0;
     int offset = (cursor.position() - cts->start);
@@ -164,16 +175,21 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
     } else {
         y += (ev->block_height * 1.5f);
     }
-    point_t p = { x, y };
-    for (auto span : ctb->layout()->children) {
-        layout_text_span_t* text_span = (layout_text_span_t*)span.get();
-        if (!text_span->visible)
-            continue;
-        
-        if (point_in_rect(p, text_span->render_rect)) {
-            target = text_span;
-            break;
+
+    // find a hit
+    for(int i=0;i<loop;i++) {
+        point_t p = { x, y };
+        for (auto span : ctb->layout()->children) {
+            layout_text_span_t* text_span = (layout_text_span_t*)span.get();
+            if (!text_span->visible)
+                continue;
+            if (point_in_rect(p, text_span->render_rect)) {
+                target = text_span;
+                break;
+            }
         }
+        if (target) break;
+        y -= ev->block_height;
     }
 
     if (!target) {
@@ -190,7 +206,7 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
     }
 
     offset = (target->render_rect.x - x) / ev->font()->width;
-    cursor.setPosition(cursor.block(), target->start - offset);
+    cursor.setPosition(ctb->block, target->start - offset);
     return true;
 }
 
@@ -248,9 +264,10 @@ bool editor_view_t::handle_key_sequence(event_t& event)
     case MOVE_CURSOR_UP:
     case MOVE_CURSOR_DOWN: {
         if (wrapped) {
-            block_ptr block = cursor.block();
-            bool nav_wrapped = block->lineCount > 1;
             bool up = (op == MOVE_CURSOR_UP || op == MOVE_CURSOR_UP_ANCHORED);
+            block_ptr block = cursor.block();
+            block_ptr prev = block->previous();
+            bool nav_wrapped = block->lineCount > 1 || (prev && prev->lineCount > 1 && up);
             if (nav_wrapped && _move_cursor(this, cursor, up ? -1 : 1)) {
                     std::ostringstream ss;
                     ss << (cursor.block()->lineNumber + 1);
@@ -465,6 +482,12 @@ bool editor_view_t::handle_mouse_move(event_t& event)
     return true;
 }
 
+void editor_view_t::refresh()
+{
+    update_blocks();
+    relayout_virtual_blocks();
+}
+
 view_ptr editor_view_t::gutter()
 {
     if (!_gutter) {
@@ -507,5 +530,12 @@ view_ptr editor_view_t::search()
 
 void editor_view_t::request_highlight(block_ptr block)
 {
+    if ((wheel_y > 100 || wheel_y < -100) ||
+        is_dragged(v_scroll.get()) || 
+        is_dragged(v_scroll->content().get()) || 
+        is_dragged(_minimap.get())) {
+        // printf("busy..\n");
+        return;
+    }
     ((highlighter_task_t*)(task.get()))->hl.push_back(block);
 }

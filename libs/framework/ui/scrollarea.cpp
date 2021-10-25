@@ -2,7 +2,7 @@
 #include "damage.h"
 #include "renderer.h"
 
-#define SCROLL_FACTOR 16
+#define SCROLL_FACTOR 4
 
 scrollarea_t::scrollarea_t()
     : view_t()

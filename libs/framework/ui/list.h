@@ -72,8 +72,8 @@ struct list_t : panel_t {
     list_item_data_t selected_data;
     int selected_index;
 
-    bool handle_mouse_wheel(event_t& event);
-    bool handle_scrollbar_move(event_t& event);
+    bool handle_mouse_wheel(event_t& event) override;
+    bool handle_scrollbar_move(event_t& event) override;
     int content_hash(bool peek) override;
 
     int defer_relayout;
