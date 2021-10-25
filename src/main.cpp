@@ -1,3 +1,4 @@
+// void render_layout_item(renderer_t* renderer, layout_item_ptr item); void render_layout_item(renderer_t* renderer, layout_item_ptr item);
 #include <stdio.h>
 #include <string.h>
 
@@ -39,7 +40,7 @@ extern "C" int main(int argc, char** argv)
 
     int skipped = 0;
 
-    // renderer->create_font("Source Code Pro", 12, "ui");
+    renderer->create_font("Source Code Pro", 12, "ui");
     renderer->create_font("Fira Code", 14, "editor");
 
     sys->init();

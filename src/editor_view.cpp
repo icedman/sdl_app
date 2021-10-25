@@ -9,6 +9,8 @@
 #include "system.h"
 #include "text.h"
 
+#define SCROLL_X_LEFT_PAD 2
+#define SCROLL_X_RIGHT_PAD (SCROLL_X_LEFT_PAD + 2)
 #define SCROLL_Y_TOP_PAD 2
 #define SCROLL_Y_BOTTOM_PAD (SCROLL_Y_TOP_PAD + 4)
 #define PRE_VISIBLE_HL 20
@@ -75,7 +77,8 @@ bool highlighter_task_t::run(int limit)
 
 editor_view_t::editor_view_t()
     : rich_text_t()
-    , scroll_to(-1)
+    , scroll_to_x(-1)
+    , scroll_to_y(-1)
 {
     can_focus = true;
     draw_cursors = true;
@@ -412,16 +415,23 @@ void editor_view_t::ensure_visible_cursor()
 
     cursor_t cursor = editor->document.cursor();
 
+    int cursor_screen_x = cursor_x(cursor);
     int cursor_screen_y = cursor_y(cursor);
+    cursor_screen_x += slo->scroll_x;
     cursor_screen_y += slo->scroll_y;
 
-    point_t p = { lo->render_rect.x + lo->render_rect.w / 2, cursor_screen_y };
-    rect_t r = lo->render_rect;
-    r.y -= block_height;
+    point_t p = { slo->render_rect.x + cursor_screen_x + font()->width/2, slo->render_rect.y + cursor_screen_y };
+    rect_t r = slo->render_rect;
+
+    printf("[%d] [%d %d]\n", cursor_screen_x, r.x, r.y);
+
+    if (slo->scroll_x < 0)
+        r.y += (SCROLL_X_LEFT_PAD * font()->width);
+    r.w -= (SCROLL_X_RIGHT_PAD) * font()->width;
 
     if (slo->scroll_y < 0)
         r.y += (SCROLL_Y_TOP_PAD * block_height);
-    r.h -= (SCROLL_Y_BOTTOM_PAD + 1) * block_height;
+    r.h -= (SCROLL_Y_BOTTOM_PAD) * block_height;
 
     if (point_in_rect(p, r)) {
         return;
@@ -434,32 +444,45 @@ void editor_view_t::scroll_to_cursor(cursor_t cursor)
 {
     layout_item_ptr lo = layout();
     layout_item_ptr slo = scrollarea->layout();
-    int prev = slo->scroll_y;
+    int prev_scroll_x = slo->scroll_x;
+    int prev_scroll_y = slo->scroll_y;
 
-    scroll_to = -cursor_y(cursor);
-    if (slo->scroll_y < 0)
-        scroll_to += (SCROLL_Y_TOP_PAD * block_height);
-
-    if (scroll_to > 0) {
-        scroll_to = 0;
+    scroll_to_x = -cursor_x(cursor);
+    if (slo->scroll_x < 0)
+        scroll_to_x += (SCROLL_X_LEFT_PAD * font()->width);
+    if (scroll_to_x > 0) {
+        scroll_to_x = 0;
     }
 
-    if (prev > scroll_to) {
+    if (prev_scroll_x > scroll_to_x) {
+        scroll_to_x += slo->render_rect.w/2;// - ((SCROLL_X_RIGHT_PAD + 8)* font()->width);
+    }
+    
+    scroll_to_y = -cursor_y(cursor);
+    if (slo->scroll_y < 0)
+        scroll_to_y += (SCROLL_Y_TOP_PAD * block_height);
+    if (scroll_to_y > 0) {
+        scroll_to_y = 0;
+    }
+
+    if (prev_scroll_y > scroll_to_y) {
         int y = lo->render_rect.h - (block_height * SCROLL_Y_BOTTOM_PAD);
         block_ptr block = cursor.block();
         while (block && y > 0) {
             if (block->lineCount == 0) {
                 block->lineCount = 1;
             }
-            scroll_to += block->lineCount * block_height;
+            scroll_to_y += block->lineCount * block_height;
             y -= block->lineCount * block_height;
             block = block->previous();
         }
     }
 
-    slo->scroll_y = scroll_to;
+    slo->scroll_x = scroll_to_x;
+    slo->scroll_y = scroll_to_y;
 
-    printf("scroll to: %d\n", scroll_to);
+    printf("scroll to x: %d\n", scroll_to_x);
+    printf("scroll to y: %d\n", scroll_to_y);
 
     update_scrollbars();
 }

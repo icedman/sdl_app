@@ -46,7 +46,8 @@ struct editor_view_t : rich_text_t {
     view_ptr _completer;
 
     point_t mouse_xy;
-    int scroll_to;
+    int scroll_to_x;
+    int scroll_to_y;
 
     task_ptr task;
 };

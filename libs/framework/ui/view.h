@@ -13,7 +13,7 @@
 
 #define STATE_HASH_SEED 0x0f
 #define CONTENT_HASH_SEED 0x0e
-#define DEFER_LAYOUT_FRAMES 2
+#define DEFER_LAYOUT_FRAMES 1
 
 struct font_t;
 struct renderer_t;

@@ -557,9 +557,9 @@ void _layout_compute_absolute_position(layout_item_ptr item)
 
 void layout_compute_absolute_position(layout_item_ptr item)
 {
-    items_computed = 0;
+    // items_computed = 0;
     _layout_compute_absolute_position(item);
-    _LOG("%s %d\n", item->name.c_str(), items_computed);
+    // _LOG("%s %d\n", item->name.c_str(), items_computed);
 }
 
 void layout_clear_hash(layout_item_ptr item, int depth)
@@ -596,7 +596,7 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
     postlayout_run(item);
     layout_compute_absolute_position(item);
 
-    _LOG("%s %d\n", item->name.c_str(), items_visited);
+    // _LOG("%s %d\n", item->name.c_str(), items_visited);
 }
 
 static bool compare_item_order(layout_item_ptr f1, layout_item_ptr f2)
