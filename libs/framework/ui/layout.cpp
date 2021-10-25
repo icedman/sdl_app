@@ -8,6 +8,12 @@
 static int items_visited = 0;
 static int items_computed = 0;
 
+/*
+TODO:
+margins not working properly
+improve fit-children
+*/
+
 void _layout_run(layout_item_ptr item, constraint_t constraint);
 
 void layout_reverse_items(layout_item_ptr item, int constraint)

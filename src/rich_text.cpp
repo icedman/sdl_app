@@ -233,6 +233,11 @@ void rich_text_t::relayout_virtual_blocks()
 {
     // moving this code to prelayout.. is explensive (as relayout is often called multiple times)
     layout_item_ptr lo = layout();
+    layout_item_ptr slo = scrollarea->layout();
+
+    if (editor->singleLineEdit) {
+        slo->scroll_y = 0;
+    }
 
     int blocks_count = editor->document.blocks.size();
     block_height = font()->height;
@@ -247,8 +252,6 @@ void rich_text_t::relayout_virtual_blocks()
     }
 
     tail_spacer->layout()->height = (blocks_count - visible_blocks) * block_height;
-
-    layout_item_ptr slo = scrollarea->layout();
 
     scrollarea->cast<scrollarea_t>()->scroll_factor_x = font()->width;
     scrollarea->cast<scrollarea_t>()->scroll_factor_y = font()->height * 1.25f;
@@ -456,6 +459,7 @@ void rich_text_t::scroll_to_cursor(cursor_t cursor)
     }
     
     scroll_to_y = -cursor_y(cursor);
+    
     if (slo->scroll_y < 0)
         scroll_to_y += (SCROLL_Y_TOP_PAD * block_height);
     if (scroll_to_y > 0) {

@@ -38,10 +38,12 @@ commands_t::commands_t()
     can_focus = true;
 
     layout()->margin_top = 4;
+    layout()->width = 400;
 
     view_ptr vc = std::make_shared<vertical_container_t>();
 
     input = std::make_shared<input_text_t>();
+
     list = std::make_shared<list_t>();
     list->cast<list_t>()->tail_pad = 0;
 
@@ -75,7 +77,6 @@ commands_t::commands_t()
 bool commands_t::update_data()
 {
     input->cast<input_text_t>()->draw_cursors = true;
-    layout()->width = 400;
     return true;
 }
 

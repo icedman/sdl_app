@@ -6,6 +6,7 @@ input_text_t::input_text_t()
     , mouse_x(0)
     , mouse_y(0)
 {
+    wrapped = false;
     can_focus = true;
     draw_cursors = true;
     editor->singleLineEdit = true;
@@ -96,7 +97,7 @@ bool input_text_t::handle_key_sequence(event_t& event)
     }
 
     update_blocks();
-    // ensure_visible_cursor();
+    ensure_visible_cursor();
     relayout_virtual_blocks();
     return true;
 }
@@ -109,10 +110,10 @@ bool input_text_t::handle_key_text(event_t& event)
 
     editor->pushOp(INSERT, event.text);
     editor->runAllOps();
-    update_blocks();
-    // ensure_visible_cursor();
-    relayout_virtual_blocks();
 
+    update_blocks();
+    ensure_visible_cursor();
+    relayout_virtual_blocks();
     return true;
 }
 
