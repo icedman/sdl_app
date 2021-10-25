@@ -5,6 +5,11 @@
 #include "system.h"
 #include "text.h"
 
+#define SCROLL_X_LEFT_PAD 2
+#define SCROLL_X_RIGHT_PAD (SCROLL_X_LEFT_PAD + 2)
+#define SCROLL_Y_TOP_PAD 2
+#define SCROLL_Y_BOTTOM_PAD (SCROLL_Y_TOP_PAD + 4)
+
 #define VISIBLE_BLOCKS_PAD 4
 
 rich_text_block_t::rich_text_block_t()
@@ -18,6 +23,8 @@ rich_text_t::rich_text_t()
     , wrapped(true)
     , draw_cursors(false)
     , defer_relayout(DEFER_LAYOUT_FRAMES)
+    , scroll_to_x(-1)
+    , scroll_to_y(-1)
 {
     editor = std::make_shared<editor_t>();
     layout()->name = "rich_text";
@@ -328,4 +335,181 @@ bool rich_text_t::handle_scrollbar_move(event_t& event)
 {
     defer_relayout = DEFER_LAYOUT_FRAMES;
     return panel_t::handle_scrollbar_move(event);
+}
+
+
+int rich_text_t::cursor_x(cursor_t cursor)
+{
+    return cursor.position() * font()->width;
+}
+
+int rich_text_t::cursor_y(cursor_t cursor)
+{
+    int lineNumber = cursor.block()->lineNumber;
+    // lineNumber -= (visible_blocks / 4);
+    if (lineNumber < 0) {
+        lineNumber = 0;
+    }
+
+    block_ptr block = editor->document.blockAtLine(lineNumber);
+    if (!block) {
+        return 0;
+    }
+
+    int y = block->lineNumber * block_height;
+    for (int i = 0; i < visible_blocks && block; i++) {
+        if (block == cursor.block()) {
+            break;
+        }
+        if (!block->lineCount) {
+            block->lineCount = 1;
+        }
+        y += (block->lineCount * block_height);
+        block = block->next();
+    }
+
+    return y;
+}
+
+point_t rich_text_t::cursor_xy(cursor_t cursor)
+{
+    return { cursor_x(cursor), cursor_y(cursor) };
+}
+
+void rich_text_t::ensure_visible_cursor()
+{
+    cursor_t cursor = editor->document.cursor();
+    if (!is_cursor_visible(cursor)) {
+        scroll_to_cursor(cursor);
+
+        // check cursor offscreen (yeah, wrapped lines is currently expensive)
+        if (wrapped && editor->document.cursors.size() == 1) {
+            relayout_virtual_blocks();
+            layout_item_ptr lo = layout();
+            layout_item_ptr slo = scrollarea->layout();
+        
+            cursor_t cursor = editor->document.cursor();
+            block_ptr block = cursor.block();
+            for(auto c : subcontent->children) {
+                rich_text_block_t* tb = (rich_text_block_t*)c.get();
+                if (tb->block == block) {
+                    int y = tb->layout()->render_rect.y;
+                    int pad = block_height * SCROLL_Y_BOTTOM_PAD;
+                    if (y > slo->render_rect.y + slo->render_rect.h - pad) {
+                        int diff = (slo->render_rect.y + slo->render_rect.h) - y;
+                        // printf(">>>>%d\n", diff);
+                        slo->scroll_y -= (-diff + pad);
+                        update_blocks();
+                        relayout_virtual_blocks();
+                        update_scrollbars();
+                    } 
+                    break;
+                }
+            }
+        }
+    }
+}
+
+bool rich_text_t::is_cursor_visible(cursor_t cursor)
+{
+    layout_item_ptr lo = layout();
+    layout_item_ptr slo = scrollarea->layout();
+
+    int cursor_screen_x = cursor_x(cursor);
+    int cursor_screen_y = cursor_y(cursor);
+
+    printf("[%d] [%d]\n", cursor_screen_y, slo->render_rect.h);
+
+    cursor_screen_x += slo->scroll_x;
+    cursor_screen_y += slo->scroll_y;
+
+    point_t p = { slo->render_rect.x + cursor_screen_x + font()->width/2, slo->render_rect.y + cursor_screen_y };
+    rect_t r = slo->render_rect;
+
+    if (slo->scroll_x < 0)
+        r.y += (SCROLL_X_LEFT_PAD * font()->width);
+    r.w -= (SCROLL_X_RIGHT_PAD) * font()->width;
+
+    if (slo->scroll_y < 0)
+        r.y += (SCROLL_Y_TOP_PAD * block_height);
+    r.h -= (SCROLL_Y_BOTTOM_PAD) * block_height;
+
+    return point_in_rect(p, r);
+}
+
+void rich_text_t::scroll_to_cursor(cursor_t cursor)
+{
+    layout_item_ptr lo = layout();
+    layout_item_ptr slo = scrollarea->layout();
+    int prev_scroll_x = slo->scroll_x;
+    int prev_scroll_y = slo->scroll_y;
+
+    scroll_to_x = -cursor_x(cursor);
+    if (slo->scroll_x < 0)
+        scroll_to_x += (SCROLL_X_LEFT_PAD * font()->width);
+    if (scroll_to_x > 0) {
+        scroll_to_x = 0;
+    }
+
+    if (prev_scroll_x > scroll_to_x) {
+        scroll_to_x += slo->render_rect.w/2;// - ((SCROLL_X_RIGHT_PAD + 8)* font()->width);
+    }
+    
+    scroll_to_y = -cursor_y(cursor);
+    if (slo->scroll_y < 0)
+        scroll_to_y += (SCROLL_Y_TOP_PAD * block_height);
+    if (scroll_to_y > 0) {
+        scroll_to_y = 0;
+    }
+
+    if (prev_scroll_y > scroll_to_y) {
+        int y = lo->render_rect.h - (block_height * SCROLL_Y_BOTTOM_PAD);
+        block_ptr block = cursor.block();
+        while (block && y > 0) {
+            if (block->lineCount == 0) {
+                block->lineCount = 1;
+            }
+            scroll_to_y += block->lineCount * block_height;
+            y -= block->lineCount * block_height;
+            block = block->previous();
+        }
+    }
+
+    slo->scroll_x = scroll_to_x;
+    slo->scroll_y = scroll_to_y;
+
+    // printf("scroll to x: %d\n", scroll_to_x);
+    // printf("scroll to y: %d\n", scroll_to_y);
+
+    update_scrollbars();
+}
+
+void rich_text_t::scroll_up()
+{
+    cursor_t cursor = editor->document.cursor();
+    cursor.moveEndOfDocument();
+    if (is_cursor_visible(cursor)) {
+        return;
+    }
+
+    layout_item_ptr lo = layout();
+    layout_item_ptr slo = scrollarea->layout();
+    // layout_item_ptr clo = content()->layout();
+    // printf(">%d %d\n", slo->scroll_y - (lo->render_rect.h/2), clo->render_rect.h);
+    slo->scroll_y -= block_height;
+    update_blocks();
+    relayout_virtual_blocks();
+    update_scrollbars();
+}
+
+void rich_text_t::scroll_down()
+{
+    layout_item_ptr slo = scrollarea->layout();
+    slo->scroll_y += block_height;
+    if (slo->scroll_y > 0) {
+        slo->scroll_y = 0;
+    }
+    update_blocks();
+    relayout_virtual_blocks();
+    update_scrollbars();
 }

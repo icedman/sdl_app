@@ -34,6 +34,16 @@ struct rich_text_t : panel_t {
     virtual bool handle_mouse_wheel(event_t& event) override;
     virtual bool handle_scrollbar_move(event_t& event) override;
 
+    int cursor_x(cursor_t cursor);
+    int cursor_y(cursor_t cursor);
+    point_t cursor_xy(cursor_t cursor);
+
+    void ensure_visible_cursor();
+    bool is_cursor_visible(cursor_t cursor);
+    void scroll_to_cursor(cursor_t cursor);
+    void scroll_up();
+    void scroll_down();
+
     view_ptr lead_spacer;
     view_ptr tail_spacer;
     view_ptr subcontent;
@@ -47,6 +57,9 @@ struct rich_text_t : panel_t {
     color_t fg;
     color_t bg;
     color_t sel;
+
+    int scroll_to_x;
+    int scroll_to_y;
 
     int defer_relayout;
 };

@@ -26,16 +26,6 @@ struct editor_view_t : rich_text_t {
     virtual bool handle_mouse_down(event_t& event);
     virtual bool handle_mouse_move(event_t& event);
 
-    int cursor_x(cursor_t cursor);
-    int cursor_y(cursor_t cursor);
-    point_t cursor_xy(cursor_t cursor);
-
-    void ensure_visible_cursor();
-    bool is_cursor_visible(cursor_t cursor);
-    void scroll_to_cursor(cursor_t cursor);
-    void scroll_up();
-    void scroll_down();
-
     void request_highlight(block_ptr block);
     void start_tasks();
     void stop_tasks();
@@ -43,14 +33,14 @@ struct editor_view_t : rich_text_t {
     view_ptr gutter();
     view_ptr minimap();
     view_ptr completer();
+    view_ptr search();
 
     view_ptr _gutter;
     view_ptr _minimap;
     view_ptr _completer;
+    view_ptr _search;
 
     point_t mouse_xy;
-    int scroll_to_x;
-    int scroll_to_y;
 
     task_ptr task;
 };

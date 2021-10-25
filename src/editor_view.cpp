@@ -1,5 +1,6 @@
 #include "editor_view.h"
 #include "completer_view.h"
+#include "search_view.h"
 #include "damage.h"
 #include "gutter.h"
 #include "hash.h"
@@ -7,12 +8,9 @@
 #include "minimap.h"
 #include "popup.h"
 #include "system.h"
+#include "system.h"
 #include "text.h"
 
-#define SCROLL_X_LEFT_PAD 2
-#define SCROLL_X_RIGHT_PAD (SCROLL_X_LEFT_PAD + 2)
-#define SCROLL_Y_TOP_PAD 2
-#define SCROLL_Y_BOTTOM_PAD (SCROLL_Y_TOP_PAD + 4)
 #define PRE_VISIBLE_HL 20
 #define POST_VISIBLE_HL 100
 #define MAX_HL_BUCKET ((PRE_VISIBLE_HL + POST_VISIBLE_HL) * 4)
@@ -77,8 +75,6 @@ bool highlighter_task_t::run(int limit)
 
 editor_view_t::editor_view_t()
     : rich_text_t()
-    , scroll_to_x(-1)
-    , scroll_to_y(-1)
 {
     can_focus = true;
     draw_cursors = true;
@@ -204,6 +200,27 @@ bool editor_view_t::handle_key_sequence(event_t& event)
 
     // special navigation - move this to editor?
     switch (op) {
+    case POPUP_SEARCH: {
+        search_view_t* srch = search()->cast<search_view_t>();
+        std::string text = "";
+        if (cursor.hasSelection() && !cursor.isMultiBlockSelection()) {
+            text = cursor.selectedText();
+        }
+        if (srch->update_data(text)) {
+            view_ptr _pm = popup_manager_t::instance();
+            popup_manager_t* pm = _pm->cast<popup_manager_t>();
+            pm->clear();
+
+            point_t pos = {
+                scrollarea->layout()->render_rect.x + scrollarea->layout()->render_rect.w,
+                scrollarea->layout()->render_rect.y
+            };
+            rect_t rect = { pos.x, pos.y, font()->width, font()->height };
+            pm->push_at(search(), rect, POPUP_DIRECTION_LEFT);
+        }
+        return true;
+    }
+
     case MOVE_LINE_DOWN: {
         scroll_down();
         return true;
@@ -433,182 +450,6 @@ bool editor_view_t::handle_mouse_move(event_t& event)
     return true;
 }
 
-int editor_view_t::cursor_x(cursor_t cursor)
-{
-    return cursor.position() * font()->width;
-}
-
-int editor_view_t::cursor_y(cursor_t cursor)
-{
-    int lineNumber = cursor.block()->lineNumber;
-    // lineNumber -= (visible_blocks / 4);
-    if (lineNumber < 0) {
-        lineNumber = 0;
-    }
-
-    block_ptr block = editor->document.blockAtLine(lineNumber);
-    if (!block) {
-        return 0;
-    }
-
-    int y = block->lineNumber * block_height;
-    for (int i = 0; i < visible_blocks && block; i++) {
-        if (block == cursor.block()) {
-            break;
-        }
-        if (!block->lineCount) {
-            block->lineCount = 1;
-        }
-        y += (block->lineCount * block_height);
-        block = block->next();
-    }
-
-    return y;
-}
-
-point_t editor_view_t::cursor_xy(cursor_t cursor)
-{
-    return { cursor_x(cursor), cursor_y(cursor) };
-}
-
-void editor_view_t::ensure_visible_cursor()
-{
-    cursor_t cursor = editor->document.cursor();
-    if (!is_cursor_visible(cursor)) {
-        scroll_to_cursor(cursor);
-
-        // check cursor offscreen (yeah, wrapped lines is currently expensive)
-        if (wrapped && editor->document.cursors.size() == 1) {
-            relayout_virtual_blocks();
-            layout_item_ptr lo = layout();
-            layout_item_ptr slo = scrollarea->layout();
-        
-            cursor_t cursor = editor->document.cursor();
-            block_ptr block = cursor.block();
-            for(auto c : subcontent->children) {
-                rich_text_block_t* tb = (rich_text_block_t*)c.get();
-                if (tb->block == block) {
-                    int y = tb->layout()->render_rect.y;
-                    int pad = block_height * SCROLL_Y_BOTTOM_PAD;
-                    if (y > slo->render_rect.y + slo->render_rect.h - pad) {
-                        int diff = (slo->render_rect.y + slo->render_rect.h) - y;
-                        // printf(">>>>%d\n", diff);
-                        slo->scroll_y -= (-diff + pad);
-                        update_blocks();
-                        relayout_virtual_blocks();
-                        update_scrollbars();
-                    } 
-                    break;
-                }
-            }
-        }
-    }
-}
-
-bool editor_view_t::is_cursor_visible(cursor_t cursor)
-{
-    layout_item_ptr lo = layout();
-    layout_item_ptr slo = scrollarea->layout();
-
-    int cursor_screen_x = cursor_x(cursor);
-    int cursor_screen_y = cursor_y(cursor);
-
-    printf("[%d] [%d]\n", cursor_screen_y, slo->render_rect.h);
-
-    cursor_screen_x += slo->scroll_x;
-    cursor_screen_y += slo->scroll_y;
-
-    point_t p = { slo->render_rect.x + cursor_screen_x + font()->width/2, slo->render_rect.y + cursor_screen_y };
-    rect_t r = slo->render_rect;
-
-    if (slo->scroll_x < 0)
-        r.y += (SCROLL_X_LEFT_PAD * font()->width);
-    r.w -= (SCROLL_X_RIGHT_PAD) * font()->width;
-
-    if (slo->scroll_y < 0)
-        r.y += (SCROLL_Y_TOP_PAD * block_height);
-    r.h -= (SCROLL_Y_BOTTOM_PAD) * block_height;
-
-    return point_in_rect(p, r);
-}
-
-void editor_view_t::scroll_to_cursor(cursor_t cursor)
-{
-    layout_item_ptr lo = layout();
-    layout_item_ptr slo = scrollarea->layout();
-    int prev_scroll_x = slo->scroll_x;
-    int prev_scroll_y = slo->scroll_y;
-
-    scroll_to_x = -cursor_x(cursor);
-    if (slo->scroll_x < 0)
-        scroll_to_x += (SCROLL_X_LEFT_PAD * font()->width);
-    if (scroll_to_x > 0) {
-        scroll_to_x = 0;
-    }
-
-    if (prev_scroll_x > scroll_to_x) {
-        scroll_to_x += slo->render_rect.w/2;// - ((SCROLL_X_RIGHT_PAD + 8)* font()->width);
-    }
-    
-    scroll_to_y = -cursor_y(cursor);
-    if (slo->scroll_y < 0)
-        scroll_to_y += (SCROLL_Y_TOP_PAD * block_height);
-    if (scroll_to_y > 0) {
-        scroll_to_y = 0;
-    }
-
-    if (prev_scroll_y > scroll_to_y) {
-        int y = lo->render_rect.h - (block_height * SCROLL_Y_BOTTOM_PAD);
-        block_ptr block = cursor.block();
-        while (block && y > 0) {
-            if (block->lineCount == 0) {
-                block->lineCount = 1;
-            }
-            scroll_to_y += block->lineCount * block_height;
-            y -= block->lineCount * block_height;
-            block = block->previous();
-        }
-    }
-
-    slo->scroll_x = scroll_to_x;
-    slo->scroll_y = scroll_to_y;
-
-    // printf("scroll to x: %d\n", scroll_to_x);
-    // printf("scroll to y: %d\n", scroll_to_y);
-
-    update_scrollbars();
-}
-
-void editor_view_t::scroll_up()
-{
-    cursor_t cursor = editor->document.cursor();
-    cursor.moveEndOfDocument();
-    if (is_cursor_visible(cursor)) {
-        return;
-    }
-
-    layout_item_ptr lo = layout();
-    layout_item_ptr slo = scrollarea->layout();
-    // layout_item_ptr clo = content()->layout();
-    // printf(">%d %d\n", slo->scroll_y - (lo->render_rect.h/2), clo->render_rect.h);
-    slo->scroll_y -= block_height;
-    update_blocks();
-    relayout_virtual_blocks();
-    update_scrollbars();
-}
-
-void editor_view_t::scroll_down()
-{
-    layout_item_ptr slo = scrollarea->layout();
-    slo->scroll_y += block_height;
-    if (slo->scroll_y > 0) {
-        slo->scroll_y = 0;
-    }
-    update_blocks();
-    relayout_virtual_blocks();
-    update_scrollbars();
-}
-
 view_ptr editor_view_t::gutter()
 {
     if (!_gutter) {
@@ -639,6 +480,14 @@ view_ptr editor_view_t::completer()
         _completer = std::make_shared<completer_t>(this);
     }
     return _completer;
+}
+
+view_ptr editor_view_t::search()
+{
+    if (!_search) {
+        _search = std::make_shared<search_view_t>(this);
+    }
+    return _search;
 }
 
 void editor_view_t::request_highlight(block_ptr block)
