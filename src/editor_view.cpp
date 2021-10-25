@@ -132,12 +132,59 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
     if (!data)
         return false;
 
-    // find span
-    bool found = false;
-    span_info_t ss;
-    int pos;
+    // find rich text
+    rich_text_block_t* ctb = 0;
+    for(auto c : ev->subcontent->children) {
+        rich_text_block_t* tb = (rich_text_block_t*)c.get();
+        if (tb->block == block) {
+            ctb = tb;
+            break;
+        }
+    }
 
-    return false;
+    if (!ctb) return false;
+
+    // find span
+    layout_text_span_t* cts = 0;
+    for (auto span : ctb->layout()->children) {
+        layout_text_span_t* text_span = (layout_text_span_t*)span.get();
+        if (!text_span->visible)
+            continue;
+        if (cursor.position() >= text_span->start && cursor.position() < text_span->start + text_span->length) {
+            cts = text_span;
+            break;
+        }
+    }
+
+    if (!cts) return false;
+
+    // find adjacent span
+    layout_text_span_t* target = 0;
+    int offset = (cursor.position() - cts->start) * ev->font()->width;
+    int x = cts->render_rect.x + offset;
+    int y = cts->render_rect.y;
+    if (dir < 0) {
+        y -= (ev->block_height * 0.5f);
+    } else {
+        y += (ev->block_height * 1.5f);
+    }
+    point_t p = { x, y };
+    for (auto span : ctb->layout()->children) {
+        layout_text_span_t* text_span = (layout_text_span_t*)span.get();
+        if (!text_span->visible)
+            continue;
+        
+        if (point_in_rect(p, text_span->render_rect)) {
+            target = text_span;
+            break;
+        }
+    }
+
+    if (!target) return false;
+
+    offset = (target->render_rect.x - x) / ev->font()->width;
+    cursor.setPosition(cursor.block(), target->start - offset);
+    return true;
 }
 
 bool editor_view_t::handle_key_sequence(event_t& event)
@@ -147,6 +194,7 @@ bool editor_view_t::handle_key_sequence(event_t& event)
     if (!editor) {
         return false;
     }
+    std::string text = event.text;
 
     cursor_t cursor = editor->document.cursor();
 
@@ -164,18 +212,23 @@ bool editor_view_t::handle_key_sequence(event_t& event)
         scroll_up();
         return true;
     }
+    case MOVE_CURSOR_UP_ANCHORED:
+    case MOVE_CURSOR_DOWN_ANCHORED:
     case MOVE_CURSOR_UP:
     case MOVE_CURSOR_DOWN: {
-        block_ptr block = cursor.block();
-        if (wrapped && block->lineCount > 1) {
-            if (_move_cursor(this, cursor, op == MOVE_CURSOR_UP ? -1 : 1)) {
-                //     text = "";
-                //     std::ostringstream ss;
-                //     ss << (block->lineNumber + 1);
-                //     ss << ":";
-                //     ss << cursor.position();
-                //     int mods = Renderer::instance()->key_mods();
-                //     editor->pushOp((mods & K_MOD_CTRL) ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
+        if (wrapped) {
+            block_ptr block = cursor.block();
+            bool nav_wrapped = block->lineCount > 1;
+            bool up = (op == MOVE_CURSOR_UP || op == MOVE_CURSOR_UP_ANCHORED);
+            if (nav_wrapped && _move_cursor(this, cursor, up ? -1 : 1)) {
+                    std::ostringstream ss;
+                    ss << (block->lineNumber + 1);
+                    ss << ":";
+                    ss << cursor.position();
+                    bool anchor = (op == MOVE_CURSOR_UP_ANCHORED || op == MOVE_CURSOR_DOWN_ANCHORED);
+                    editor->pushOp(anchor ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
+                    text = "";
+                    op = operation_e::UNKNOWN;
             }
         }
         break;
@@ -183,7 +236,6 @@ bool editor_view_t::handle_key_sequence(event_t& event)
 
     case MOVE_CURSOR_NEXT_PAGE:
     case MOVE_CURSOR_NEXT_PAGE_ANCHORED: {
-        op = operation_e::UNKNOWN;
         view_ptr last;
         for (auto c : subcontent->children) {
             if (c->layout()->visible) {
@@ -197,14 +249,15 @@ bool editor_view_t::handle_key_sequence(event_t& event)
             ss << lb->block->lineNumber;
             ss << ":";
             ss << cursor.position();
-            int mods = system_t::instance()->key_mods();
-            editor->pushOp((mods & K_MOD_SHIFT) ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
+            bool anchor = op == MOVE_CURSOR_NEXT_PAGE_ANCHORED;
+            editor->pushOp(anchor ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
         }
+        text = "";
+        op = operation_e::UNKNOWN;
         break;
     }
     case MOVE_CURSOR_PREVIOUS_PAGE:
     case MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED: {
-        op = operation_e::UNKNOWN;
         view_ptr first;
         for (auto c : subcontent->children) {
             if (c->layout()->visible) {
@@ -222,15 +275,17 @@ bool editor_view_t::handle_key_sequence(event_t& event)
             ss << line;
             ss << ":";
             ss << cursor.position();
-            int mods = system_t::instance()->key_mods();
-            editor->pushOp((mods & K_MOD_SHIFT) ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
+            bool anchor = op == MOVE_CURSOR_PREVIOUS_PAGE_ANCHORED;
+            editor->pushOp(anchor ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
         }
+        text = "";
+        op = operation_e::UNKNOWN;
         break;
     }
     }
 
     if (op != operation_e::UNKNOWN) {
-        editor->input(-1, event.text);
+        editor->input(-1, text);
     }
     editor->runAllOps();
 
@@ -264,31 +319,6 @@ bool editor_view_t::handle_key_sequence(event_t& event)
     update_blocks();
     ensure_visible_cursor();
     relayout_virtual_blocks();
-
-    // check cursor offscreen (yeah, wrapped lines is currently expensive)
-    if (wrapped && editor->document.cursors.size() == 1) {
-        layout_item_ptr lo = layout();
-        layout_item_ptr slo = scrollarea->layout();
-    
-        cursor_t cursor = editor->document.cursor();
-        block_ptr block = cursor.block();
-        for(auto c : subcontent->children) {
-            rich_text_block_t* tb = (rich_text_block_t*)c.get();
-            if (tb->block == block) {
-                int y = tb->layout()->render_rect.y;
-                int pad = block_height * SCROLL_Y_BOTTOM_PAD;
-                if (y > slo->render_rect.y + slo->render_rect.h - pad) {
-                    int diff = (slo->render_rect.y + slo->render_rect.h) - y;
-                    // printf(">>>>%d\n", diff);
-                    slo->scroll_y -= (-diff + pad);
-                    update_blocks();
-                    relayout_virtual_blocks();
-                    update_scrollbars();
-                } 
-                break;
-            }
-        }
-    }
     return true;
 }
 
@@ -446,6 +476,32 @@ void editor_view_t::ensure_visible_cursor()
     cursor_t cursor = editor->document.cursor();
     if (!is_cursor_visible(cursor)) {
         scroll_to_cursor(cursor);
+
+        // check cursor offscreen (yeah, wrapped lines is currently expensive)
+        if (wrapped && editor->document.cursors.size() == 1) {
+            relayout_virtual_blocks();
+            layout_item_ptr lo = layout();
+            layout_item_ptr slo = scrollarea->layout();
+        
+            cursor_t cursor = editor->document.cursor();
+            block_ptr block = cursor.block();
+            for(auto c : subcontent->children) {
+                rich_text_block_t* tb = (rich_text_block_t*)c.get();
+                if (tb->block == block) {
+                    int y = tb->layout()->render_rect.y;
+                    int pad = block_height * SCROLL_Y_BOTTOM_PAD;
+                    if (y > slo->render_rect.y + slo->render_rect.h - pad) {
+                        int diff = (slo->render_rect.y + slo->render_rect.h) - y;
+                        // printf(">>>>%d\n", diff);
+                        slo->scroll_y -= (-diff + pad);
+                        update_blocks();
+                        relayout_virtual_blocks();
+                        update_scrollbars();
+                    } 
+                    break;
+                }
+            }
+        }
     }
 }
 
