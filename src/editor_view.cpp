@@ -1,13 +1,12 @@
 #include "editor_view.h"
 #include "completer_view.h"
-#include "search_view.h"
 #include "damage.h"
 #include "gutter.h"
 #include "hash.h"
 #include "indexer.h"
 #include "minimap.h"
 #include "popup.h"
-#include "system.h"
+#include "search_view.h"
 #include "system.h"
 #include "text.h"
 
@@ -131,7 +130,7 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
     // find rich text
     rich_text_block_t* ctb = NULL;
     rich_text_block_t* pctb = NULL;
-    for(auto c : ev->subcontent->children) {
+    for (auto c : ev->subcontent->children) {
         rich_text_block_t* tb = (rich_text_block_t*)c.get();
         if (tb->block == block) {
             ctb = tb;
@@ -140,7 +139,8 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
         pctb = tb;
     }
 
-    if (!ctb) return false;
+    if (!ctb)
+        return false;
 
     // find span
     layout_text_span_t* cts = 0;
@@ -154,7 +154,8 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
         }
     }
 
-    if (!cts) return false;
+    if (!cts)
+        return false;
 
     // if move up to previous block
     int loop = 1;
@@ -163,7 +164,8 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
         loop = 2;
     }
 
-    if (!ctb) return false;
+    if (!ctb)
+        return false;
 
     // find adjacent span
     layout_text_span_t* target = 0;
@@ -177,7 +179,7 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
     }
 
     // find a hit
-    for(int i=0;i<loop;i++) {
+    for (int i = 0; i < loop; i++) {
         point_t p = { x, y };
         for (auto span : ctb->layout()->children) {
             layout_text_span_t* text_span = (layout_text_span_t*)span.get();
@@ -188,7 +190,8 @@ bool _move_cursor(editor_view_t* ev, cursor_t& cursor, int dir)
                 break;
             }
         }
-        if (target) break;
+        if (target)
+            break;
         y -= ev->block_height;
     }
 
@@ -269,15 +272,15 @@ bool editor_view_t::handle_key_sequence(event_t& event)
             block_ptr prev = block->previous();
             bool nav_wrapped = block->lineCount > 1 || (prev && prev->lineCount > 1 && up);
             if (nav_wrapped && _move_cursor(this, cursor, up ? -1 : 1)) {
-                    std::ostringstream ss;
-                    ss << (cursor.block()->lineNumber + 1);
-                    ss << ":";
-                    ss << cursor.position();
-                    printf(">>%s\n", ss.str().c_str());
-                    bool anchor = (op == MOVE_CURSOR_UP_ANCHORED || op == MOVE_CURSOR_DOWN_ANCHORED);
-                    editor->pushOp(anchor ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
-                    text = "";
-                    op = operation_e::UNKNOWN;
+                std::ostringstream ss;
+                ss << (cursor.block()->lineNumber + 1);
+                ss << ":";
+                ss << cursor.position();
+                printf(">>%s\n", ss.str().c_str());
+                bool anchor = (op == MOVE_CURSOR_UP_ANCHORED || op == MOVE_CURSOR_DOWN_ANCHORED);
+                editor->pushOp(anchor ? MOVE_CURSOR_ANCHORED : MOVE_CURSOR, ss.str());
+                text = "";
+                op = operation_e::UNKNOWN;
             }
         }
         break;
@@ -530,10 +533,7 @@ view_ptr editor_view_t::search()
 
 void editor_view_t::request_highlight(block_ptr block)
 {
-    if ((wheel_y > 100 || wheel_y < -100) ||
-        is_dragged(v_scroll.get()) || 
-        is_dragged(v_scroll->content().get()) || 
-        is_dragged(_minimap.get())) {
+    if ((wheel_y > 100 || wheel_y < -100) || is_dragged(v_scroll.get()) || is_dragged(v_scroll->content().get()) || is_dragged(_minimap.get())) {
         // printf("busy..\n");
         return;
     }

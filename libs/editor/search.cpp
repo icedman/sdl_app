@@ -96,8 +96,7 @@ std::vector<search_result_t> search_t::find(std::string str, std::string pat)
                 // pat[i] == ')' ||
                 pat[i] == '[' ||
                 // pat[i] == ']' ||
-                pat[i] == '/' ||
-                pat[i] == '*' ||
+                pat[i] == '/' || pat[i] == '*' ||
                 // pat[i] == '{' ||
                 pat[i] == '}') {
                 pat[i] = '.';

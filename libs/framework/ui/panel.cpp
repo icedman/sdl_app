@@ -4,7 +4,7 @@
 #include "scrollbar.h"
 #include "system.h"
 
-#define ENABLE_SENSITIVE_WHEEL
+// #define ENABLE_SENSITIVE_WHEEL
 
 static inline bool same_sign(int num1, int num2)
 {
@@ -147,16 +147,20 @@ bool panel_t::handle_mouse_wheel(event_t& event)
         vi = 0;
     vs->set_index(vi);
 
-    #ifdef ENABLE_SENSITIVE_WHEEL
+#ifdef ENABLE_SENSITIVE_WHEEL
     if (event.x != -1 && event.y != -1) {
-        if (!same_sign(wheel_x, event.sx)) wheel_x = 0;
-        if (!same_sign(wheel_y, event.sy)) wheel_y = 0;
+        if (!same_sign(wheel_x, event.sx))
+            wheel_x = 0;
+        if (!same_sign(wheel_y, event.sy))
+            wheel_y = 0;
         wheel_x += wheel_x * 0.025f + event.sx * 40.0f;
         wheel_y += wheel_y * 0.025f + event.sy * 40.0f;
-        if (wheel_y < -8000) wheel_y = -8000;
-        if (wheel_y > 8000) wheel_y = 8000;
+        if (wheel_y < -8000)
+            wheel_y = -8000;
+        if (wheel_y > 8000)
+            wheel_y = 8000;
     }
-    #endif
+#endif
 
     return true;
 }
@@ -214,7 +218,8 @@ void panel_t::update()
         system_t::instance()->caffeinate();
         if (wheel_y > 20 || wheel_y < -20) {
             int coef = wheel_y / 50;
-            if (coef == 0) coef = wheel_y < 0 ? -1 : 1;
+            if (coef == 0)
+                coef = wheel_y < 0 ? -1 : 1;
             printf(">%d\n", coef);
             event_t event;
             event.sx = 0;

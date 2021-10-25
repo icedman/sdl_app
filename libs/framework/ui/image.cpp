@@ -97,13 +97,14 @@ void icon_view_t::render(renderer_t* renderer)
 
     if (character.length()) {
         layout_item_ptr lo = layout();
-        renderer->draw_text(icon_font.get(), (char*)character.c_str(), lo->render_rect.x + icon_font->width/2, lo->render_rect.y, {255,255,255});
+        renderer->draw_text(icon_font.get(), (char*)character.c_str(), lo->render_rect.x + icon_font->width / 2, lo->render_rect.y, { 255, 255, 255 });
     }
 }
 
 void icon_view_t::load_icon(std::string path, std::string c)
 {
-    if (!system_t::instance()->renderer.register_font(path)) return;
+    if (!system_t::instance()->renderer.register_font(path))
+        return;
 
     icon_font = system_t::instance()->renderer.create_font("seti", 12);
     image = nullptr;

@@ -113,7 +113,7 @@ bool system_t::init()
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE | SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-    
+
     renderer.init(width, height);
 
     SDL_GetMouseState(&mouse_x, &mouse_y);

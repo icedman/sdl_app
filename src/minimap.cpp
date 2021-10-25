@@ -3,9 +3,9 @@
 #include "hash.h"
 
 #define DRAW_SCALE 0.80f
-#define DRAW_SPACING 2
+#define DRAW_SPACING 3
 #define DRAW_HEIGHT 1
-#define DRAW_ALPHA 150
+#define DRAW_ALPHA 200
 #define DRAW_MARGIN_LEFT 8
 
 minimap_t::minimap_t(editor_view_t* editor)

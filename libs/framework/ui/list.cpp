@@ -133,14 +133,16 @@ void list_t::select_previous()
 
 void list_t::scroll_to_index(int index)
 {
-    if (index < 0) return;
+    if (index < 0)
+        return;
 
     layout_item_ptr slo = scrollarea->layout();
 
     int y = selected_index * item_height();
     rect_t r = slo->render_rect;
     r.h -= item_height() * 4;
-    if (r.h < 0) return;
+    if (r.h < 0)
+        return;
 
     if (point_in_rect({ slo->render_rect.x + 1, slo->render_rect.y + y + slo->scroll_y }, r)) {
         return;
@@ -150,7 +152,7 @@ void list_t::scroll_to_index(int index)
     int scroll_to_y = -y;
 
     if (prev_scroll_y > scroll_to_y) {
-        scroll_to_y += slo->render_rect.h/2;
+        scroll_to_y += slo->render_rect.h / 2;
     }
     slo->scroll_y = scroll_to_y;
 }
@@ -246,7 +248,7 @@ void list_t::relayout_virtual_items()
     // layout_item_ptr slo = scrollarea->layout();
 
     scrollarea->cast<scrollarea_t>()->scroll_factor_x = font()->width;
-    scrollarea->cast<scrollarea_t>()->scroll_factor_y = item_height() / 2;
+    scrollarea->cast<scrollarea_t>()->scroll_factor_y = item_height() * 0.5f;
 
     first_visible = -slo->scroll_y / item_height();
     std::vector<list_item_data_t>::iterator it = data.begin();

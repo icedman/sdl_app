@@ -499,7 +499,7 @@ icon_t icon_for_file(icon_theme_ptr icons, std::string filename, std::vector<str
                 Json::Value src = fonts[0]["src"];
                 if (src.size()) {
                     Json::Value path = src[0]["path"];
-                    res.path = icons->icons_path + "/" + path.asString();    
+                    res.path = icons->icons_path + "/" + path.asString();
                     res.svg = false;
                     cache.emplace(cacheId, res);
                 }

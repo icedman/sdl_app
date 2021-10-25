@@ -254,7 +254,7 @@ void rich_text_t::relayout_virtual_blocks()
     tail_spacer->layout()->height = (blocks_count - visible_blocks) * block_height;
 
     scrollarea->cast<scrollarea_t>()->scroll_factor_x = font()->width;
-    scrollarea->cast<scrollarea_t>()->scroll_factor_y = font()->height * 0.25f;
+    scrollarea->cast<scrollarea_t>()->scroll_factor_y = font()->height * 0.85f;
 
     first_visible = -slo->scroll_y / block_height;
 
@@ -389,10 +389,10 @@ void rich_text_t::ensure_visible_cursor()
             relayout_virtual_blocks();
             layout_item_ptr lo = layout();
             layout_item_ptr slo = scrollarea->layout();
-        
+
             cursor_t cursor = editor->document.cursor();
             block_ptr block = cursor.block();
-            for(auto c : subcontent->children) {
+            for (auto c : subcontent->children) {
                 rich_text_block_t* tb = (rich_text_block_t*)c.get();
                 if (tb->block == block) {
                     int y = tb->layout()->render_rect.y;
@@ -404,7 +404,7 @@ void rich_text_t::ensure_visible_cursor()
                         update_blocks();
                         relayout_virtual_blocks();
                         update_scrollbars();
-                    } 
+                    }
                     break;
                 }
             }
@@ -425,16 +425,16 @@ bool rich_text_t::is_cursor_visible(cursor_t cursor)
     cursor_screen_x += slo->scroll_x;
     cursor_screen_y += slo->scroll_y;
 
-    point_t p = { slo->render_rect.x + cursor_screen_x + font()->width/2, slo->render_rect.y + cursor_screen_y };
+    point_t p = { slo->render_rect.x + cursor_screen_x + font()->width / 2, slo->render_rect.y + cursor_screen_y };
     rect_t r = slo->render_rect;
 
     if (slo->scroll_x < 0)
         r.y += (SCROLL_X_LEFT_PAD * font()->width);
-    r.w -= (SCROLL_X_RIGHT_PAD) * font()->width;
+    r.w -= (SCROLL_X_RIGHT_PAD)*font()->width;
 
     if (slo->scroll_y < 0)
         r.y += (SCROLL_Y_TOP_PAD * block_height);
-    r.h -= (SCROLL_Y_BOTTOM_PAD) * block_height;
+    r.h -= (SCROLL_Y_BOTTOM_PAD)*block_height;
 
     return point_in_rect(p, r);
 }
@@ -454,11 +454,11 @@ void rich_text_t::scroll_to_cursor(cursor_t cursor)
     }
 
     if (prev_scroll_x > scroll_to_x) {
-        scroll_to_x += slo->render_rect.w/2;// - ((SCROLL_X_RIGHT_PAD + 8)* font()->width);
+        scroll_to_x += slo->render_rect.w / 2; // - ((SCROLL_X_RIGHT_PAD + 8)* font()->width);
     }
-    
+
     scroll_to_y = -cursor_y(cursor);
-    
+
     if (slo->scroll_y < 0)
         scroll_to_y += (SCROLL_Y_TOP_PAD * block_height);
     if (scroll_to_y > 0) {

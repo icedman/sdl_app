@@ -50,7 +50,8 @@ struct pango_font_t : font_t {
 };
 
 pango_font_t::pango_font_t()
-{}
+{
+}
 
 pango_font_t::~pango_font_t()
 {
@@ -63,12 +64,13 @@ pango_font_t::~pango_font_t()
 static std::vector<std::string> registered_fonts;
 bool pango_register_font(char* path)
 {
-    for(auto s : registered_fonts) {
-        if (s == path) return true;
+    for (auto s : registered_fonts) {
+        if (s == path)
+            return true;
     }
-    
+
     registered_fonts.push_back(path);
-    const FcChar8 * fontFile = (const FcChar8 *)path;
+    const FcChar8* fontFile = (const FcChar8*)path;
     FcBool fontAddStatus = FcConfigAppFontAddFile(FcConfigGetCurrent(), fontFile);
     // FcChar8 *configName = FcConfigFilename(NULL);
     return fontAddStatus;
@@ -392,23 +394,22 @@ inline int pango_font_draw_span(renderer_t* renderer, font_t* font, char* text, 
     // cairo_set_font_size(cairo_context, sz);
 
 #ifdef FONT_FIX_FIXED_WIDTH_EXTENTS
-    for(int ti=0; ti<span.length;) {
+    for (int ti = 0; ti < span.length;) {
         int ln = 1;
 
         // firables
-        if (ti+1<span.length) {
+        if (ti + 1 < span.length) {
             // look ahead
-            for(int li=0;;li++) {
+            for (int li = 0;; li++) {
                 if (_ligatures[li][0] == 0) {
                     break;
                 }
-                if (_ligatures[li][0] == *(text + (span.start + ti)) && 
-                    _ligatures[li][1] == *(text + (span.start + ti + 1))) {
+                if (_ligatures[li][0] == *(text + (span.start + ti)) && _ligatures[li][1] == *(text + (span.start + ti + 1))) {
                     ln = 2;
                 }
             }
         }
-        
+
         cairo_set_source_rgb(cairo_context, (float)_clr.r / 255, (float)_clr.g / 255, (float)_clr.b / 255);
         cairo_move_to(cairo_context, x + (span.start + ti) * fnt->width, y);
         pango_layout_set_text(_pf->layout, text + (span.start + ti), ln);

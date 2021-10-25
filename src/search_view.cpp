@@ -1,6 +1,6 @@
 #include "search_view.h"
-#include "editor_view.h"
 #include "editor.h"
+#include "editor_view.h"
 #include "indexer.h"
 #include "input_text.h"
 #include "popup.h"
@@ -69,18 +69,18 @@ search_view_t::search_view_t(editor_view_t* e)
 
 bool search_view_t::update_data(std::string text)
 {
-	input->cast<input_text_t>()->set_value(text);
-	if (text.length()) {
-		editor_ptr e = input->cast<input_text_t>()->editor;
-		e->pushOp(SELECT_ALL, "");
-		e->runAllOps();
-	}
-	layout()->height = font()->height + 16;
-	popup_manager_t::instance()->cast<popup_manager_t>()->clear();
+    input->cast<input_text_t>()->set_value(text);
+    if (text.length()) {
+        editor_ptr e = input->cast<input_text_t>()->editor;
+        e->pushOp(SELECT_ALL, "");
+        e->runAllOps();
+    }
+    layout()->height = font()->height + 16;
+    popup_manager_t::instance()->cast<popup_manager_t>()->clear();
 
-	layout_clear_hash(input->layout(), 6);
-	input->relayout();
-	return true;
+    layout_clear_hash(input->layout(), 6);
+    input->relayout();
+    return true;
 }
 
 void search_view_t::render(renderer_t* renderer)
@@ -95,7 +95,7 @@ bool search_view_t::handle_key_sequence(event_t& event)
     operation_e op = operationFromKeys(event.text);
     switch (op) {
     case ENTER:
-		commit();
+        commit();
         return true;
     }
 
@@ -111,7 +111,7 @@ bool search_view_t::handle_key_text(event_t& event)
 
 bool search_view_t::commit()
 {
-	editor_ptr editor = this->editor->editor;
+    editor_ptr editor = this->editor->editor;
     struct document_t* doc = &editor->document;
     struct cursor_t cursor = doc->cursor();
     struct block_t& block = *cursor.block();
@@ -141,44 +141,44 @@ bool search_view_t::commit()
 
     } else {
 
-		if (inputtext.length() < 3) {
-	        _findNext = false;
-	        return false;
-	    }
+        if (inputtext.length() < 3) {
+            _findNext = false;
+            return false;
+        }
 
-	    struct cursor_t cur = cursor;
-	    if (!_findNext) {
-	        cur.moveLeft(inputtext.length());
-	    }
-	    _findNext = false;
+        struct cursor_t cur = cursor;
+        if (!_findNext) {
+            cur.moveLeft(inputtext.length());
+        }
+        _findNext = false;
 
-	    bool found = cur.findWord(inputtext, _searchDirection);
-	    if (!found) {
-	        if (_searchDirection == 0) {
-	            cur.moveStartOfDocument();
-	        } else {
-	            cur.moveEndOfDocument();
-	        }
-	        found = cur.findWord(inputtext, _searchDirection);
-	    }
+        bool found = cur.findWord(inputtext, _searchDirection);
+        if (!found) {
+            if (_searchDirection == 0) {
+                cur.moveStartOfDocument();
+            } else {
+                cur.moveEndOfDocument();
+            }
+            found = cur.findWord(inputtext, _searchDirection);
+        }
 
-	    if (found) {
-	        // printf("found %s %d\n", inputtext.c_str(), cur.block()->lineNumber + 1);
-	        std::ostringstream ss;
-	        ss << (cur.anchorBlock()->lineNumber + 1);
-	        ss << ":";
-	        ss << cur.anchorPosition();
-	        editor->pushOp(MOVE_CURSOR, ss.str());
-	        ss.str("");
-	        ss.clear();
-	        ss << (cur.block()->lineNumber + 1);
-	        ss << ":";
-	        ss << cur.position();
-	        editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
-	        editor->runAllOps();
-	        _findNext = true;
-	    }
-	}
+        if (found) {
+            // printf("found %s %d\n", inputtext.c_str(), cur.block()->lineNumber + 1);
+            std::ostringstream ss;
+            ss << (cur.anchorBlock()->lineNumber + 1);
+            ss << ":";
+            ss << cur.anchorPosition();
+            editor->pushOp(MOVE_CURSOR, ss.str());
+            ss.str("");
+            ss.clear();
+            ss << (cur.block()->lineNumber + 1);
+            ss << ":";
+            ss << cur.position();
+            editor->pushOp(MOVE_CURSOR_ANCHORED, ss.str());
+            editor->runAllOps();
+            _findNext = true;
+        }
+    }
 
     this->editor->update_blocks();
     this->editor->ensure_visible_cursor();

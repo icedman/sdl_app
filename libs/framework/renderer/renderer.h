@@ -54,7 +54,7 @@ struct renderer_t {
     void set_default_font(font_ptr font);
     font_ptr default_font();
     font_ptr font(std::string alias);
-    
+
     context_ptr create_context(int w, int h);
 
     void clear(color_t clr);
