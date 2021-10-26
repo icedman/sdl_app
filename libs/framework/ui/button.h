@@ -8,7 +8,13 @@ struct button_t : horizontal_container_t {
 
     DECLAR_VIEW_TYPE(view_type_e::BUTTON, horizontal_container_t)
 
-    view_ptr text;
+    void set_text(std::string text);
+    void set_icon(std::string text);
+    view_ptr text();
+    view_ptr icon();
+
+    view_ptr _text;
+    view_ptr _icon;
 
     void render(renderer_t* renderer) override;
 };

@@ -245,8 +245,8 @@ bool editor_view_t::handle_key_sequence(event_t& event)
             pm->clear();
 
             point_t pos = {
-                scrollarea->layout()->render_rect.x + scrollarea->layout()->render_rect.w,
-                scrollarea->layout()->render_rect.y
+                system_t::instance()->renderer.width(),
+                0
             };
             rect_t rect = { pos.x, pos.y, font()->width, font()->height };
             pm->push_at(search(), rect, POPUP_DIRECTION_LEFT);

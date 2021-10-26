@@ -8,6 +8,7 @@ enum view_type_e {
     TEXT_BLOCK,
     BUTTON,
     IMAGE,
+    ICON,
     PANEL,
     POPUP,
     LIST,

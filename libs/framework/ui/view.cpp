@@ -30,6 +30,7 @@ const char* view_type_names[] = {
     "text_block",
     "button",
     "image",
+    "icon",
     "panel",
     "popup",
     "list",
@@ -52,6 +53,7 @@ static size_t _views = 0;
 view_t::view_t()
     : parent(0)
     , uid(0)
+    , display(true)
     , disabled(false)
     , can_focus(false)
     , can_hover(false)
@@ -227,6 +229,7 @@ void view_t::prerender()
     layout_item_ptr item = layout();
     state.pressed = false;
     state.hovered = is_hovered(this);
+    state.display = display;
     state.rect = item->render_rect;
     state.scroll_x = item->scroll_x;
     state.scroll_y = item->scroll_y;

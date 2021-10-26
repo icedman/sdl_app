@@ -9,6 +9,7 @@
 #include "system.h"
 #include "tasks.h"
 #include "view.h"
+#include "icons.h"
 
 #include "operation.h"
 
@@ -20,11 +21,13 @@ void render_layout_item(renderer_t* renderer, layout_item_ptr item);
 extern "C" int main(int argc, char** argv)
 {
     system_t* sys = system_t::instance();
+
     damage_t* dmg = NULL; // disabled initially
 
     renderer_t* renderer = &sys->renderer;
     events_manager_t* events_manager = events_manager_t::instance();
     tasks_manager_t* tasks_manager = tasks_manager_t::instance();
+    icons_factory_t* icons_factory = icons_factory_t::instance();
 
     renderer->foreground = { 255, 255, 255 };
     renderer->background = { 50, 50, 50 };
@@ -46,6 +49,8 @@ extern "C" int main(int argc, char** argv)
 
     view_ptr root = test(argc, argv);
     root->add_child(popup_manager_t::instance());
+
+    icons_factory->load_icons("./icons/ionic.json");
 
     int suspend_frame_skipping = 0;
     bool did_layout = true;

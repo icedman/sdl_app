@@ -137,7 +137,14 @@ void minimap_t::render(renderer_t* renderer)
                 }
 
                 int start = s.start * DRAW_SCALE;
+                if (s.start < ind) {
+                    start = ind * DRAW_SCALE;
+                }
+
                 int length = s.length * DRAW_SCALE;
+                if (s.start < ind) {
+                    length -= ind * DRAW_SCALE;
+                }
                 if (length == 0 && s.length > 0) {
                     length = 1;
                     clr.a = alpha / 2;
@@ -157,7 +164,7 @@ void minimap_t::render(renderer_t* renderer)
                     r.w = lo->render_rect.w - (start + 2);
                 }
 
-                if (r.w > 0 && s.start >= ind) {
+                if (r.w > 0) {
                     renderer->draw_rect(r,
                         clr,
                         true, 0);

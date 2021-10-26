@@ -115,6 +115,11 @@ bool app_view_t::handle_key_sequence(event_t& event)
     case POPUP_COMMANDS:
         show_files();
         break;
+    case TOGGLE_SIDEBAR:
+        sidebar->layout()->visible = !sidebar->layout()->visible;
+        layout_clear_hash(layout(), 2);
+        layout_request();
+        break;
     }
 
     return false;

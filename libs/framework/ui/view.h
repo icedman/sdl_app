@@ -89,6 +89,7 @@ struct view_t : events_manager_t, event_object_t {
     font_ptr font();
     font_ptr _font;
 
+    bool display;
     bool disabled;
     bool can_focus;
     bool can_hover;
@@ -96,6 +97,7 @@ struct view_t : events_manager_t, event_object_t {
     struct view_state_t {
         bool hovered;
         bool pressed;
+        bool display;
         rect_t rect;
         int scroll_x;
         int scroll_y;

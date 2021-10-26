@@ -184,6 +184,7 @@ void panel_t::postlayout()
         bottom->layout()->visible = false;
     }
 
+    // can cause endless loops
     if (prev != bottom->layout()->visible) {
         relayout();
     }

@@ -51,9 +51,15 @@ view_ptr tabbar_t::create_item()
     view_ptr text = std::make_shared<text_t>("ITEM TEMPLATE");
     item->add_child(text);
     item->add_child(btn);
-    btn->layout()->width = 32;
+    btn->layout()->width = 14;
+    btn->layout()->height = 14;
     btn->layout()->fit_children_y = false;
     btn->layout()->margin = 2;
+
+    btn->cast<button_t>()->set_icon("si-ionic-close");
+    // btn->cast<button_t>()->icon()->layout()->width = 24;
+    // btn->cast<button_t>()->icon()->layout()->height = 24;
+
     item->layout()->visible = false;
     item->layout()->preferred_constraint.max_width = font()->width * 20;
 

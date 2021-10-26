@@ -1,6 +1,6 @@
 #include "list.h"
 #include "hash.h"
-#include "image.h"
+#include "icons.h"
 #include "scrollarea.h"
 #include "system.h"
 #include "text.h"
@@ -81,10 +81,10 @@ list_t::list_t()
     , tail_pad(TAIL_PAD)
     , selected_index(-1)
 {
-    layout()->prelayout = [this](layout_item_t* item) {
-        this->prelayout();
-        return true;
-    };
+    // layout()->prelayout = [this](layout_item_t* item) {
+    //     this->prelayout();
+    //     return true;
+    // };
 
     layout()->name = "list";
 }
@@ -185,18 +185,16 @@ void list_t::update_item(view_ptr item, list_item_data_t data)
 {
     item->cast<list_item_t>()->item_data = data;
     item->cast<list_item_t>()->find_child(view_type_e::SPACER)->layout()->width = data.indent ? data.indent : 1;
+    icon_view_t *icon = item->cast<list_item_t>()->find_child(view_type_e::ICON)->cast<icon_view_t>();
     if (data.icon != "") {
-        if (data.icon_font != "") {
-            item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->cast<icon_view_t>()->load_icon(data.icon_font, data.icon);
-        } else {
-            item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->cast<icon_view_t>()->load_image(data.icon, 24, 24);
-        }
-        item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->layout()->visible = true;
-        item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->layout()->width = 32;
+        icon->load_image(data.icon, 24, 24);
+        icon->layout()->visible = true;
+        icon->layout()->width = 24;
+        icon->layout()->height = 24;
     } else {
-        item->cast<list_item_t>()->find_child(view_type_e::IMAGE)->layout()->visible = false;
+        icon->layout()->visible = false;
     }
-    item->cast<list_item_t>()->find_child(view_type_e::TEXT)->cast<text_t>()->set_text(data.text);
+    item->cast<list_item_t>()->find_child(view_type_e::TEXT)->cast<text_t>()->set_text(" " + data.text);
     item->layout()->visible = true;
 }
 
@@ -298,12 +296,12 @@ void list_t::update_data(std::vector<list_item_data_t> _data)
     }
 
     // hacky
-    int h = layout()->render_rect.h;
-    layout_run(layout(), { 0, 0, layout()->render_rect.w, 400 });
-    layout_run(layout(), { 0, 0, layout()->render_rect.w, h });
+    // int h = layout()->render_rect.h;
+    // layout_run(layout(), { 0, 0, layout()->render_rect.w, 400 });
+    // layout_run(layout(), { 0, 0, layout()->render_rect.w, h });
 
     relayout_virtual_items();
-    rerender();
+    // rerender();
 }
 
 bool list_t::handle_mouse_wheel(event_t& event)

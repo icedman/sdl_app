@@ -35,6 +35,9 @@ splitter_t::splitter_t(view_t* target, view_t* container)
     });
     on(EVT_HOVER_IN, [this](event_t& evt) {
         evt.cancelled = true;
+        if (!this->target || !this->target->layout()->visible) {
+            return true;
+        }
         if (this->layout()->is_column()) {
             system_t::instance()->set_cursor(cursor_e::RESIZE_EW);
         } else {
@@ -51,8 +54,9 @@ splitter_t::splitter_t(view_t* target, view_t* container)
 
 bool splitter_t::handle_mouse_drag_start(event_t& event)
 {
-    if (!target)
+    if (!target || !target->layout()->visible) {
         return true;
+    }
     start_width = target->layout()->render_rect.w;
     start_height = target->layout()->render_rect.h;
     drag_start_x = event.x;

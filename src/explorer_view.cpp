@@ -50,7 +50,7 @@ explorer_view_t::explorer_view_t()
 
     layout()->margin_left = 8;
     layout()->margin_top = 8;
-    layout()->margin_bottom = 8;
+    layout()->margin_bottom = 0;
     layout()->margin_right = 0;
 }
 

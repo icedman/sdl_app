@@ -168,22 +168,57 @@ image_ptr renderer_t::create_image(int w, int h)
     return image_ptr(img);
 }
 
-image_ptr renderer_t::create_image_from_svg(std::string path, int w, int h)
+image_ptr renderer_t::create_image_from_svg(std::string path, int w, int h, std::string alias)
 {
     for (auto f : image_cache) {
-        if (f->path == path) {
+        if (f->path == path || (f->alias == alias && alias.length())) {
             return f;
         }
     }
 
     image_ptr img = create_image(w, h);
     img->path = path;
+    img->alias = alias;
 
 #ifdef ENABLE_SVG
     RsvgHandle* svg = rsvg_handle_new_from_file(path.c_str(), 0);
-    if (svg) {
-        rsvg_handle_render_cairo(svg, ((cairo_context_t*)img.get())->cairo_context);
+        if (svg) {
+
+        double width;
+        double height;
+        rsvg_handle_get_intrinsic_size_in_pixels (svg, &width, &height);
+
+        RsvgRectangle box;
+        rsvg_handle_get_intrinsic_dimensions (svg, // RsvgHandle *handle,
+                                      NULL, //gboolean *out_has_width,
+                                      NULL, //RsvgLength *out_width,
+                                      NULL, //gboolean *out_has_height,
+                                      NULL, //RsvgLength *out_height,
+                                      NULL, //gboolean *out_has_viewbox,
+                                      &box); // RsvgRectangle *out_viewbox);
+
+        if (width == 0) {
+            width = box.width;
+        }
+        if (height == 0) {
+            height = box.height;
+        }
+
+        cairo_t *ctx = ((cairo_context_t*)img.get())->cairo_context;
+
+        float sx = (float)img->width/width;
+        float sy = (float)img->height/height;
+        float sz = (sx < sy) ? sx : sy;
+        
+        cairo_save(ctx);
+        cairo_scale(ctx, sz, sz);
+
+        // printf("%d %d %d %d\n", (int)box.width, (int)box.height, img->width, img->height);
+
+        rsvg_handle_render_cairo(svg, ctx);
         rsvg_handle_free(svg);
+
+        cairo_restore(ctx);
     }
 #endif
 
@@ -191,10 +226,68 @@ image_ptr renderer_t::create_image_from_svg(std::string path, int w, int h)
     return img;
 }
 
-image_ptr renderer_t::create_image_from_png(std::string path)
+image_ptr renderer_t::create_image_from_svg_data(std::string data, int w, int h, std::string alias)
 {
     for (auto f : image_cache) {
-        if (f->path == path) {
+        if (f->alias == alias && alias.length()) {
+            return f;
+        }
+    }
+
+    image_ptr img = create_image(w, h);
+    img->path = alias;
+    img->alias = alias;
+
+#ifdef ENABLE_SVG
+    RsvgHandle* svg = rsvg_handle_new_from_data((const uint8_t*)data.c_str(), data.length(), NULL);
+    if (svg) {
+
+        double width;
+        double height;
+        rsvg_handle_get_intrinsic_size_in_pixels (svg, &width, &height);
+
+        RsvgRectangle box;
+        rsvg_handle_get_intrinsic_dimensions (svg, // RsvgHandle *handle,
+                                      NULL, //gboolean *out_has_width,
+                                      NULL, //RsvgLength *out_width,
+                                      NULL, //gboolean *out_has_height,
+                                      NULL, //RsvgLength *out_height,
+                                      NULL, //gboolean *out_has_viewbox,
+                                      &box); // RsvgRectangle *out_viewbox);
+
+        if (width == 0) {
+            width = box.width;
+        }
+        if (height == 0) {
+            height = box.height;
+        }
+
+        cairo_t *ctx = ((cairo_context_t*)img.get())->cairo_context;
+
+        float sx = (float)img->width/width;
+        float sy = (float)img->height/height;
+        float sz = (sx < sy) ? sx : sy;
+        cairo_save(ctx);
+        cairo_scale(ctx, sz, sz);
+
+        // printf("%d %d %d %d\n", (int)box.width, (int)box.height, img->width, img->height);
+
+        rsvg_handle_render_cairo(svg, ctx);
+        rsvg_handle_free(svg);
+
+        cairo_restore(ctx);
+    }
+#endif
+
+    image_cache.push_back(img);
+    return img;
+}
+
+
+image_ptr renderer_t::create_image_from_png(std::string path, std::string alias)
+{
+    for (auto f : image_cache) {
+        if (f->path == path || (f->alias == alias && alias.length())) {
             return f;
         }
     }
@@ -206,6 +299,7 @@ image_ptr renderer_t::create_image_from_png(std::string path)
 
     image_ptr img = create_image(cairo_image_surface_get_width(image), cairo_image_surface_get_height(image));
     img->path = path;
+    img->alias = alias;
 
     color_t clr = { 255, 0, 255 };
     cairo_t* cairo_context = ((cairo_context_t*)img.get())->cairo_context;
@@ -216,6 +310,16 @@ image_ptr renderer_t::create_image_from_png(std::string path)
 
     image_cache.push_back(img);
     return img;
+}
+
+image_ptr renderer_t::image(std::string alias)
+{
+    for (auto f : image_cache) {
+        if (f->alias == alias) {
+            return f;
+        }
+    }
+    return nullptr;
 }
 
 bool renderer_t::register_font(std::string path)
@@ -266,7 +370,7 @@ font_ptr renderer_t::font(std::string alias)
             return f;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void renderer_t::clear(color_t clr)

@@ -3,6 +3,8 @@
 #include "hash.h"
 #include "text_block.h"
 
+#define GUTTER_CURRENT_ALPHA 75
+
 gutter_t::gutter_t(editor_view_t* editor)
     : vertical_container_t()
     , editor(editor)
@@ -39,6 +41,9 @@ void gutter_t::render(renderer_t* renderer)
     layout_item_ptr lo = layout();
     // renderer->draw_rect(lo->render_rect, editor->bg, true);
 
+    cursor_t cursor = editor->editor->document.cursor();
+    block_ptr current_block = cursor.block();
+
     while (children.size() < subcontent->children.size()) {
         view_ptr item = std::make_shared<text_block_t>();
         item->layout()->stack = true;
@@ -53,11 +58,20 @@ void gutter_t::render(renderer_t* renderer)
         clr = editor->fg;
     }
 
+    color_t sel = editor->sel;
+    sel.a = GUTTER_CURRENT_ALPHA;
+
     for (auto c : subcontent->children) {
         rich_text_block_t* cb = c->cast<rich_text_block_t>();
         if (!cb->is_visible() || !cb->block)
             break;
         std::string text = std::to_string(cb->block->lineNumber + 1);
+
+        if (cb->block == current_block && current_block) {
+            rect_t r = { lo->render_rect.x, c->layout()->render_rect.y, lo->render_rect.w, font()->height };
+            renderer->draw_rect(r, sel);
+        }
+
         renderer->draw_text(font().get(), (char*)text.c_str(),
             lo->render_rect.x + lo->render_rect.w - (text.length() + 1) * font()->width,
             c->layout()->render_rect.y, clr);
@@ -66,14 +80,19 @@ void gutter_t::render(renderer_t* renderer)
 
 int gutter_t::content_hash(bool peek)
 {
+    cursor_t cursor = editor->editor->document.cursor();
+    block_ptr current_block = cursor.block();
+
     struct gutter_hash_data_t {
         int scroll_x;
         int scroll_y;
+        size_t line;
     };
 
     gutter_hash_data_t hash_data = {
         editor->scrollarea->layout()->scroll_x,
-        editor->scrollarea->layout()->scroll_y
+        editor->scrollarea->layout()->scroll_y,
+        current_block ? current_block->lineNumber : 0
     };
 
     int hash = murmur_hash(&hash_data, sizeof(gutter_hash_data_t), CONTENT_HASH_SEED);

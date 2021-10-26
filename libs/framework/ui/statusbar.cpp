@@ -6,7 +6,7 @@
 statusbar_t::statusbar_t()
     : horizontal_container_t()
 {
-    layout()->margin = 4;
+    layout()->margin = 2;
     layout()->height = font()->height + layout()->margin * 2;
 
     left = std::make_shared<horizontal_container_t>();

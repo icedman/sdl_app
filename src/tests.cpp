@@ -12,6 +12,7 @@
 #include "tabbar.h"
 #include "text.h"
 #include "text_block.h"
+#include "icons.h"
 #include "view.h"
 
 #include "grammar.h"
@@ -262,17 +263,24 @@ view_ptr test4(int argc, char** argv)
     {
         view_ptr button = std::make_shared<button_t>();
         std::string text = "Button";
-        text_t* button_text = button->cast<button_t>()->text->cast<text_t>();
-        button_text->set_text(text);
+        button->cast<button_t>()->set_icon("si-ionic-android-arrow-down");
+        button->cast<button_t>()->set_text(text);
         vc->add_child(button);
+
+        view_ptr image = std::make_shared<image_view_t>();
+        image->cast<image_view_t>()->set_image(
+            system_t::instance()->renderer.image("si-ionic-android-arrow-back")
+        );
+        vc->add_child(image);
+        // image->layout()->width = 400;
+        // image->layout()->height = 400;
     }
 
     view_ptr hc = std::make_shared<horizontal_container_t>();
     {
         view_ptr button = std::make_shared<button_t>();
         std::string text = "Button";
-        text_t* button_text = button->cast<button_t>()->text->cast<text_t>();
-        button_text->set_text(text);
+        button->cast<button_t>()->set_text(text);
         hc->add_child(button);
     }
 
@@ -430,30 +438,29 @@ view_ptr test3(int argc, char** argv)
     for (int i = 0; i < 8; i++) {
         view_ptr button = std::make_shared<button_t>();
         std::string text = "Button " + std::to_string(i);
-        text_t* button_text = button->cast<button_t>()->text->cast<text_t>();
-        button_text->set_text(text);
+        button->cast<button_t>()->set_text(text);
         toolbar->add_child(button);
 
-        if (i == 0) {
-            button_text->on(EVT_KEY_TEXT, [button_text](event_t& event) {
-                if (event.text == " ") {
-                    button_text->set_text("");
-                } else {
-                    button_text->set_text(button_text->text() + event.text);
-                }
-                return true;
-            });
+        // if (i == 0) {
+        //     button_text->on(EVT_KEY_TEXT, [button_text](event_t& event) {
+        //         if (event.text == " ") {
+        //             button->cast<button_t>()->set_text("");
+        //         } else {
+        //             button->cast<button_t>()->set_text(button_text->text() + event.text);
+        //         }
+        //         return true;
+        //     });
 
-            button->on(EVT_MOUSE_DOWN, [button_text](event_t& event) {
-                popup_manager_t::instance()->cast<popup_manager_t>()->push_at(create_menu(), button_text->layout()->render_rect);
-                return true;
-            });
-        } else {
-            button->on(EVT_MOUSE_DOWN, [text](event_t& event) {
-                printf("%s\n", text.c_str());
-                return true;
-            });
-        }
+        //     button->on(EVT_MOUSE_DOWN, [button_text](event_t& event) {
+        //         popup_manager_t::instance()->cast<popup_manager_t>()->push_at(create_menu(), button_text->layout()->render_rect);
+        //         return true;
+        //     });
+        // } else {
+        //     button->on(EVT_MOUSE_DOWN, [text](event_t& event) {
+        //         printf("%s\n", text.c_str());
+        //         return true;
+        //     });
+        // }
     }
 
     return view;

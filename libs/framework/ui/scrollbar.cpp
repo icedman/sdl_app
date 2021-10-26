@@ -191,7 +191,10 @@ void scrollbar_t::set_size(int c, int w)
         count = c;
         window = w;
 
-        layout()->visible = count > window;
+        display = count * 0.95f > window;
+        // layout()->visible = display;
+        // layout()->visible = count > window;
+        
         relayout();
     }
 }
@@ -199,6 +202,7 @@ void scrollbar_t::set_size(int c, int w)
 void scrollbar_t::render(renderer_t* renderer)
 {
     // render_frame(renderer);
+    if (!display) return;
 
     layout_item_ptr lo = layout();
     layout_item_ptr lot = content()->layout();

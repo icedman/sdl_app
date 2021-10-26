@@ -104,6 +104,7 @@ framework_files = [
     'libs/framework/ui/damage.cpp',
     'libs/framework/ui/button.cpp',
     'libs/framework/ui/image.cpp',
+    'libs/framework/ui/icons.cpp',
     'libs/framework/ui/list.cpp',
     'libs/framework/ui/panel.cpp',
     'libs/framework/ui/popup.cpp',

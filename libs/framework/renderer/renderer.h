@@ -13,6 +13,7 @@ struct image_t {
     int width;
     int height;
     std::string path;
+    std::string alias;
 };
 
 typedef image_t context_t;
@@ -46,8 +47,10 @@ struct renderer_t {
     int height();
 
     image_ptr create_image(int w, int h);
-    image_ptr create_image_from_svg(std::string path, int w, int h);
-    image_ptr create_image_from_png(std::string path);
+    image_ptr create_image_from_svg(std::string path, int w, int h, std::string alias = "");
+    image_ptr create_image_from_svg_data(std::string content, int w, int h, std::string alias = "");
+    image_ptr create_image_from_png(std::string path, std::string alias = "");
+    image_ptr image(std::string alias);
 
     bool register_font(std::string path);
     font_ptr create_font(std::string name, int size, std::string alias = "");

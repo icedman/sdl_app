@@ -578,8 +578,16 @@ void layout_clear_hash(layout_item_ptr item, int depth)
     }
 }
 
+static int lock_from_endless_loop = 0;
+
 void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
 {
+    if (lock_from_endless_loop>2) {
+        printf("warning on relayout!\n");
+        return;
+    }
+
+    lock_from_endless_loop++;
     prelayout_run(item);
 
     items_visited = 0;
@@ -602,7 +610,8 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
     postlayout_run(item);
     layout_compute_absolute_position(item);
 
-    // _LOG("%s %d\n", item->name.c_str(), items_visited);
+    _LOG("%s %d\n", item->name.c_str(), items_visited);
+    lock_from_endless_loop--;
 }
 
 static bool compare_item_order(layout_item_ptr f1, layout_item_ptr f2)

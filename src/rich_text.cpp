@@ -20,7 +20,7 @@ rich_text_block_t::rich_text_block_t()
 rich_text_t::rich_text_t()
     : panel_t()
     , visible_blocks(0)
-    , wrapped(true)
+    , wrapped(false)
     , draw_cursors(false)
     , defer_relayout(DEFER_LAYOUT_FRAMES)
     , scroll_to_x(-1)
@@ -187,6 +187,7 @@ void rich_text_t::prelayout()
     fg = { 255, 255, 255, 0 };
     sel = { 150, 150, 150, 125 };
 
+    // todo!!
     if (editor->highlighter.theme) {
         color_info_t t_clr;
         color_t clr;
