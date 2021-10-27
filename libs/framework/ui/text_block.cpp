@@ -169,8 +169,9 @@ int text_block_t::content_hash(bool peek)
             _content_hash = hash;
         }
     }
-    if (hash == 0 && _text.length()) {
-        hash = murmur_hash(_text.c_str(), _text.length(), CONTENT_HASH_SEED);
+    if (hash == 0) {
+        std::string tmp = _text + "]";
+        hash = murmur_hash(tmp.c_str(), tmp.length(), CONTENT_HASH_SEED);
         if (!peek) {
             _content_hash = hash;
         }

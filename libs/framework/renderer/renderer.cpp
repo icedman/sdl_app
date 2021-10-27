@@ -182,20 +182,20 @@ image_ptr renderer_t::create_image_from_svg(std::string path, int w, int h, std:
 
 #ifdef ENABLE_SVG
     RsvgHandle* svg = rsvg_handle_new_from_file(path.c_str(), 0);
-        if (svg) {
+    if (svg) {
 
         double width;
         double height;
-        rsvg_handle_get_intrinsic_size_in_pixels (svg, &width, &height);
+        rsvg_handle_get_intrinsic_size_in_pixels(svg, &width, &height);
 
         RsvgRectangle box;
-        rsvg_handle_get_intrinsic_dimensions (svg, // RsvgHandle *handle,
-                                      NULL, //gboolean *out_has_width,
-                                      NULL, //RsvgLength *out_width,
-                                      NULL, //gboolean *out_has_height,
-                                      NULL, //RsvgLength *out_height,
-                                      NULL, //gboolean *out_has_viewbox,
-                                      &box); // RsvgRectangle *out_viewbox);
+        rsvg_handle_get_intrinsic_dimensions(svg, // RsvgHandle *handle,
+            NULL, //gboolean *out_has_width,
+            NULL, //RsvgLength *out_width,
+            NULL, //gboolean *out_has_height,
+            NULL, //RsvgLength *out_height,
+            NULL, //gboolean *out_has_viewbox,
+            &box); // RsvgRectangle *out_viewbox);
 
         if (width == 0) {
             width = box.width;
@@ -204,12 +204,12 @@ image_ptr renderer_t::create_image_from_svg(std::string path, int w, int h, std:
             height = box.height;
         }
 
-        cairo_t *ctx = ((cairo_context_t*)img.get())->cairo_context;
+        cairo_t* ctx = ((cairo_context_t*)img.get())->cairo_context;
 
-        float sx = (float)img->width/width;
-        float sy = (float)img->height/height;
+        float sx = (float)img->width / width;
+        float sy = (float)img->height / height;
         float sz = (sx < sy) ? sx : sy;
-        
+
         cairo_save(ctx);
         cairo_scale(ctx, sz, sz);
 
@@ -244,16 +244,16 @@ image_ptr renderer_t::create_image_from_svg_data(std::string data, int w, int h,
 
         double width;
         double height;
-        rsvg_handle_get_intrinsic_size_in_pixels (svg, &width, &height);
+        rsvg_handle_get_intrinsic_size_in_pixels(svg, &width, &height);
 
         RsvgRectangle box;
-        rsvg_handle_get_intrinsic_dimensions (svg, // RsvgHandle *handle,
-                                      NULL, //gboolean *out_has_width,
-                                      NULL, //RsvgLength *out_width,
-                                      NULL, //gboolean *out_has_height,
-                                      NULL, //RsvgLength *out_height,
-                                      NULL, //gboolean *out_has_viewbox,
-                                      &box); // RsvgRectangle *out_viewbox);
+        rsvg_handle_get_intrinsic_dimensions(svg, // RsvgHandle *handle,
+            NULL, //gboolean *out_has_width,
+            NULL, //RsvgLength *out_width,
+            NULL, //gboolean *out_has_height,
+            NULL, //RsvgLength *out_height,
+            NULL, //gboolean *out_has_viewbox,
+            &box); // RsvgRectangle *out_viewbox);
 
         if (width == 0) {
             width = box.width;
@@ -262,10 +262,10 @@ image_ptr renderer_t::create_image_from_svg_data(std::string data, int w, int h,
             height = box.height;
         }
 
-        cairo_t *ctx = ((cairo_context_t*)img.get())->cairo_context;
+        cairo_t* ctx = ((cairo_context_t*)img.get())->cairo_context;
 
-        float sx = (float)img->width/width;
-        float sy = (float)img->height/height;
+        float sx = (float)img->width / width;
+        float sy = (float)img->height / height;
         float sz = (sx < sy) ? sx : sy;
         cairo_save(ctx);
         cairo_scale(ctx, sz, sz);
@@ -282,7 +282,6 @@ image_ptr renderer_t::create_image_from_svg_data(std::string data, int w, int h,
     image_cache.push_back(img);
     return img;
 }
-
 
 image_ptr renderer_t::create_image_from_png(std::string path, std::string alias)
 {

@@ -18,15 +18,17 @@ statusbar_t::statusbar_t()
     add_child(right);
 }
 
-view_ptr statusbar_t::add_status(std::string text, int pos, int order)
+view_ptr statusbar_t::add_status(std::string text, int edge, int pos)
 {
     view_ptr p = std::make_shared<text_t>(text);
-    p->layout()->order = order;
-    if (p == 0) {
+    p->layout()->order = pos;
+    if (edge == 0) {
         left->add_child(p);
     } else {
         right->add_child(p);
     }
+    p->layout()->margin_left = 8;
+    p->layout()->margin_right = 8;
     return p;
 }
 

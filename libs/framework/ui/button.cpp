@@ -1,8 +1,8 @@
 #include "button.h"
+#include "icons.h"
 #include "renderer.h"
 #include "system.h"
 #include "text.h"
-#include "icons.h"
 
 button_t::button_t(std::string t)
     : horizontal_container_t()
@@ -37,7 +37,7 @@ void button_t::set_icon(std::string img)
 }
 
 view_ptr button_t::text()
-{ 
+{
     if (!_text) {
         _text = std::make_shared<text_t>();
         add_child(_text);

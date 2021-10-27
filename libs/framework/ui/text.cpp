@@ -21,8 +21,12 @@ std::string text_t::text()
 
 void text_t::set_text(std::string text)
 {
-    _text = text;
-    layout()->content_hash = content_hash(true);
+    if (_text != text) {
+        _text = text;
+        if (parent) {
+            parent->relayout();
+        }
+    }
 }
 
 void text_t::prelayout()

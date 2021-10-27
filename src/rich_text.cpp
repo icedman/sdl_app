@@ -467,7 +467,7 @@ void rich_text_t::scroll_to_cursor(cursor_t cursor)
     }
 
     if (prev_scroll_y > scroll_to_y) {
-        int y = lo->render_rect.h - (block_height * SCROLL_Y_BOTTOM_PAD);
+        int y = lo->render_rect.h - (block_height * (SCROLL_Y_BOTTOM_PAD + 1));
         block_ptr block = cursor.block();
         while (block && y > 0) {
             if (block->lineCount == 0) {

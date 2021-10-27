@@ -38,7 +38,8 @@ app_view_t::app_view_t()
 
     statusbar = std::make_shared<statusbar_t>();
 
-    fps = statusbar->cast<statusbar_t>()->add_status("", 0, 0);
+    line_column = statusbar->cast<statusbar_t>()->add_status("", 1, 0);
+    doc_type = statusbar->cast<statusbar_t>()->add_status("", 1, 0);
     add_child(statusbar);
 
     tabs->cast<tabbed_content_t>()->tabbar()->on(EVT_ITEM_SELECT, [this](event_t& evt) {
@@ -92,6 +93,18 @@ void app_view_t::update()
         if (!e->view) {
             create_editor(e);
         }
+    }
+
+    // update status bar
+    editor_ptr editor = app->currentEditor;
+    if (editor) {
+        cursor_t cursor = editor->document.cursor();
+        std::string lc = "Line ";
+        lc += std::to_string(cursor.block()->lineNumber + 1);
+        lc += ", Column ";
+        lc += std::to_string(cursor.position() + 1);
+        lc += "  ";
+        line_column->cast<text_t>()->set_text(lc);
     }
 
     view_t::update();
@@ -185,6 +198,18 @@ void app_view_t::create_editor(editor_ptr editor)
 
     update_tabs();
     show_editor(editor);
+
+    if (ev->editor && ev->editor->highlighter.lang) {
+        doc_type->cast<text_t>()->set_text(" " + ev->editor->highlighter.lang->id + " ");
+    }
+
+    ev->on(EVT_FOCUS_IN, [this, ev](event_t& event) {
+        app_t::instance()->currentEditor = ev->editor;
+        if (ev->editor && ev->editor->highlighter.lang) {
+            doc_type->cast<text_t>()->set_text(" " + ev->editor->highlighter.lang->id + " ");
+        }
+        return true;
+    });
 }
 
 void app_view_t::destroy_editor(editor_ptr editor)

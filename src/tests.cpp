@@ -1,5 +1,6 @@
 #include "button.h"
 #include "events.h"
+#include "icons.h"
 #include "image.h"
 #include "layout.h"
 #include "list.h"
@@ -12,7 +13,6 @@
 #include "tabbar.h"
 #include "text.h"
 #include "text_block.h"
-#include "icons.h"
 #include "view.h"
 
 #include "grammar.h"
@@ -269,8 +269,7 @@ view_ptr test4(int argc, char** argv)
 
         view_ptr image = std::make_shared<image_view_t>();
         image->cast<image_view_t>()->set_image(
-            system_t::instance()->renderer.image("si-ionic-android-arrow-back")
-        );
+            system_t::instance()->renderer.image("si-ionic-android-arrow-back"));
         vc->add_child(image);
         // image->layout()->width = 400;
         // image->layout()->height = 400;

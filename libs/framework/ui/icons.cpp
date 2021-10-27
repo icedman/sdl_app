@@ -1,9 +1,9 @@
 #include "icons.h"
 #include "system.h"
 
-#include <json/json.h>
 #include <fstream>
 #include <iostream>
+#include <json/json.h>
 #include <sstream>
 #include <string>
 
@@ -106,7 +106,7 @@ void icons_factory_t::load_icons(std::string path, int w, int h)
         ss << "<svg xmlns=\"http://www.w3.org/2000/svg\" ";
         ss << "viewBox=\"" << box.asString() << "\">";
         if (path.isArray()) {
-            for(int j=0;j<path.size();j++) {
+            for (int j = 0; j < path.size(); j++) {
                 Json::Value d = path[j]["d"];
                 ss << "<path d=\"";
                 ss << d.asString();
@@ -128,4 +128,3 @@ image_ptr icons_factory_t::icon(std::string name)
 {
     return system_t::instance()->renderer.image(name);
 }
-

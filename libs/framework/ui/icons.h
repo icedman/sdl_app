@@ -1,8 +1,8 @@
 #ifndef ICONS_H
 #define ICONS_H
 
-#include "renderer.h"
 #include "image.h"
+#include "renderer.h"
 
 #include <memory>
 
@@ -16,6 +16,5 @@ struct icons_factory_t {
     void load_icons(std::string path, int w = 24, int h = 24);
     image_ptr icon(std::string name);
 };
-
 
 #endif // ICONS_H

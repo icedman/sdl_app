@@ -29,7 +29,8 @@ struct app_view_t : view_t {
     view_ptr cmd_actions;
     view_ptr cmd_files;
 
-    view_ptr fps;
+    view_ptr line_column;
+    view_ptr doc_type;
 };
 
 #endif // APP_VIEW_H

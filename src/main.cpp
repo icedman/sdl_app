@@ -4,12 +4,12 @@
 
 #include "damage.h"
 #include "hash.h"
+#include "icons.h"
 #include "layout.h"
 #include "popup.h"
 #include "system.h"
 #include "tasks.h"
 #include "view.h"
-#include "icons.h"
 
 #include "operation.h"
 

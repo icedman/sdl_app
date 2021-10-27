@@ -3,8 +3,6 @@
 
 #include <algorithm>
 
-#define _LOG printf
-
 static int items_visited = 0;
 static int items_computed = 0;
 
@@ -460,7 +458,7 @@ int layout_compute_hash(layout_item_ptr item)
         int scroll_y;
         int width;
         int height;
-        int content_hash;
+        // int content_hash;
         constraint_t constraint;
     };
 
@@ -471,16 +469,18 @@ int layout_compute_hash(layout_item_ptr item)
         item->scroll_y,
         item->width,
         item->height,
-        item->content_hash,
+        // item->content_hash,
         item->constraint
     };
 
     int hash = murmur_hash(&hash_data, sizeof(layout_hash_data_t), LAYOUT_HASH_SEED);
     for (auto c : item->children) {
-        if (!item->visible) continue;
+        if (!item->visible)
+            continue;
         hash = hash_combine(hash, c->state_hash);
     }
 
+    item->state_hash = hash;
     return hash;
 }
 
@@ -504,19 +504,21 @@ void postlayout_run(layout_item_ptr item)
     if (item->postlayout) {
         item->postlayout(item.get());
     }
-
-    item->state_hash = layout_compute_hash(item);
 }
 
 void _layout_run(layout_item_ptr item, constraint_t constraint)
 {
-    item->constraint = constraint;
-
-    if (layout_compute_hash(item) == item->state_hash) {
+    int prev_hash = item->state_hash;
+    layout_compute_hash(item);
+    if (prev_hash > 0 && prev_hash == item->state_hash) {
+        // printf("zz%s %x %x\n", item->name.c_str(), prev_hash, item->state_hash);
         return;
     }
 
+    item->constraint = constraint;
     items_visited++;
+
+    // printf("!!%s %x %x\n", item->name.c_str(), prev_hash, item->state_hash);
 
     // margin
     if (item->margin) {
@@ -566,7 +568,7 @@ void layout_compute_absolute_position(layout_item_ptr item)
 {
     // items_computed = 0;
     _layout_compute_absolute_position(item);
-    // _LOG("%s %d\n", item->name.c_str(), items_computed);
+    // printf("%s %d\n", item->name.c_str(), items_computed);
 }
 
 void layout_clear_hash(layout_item_ptr item, int depth)
@@ -583,7 +585,7 @@ static int lock_from_endless_loop = 0;
 
 void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
 {
-    if (lock_from_endless_loop>2) {
+    if (lock_from_endless_loop > 2) {
         printf("warning on relayout!\n");
         return;
     }
@@ -611,7 +613,7 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute)
     postlayout_run(item);
     layout_compute_absolute_position(item);
 
-    _LOG("%s %d\n", item->name.c_str(), items_visited);
+    printf("%s %d\n", item->name.c_str(), items_visited);
     lock_from_endless_loop--;
 }
 
@@ -637,5 +639,3 @@ bool layout_should_run()
     should_run = false;
     return res;
 }
-
-#undef _LOG

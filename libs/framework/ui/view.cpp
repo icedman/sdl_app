@@ -45,8 +45,8 @@ const char* view_type_names[] = {
     "custom"
 };
 
-#ifdef WATCH_LEAKS
 static size_t _uid = 0;
+#ifdef WATCH_LEAKS
 static size_t _views = 0;
 #endif
 
@@ -60,8 +60,8 @@ view_t::view_t()
     , _state_hash(0)
     , _content_hash(0)
 {
-#ifdef WATCH_LEAKS
     uid = _uid++;
+#ifdef WATCH_LEAKS
     _views++;
     printf("v[%d] %s\n", uid, type_name().c_str());
 #endif
@@ -212,8 +212,11 @@ bool view_t::is_visible()
     return layout()->visible;
 }
 
-void view_t::relayout()
+void view_t::relayout(int depth)
 {
+    if (depth > 0) {
+        layout_clear_hash(layout(), depth);
+    }
     layout_run(layout(), {}, true);
 }
 

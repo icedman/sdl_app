@@ -64,7 +64,7 @@ struct view_t : events_manager_t, event_object_t {
     void set_visible(bool visible);
     bool is_visible();
 
-    void relayout();
+    void relayout(int depth = 0);
 
     static bool is_hovered(view_t* view);
     static bool is_focused(view_t* view);

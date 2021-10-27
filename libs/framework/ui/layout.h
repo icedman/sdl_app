@@ -98,7 +98,6 @@ struct layout_item_t {
 
         , content_hash(0)
         , state_hash(0)
-        , skip_layout(false)
         , rgb({ 255, 0, 255 })
     {
     }
@@ -143,7 +142,6 @@ struct layout_item_t {
     rect_t _rect;
     int content_hash;
     int state_hash;
-    bool skip_layout;
 
     bool is_column()
     {
@@ -167,6 +165,7 @@ void layout_run(layout_item_ptr item, constraint_t constraint, bool recompute = 
 void layout_sort(layout_item_ptr item);
 void layout_compute_absolute_position(layout_item_ptr item);
 
+int layout_compute_hash(layout_item_ptr item);
 void layout_clear_hash(layout_item_ptr item, int depth);
 
 #endif // LAYOUT_H

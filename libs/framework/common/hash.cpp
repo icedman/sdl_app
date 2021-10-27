@@ -104,6 +104,7 @@ unsigned int murmur_hash(const void* key, int len, unsigned int seed)
 
 unsigned hash_combine(int lhs, int rhs)
 {
-    lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
-    return lhs;
+    // lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
+    // return lhs;
+    return lhs ^ rhs;
 }

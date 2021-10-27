@@ -185,7 +185,7 @@ void list_t::update_item(view_ptr item, list_item_data_t data)
 {
     item->cast<list_item_t>()->item_data = data;
     item->cast<list_item_t>()->find_child(view_type_e::SPACER)->layout()->width = data.indent ? data.indent : 1;
-    icon_view_t *icon = item->cast<list_item_t>()->find_child(view_type_e::ICON)->cast<icon_view_t>();
+    icon_view_t* icon = item->cast<list_item_t>()->find_child(view_type_e::ICON)->cast<icon_view_t>();
     if (data.icon != "") {
         icon->load_image(data.icon, 24, 24);
         icon->layout()->visible = true;
@@ -279,8 +279,8 @@ void list_t::relayout_virtual_items()
 
     tail_spacer->layout()->visible = tail_spacer->layout()->height > 1;
 
-    layout_clear_hash(layout(), 6);
-    relayout();
+    // layout_clear_hash(layout(), 6);
+    relayout(6);
 }
 
 void list_t::update_data(std::vector<list_item_data_t> _data)
