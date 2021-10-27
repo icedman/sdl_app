@@ -477,6 +477,7 @@ int layout_compute_hash(layout_item_ptr item)
 
     int hash = murmur_hash(&hash_data, sizeof(layout_hash_data_t), LAYOUT_HASH_SEED);
     for (auto c : item->children) {
+        if (!item->visible) continue;
         hash = hash_combine(hash, c->state_hash);
     }
 
