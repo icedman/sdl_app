@@ -123,15 +123,24 @@ void app_view_t::configure(int argc, char** argv)
 
 bool app_view_t::handle_key_sequence(event_t& event)
 {
+    app_t* app = app_t::instance();
+    
     operation_e op = operationFromKeys(event.text);
     switch (op) {
     case POPUP_COMMANDS:
         show_files();
         break;
+    
     case TOGGLE_SIDEBAR:
         sidebar->layout()->visible = !sidebar->layout()->visible;
         layout_clear_hash(layout(), 2);
         layout_request();
+        break;
+    
+    case CLOSE:
+        if (app->currentEditor) {
+            destroy_editor(app->currentEditor);
+        }
         break;
     }
 

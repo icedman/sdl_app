@@ -266,7 +266,7 @@ void view_t::render_frame(renderer_t* renderer)
 
 void view_t::render(renderer_t* renderer)
 {
-    // render_frame(renderer);
+    render_frame(renderer);
 }
 
 void view_t::propagate_event(event_t& event)
