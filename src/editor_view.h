@@ -36,6 +36,7 @@ struct editor_view_t : rich_text_t {
     view_ptr minimap();
     view_ptr completer();
     view_ptr search();
+    view_ptr prompt_filename();
 
     view_ptr _gutter;
     view_ptr _minimap;

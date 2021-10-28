@@ -4,6 +4,7 @@
 #include "color.h"
 #include "rect.h"
 #include <cstdint>
+#include <string>
 
 struct renderer_t;
 
@@ -41,5 +42,11 @@ struct styled_frame_t {
 };
 
 void render_styled_frame(renderer_t* renderer, rect_t rect, styled_frame_t& style);
+
+struct styled_sheets_t {
+    static styled_sheets_t* instance();
+
+    styled_frame_t style(std::string t);
+};
 
 #endif // VIEW_STYLE_H

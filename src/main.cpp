@@ -48,6 +48,7 @@ extern "C" int main(int argc, char** argv)
     sys->init();
 
     view_ptr root = test(argc, argv);
+    view_set_root(root);
     root->add_child(popup_manager_t::instance());
 
     icons_factory->load_icons("./icons/ionic.json");

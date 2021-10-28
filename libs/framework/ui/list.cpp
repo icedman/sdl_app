@@ -154,8 +154,9 @@ void list_t::scroll_to_index(int index)
     if (prev_scroll_y > scroll_to_y) {
         scroll_to_y += slo->render_rect.h / 2;
     }
-    if (scroll_to_y > 0) scroll_to_y = 0;
-    
+    if (scroll_to_y > 0)
+        scroll_to_y = 0;
+
     slo->scroll_y = scroll_to_y;
 }
 

@@ -6,9 +6,12 @@
 #include "indexer.h"
 #include "minimap.h"
 #include "popup.h"
+#include "prompt_view.h"
 #include "search_view.h"
 #include "system.h"
 #include "text.h"
+
+#include "app_view.h"
 
 #define PRE_VISIBLE_HL 20
 #define POST_VISIBLE_HL 100
@@ -230,6 +233,37 @@ bool editor_view_t::handle_key_sequence(event_t& event)
 
     // special navigation - move this to editor?
     switch (op) {
+
+    case SAVE: {
+        if (editor->document.fileName == "") {
+            std::string filename = "";
+            view_ptr _pm = popup_manager_t::instance();
+            popup_manager_t* pm = _pm->cast<popup_manager_t>();
+            pm->clear();
+
+            point_t pos = {
+                system_t::instance()->renderer.width(),
+                0
+            };
+
+            view_ptr prompt = prompt_filename();
+            // prompt->cast<prompt_view_t>()->input->cast<input_text_t>()->set_value(text);
+            prompt->layout()->height = font()->height + 16;
+            rect_t rect = { pos.x, pos.y, font()->width, font()->height };
+            pm->push_at(prompt, rect, POPUP_DIRECTION_LEFT);
+            pm->relayout();
+
+            prompt->on(EVT_ITEM_SELECT, [this, pm](event_t& evt) {
+                view_root()->cast<app_view_t>()->update_tabs();
+                pm->clear();
+
+                printf("saving %s\n", editor->document.fileName.c_str());
+                return true;
+            });
+        }
+        return false;
+    }
+
     case POPUP_SEARCH:
     case POPUP_SEARCH_LINE: {
         search_view_t* srch = search()->cast<search_view_t>();
@@ -250,6 +284,7 @@ bool editor_view_t::handle_key_sequence(event_t& event)
             };
             rect_t rect = { pos.x, pos.y, font()->width, font()->height };
             pm->push_at(search(), rect, POPUP_DIRECTION_LEFT);
+            pm->relayout();
         }
         return true;
     }
@@ -405,6 +440,7 @@ bool editor_view_t::handle_key_text(event_t& event)
                     pos.y - (block_height * 4) > scrollarea->layout()->render_rect.h / 2
                         ? POPUP_DIRECTION_UP
                         : POPUP_DIRECTION_DOWN);
+                pm->relayout();
             }
         }
     }
@@ -529,6 +565,12 @@ view_ptr editor_view_t::search()
         _search = std::make_shared<search_view_t>(this);
     }
     return _search;
+}
+
+view_ptr editor_view_t::prompt_filename()
+{
+    view_ptr res = std::make_shared<prompt_filename_t>(this);
+    return res;
 }
 
 void editor_view_t::request_highlight(block_ptr block)

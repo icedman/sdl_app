@@ -53,6 +53,7 @@ struct explorer_t {
     std::vector<struct fileitem_t*> allFiles;
     bool allFilesLoaded;
     int loadDepth;
+    std::string rootPath;
 
     int currentItem;
     bool regenerateList;

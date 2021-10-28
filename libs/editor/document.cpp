@@ -217,10 +217,18 @@ void document_t::saveAs(const char* path, bool replacePath)
 {
     if (binary)
         return;
+
+    if (replacePath) {
+        filePath = path;
+        fullPath = path;
+        fileName = path; // extract..
+    }
+
+    std::string lineEnd = windowsLineEnd ? WINDOWS_LINE_END : LINUX_LINE_END;
     std::ofstream tmp(path, std::ofstream::out);
     for (auto b : blocks) {
         std::string text = b->text();
-        tmp << text << std::endl;
+        tmp << text << lineEnd;
     }
 }
 

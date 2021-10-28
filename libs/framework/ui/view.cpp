@@ -7,8 +7,10 @@
 
 #include "text.h"
 
+#define WATCH_LEAKS
 #define DRAG_THRESHOLD 25 // distance squared
 
+view_ptr root;
 view_ptr view_hovered;
 view_ptr view_focused;
 view_ptr view_pressed;
@@ -147,6 +149,30 @@ view_ptr view_t::find_child(view_type_e t)
     return nullptr;
 }
 
+view_ptr view_t::find_parent(size_t uid)
+{
+    view_t* p = parent;
+    while (p) {
+        if (p->uid == uid) {
+            return p->ptr();
+        }
+        p = p->parent;
+    }
+    return nullptr;
+}
+
+view_ptr view_t::find_parent(view_type_e t)
+{
+    view_t* p = parent;
+    while (p) {
+        if (p->is_type_of(t)) {
+            return p->ptr();
+        }
+        p = p->parent;
+    }
+    return nullptr;
+}
+
 view_ptr view_t::ptr()
 {
     if (parent) {
@@ -156,7 +182,7 @@ view_ptr view_t::ptr()
             }
         }
     }
-    return nullptr;
+    return root;
 }
 
 void view_t::set_font(font_ptr font)
@@ -266,7 +292,7 @@ void view_t::render_frame(renderer_t* renderer)
 
 void view_t::render(renderer_t* renderer)
 {
-    render_frame(renderer);
+    // render_frame(renderer);
 }
 
 void view_t::propagate_event(event_t& event)
@@ -663,4 +689,14 @@ void view_render(renderer_t* renderer, view_ptr view, damage_t* damage)
 view_ptr view_current_focused()
 {
     return view_focused;
+}
+
+view_ptr view_root()
+{
+    return root;
+}
+
+view_ptr view_set_root(view_ptr r)
+{
+    root = r;
 }

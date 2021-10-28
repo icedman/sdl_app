@@ -3,28 +3,20 @@
 
 #include "editor.h"
 #include "popup.h"
+#include "prompt_view.h"
 
 struct editor_view_t;
-struct search_view_t : popup_t {
+struct search_view_t : prompt_view_t {
     search_view_t(editor_view_t* e);
 
     DECLAR_VIEW_TYPE(CUSTOM, popup_t)
     std::string type_name() override { return "search_view"; }
 
-    void render(renderer_t* renderer) override;
-    virtual bool handle_key_sequence(event_t& event);
-    virtual bool handle_key_text(event_t& event);
-
     bool update_data(std::string text);
     bool commit();
 
-    view_ptr input;
-
     bool _findNext;
     int _searchDirection;
-
-    editor_view_t* editor;
-    cursor_t current_cursor;
 };
 
 #endif // SEARCH_VIEW_H

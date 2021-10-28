@@ -55,6 +55,8 @@ struct view_t : events_manager_t, event_object_t {
     void remove_child(view_ptr view);
     view_ptr find_child(size_t uid);
     view_ptr find_child(view_type_e t);
+    view_ptr find_parent(size_t uid);
+    view_ptr find_parent(view_type_e t);
     view_ptr ptr();
 
     virtual void update();
@@ -137,6 +139,8 @@ struct horizontal_container_t : view_t {
     }
 };
 
+view_ptr view_root();
+view_ptr view_set_root(view_ptr r);
 void view_dispatch_events(event_list& events, view_list& views);
 void view_prerender(view_ptr view, view_list& visible_views, damage_t* damage = NULL);
 void view_render(renderer_t* renderer, view_ptr view, damage_t* damage = NULL);

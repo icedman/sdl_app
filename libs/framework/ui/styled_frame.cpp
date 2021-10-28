@@ -2,6 +2,8 @@
 #include "renderer.h"
 #include "view.h"
 
+static styled_sheets_t global_sheets;
+
 void render_styled_frame(renderer_t* renderer, rect_t rect, styled_frame_t& style)
 {
     rect_t r = rect;
@@ -28,4 +30,15 @@ void render_styled_frame(renderer_t* renderer, rect_t rect, styled_frame_t& styl
         }
         renderer->draw_rect(r, clr, false, style.border.width, clr, style.border_radius.width);
     }
+}
+
+styled_sheets_t* styled_sheets_t::instance()
+{
+    return &global_sheets;
+}
+
+styled_frame_t style(std::string t)
+{
+    styled_frame_t res;
+    return res;
 }

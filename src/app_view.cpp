@@ -101,9 +101,9 @@ void app_view_t::update()
         cursor_t cursor = editor->document.cursor();
         std::string lc = "Line ";
         lc += std::to_string(cursor.block()->lineNumber + 1);
-        lc += ", Column ";
+        lc += " Column ";
         lc += std::to_string(cursor.position() + 1);
-        lc += "  ";
+        lc += "    ";
         line_column->cast<text_t>()->set_text(lc);
     }
 
@@ -124,19 +124,19 @@ void app_view_t::configure(int argc, char** argv)
 bool app_view_t::handle_key_sequence(event_t& event)
 {
     app_t* app = app_t::instance();
-    
+
     operation_e op = operationFromKeys(event.text);
     switch (op) {
     case POPUP_COMMANDS:
         show_files();
         break;
-    
+
     case TOGGLE_SIDEBAR:
         sidebar->layout()->visible = !sidebar->layout()->visible;
         layout_clear_hash(layout(), 2);
         layout_request();
         break;
-    
+
     case CLOSE:
         if (app->currentEditor) {
             destroy_editor(app->currentEditor);
@@ -165,6 +165,7 @@ void app_view_t::show_files()
         popup_manager_t* pm = _pm->cast<popup_manager_t>();
         pm->clear();
         pm->push_at(cmd_files, { lo->render_rect.w / 2 - cmd_files->layout()->width / 2, 0, 0 });
+        pm->relayout();
     }
 }
 
